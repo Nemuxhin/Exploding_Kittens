@@ -1,4 +1,4 @@
-package easv.controller;
+package easv.gui.controller;
 
 public class MetadataController {
 }
