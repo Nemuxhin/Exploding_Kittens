@@ -9,8 +9,10 @@ import easv.be.ScanSession;
 import easv.dal.BoxDAO;
 import easv.dal.CaseFileDAO;
 import easv.dal.ClientDAO;
+import easv.dal.DatabaseConnection;
 import easv.dal.DocumentDAO;
 import easv.dal.PageImageDAO;
+import easv.dal.ScanSessionDAO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +26,19 @@ public class ScanManager {
     private final BoxDAO boxDAO;
     private final CaseFileDAO caseFileDAO;
     private final DocumentDAO documentDAO;
-    private final PageImageDAO pageImageDAO;
+    private final ScanSessionDAO scanSessionDAO;
 
     public ScanManager() {
-        this(new ScannerApiClient(), new BarcodeSplitService(), new ClientDAO(), new BoxDAO(), new CaseFileDAO(),
-                new DocumentDAO(), new PageImageDAO());
+        DatabaseConnection databaseConnection = new DatabaseConnection();
+        PageImageDAO pageImageDAO = new PageImageDAO(databaseConnection);
+        DocumentDAO documentDAO = new DocumentDAO(databaseConnection, pageImageDAO);
+        this.scannerApiClient = new ScannerApiClient();
+        this.barcodeSplitService = new BarcodeSplitService();
+        this.clientDAO = new ClientDAO(databaseConnection);
+        this.boxDAO = new BoxDAO(databaseConnection);
+        this.caseFileDAO = new CaseFileDAO(databaseConnection, documentDAO);
+        this.documentDAO = documentDAO;
+        this.scanSessionDAO = new ScanSessionDAO(databaseConnection);
     }
 
     public ScanManager(
@@ -38,7 +48,7 @@ public class ScanManager {
             BoxDAO boxDAO,
             CaseFileDAO caseFileDAO,
             DocumentDAO documentDAO,
-            PageImageDAO pageImageDAO
+            ScanSessionDAO scanSessionDAO
     ) {
         this.scannerApiClient = Objects.requireNonNull(scannerApiClient, "scannerApiClient");
         this.barcodeSplitService = Objects.requireNonNull(barcodeSplitService, "barcodeSplitService");
@@ -46,7 +56,7 @@ public class ScanManager {
         this.boxDAO = Objects.requireNonNull(boxDAO, "boxDAO");
         this.caseFileDAO = Objects.requireNonNull(caseFileDAO, "caseFileDAO");
         this.documentDAO = Objects.requireNonNull(documentDAO, "documentDAO");
-        this.pageImageDAO = Objects.requireNonNull(pageImageDAO, "pageImageDAO");
+        this.scanSessionDAO = Objects.requireNonNull(scanSessionDAO, "scanSessionDAO");
     }
 
     public Client registerClient(String clientNumber, String name) {
@@ -58,7 +68,9 @@ public class ScanManager {
     }
 
     public ScanSession startSession(String boxId, String description) {
-        return new ScanSession(registerBox(boxId, description));
+        ScanSession session = new ScanSession(registerBox(boxId, description));
+        scanSessionDAO.save(session);
+        return session;
     }
 
     public Optional<Document> importNextItem(ScanSession session) {
@@ -69,6 +81,7 @@ public class ScanManager {
             nextItem = scannerApiClient.fetchNextItem();
         } catch (ScannerApiClient.ScannerApiException ex) {
             session.recordFailure(ex.getMessage());
+            scanSessionDAO.recordFailure(session, ex.getMessage());
             return Optional.empty();
         }
 
@@ -81,10 +94,10 @@ public class ScanManager {
         Client client = registerClient(item.clientNumber(), item.clientName());
         Box box = registerBox(item.boxId(), item.boxDescription());
         CaseFile caseFile = caseFileDAO.saveOrGetExisting(item.caseReference(), client, box);
-        Document storedDocument = documentDAO.saveOrGetExisting(new Document(item.itemId(), pages));
-        pageImageDAO.saveAll(storedDocument.getId(), storedDocument.getPages());
+        Document storedDocument = documentDAO.saveOrGetExisting(new Document(item.itemId(), pages), caseFile.getId());
         caseFile.addDocument(storedDocument);
         session.addImportedDocument(storedDocument);
+        scanSessionDAO.linkDocument(session, storedDocument);
         return Optional.of(storedDocument);
     }
 
