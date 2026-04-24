@@ -2,6 +2,14 @@ package easv.bll;
 
 import org.junit.jupiter.api.Test;
 
+import easv.dal.BoxDAO;
+import easv.dal.CaseFileDAO;
+import easv.dal.ClientDAO;
+import easv.dal.DatabaseConnection;
+import easv.dal.DocumentDAO;
+import easv.dal.PageImageDAO;
+import easv.dal.ScanSessionDAO;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,15 +34,7 @@ class ScanManagerTest {
                 )
         ));
 
-        ScanManager scanManager = new ScanManager(
-                apiClient,
-                new BarcodeSplitService(),
-                new easv.dal.ClientDAO(),
-                new easv.dal.BoxDAO(),
-                new easv.dal.CaseFileDAO(),
-                new easv.dal.DocumentDAO(),
-                new easv.dal.PageImageDAO()
-        );
+        ScanManager scanManager = createScanManager(apiClient, "imports");
 
         var session = scanManager.startSession("BOX-9", "Shelf A");
         var imported = scanManager.importNextItem(session);
@@ -70,15 +70,7 @@ class ScanManagerTest {
                 List.of(new ScannerApiClient.ApiTiffPage(1, "page-002.tiff"))
         ));
 
-        ScanManager scanManager = new ScanManager(
-                apiClient,
-                new BarcodeSplitService(),
-                new easv.dal.ClientDAO(),
-                new easv.dal.BoxDAO(),
-                new easv.dal.CaseFileDAO(),
-                new easv.dal.DocumentDAO(),
-                new easv.dal.PageImageDAO()
-        );
+        ScanManager scanManager = createScanManager(apiClient, "dedupe");
 
         var session = scanManager.startSession("BOX-1", "Rack 1");
         scanManager.importAllAvailable(session);
@@ -105,15 +97,7 @@ class ScanManagerTest {
                 List.of(new ScannerApiClient.ApiTiffPage(1, "page-099.tiff"))
         ));
 
-        ScanManager scanManager = new ScanManager(
-                apiClient,
-                new BarcodeSplitService(),
-                new easv.dal.ClientDAO(),
-                new easv.dal.BoxDAO(),
-                new easv.dal.CaseFileDAO(),
-                new easv.dal.DocumentDAO(),
-                new easv.dal.PageImageDAO()
-        );
+        ScanManager scanManager = createScanManager(apiClient, "failures");
 
         var session = scanManager.startSession("BOX-99", "Overflow");
         var imported = scanManager.importAllAvailable(session);
@@ -123,5 +107,24 @@ class ScanManagerTest {
         assertEquals(1, imported.size());
         assertTrue(scanManager.findCaseFile("CASE-99").isPresent());
         assertFalse(scanManager.findCaseFile("Temporary API outage").isPresent());
+    }
+
+    private ScanManager createScanManager(ScannerApiClient apiClient, String databaseName) {
+        DatabaseConnection databaseConnection = new DatabaseConnection(
+                "jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1",
+                "sa",
+                ""
+        );
+        PageImageDAO pageImageDAO = new PageImageDAO(databaseConnection);
+        DocumentDAO documentDAO = new DocumentDAO(databaseConnection, pageImageDAO);
+        return new ScanManager(
+                apiClient,
+                new BarcodeSplitService(),
+                new ClientDAO(databaseConnection),
+                new BoxDAO(databaseConnection),
+                new CaseFileDAO(databaseConnection, documentDAO),
+                documentDAO,
+                new ScanSessionDAO(databaseConnection)
+        );
     }
 }
