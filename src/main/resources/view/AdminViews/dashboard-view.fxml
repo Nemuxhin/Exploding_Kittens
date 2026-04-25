@@ -1,14 +1,172 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0" >
+<ScrollPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="easv.gui.controller.Admin.DashboardController"
+            fitToWidth="true"
+            fitToHeight="true"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            minWidth="0"
+            minHeight="0"
+            maxWidth="Infinity"
+            maxHeight="Infinity"
+            styleClass="admin-page-scroll">
 
-</AnchorPane>
+    <content>
+        <VBox spacing="18"
+              fillWidth="true"
+              minWidth="0"
+              minHeight="0"
+              maxWidth="Infinity"
+              maxHeight="Infinity"
+              styleClass="admin-page main-content dashboard-page">
+
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
+
+            <VBox spacing="3" styleClass="page-heading-copy">
+                <Label text="Admin Dashboard" styleClass="page-title"/>
+                <Label text="Manage users, profiles, and system activity"
+                       styleClass="page-subtitle"/>
+            </VBox>
+
+            <HBox spacing="18"
+                  alignment="CENTER_LEFT"
+                  maxWidth="Infinity"
+                  styleClass="dashboard-stat-row">
+
+                <HBox alignment="CENTER_LEFT"
+                      spacing="18"
+                      HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity"
+                      styleClass="dashboard-stat-card">
+
+                    <StackPane styleClass="dashboard-stat-icon-box dashboard-icon-success">
+                        <SVGPath content="M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z"
+                                 styleClass="dashboard-stat-icon"/>
+                    </StackPane>
+
+                    <Label text="Total Users" styleClass="dashboard-stat-label"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Label fx:id="totalUsersValueLabel"
+                           text="0"
+                           styleClass="dashboard-stat-value"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT"
+                      spacing="18"
+                      HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity"
+                      styleClass="dashboard-stat-card">
+
+                    <StackPane styleClass="dashboard-stat-icon-box dashboard-icon-primary">
+                        <SVGPath content="M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2zm0 2v13h14v-13H5zm2.5 3h4.2a2.4 2.4 0 0 1 4.6 0h1.2v2h-1.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm6.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6zm-6.5 4.2h1.2a2.4 2.4 0 0 1 4.6 0h4.2v2h-4.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm3.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6z"
+                                 styleClass="dashboard-stat-icon"/>
+                    </StackPane>
+
+                    <Label text="Active Profiles" styleClass="dashboard-stat-label"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Label fx:id="activeProfilesValueLabel"
+                           text="0"
+                           styleClass="dashboard-stat-value"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT"
+                      spacing="18"
+                      HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity"
+                      styleClass="dashboard-stat-card">
+
+                    <StackPane styleClass="dashboard-stat-icon-box dashboard-icon-success">
+                        <SVGPath content="M3 17.5 9.2 11.3l3.3 3.3L20 7.1V12h2V3.5h-8.5v2H18l-5.5 5.5-3.3-3.3L1.5 15.4 3 17.5z"
+                                 styleClass="dashboard-stat-icon"/>
+                    </StackPane>
+
+                    <Label text="Scans Today" styleClass="dashboard-stat-label"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Label fx:id="scansTodayValueLabel"
+                           text="0"
+                           styleClass="dashboard-stat-value"/>
+                </HBox>
+            </HBox>
+
+            <VBox spacing="0"
+                  maxWidth="Infinity"
+                  VBox.vgrow="ALWAYS"
+                  styleClass="recent-activity-card">
+
+                <HBox alignment="CENTER_LEFT"
+                      styleClass="recent-activity-header">
+                    <Label text="Recent Activity"
+                           styleClass="recent-activity-title"/>
+                </HBox>
+
+                <VBox spacing="0"
+                      styleClass="recent-activity-list">
+
+                    <HBox alignment="CENTER_LEFT" styleClass="activity-row">
+                        <VBox spacing="6">
+                            <Label fx:id="activityOneTitleLabel" styleClass="activity-main-text"/>
+                            <Label fx:id="activityOneDetailLabel" styleClass="activity-sub-text"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="activityOneTimeLabel" styleClass="activity-time-text"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" styleClass="activity-row">
+                        <VBox spacing="6">
+                            <Label fx:id="activityTwoTitleLabel" styleClass="activity-main-text"/>
+                            <Label fx:id="activityTwoDetailLabel" styleClass="activity-sub-text"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="activityTwoTimeLabel" styleClass="activity-time-text"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" styleClass="activity-row">
+                        <VBox spacing="6">
+                            <Label fx:id="activityThreeTitleLabel" styleClass="activity-main-text"/>
+                            <Label fx:id="activityThreeDetailLabel" styleClass="activity-sub-text"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="activityThreeTimeLabel" styleClass="activity-time-text"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" styleClass="activity-row">
+                        <VBox spacing="6">
+                            <Label fx:id="activityFourTitleLabel" styleClass="activity-main-text"/>
+                            <Label fx:id="activityFourDetailLabel" styleClass="activity-sub-text"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="activityFourTimeLabel" styleClass="activity-time-text"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" styleClass="activity-row">
+                        <VBox spacing="6">
+                            <Label fx:id="activityFiveTitleLabel" styleClass="activity-main-text"/>
+                            <Label fx:id="activityFiveDetailLabel" styleClass="activity-sub-text"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="activityFiveTimeLabel" styleClass="activity-time-text"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VBox>
+    </content>
+</ScrollPane>

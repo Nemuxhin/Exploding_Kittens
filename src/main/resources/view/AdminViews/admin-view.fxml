@@ -1,14 +1,183 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
+<BorderPane fx:id="appRoot"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="easv.gui.controller.Admin.AdminController"
+            stylesheets="@/css/app.css"
+            styleClass="app-shell"
+            maxWidth="Infinity"
+            maxHeight="Infinity">
 
-</AnchorPane>
+    <left>
+        <BorderPane styleClass="primary-sidebar"
+                    maxHeight="Infinity">
+            <padding>
+                <Insets top="18" right="18" bottom="18" left="18"/>
+            </padding>
+
+            <top>
+                <VBox spacing="18" BorderPane.alignment="TOP_LEFT">
+                    <StackPane alignment="CENTER_LEFT" styleClass="sidebar-brand-row">
+                        <Label fx:id="brandLogoFallbackLabel"
+                               text="WebLager"
+                               styleClass="brand-title"/>
+
+                        <ImageView fx:id="brandLogoImageView"
+                                   fitWidth="182"
+                                   fitHeight="34"
+                                   preserveRatio="true"
+                                   smooth="true"
+                                   visible="false"
+                                   managed="false"/>
+                    </StackPane>
+
+                    <VBox spacing="6" styleClass="sidebar-nav">
+
+                        <HBox fx:id="dashboardNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item-active"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M3 10.25 12 3l9 7.25V21h-6.25v-6.25h-5.5V21H3V10.25zm2 1V19h2.25v-6.25h9.5V19H19v-7.75L12 5.6 5 11.25z"
+                                         styleClass="sidebar-nav-icon-home"/>
+                            </StackPane>
+                            <Label text="Dashboard" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                        <HBox fx:id="usersNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z"
+                                         styleClass="sidebar-nav-icon-users"/>
+                            </StackPane>
+                            <Label text="Users" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                        <HBox fx:id="profilesNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2zm0 2v13h14v-13H5zm2.5 3h4.2a2.4 2.4 0 0 1 4.6 0h1.2v2h-1.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm6.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6zm-6.5 4.2h1.2a2.4 2.4 0 0 1 4.6 0h4.2v2h-4.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm3.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6z"
+                                         styleClass="sidebar-nav-icon-profiles"/>
+                            </StackPane>
+                            <Label text="Profiles" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                        <HBox fx:id="assignmentsNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.31 0-6 1.79-6 4v2h8.1a6.48 6.48 0 0 1-.1-1.1c0-1.9.82-3.61 2.13-4.8A10.6 10.6 0 0 0 8 13zm8.5 0a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm-.5 6.7-2.1-2.1 1.06-1.06L16 17.59l2.54-2.55 1.06 1.06-3.6 3.6z"
+                                         styleClass="sidebar-nav-icon-assignments"/>
+                            </StackPane>
+                            <Label text="Assignments" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                        <HBox fx:id="metadataNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
+                                         styleClass="sidebar-nav-icon-metadata"/>
+                            </StackPane>
+                            <Label text="Metadata" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                        <HBox fx:id="activityNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M3 12h4l2-5 4 10 2-5h6v2h-4.7l-3.3 8-4-10-1 2H3v-2z"
+                                         styleClass="sidebar-nav-icon-activity"/>
+                            </StackPane>
+                            <Label text="Activity" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                    </VBox>
+                </VBox>
+            </top>
+
+            <bottom>
+                <VBox spacing="10" styleClass="sidebar-footer" BorderPane.alignment="BOTTOM_LEFT">
+                    <Region styleClass="sidebar-divider"/>
+
+                    <HBox alignment="CENTER_LEFT" styleClass="sidebar-utility-row" pickOnBounds="true">
+                        <StackPane styleClass="sidebar-row-icon-shell">
+                            <StackPane styleClass="sidebar-language-chip">
+                                <Label text="DK" styleClass="sidebar-language-text"/>
+                            </StackPane>
+                        </StackPane>
+                        <Label text="Dansk" styleClass="sidebar-utility-label"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" styleClass="sidebar-logout-row" pickOnBounds="true">
+                        <StackPane styleClass="sidebar-row-icon-shell">
+                            <SVGPath content="M10 4h9v16h-9v-3h2v1h5V6h-5v1h-2V4zm-6.5 8 5-5v3h7v4h-7v3l-5-5z"
+                                     styleClass="sidebar-logout-icon"/>
+                        </StackPane>
+                        <Label text="Log Out" styleClass="sidebar-logout-label"/>
+                    </HBox>
+
+                    <HBox fx:id="darkModeRow"
+                          alignment="CENTER_LEFT"
+                          styleClass="sidebar-theme-row"
+                          pickOnBounds="true">
+
+                        <StackPane styleClass="sidebar-row-icon-shell">
+                            <SVGPath fx:id="themeModeIcon"
+                                     content="M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z"
+                                     styleClass="sidebar-theme-icon"/>
+                        </StackPane>
+
+                        <Label fx:id="themeModeLabel"
+                               text="Dark Mode"
+                               styleClass="sidebar-theme-label"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <ToggleButton fx:id="darkModeToggleButton"
+                                      focusTraversable="false"
+                                      styleClass="dark-mode-toggle">
+                            <graphic>
+                                <StackPane styleClass="dark-mode-switch-track">
+                                    <StackPane styleClass="dark-mode-switch-thumb">
+                                        <SVGPath fx:id="darkModeToggleIcon"
+                                                 content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
+                                                 styleClass="dark-mode-switch-thumb-icon"/>
+                                    </StackPane>
+                                </StackPane>
+                            </graphic>
+                        </ToggleButton>
+                    </HBox>
+                </VBox>
+            </bottom>
+        </BorderPane>
+    </left>
+
+    <center>
+        <StackPane fx:id="contentHost"
+                   minWidth="0"
+                   minHeight="0"
+                   maxWidth="Infinity"
+                   maxHeight="Infinity"
+                   styleClass="content-host"/>
+    </center>
+</BorderPane>

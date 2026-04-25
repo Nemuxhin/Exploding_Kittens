@@ -1,4 +1,4 @@
-package easv.gui.controller;
+package easv.gui.controller.Admin;
 
 public class DashboardController {
 }
