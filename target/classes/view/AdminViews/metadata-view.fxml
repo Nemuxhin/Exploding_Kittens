@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="easv.gui.controller.Admin.MetadataController"
+           minWidth="0"
+           minHeight="0"
+           maxWidth="Infinity"
+           maxHeight="Infinity"
+           styleClass="content-host">
+
+    <!-- =====================================================
+         OVERVIEW PAGE
+         ===================================================== -->
+
+    <ScrollPane fx:id="overviewPage"
+                fitToWidth="true"
+                fitToHeight="true"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED"
+                maxWidth="Infinity"
+                maxHeight="Infinity"
+                styleClass="admin-page-scroll">
+
+        <content>
+            <VBox spacing="18"
+                  fillWidth="true"
+                  maxWidth="Infinity"
+                  maxHeight="Infinity"
+                  styleClass="admin-page main-content">
+
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
+
+                <HBox alignment="CENTER_LEFT"
+                      maxWidth="Infinity"
+                      styleClass="page-header">
+
+                    <VBox spacing="3" styleClass="page-heading-copy">
+                        <Label text="Metadata Templates" styleClass="page-title"/>
+                        <Label text="Create reusable metadata forms for scanning profiles"
+                               styleClass="page-subtitle"/>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button text="+ Create Template"
+                            onAction="#showCreateEditor"
+                            styleClass="create-user-button"
+                            focusTraversable="false"/>
+                </HBox>
+
+                <BorderPane styleClass="metadata-panel"
+                            maxWidth="Infinity">
+
+                    <top>
+                        <VBox maxWidth="Infinity">
+                            <HBox spacing="12"
+                                  alignment="CENTER_LEFT"
+                                  maxWidth="Infinity"
+                                  styleClass="metadata-toolbar">
+
+                                <HBox styleClass="search-field-shell"
+                                      maxWidth="Infinity"
+                                      HBox.hgrow="ALWAYS">
+
+                                    <StackPane styleClass="field-icon-shell">
+                                        <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
+                                                 styleClass="field-icon-path"/>
+                                    </StackPane>
+
+                                    <TextField fx:id="searchField"
+                                               promptText="Search templates, fields, or profiles..."
+                                               styleClass="search-field-input"
+                                               maxWidth="Infinity"
+                                               HBox.hgrow="ALWAYS"/>
+                                </HBox>
+
+                                <ComboBox fx:id="statusFilterComboBox"
+                                          styleClass="role-filter"/>
+
+                                <ComboBox fx:id="profileFilterComboBox"
+                                          styleClass="role-filter"/>
+                            </HBox>
+
+                            <GridPane styleClass="metadata-list-header"
+                                      maxWidth="Infinity">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="24"/>
+                                    <ColumnConstraints percentWidth="12"/>
+                                    <ColumnConstraints percentWidth="9"/>
+                                    <ColumnConstraints percentWidth="11"/>
+                                    <ColumnConstraints percentWidth="12"/>
+                                    <ColumnConstraints percentWidth="32"/>
+                                </columnConstraints>
+
+                                <Label text="Template Name"
+                                       styleClass="list-header-label"
+                                       GridPane.columnIndex="0"/>
+
+                                <Label text="Assigned Profiles"
+                                       styleClass="list-header-label"
+                                       GridPane.columnIndex="1"/>
+
+                                <Label text="Fields"
+                                       styleClass="list-header-label"
+                                       GridPane.columnIndex="2"/>
+
+                                <Label text="Status"
+                                       styleClass="list-header-label"
+                                       GridPane.columnIndex="3"/>
+
+                                <Label text="Last Updated"
+                                       styleClass="list-header-label"
+                                       GridPane.columnIndex="4"/>
+
+                                <Label text="Actions"
+                                       styleClass="list-header-label"
+                                       GridPane.columnIndex="5"/>
+                            </GridPane>
+                        </VBox>
+                    </top>
+
+                    <center>
+                        <VBox fx:id="metadataListContainer"
+                              styleClass="metadata-list"
+                              maxWidth="Infinity"/>
+                    </center>
+
+                    <bottom>
+                        <HBox fx:id="paginationBar"
+                              alignment="CENTER"
+                              spacing="12"
+                              visible="false"
+                              managed="false"
+                              maxWidth="Infinity"
+                              styleClass="pagination-bar">
+
+                            <Label fx:id="paginationSummaryLabel"
+                                   text="Showing 0 templates"
+                                   styleClass="pagination-summary-label"/>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <HBox fx:id="paginationButtonsBox"
+                                  alignment="CENTER"
+                                  spacing="6"
+                                  styleClass="pagination-buttons-box"/>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <HBox alignment="CENTER_RIGHT"
+                                  spacing="9"
+                                  styleClass="rows-per-page-box">
+
+                                <Label text="Rows per page"
+                                       styleClass="rows-per-page-label"/>
+
+                                <ComboBox fx:id="rowsPerPageComboBox"
+                                          styleClass="rows-per-page-filter"/>
+                            </HBox>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
+            </VBox>
+        </content>
+    </ScrollPane>
+
+
+    <!-- =====================================================
+         FULL PAGE EDITOR
+         ===================================================== -->
+
+    <ScrollPane fx:id="editorPage"
+                fitToWidth="true"
+                fitToHeight="true"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED"
+                visible="false"
+                managed="false"
+                maxWidth="Infinity"
+                maxHeight="Infinity"
+                styleClass="admin-page-scroll">
+
+        <content>
+            <VBox spacing="18"
+                  fillWidth="true"
+                  maxWidth="Infinity"
+                  maxHeight="Infinity"
+                  styleClass="admin-page main-content">
+
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
+
+                <HBox alignment="CENTER_LEFT"
+                      maxWidth="Infinity"
+                      styleClass="page-header">
+
+                    <VBox spacing="3" styleClass="page-heading-copy">
+                        <HBox spacing="9" alignment="CENTER_LEFT">
+                            <Label fx:id="editorTitleLabel"
+                                   text="Building Archive Metadata"
+                                   styleClass="page-title"/>
+                            <Label fx:id="editorStatusBadge"
+                                   text="Active"
+                                   styleClass="metadata-status-badge metadata-status-active"/>
+                        </HBox>
+
+                        <Label fx:id="editorSubtitleLabel"
+                               text="Used for municipal building archive scans."
+                               styleClass="page-subtitle"/>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="cancelEditorButton"
+                            text="Cancel"
+                            onAction="#showOverview"
+                            visible="false"
+                            managed="false"
+                            styleClass="metadata-secondary-header-button"
+                            focusTraversable="false"/>
+
+                    <Button fx:id="previewHeaderButton"
+                            text="Preview Form"
+                            onAction="#selectPreviewTab"
+                            styleClass="metadata-secondary-header-button"
+                            focusTraversable="false"/>
+
+                    <Button fx:id="saveHeaderButton"
+                            text="Save Changes"
+                            styleClass="create-user-button"
+                            focusTraversable="false"/>
+                </HBox>
+
+                <HBox spacing="0"
+                      alignment="CENTER_LEFT"
+                      styleClass="metadata-tabs">
+
+                    <Button fx:id="generalTabButton"
+                            text="General"
+                            onAction="#selectGeneralTab"
+                            styleClass="metadata-tab-button metadata-tab-active"
+                            focusTraversable="false"/>
+
+                    <Button fx:id="fieldsTabButton"
+                            text="Fields"
+                            onAction="#selectFieldsTab"
+                            styleClass="metadata-tab-button"
+                            focusTraversable="false"/>
+
+                    <Button fx:id="assignedProfilesTabButton"
+                            text="Assigned Profiles"
+                            onAction="#selectAssignedProfilesTab"
+                            styleClass="metadata-tab-button"
+                            focusTraversable="false"/>
+
+                    <Button fx:id="previewTabButton"
+                            text="Preview"
+                            onAction="#selectPreviewTab"
+                            styleClass="metadata-tab-button"
+                            focusTraversable="false"/>
+                </HBox>
+
+                <StackPane maxWidth="Infinity">
+
+                    <!-- GENERAL TAB -->
+                    <VBox fx:id="generalTab"
+                          spacing="18"
+                          maxWidth="Infinity"
+                          styleClass="metadata-editor-card">
+
+                        <VBox spacing="6">
+                            <Label text="Template Name *" styleClass="metadata-field-label"/>
+                            <TextField fx:id="templateNameField"
+                                       text="Building Archive Metadata"
+                                       styleClass="metadata-editor-input"/>
+                        </VBox>
+
+                        <VBox spacing="6">
+                            <Label text="Description" styleClass="metadata-field-label"/>
+                            <TextArea fx:id="templateDescriptionArea"
+                                      text="Used for municipal building archive scans."
+                                      prefRowCount="4"
+                                      wrapText="true"
+                                      styleClass="metadata-editor-textarea"/>
+                        </VBox>
+
+                        <VBox spacing="6">
+                            <Label text="Status" styleClass="metadata-field-label"/>
+                            <ComboBox fx:id="templateStatusComboBox"
+                                      styleClass="role-filter"/>
+                            <Label text="Draft templates can be edited before being made available to scanning profiles."
+                                   styleClass="metadata-helper-text"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- FIELDS TAB -->
+                    <VBox fx:id="fieldsTab"
+                          spacing="18"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity"
+                          styleClass="metadata-editor-card">
+
+                        <HBox alignment="CENTER_LEFT">
+                            <VBox spacing="3">
+                                <Label text="Template Fields" styleClass="metadata-section-title"/>
+                                <Label text="Define the fields scanning users must complete before export."
+                                       styleClass="metadata-helper-text"/>
+                            </VBox>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <Button text="+ Add Field"
+                                    styleClass="create-user-button"
+                                    focusTraversable="false"/>
+                        </HBox>
+
+                        <GridPane styleClass="metadata-fields-header" maxWidth="Infinity">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="8"/>
+                                <ColumnConstraints percentWidth="21"/>
+                                <ColumnConstraints percentWidth="14"/>
+                                <ColumnConstraints percentWidth="12"/>
+                                <ColumnConstraints percentWidth="29"/>
+                                <ColumnConstraints percentWidth="16"/>
+                            </columnConstraints>
+
+                            <Label text="Order" styleClass="list-header-label" GridPane.columnIndex="0"/>
+                            <Label text="Field Label" styleClass="list-header-label" GridPane.columnIndex="1"/>
+                            <Label text="Type" styleClass="list-header-label" GridPane.columnIndex="2"/>
+                            <Label text="Required" styleClass="list-header-label" GridPane.columnIndex="3"/>
+                            <Label text="Placeholder / Help Text" styleClass="list-header-label" GridPane.columnIndex="4"/>
+                            <Label text="Actions" styleClass="list-header-label" GridPane.columnIndex="5"/>
+                        </GridPane>
+
+                        <VBox styleClass="metadata-fields-list">
+                            <GridPane styleClass="metadata-field-row" maxWidth="Infinity">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="8"/>
+                                    <ColumnConstraints percentWidth="21"/>
+                                    <ColumnConstraints percentWidth="14"/>
+                                    <ColumnConstraints percentWidth="12"/>
+                                    <ColumnConstraints percentWidth="29"/>
+                                    <ColumnConstraints percentWidth="16"/>
+                                </columnConstraints>
+
+                                <Label text="1" styleClass="metadata-table-text" GridPane.columnIndex="0"/>
+                                <Label text="Box ID" styleClass="metadata-table-text" GridPane.columnIndex="1"/>
+                                <Label text="Text" styleClass="metadata-table-text" GridPane.columnIndex="2"/>
+                                <Label text="Yes" styleClass="metadata-required-pill metadata-required-yes" GridPane.columnIndex="3"/>
+                                <Label text="Enter box ID" styleClass="metadata-table-text" GridPane.columnIndex="4"/>
+
+                                <HBox spacing="12" GridPane.columnIndex="5">
+                                    <Button text="Edit" styleClass="metadata-action-button"/>
+                                    <Button text="Delete" styleClass="metadata-action-button-muted"/>
+                                </HBox>
+                            </GridPane>
+
+                            <GridPane styleClass="metadata-field-row" maxWidth="Infinity">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="8"/>
+                                    <ColumnConstraints percentWidth="21"/>
+                                    <ColumnConstraints percentWidth="14"/>
+                                    <ColumnConstraints percentWidth="12"/>
+                                    <ColumnConstraints percentWidth="29"/>
+                                    <ColumnConstraints percentWidth="16"/>
+                                </columnConstraints>
+
+                                <Label text="2" styleClass="metadata-table-text" GridPane.columnIndex="0"/>
+                                <Label text="Case Number" styleClass="metadata-table-text" GridPane.columnIndex="1"/>
+                                <Label text="Text" styleClass="metadata-table-text" GridPane.columnIndex="2"/>
+                                <Label text="Yes" styleClass="metadata-required-pill metadata-required-yes" GridPane.columnIndex="3"/>
+                                <Label text="Enter case number" styleClass="metadata-table-text" GridPane.columnIndex="4"/>
+
+                                <HBox spacing="12" GridPane.columnIndex="5">
+                                    <Button text="Edit" styleClass="metadata-action-button"/>
+                                    <Button text="Delete" styleClass="metadata-action-button-muted"/>
+                                </HBox>
+                            </GridPane>
+
+                            <GridPane styleClass="metadata-field-row" maxWidth="Infinity">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="8"/>
+                                    <ColumnConstraints percentWidth="21"/>
+                                    <ColumnConstraints percentWidth="14"/>
+                                    <ColumnConstraints percentWidth="12"/>
+                                    <ColumnConstraints percentWidth="29"/>
+                                    <ColumnConstraints percentWidth="16"/>
+                                </columnConstraints>
+
+                                <Label text="3" styleClass="metadata-table-text" GridPane.columnIndex="0"/>
+                                <Label text="Building Address" styleClass="metadata-table-text" GridPane.columnIndex="1"/>
+                                <Label text="Text" styleClass="metadata-table-text" GridPane.columnIndex="2"/>
+                                <Label text="Yes" styleClass="metadata-required-pill metadata-required-yes" GridPane.columnIndex="3"/>
+                                <Label text="Enter building address" styleClass="metadata-table-text" GridPane.columnIndex="4"/>
+
+                                <HBox spacing="12" GridPane.columnIndex="5">
+                                    <Button text="Edit" styleClass="metadata-action-button"/>
+                                    <Button text="Delete" styleClass="metadata-action-button-muted"/>
+                                </HBox>
+                            </GridPane>
+                        </VBox>
+                    </VBox>
+
+                    <!-- ASSIGNED PROFILES TAB -->
+                    <VBox fx:id="assignedProfilesTab"
+                          spacing="18"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity"
+                          styleClass="metadata-editor-card">
+
+                        <VBox spacing="3">
+                            <Label text="Assigned Profiles" styleClass="metadata-section-title"/>
+                            <Label text="Profiles selected here will use this metadata form during scanning and export."
+                                   styleClass="metadata-helper-text"/>
+                        </VBox>
+
+                        <HBox styleClass="search-field-shell"
+                              maxWidth="Infinity">
+                            <StackPane styleClass="field-icon-shell">
+                                <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
+                                         styleClass="field-icon-path"/>
+                            </StackPane>
+                            <TextField promptText="Search profiles..."
+                                       styleClass="search-field-input"
+                                       maxWidth="Infinity"
+                                       HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <VBox styleClass="assigned-profile-list">
+                            <HBox styleClass="assigned-profile-row">
+                                <Label text="✓" styleClass="metadata-checkbox-checked"/>
+                                <VBox spacing="3">
+                                    <Label text="Aalborg Building Archive" styleClass="metadata-table-text"/>
+                                    <Label text="AalborgBuilding_{boxId}" styleClass="metadata-helper-text"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="Active" styleClass="metadata-status-badge metadata-status-active"/>
+                            </HBox>
+
+                            <HBox styleClass="assigned-profile-row">
+                                <Label text="✓" styleClass="metadata-checkbox-checked"/>
+                                <VBox spacing="3">
+                                    <Label text="Standard Building Scan" styleClass="metadata-table-text"/>
+                                    <Label text="StandardBuilding_{boxId}" styleClass="metadata-helper-text"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="Active" styleClass="metadata-status-badge metadata-status-active"/>
+                            </HBox>
+
+                            <HBox styleClass="assigned-profile-row assigned-profile-disabled">
+                                <Label text="" styleClass="metadata-checkbox-empty"/>
+                                <VBox spacing="3">
+                                    <Label text="Old Court Records" styleClass="metadata-table-text"/>
+                                    <Label text="OldCourtRecords_{boxId}" styleClass="metadata-helper-text"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="Archived" styleClass="metadata-status-badge metadata-status-archived"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <!-- PREVIEW TAB -->
+                    <VBox fx:id="previewTab"
+                          spacing="18"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity"
+                          styleClass="metadata-editor-card">
+
+                        <Label text="Preview: Building Archive Metadata"
+                               styleClass="metadata-section-title"/>
+
+                        <VBox spacing="12" styleClass="metadata-preview-form">
+                            <VBox spacing="6">
+                                <Label text="Box ID *" styleClass="metadata-field-label"/>
+                                <TextField text="BOX-2026-004" styleClass="metadata-editor-input"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="Case Number *" styleClass="metadata-field-label"/>
+                                <TextField text="2026-042" styleClass="metadata-editor-input"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="Building Address *" styleClass="metadata-field-label"/>
+                                <TextField text="Skagerrakvej 16" styleClass="metadata-editor-input"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="Date Range" styleClass="metadata-field-label"/>
+                                <TextField promptText="Select date range" styleClass="metadata-editor-input"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="Department" styleClass="metadata-field-label"/>
+                                <ComboBox promptText="Select department" styleClass="role-filter"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="Notes" styleClass="metadata-field-label"/>
+                                <TextArea promptText="Optional notes..."
+                                          prefRowCount="4"
+                                          wrapText="true"
+                                          styleClass="metadata-editor-textarea"/>
+                            </VBox>
+                        </VBox>
+
+                        <Button text="Back to Fields"
+                                onAction="#selectFieldsTab"
+                                styleClass="metadata-secondary-header-button"
+                                focusTraversable="false"/>
+                    </VBox>
+                </StackPane>
+            </VBox>
+        </content>
+    </ScrollPane>
+</StackPane>
