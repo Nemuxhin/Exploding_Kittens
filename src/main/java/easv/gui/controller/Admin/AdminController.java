@@ -26,7 +26,8 @@ public class AdminController {
     private static final String USERS_VIEW = "/view/AdminViews/manage-users-view.fxml";
     private static final String PROFILES_VIEW = "/view/AdminViews/manage-profiles-view.fxml";
     private static final String ASSIGNMENTS_VIEW = "/view/AdminViews/assignments-view.fxml";
-    private static final String METADATA_VIEW = "/view/AdminViews/metadata-view.fxml";
+    private static final String METADATA_TEMPLATES_VIEW = "/view/AdminViews/metadata-view.fxml";
+    private static final String METADATA_REVIEW_VIEW = "/view/AdminViews/metadata-review-view.fxml";
     private static final String ACTIVITY_VIEW = "/view/AdminViews/activity-view.fxml";
 
     private static final String LIGHT_MODE_LOGO =
@@ -56,6 +57,7 @@ public class AdminController {
     @FXML private HBox profilesNavItem;
     @FXML private HBox assignmentsNavItem;
     @FXML private HBox metadataNavItem;
+    @FXML private HBox metadataReviewNavItem;
     @FXML private HBox activityNavItem;
 
     @FXML private HBox darkModeRow;
@@ -77,7 +79,9 @@ public class AdminController {
     }
 
     private void updateBrandLogo(boolean isDark) {
-        URL logoUrl = getClass().getResource(isDark ? DARK_MODE_LOGO : LIGHT_MODE_LOGO);
+        String logoPath = isDark ? DARK_MODE_LOGO : LIGHT_MODE_LOGO;
+        URL logoUrl = getClass().getResource(logoPath);
+
         boolean logoExists = logoUrl != null;
 
         brandLogoImageView.setVisible(logoExists);
@@ -106,23 +110,20 @@ public class AdminController {
     }
 
     private void updateTheme(boolean isDark) {
-        setDarkModeStyleClass(isDark);
+        updateDarkModeClass(isDark);
         updateBrandLogo(isDark);
-        updateThemeTextAndIcons(isDark);
+        updateThemeControls(isDark);
     }
 
-    private void setDarkModeStyleClass(boolean isDark) {
-        if (isDark) {
-            if (!appRoot.getStyleClass().contains(DARK_MODE_CLASS)) {
-                appRoot.getStyleClass().add(DARK_MODE_CLASS);
-            }
-            return;
-        }
-
+    private void updateDarkModeClass(boolean isDark) {
         appRoot.getStyleClass().remove(DARK_MODE_CLASS);
+
+        if (isDark) {
+            appRoot.getStyleClass().add(DARK_MODE_CLASS);
+        }
     }
 
-    private void updateThemeTextAndIcons(boolean isDark) {
+    private void updateThemeControls(boolean isDark) {
         themeModeLabel.setText(isDark ? "Light Mode" : "Dark Mode");
 
         if (themeModeIcon != null) {
@@ -134,7 +135,7 @@ public class AdminController {
         }
     }
 
-    private boolean isInsideNode(Object target, Node node) {
+    private boolean isInsideNode(Object target, Node parentNode) {
         if (!(target instanceof Node targetNode)) {
             return false;
         }
@@ -142,7 +143,7 @@ public class AdminController {
         Node current = targetNode;
 
         while (current != null) {
-            if (current == node) {
+            if (current == parentNode) {
                 return true;
             }
 
@@ -153,12 +154,21 @@ public class AdminController {
     }
 
     private void configureNavigation() {
-        dashboardNavItem.setOnMouseClicked(event -> showDashboard());
-        usersNavItem.setOnMouseClicked(event -> showUsers());
-        profilesNavItem.setOnMouseClicked(event -> showProfiles());
-        assignmentsNavItem.setOnMouseClicked(event -> showAssignments());
-        metadataNavItem.setOnMouseClicked(event -> showMetadata());
-        activityNavItem.setOnMouseClicked(event -> showActivity());
+        setNavigationAction(dashboardNavItem, this::showDashboard);
+        setNavigationAction(usersNavItem, this::showUsers);
+        setNavigationAction(profilesNavItem, this::showProfiles);
+        setNavigationAction(assignmentsNavItem, this::showAssignments);
+        setNavigationAction(metadataNavItem, this::showMetadataTemplates);
+        setNavigationAction(metadataReviewNavItem, this::showMetadataReview);
+        setNavigationAction(activityNavItem, this::showActivity);
+    }
+
+    private void setNavigationAction(HBox navItem, Runnable action) {
+        if (navItem == null) {
+            return;
+        }
+
+        navItem.setOnMouseClicked(event -> action.run());
     }
 
     private void showDashboard() {
@@ -177,8 +187,12 @@ public class AdminController {
         showPage(ASSIGNMENTS_VIEW, "Assignments", assignmentsNavItem);
     }
 
-    private void showMetadata() {
-        showPage(METADATA_VIEW, "Metadata", metadataNavItem);
+    private void showMetadataTemplates() {
+        showPage(METADATA_TEMPLATES_VIEW, "Metadata Templates", metadataNavItem);
+    }
+
+    private void showMetadataReview() {
+        showPage(METADATA_REVIEW_VIEW, "Metadata Review", metadataReviewNavItem);
     }
 
     private void showActivity() {
@@ -199,7 +213,9 @@ public class AdminController {
         }
 
         try {
-            Parent page = FXMLLoader.load(pageUrl);
+            FXMLLoader loader = new FXMLLoader(pageUrl);
+            Parent page = loader.load();
+
             configureLoadedPageSize(page);
             contentHost.getChildren().setAll(page);
         } catch (IOException exception) {
@@ -237,10 +253,17 @@ public class AdminController {
 
     private void setActiveNavItem(HBox activeNavItem) {
         for (HBox navItem : getNavigationItems()) {
-            navItem.getStyleClass().setAll(
-                    navItem == activeNavItem ? ACTIVE_NAV_CLASS : INACTIVE_NAV_CLASS
-            );
+            if (navItem != null) {
+                setNavItemActive(navItem, navItem == activeNavItem);
+            }
         }
+    }
+
+    private void setNavItemActive(HBox navItem, boolean active) {
+        navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
+        navItem.getStyleClass().remove(INACTIVE_NAV_CLASS);
+
+        navItem.getStyleClass().add(active ? ACTIVE_NAV_CLASS : INACTIVE_NAV_CLASS);
     }
 
     private List<HBox> getNavigationItems() {
@@ -250,6 +273,7 @@ public class AdminController {
                 profilesNavItem,
                 assignmentsNavItem,
                 metadataNavItem,
+                metadataReviewNavItem,
                 activityNavItem
         );
     }

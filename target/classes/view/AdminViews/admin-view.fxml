@@ -97,7 +97,18 @@
                                 <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
                                          styleClass="sidebar-nav-icon-metadata"/>
                             </StackPane>
-                            <Label text="Metadata" styleClass="sidebar-nav-label"/>
+                            <Label text="Metadata Templates" styleClass="sidebar-nav-label"/>
+                        </HBox>
+
+                        <HBox fx:id="metadataReviewNavItem"
+                              alignment="CENTER_LEFT"
+                              styleClass="sidebar-nav-item"
+                              pickOnBounds="true">
+                            <StackPane styleClass="sidebar-row-icon-shell">
+                                <SVGPath content="M5 3.5h11.5L20 7v13.5H5V3.5zm2 2v13h11V8h-3V5.5H7zm2 4h7v1.75H9V9.5zm0 3.25h5v1.75H9v-1.75zm7.1 1.25 1.1 1.1-3.4 3.4-2.1-2.1 1.1-1.1 1 1 2.3-2.3z"
+                                         styleClass="sidebar-nav-icon-metadata-review"/>
+                            </StackPane>
+                            <Label text="Metadata Review" styleClass="sidebar-nav-label"/>
                         </HBox>
 
                         <HBox fx:id="activityNavItem"
