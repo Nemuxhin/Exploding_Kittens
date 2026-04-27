@@ -1,3 +1,94 @@
 .root {
-    -fx-font-family: "Segoe UI";
+    -fx-font-family: "Montserrat", "Segoe UI", sans-serif;
+    -fx-background-color: #f5f5f5;
+}
+
+.login-shell {
+    -fx-background-color: #f5f5f5;
+}
+
+.brand-panel {
+    -fx-background-color: #2d3d4f;
+    -fx-background-radius: 24;
+    -fx-padding: 32;
+    -fx-pref-width: 420;
+}
+
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 24;
+    -fx-padding: 32;
+    -fx-pref-width: 320;
+}
+
+.main-panel {
+    -fx-background-color: white;
+}
+
+.eyebrow-label {
+    -fx-text-fill: #24c79f;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.page-title {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+}
+
+.card-title {
+    -fx-text-fill: #2d3d4f;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.main-title {
+    -fx-text-fill: #2d3d4f;
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+}
+
+.body-text {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+}
+
+.helper-text {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+.field-label {
+    -fx-text-fill: #2d3d4f;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.text-field,
+.password-field {
+    -fx-background-color: #f9f9f9;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e4e8;
+    -fx-border-radius: 10;
+    -fx-pref-height: 30;
+    -fx-text-fill: #2d3d4f;
+}
+
+.primary-button {
+    -fx-background-color: #2d3d4f;
+    -fx-background-radius: 10;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-pref-height: 30;
+}
+
+.primary-button:hover {
+    -fx-background-color: #41506a;
+}
+
+.message-label {
+    -fx-text-fill: #2d3d4f;
+    -fx-font-size: 12px;
 }
