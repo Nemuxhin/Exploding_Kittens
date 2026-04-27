@@ -1,5 +1,6 @@
 package easv.gui;
 
+import easv.gui.controller.LoginController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -15,9 +16,9 @@ import java.net.URL;
 public class MainApp extends Application {
 
     private static final String APP_TITLE = "WebLager";
-
-    private static final String START_VIEW =
-            "/view/UserViews/user-view.fxml";
+    private static final String LOGIN_VIEW = "/view/LoginViews/login-view.fxml";
+    private static final String USER_VIEW = "/view/UserViews/user-view.fxml";
+    private static final String STYLESHEET = "/css/app.css";
 
     private static final String WINDOW_ICON =
             "/images/weblager/styleguide/Main Blue/LogoBlue_Logoicon.png";
@@ -30,27 +31,31 @@ public class MainApp extends Application {
 
     private static final double SCREEN_MARGIN = 0.95;
 
+    private Stage stage;
+    private Rectangle2D screen;
+
     @Override
     public void start(Stage stage) throws IOException {
-        Parent root = loadView(START_VIEW);
+        this.stage = stage;
+        this.screen = Screen.getPrimary().getVisualBounds();
 
-        Rectangle2D screen = Screen.getPrimary().getVisualBounds();
-
-        double width = fitToScreen(PREFERRED_WIDTH, screen.getWidth());
-        double height = fitToScreen(PREFERRED_HEIGHT, screen.getHeight());
-
-        Scene scene = new Scene(root, width, height);
-
-        stage.setTitle(APP_TITLE);
-        stage.setScene(scene);
-        stage.setResizable(true);
-        stage.setMinWidth(MIN_WIDTH);
-        stage.setMinHeight(MIN_HEIGHT);
-
-        setWindowIcon(stage);
-        centerStage(stage, screen, width, height);
-
+        configureStage();
+        showLoginView();
         stage.show();
+    }
+
+    public void showLoginView() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getRequiredResource(LOGIN_VIEW));
+        Parent root = loader.load();
+
+        LoginController controller = loader.getController();
+        controller.setMainApp(this);
+
+        showView(root, "WebLager Login");
+    }
+
+    public void showMainView() throws IOException {
+        showView(loadView(USER_VIEW), APP_TITLE);
     }
 
     private Parent loadView(String fxmlPath) throws IOException {
@@ -58,7 +63,35 @@ public class MainApp extends Application {
         return loader.load();
     }
 
-    private void setWindowIcon(Stage stage) {
+    private void configureStage() {
+        stage.setTitle(APP_TITLE);
+        stage.setResizable(true);
+        stage.setMinWidth(fitToScreen(MIN_WIDTH, screen.getWidth()));
+        stage.setMinHeight(fitToScreen(MIN_HEIGHT, screen.getHeight()));
+        setWindowIcon();
+    }
+
+    private void showView(Parent root, String title) {
+        double width = fitToScreen(PREFERRED_WIDTH, screen.getWidth());
+        double height = fitToScreen(PREFERRED_HEIGHT, screen.getHeight());
+
+        Scene scene = new Scene(root, width, height);
+        addStylesheet(scene);
+
+        stage.setTitle(title);
+        stage.setScene(scene);
+        centerStage(width, height);
+    }
+
+    private void addStylesheet(Scene scene) {
+        URL stylesheetUrl = getClass().getResource(STYLESHEET);
+
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().setAll(stylesheetUrl.toExternalForm());
+        }
+    }
+
+    private void setWindowIcon() {
         URL iconUrl = getClass().getResource(WINDOW_ICON);
 
         if (iconUrl != null) {
@@ -66,12 +99,7 @@ public class MainApp extends Application {
         }
     }
 
-    private void centerStage(
-            Stage stage,
-            Rectangle2D screen,
-            double width,
-            double height
-    ) {
+    private void centerStage(double width, double height) {
         stage.setWidth(width);
         stage.setHeight(height);
 
