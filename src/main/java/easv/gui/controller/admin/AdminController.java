@@ -1,4 +1,4 @@
-package easv.gui.controller.Admin;
+package easv.gui.controller.admin;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -75,7 +75,39 @@ public class AdminController {
     }
 
     private void configureBrandLogo() {
-        updateBrandLogo(false);
+        updateBrandLogo(isDarkModeEnabled());
+    }
+
+    private void configureThemeToggle() {
+        updateTheme(isDarkModeEnabled());
+
+        darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
+                updateTheme(isDark)
+        );
+
+        darkModeRow.setOnMouseClicked(event -> {
+            if (!isInsideNode(event.getTarget(), darkModeToggleButton)) {
+                darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected());
+            }
+        });
+    }
+
+    private boolean isDarkModeEnabled() {
+        return darkModeToggleButton != null && darkModeToggleButton.isSelected();
+    }
+
+    private void updateTheme(boolean isDark) {
+        updateDarkModeClass(isDark);
+        updateBrandLogo(isDark);
+        updateThemeControls(isDark);
+    }
+
+    private void updateDarkModeClass(boolean isDark) {
+        appRoot.getStyleClass().remove(DARK_MODE_CLASS);
+
+        if (isDark) {
+            appRoot.getStyleClass().add(DARK_MODE_CLASS);
+        }
     }
 
     private void updateBrandLogo(boolean isDark) {
@@ -95,39 +127,13 @@ public class AdminController {
         }
     }
 
-    private void configureThemeToggle() {
-        updateTheme(false);
-
-        darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
-                updateTheme(isDark)
-        );
-
-        darkModeRow.setOnMouseClicked(event -> {
-            if (!isInsideNode(event.getTarget(), darkModeToggleButton)) {
-                darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected());
-            }
-        });
-    }
-
-    private void updateTheme(boolean isDark) {
-        updateDarkModeClass(isDark);
-        updateBrandLogo(isDark);
-        updateThemeControls(isDark);
-    }
-
-    private void updateDarkModeClass(boolean isDark) {
-        appRoot.getStyleClass().remove(DARK_MODE_CLASS);
-
-        if (isDark) {
-            appRoot.getStyleClass().add(DARK_MODE_CLASS);
-        }
-    }
-
     private void updateThemeControls(boolean isDark) {
-        themeModeLabel.setText(isDark ? "Light Mode" : "Dark Mode");
+        if (themeModeLabel != null) {
+            themeModeLabel.setText(isDark ? "Dark Mode" : "Light Mode");
+        }
 
         if (themeModeIcon != null) {
-            themeModeIcon.setContent(isDark ? SUN_ICON_PATH : MOON_ICON_PATH);
+            themeModeIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
         }
 
         if (darkModeToggleIcon != null) {

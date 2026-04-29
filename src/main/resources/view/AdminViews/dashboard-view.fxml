@@ -15,7 +15,7 @@
 
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="easv.gui.controller.Admin.DashboardController"
+            fx:controller="easv.gui.controller.admin.DashboardController"
             fitToWidth="true"
             fitToHeight="false"
             hbarPolicy="NEVER"
@@ -56,11 +56,10 @@
                       styleClass="dashboard-summary-grid">
 
                 <columnConstraints>
-                    <ColumnConstraints percentWidth="20" hgrow="ALWAYS"/>
-                    <ColumnConstraints percentWidth="20" hgrow="ALWAYS"/>
-                    <ColumnConstraints percentWidth="20" hgrow="ALWAYS"/>
-                    <ColumnConstraints percentWidth="20" hgrow="ALWAYS"/>
-                    <ColumnConstraints percentWidth="20" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
                 </columnConstraints>
 
                 <VBox spacing="18"
@@ -105,7 +104,7 @@
                         <Region HBox.hgrow="ALWAYS"/>
 
                         <Label fx:id="activeProfilesValueLabel"
-                               text="8"
+                               text="3"
                                styleClass="dashboard-summary-value"/>
                     </HBox>
 
@@ -132,7 +131,7 @@
                         <Region HBox.hgrow="ALWAYS"/>
 
                         <Label fx:id="scansTodayValueLabel"
-                               text="47"
+                               text="12"
                                styleClass="dashboard-summary-value"/>
                     </HBox>
 
@@ -166,33 +165,6 @@
                     <VBox spacing="3">
                         <Label text="Waiting for QA" styleClass="dashboard-summary-title"/>
                         <Label text="Documents currently pending review"
-                               wrapText="true"
-                               styleClass="dashboard-summary-subtitle"/>
-                    </VBox>
-                </VBox>
-
-                <VBox spacing="18"
-                      maxWidth="Infinity"
-                      styleClass="dashboard-summary-card"
-                      GridPane.columnIndex="4"
-                      GridPane.rowIndex="0">
-
-                    <HBox alignment="TOP_LEFT">
-                        <StackPane styleClass="dashboard-summary-icon-red">
-                            <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v6h-2V7h2zm-2 8h2v2h-2v-2z"
-                                     styleClass="dashboard-summary-icon-red-path"/>
-                        </StackPane>
-
-                        <Region HBox.hgrow="ALWAYS"/>
-
-                        <Label fx:id="needsAttentionValueLabel"
-                               text="6"
-                               styleClass="dashboard-summary-value"/>
-                    </HBox>
-
-                    <VBox spacing="3">
-                        <Label text="Needs Attention" styleClass="dashboard-summary-title"/>
-                        <Label text="Items blocked, incomplete, or requiring action"
                                wrapText="true"
                                styleClass="dashboard-summary-subtitle"/>
                     </VBox>
@@ -238,17 +210,14 @@
                                 </StackPane>
 
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label fx:id="activityOneTitleLabel"
-                                           text="Sarah Smith completed scan"
+                                    <Label text="Sarah Smith completed scan"
                                            styleClass="dashboard-activity-title"/>
-                                    <Label fx:id="activityOneDetailLabel"
-                                           text="BOX-2026-004 · Building Archive · 42 pages"
+                                    <Label text="BOX-2026-004 · Building Archive · 42 pages"
                                            wrapText="true"
                                            styleClass="dashboard-activity-detail"/>
                                 </VBox>
 
-                                <Label fx:id="activityOneTimeLabel"
-                                       text="10:42"
+                                <Label text="10:42"
                                        styleClass="dashboard-activity-time"/>
                             </HBox>
 
@@ -259,17 +228,14 @@
                                 </StackPane>
 
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label fx:id="activityTwoTitleLabel"
-                                           text="Admin created profile"
+                                    <Label text="Admin created profile"
                                            styleClass="dashboard-activity-title"/>
-                                    <Label fx:id="activityTwoDetailLabel"
-                                           text="Technical Drawings scan profile was created"
+                                    <Label text="Technical Drawings scan profile was created"
                                            wrapText="true"
                                            styleClass="dashboard-activity-detail"/>
                                 </VBox>
 
-                                <Label fx:id="activityTwoTimeLabel"
-                                       text="09:58"
+                                <Label text="09:58"
                                        styleClass="dashboard-activity-time"/>
                             </HBox>
 
@@ -280,17 +246,14 @@
                                 </StackPane>
 
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label fx:id="activityThreeTitleLabel"
-                                           text="John Doe completed QA"
+                                    <Label text="John Doe completed QA"
                                            styleClass="dashboard-activity-title"/>
-                                    <Label fx:id="activityThreeDetailLabel"
-                                           text="BOX-2026-003 was approved for export"
+                                    <Label text="BOX-2026-003 was approved for export"
                                            wrapText="true"
                                            styleClass="dashboard-activity-detail"/>
                                 </VBox>
 
-                                <Label fx:id="activityThreeTimeLabel"
-                                       text="Yesterday"
+                                <Label text="Yesterday"
                                        styleClass="dashboard-activity-time"/>
                             </HBox>
 
@@ -301,17 +264,14 @@
                                 </StackPane>
 
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label fx:id="activityFourTitleLabel"
-                                           text="System detected missing metadata"
+                                    <Label text="System detected missing metadata"
                                            styleClass="dashboard-activity-title"/>
-                                    <Label fx:id="activityFourDetailLabel"
-                                           text="CourtRecords_BOX-2026-011 is blocked from export"
+                                    <Label text="CourtRecords_BOX-2026-011 is blocked from export"
                                            wrapText="true"
                                            styleClass="dashboard-activity-detail"/>
                                 </VBox>
 
-                                <Label fx:id="activityFourTimeLabel"
-                                       text="Yesterday"
+                                <Label text="Yesterday"
                                        styleClass="dashboard-activity-time"/>
                             </HBox>
 
@@ -322,17 +282,14 @@
                                 </StackPane>
 
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label fx:id="activityFiveTitleLabel"
-                                           text="Access updated for Building Archive"
+                                    <Label text="Access updated for Building Archive"
                                            styleClass="dashboard-activity-title"/>
-                                    <Label fx:id="activityFiveDetailLabel"
-                                           text="3 users were assigned scanning access"
+                                    <Label text="3 users were assigned scanning access"
                                            wrapText="true"
                                            styleClass="dashboard-activity-detail"/>
                                 </VBox>
 
-                                <Label fx:id="activityFiveTimeLabel"
-                                       text="2 days ago"
+                                <Label text="2 days ago"
                                        styleClass="dashboard-activity-time"/>
                             </HBox>
                         </VBox>
@@ -405,80 +362,79 @@
                           maxWidth="Infinity"
                           styleClass="dashboard-section-card">
 
-                        <HBox alignment="CENTER_LEFT"
-                              styleClass="dashboard-section-header">
-                            <VBox spacing="3">
-                                <Label text="Needs Attention" styleClass="dashboard-section-title"/>
-                                <Label text="Items requiring follow-up"
-                                       styleClass="dashboard-section-subtitle"/>
-                            </VBox>
-                        </HBox>
+                        <VBox spacing="15" maxWidth="Infinity">
+                            <padding>
+                                <Insets top="18" right="18" bottom="18" left="18"/>
+                            </padding>
 
-                        <VBox spacing="0" styleClass="dashboard-simple-list">
+                            <HBox alignment="CENTER_LEFT" spacing="15">
+                                <StackPane styleClass="dashboard-summary-icon-red">
+                                    <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v6h-2V7h2zm-2 8h2v2h-2v-2z"
+                                             styleClass="dashboard-summary-icon-red-path"/>
+                                </StackPane>
 
-                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="3 users have no profiles" styleClass="dashboard-simple-title"/>
-                                    <Label text="Assign access before scanning" styleClass="dashboard-simple-detail"/>
+                                <VBox spacing="3">
+                                    <Label text="Needs Attention" styleClass="dashboard-section-title"/>
+                                    <Label text="Items requiring follow-up"
+                                           styleClass="dashboard-section-subtitle"/>
                                 </VBox>
-                                <Button text="Review" onAction="#manageAccess" focusTraversable="false" styleClass="metadata-action-button"/>
-                            </HBox>
 
-                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="2 failed exports" styleClass="dashboard-simple-title"/>
-                                    <Label text="Missing metadata fields" styleClass="dashboard-simple-detail"/>
-                                </VBox>
-                                <Button text="Review" onAction="#reviewFailedExports" focusTraversable="false" styleClass="metadata-action-button"/>
-                            </HBox>
+                                <Region HBox.hgrow="ALWAYS"/>
 
-                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="1 draft profile" styleClass="dashboard-simple-title"/>
-                                    <Label text="Court Records is not active yet" styleClass="dashboard-simple-detail"/>
+                                <VBox spacing="3" alignment="CENTER_RIGHT">
+                                    <Label fx:id="needsAttentionValueLabel"
+                                           text="6"
+                                           styleClass="dashboard-summary-value"/>
+                                    <Label text="Open items"
+                                           styleClass="dashboard-summary-subtitle"/>
                                 </VBox>
-                                <Button text="Open" onAction="#createProfile" focusTraversable="false" styleClass="metadata-action-button"/>
                             </HBox>
                         </VBox>
-                    </VBox>
 
-                    <VBox spacing="0"
-                          maxWidth="Infinity"
-                          styleClass="dashboard-section-card">
-
-                        <HBox alignment="CENTER_LEFT"
-                              styleClass="dashboard-section-header">
-                            <VBox spacing="3">
-                                <Label text="Profile Access Summary" styleClass="dashboard-section-title"/>
-                                <Label text="Users assigned per active profile"
-                                       styleClass="dashboard-section-subtitle"/>
-                            </VBox>
-                        </HBox>
+                        <Region styleClass="profile-card-divider"/>
 
                         <VBox spacing="0" styleClass="dashboard-simple-list">
 
                             <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="Building Archive" styleClass="dashboard-simple-title"/>
-                                    <Label text="Primary municipal archive profile" styleClass="dashboard-simple-detail"/>
+                                    <Label fx:id="usersNoProfilesCountLabel"
+                                           text="3 users have no profiles"
+                                           styleClass="dashboard-simple-title"/>
+                                    <Label text="Assign access before scanning"
+                                           styleClass="dashboard-simple-detail"/>
                                 </VBox>
-                                <Label text="5 users" styleClass="dashboard-simple-metric"/>
+                                <Button text="Review"
+                                        onAction="#manageAccess"
+                                        focusTraversable="false"
+                                        styleClass="metadata-action-button"/>
                             </HBox>
 
                             <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="Technical Drawings" styleClass="dashboard-simple-title"/>
-                                    <Label text="Engineering and plan scan workflow" styleClass="dashboard-simple-detail"/>
+                                    <Label fx:id="failedExportsCountLabel"
+                                           text="2 failed exports"
+                                           styleClass="dashboard-simple-title"/>
+                                    <Label text="Missing metadata fields"
+                                           styleClass="dashboard-simple-detail"/>
                                 </VBox>
-                                <Label text="2 users" styleClass="dashboard-simple-metric"/>
+                                <Button text="Review"
+                                        onAction="#reviewFailedExports"
+                                        focusTraversable="false"
+                                        styleClass="metadata-action-button"/>
                             </HBox>
 
                             <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="Court Records" styleClass="dashboard-simple-title"/>
-                                    <Label text="Restricted record handling workflow" styleClass="dashboard-simple-detail"/>
+                                    <Label fx:id="draftProfilesCountLabel"
+                                           text="1 draft profile"
+                                           styleClass="dashboard-simple-title"/>
+                                    <Label text="Court Records is not active yet"
+                                           styleClass="dashboard-simple-detail"/>
                                 </VBox>
-                                <Label text="1 user" styleClass="dashboard-simple-metric"/>
+                                <Button text="Open"
+                                        onAction="#createProfile"
+                                        focusTraversable="false"
+                                        styleClass="metadata-action-button"/>
                             </HBox>
                         </VBox>
                     </VBox>

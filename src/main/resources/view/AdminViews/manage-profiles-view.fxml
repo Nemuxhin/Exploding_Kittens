@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -16,9 +20,9 @@
 <ScrollPane fx:id="pageScrollPane"
             xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="easv.gui.controller.Admin.ProfilesController"
+            fx:controller="easv.gui.controller.admin.ProfilesController"
             fitToWidth="true"
-            fitToHeight="true"
+            fitToHeight="false"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
             minWidth="0"
@@ -28,89 +32,652 @@
             styleClass="admin-page-scroll">
 
     <content>
-        <VBox fx:id="pageRoot"
-              spacing="18"
-              fillWidth="true"
-              minWidth="0"
-              minHeight="0"
-              maxWidth="Infinity"
-              maxHeight="Infinity"
-              styleClass="admin-page main-content">
+        <StackPane minWidth="0"
+                   minHeight="0"
+                   maxWidth="Infinity"
+                   styleClass="profiles-page-host">
 
-            <padding>
-                <Insets top="24" right="24" bottom="24" left="24"/>
-            </padding>
+            <!-- =====================================================
+                 PROFILES OVERVIEW
+                 ===================================================== -->
 
-            <HBox alignment="CENTER_LEFT"
-                  maxWidth="Infinity"
-                  styleClass="page-header">
+            <VBox fx:id="overviewPane"
+                  spacing="18"
+                  fillWidth="true"
+                  minWidth="0"
+                  maxWidth="Infinity">
 
-                <VBox spacing="3" styleClass="page-heading-copy">
-                    <Label text="Profiles" styleClass="page-title"/>
-                    <Label text="Create and manage scanning workflow profiles"
-                           styleClass="page-subtitle"/>
-                </VBox>
+                <styleClass>
+                    <String fx:value="admin-page"/>
+                    <String fx:value="main-content"/>
+                    <String fx:value="profiles-overview-page"/>
+                </styleClass>
 
-                <Region HBox.hgrow="ALWAYS"/>
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
 
-                <Button text="+ Create Profile"
-                        styleClass="create-user-button"
-                        focusTraversable="false"/>
-            </HBox>
-
-            <HBox spacing="12"
-                  alignment="CENTER_LEFT"
-                  maxWidth="Infinity"
-                  styleClass="profiles-toolbar">
-
-                <HBox styleClass="search-field-shell"
+                <HBox alignment="CENTER_LEFT"
                       maxWidth="Infinity"
-                      HBox.hgrow="ALWAYS">
+                      styleClass="page-header">
 
-                    <StackPane styleClass="field-icon-shell">
-                        <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-                                 styleClass="field-icon-path"/>
-                    </StackPane>
+                    <VBox spacing="3" styleClass="page-heading-copy">
+                        <Label text="Profiles" styleClass="page-title"/>
+                        <Label text="Create and manage scanning workflow profiles"
+                               styleClass="page-subtitle"/>
+                    </VBox>
 
-                    <TextField fx:id="searchField"
-                               promptText="Search profiles..."
-                               styleClass="search-field-input"
-                               maxWidth="Infinity"
-                               HBox.hgrow="ALWAYS"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button text="+ Create Profile"
+                            onAction="#createProfile"
+                            styleClass="create-user-button"
+                            focusTraversable="false"/>
                 </HBox>
 
-                <ComboBox fx:id="statusFilterComboBox"
-                          styleClass="role-filter"/>
+                <HBox spacing="12"
+                      alignment="CENTER_LEFT"
+                      maxWidth="Infinity"
+                      styleClass="profiles-toolbar">
 
-                <ComboBox fx:id="metadataFilterComboBox"
-                          styleClass="role-filter"/>
-            </HBox>
+                    <HBox styleClass="search-field-shell"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS">
 
-            <HBox alignment="CENTER_LEFT"
+                        <StackPane styleClass="field-icon-shell">
+                            <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
+                                     styleClass="field-icon-path"/>
+                        </StackPane>
+
+                        <TextField fx:id="searchField"
+                                   promptText="Search profiles..."
+                                   styleClass="search-field-input"
+                                   maxWidth="Infinity"
+                                   HBox.hgrow="ALWAYS"/>
+                    </HBox>
+
+                    <ComboBox fx:id="statusFilterComboBox"
+                              styleClass="role-filter"/>
+
+                    <ComboBox fx:id="metadataFilterComboBox"
+                              styleClass="role-filter"/>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT"
+                      maxWidth="Infinity"
+                      visible="false"
+                      managed="false">
+                    <Label fx:id="profilesCountLabel" styleClass="page-subtitle"/>
+                </HBox>
+
+                <GridPane fx:id="profilesCardsGrid"
+                          hgap="18"
+                          vgap="18"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          styleClass="profiles-cards-container"/>
+
+                <VBox fx:id="emptyStateBox"
+                      spacing="6"
+                      visible="false"
+                      managed="false"
+                      maxWidth="Infinity"
+                      styleClass="empty-state-box">
+
+                    <Label text="No profiles found" styleClass="empty-state-title"/>
+                    <Label text="Try a different search, status, or metadata template filter."
+                           styleClass="empty-state-copy"/>
+                </VBox>
+            </VBox>
+
+
+            <!-- =====================================================
+                 PROFILE EDITOR
+                 ===================================================== -->
+
+            <VBox fx:id="editorPane"
+                  spacing="18"
+                  fillWidth="true"
+                  minWidth="0"
                   maxWidth="Infinity"
                   visible="false"
                   managed="false">
-                <Label fx:id="profilesCountLabel" styleClass="page-subtitle"/>
-            </HBox>
 
-            <GridPane fx:id="profilesCardsGrid"
-                      hgap="18"
-                      vgap="18"
-                      minWidth="0"
+                <styleClass>
+                    <String fx:value="admin-page"/>
+                    <String fx:value="main-content"/>
+                    <String fx:value="profile-editor-page"/>
+                </styleClass>
+
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
+
+                <VBox spacing="15" maxWidth="Infinity">
+                    <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                        <Button text="← Back"
+                                onAction="#showOverview"
+                                focusTraversable="false"
+                                styleClass="metadata-back-button"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-header">
+
+                        <VBox spacing="3"
+                              minWidth="0"
+                              maxWidth="Infinity"
+                              HBox.hgrow="ALWAYS"
+                              styleClass="page-heading-copy">
+
+                            <Label fx:id="editorTitleLabel"
+                                   text="Building Archive Profile"
+                                   minWidth="0"
+                                   maxWidth="Infinity"
+                                   textOverrun="ELLIPSIS"
+                                   styleClass="page-title"/>
+
+                            <Label fx:id="editorSubtitleLabel"
+                                   text="Used for municipal building archive scanning."
+                                   minWidth="0"
+                                   maxWidth="Infinity"
+                                   textOverrun="ELLIPSIS"
+                                   styleClass="page-subtitle"/>
+                        </VBox>
+
+                        <HBox spacing="12"
+                              alignment="CENTER_RIGHT"
+                              styleClass="profile-editor-header-actions">
+
+                            <Label fx:id="editorStatusBadge"
+                                   text="Active"
+                                   styleClass="profile-status-badge"/>
+
+                            <Button text="Preview Export"
+                                    onAction="#previewExport"
+                                    focusTraversable="false"
+                                    styleClass="profile-editor-secondary-button"/>
+
+                            <Button text="Save Changes"
+                                    onAction="#saveChanges"
+                                    focusTraversable="false"
+                                    styleClass="profile-editor-primary-button"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
+
+                <HBox spacing="0"
                       maxWidth="Infinity"
-                      styleClass="profiles-cards-container"/>
+                      styleClass="profile-editor-tabs">
 
-            <VBox fx:id="emptyStateBox"
-                  spacing="6"
-                  visible="false"
-                  managed="false"
-                  maxWidth="Infinity"
-                  styleClass="empty-state-box">
+                    <Button fx:id="generalTabButton"
+                            text="General"
+                            onAction="#showGeneralTab"
+                            focusTraversable="false"
+                            styleClass="profile-editor-tab-button"/>
 
-                <Label text="No profiles found" styleClass="empty-state-title"/>
-                <Label text="Try a different search, status, or metadata template filter."
-                       styleClass="empty-state-copy"/>
+                    <Button fx:id="scanRulesTabButton"
+                            text="Scan Rules"
+                            onAction="#showScanRulesTab"
+                            focusTraversable="false"
+                            styleClass="profile-editor-tab-button"/>
+
+                    <Button fx:id="metadataTabButton"
+                            text="Metadata"
+                            onAction="#showMetadataTab"
+                            focusTraversable="false"
+                            styleClass="profile-editor-tab-button"/>
+
+                    <Button fx:id="accessTabButton"
+                            text="Access"
+                            onAction="#showAccessTab"
+                            focusTraversable="false"
+                            styleClass="profile-editor-tab-button"/>
+
+                    <Button fx:id="previewTabButton"
+                            text="Preview"
+                            onAction="#showPreviewTab"
+                            focusTraversable="false"
+                            styleClass="profile-editor-tab-button"/>
+                </HBox>
+
+                <StackPane maxWidth="Infinity"
+                           styleClass="profile-editor-content">
+
+                    <!-- GENERAL TAB -->
+                    <VBox fx:id="generalTabPane"
+                          spacing="0"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-card">
+
+                        <VBox spacing="27" maxWidth="Infinity">
+
+                            <VBox spacing="6" maxWidth="Infinity">
+                                <Label text="Profile Name *" styleClass="profile-editor-field-label"/>
+                                <TextField fx:id="profileNameField"
+                                           styleClass="profile-editor-input"
+                                           maxWidth="Infinity"/>
+                            </VBox>
+
+                            <VBox spacing="6" maxWidth="Infinity">
+                                <Label text="Profile Code / Slug *" styleClass="profile-editor-field-label"/>
+                                <TextField fx:id="profileCodeField"
+                                           styleClass="profile-editor-input"
+                                           maxWidth="Infinity"/>
+                                <Label text="The profile code is used in export folder naming."
+                                       styleClass="profile-editor-helper-text"/>
+                            </VBox>
+
+                            <VBox spacing="6" maxWidth="Infinity">
+                                <Label text="Description" styleClass="profile-editor-field-label"/>
+                                <TextArea fx:id="profileDescriptionArea"
+                                          prefRowCount="4"
+                                          wrapText="true"
+                                          styleClass="profile-editor-textarea"
+                                          maxWidth="Infinity"/>
+                            </VBox>
+
+                            <VBox spacing="6" maxWidth="Infinity">
+                                <Label text="Status" styleClass="profile-editor-field-label"/>
+                                <ComboBox fx:id="profileStatusComboBox"
+                                          styleClass="profile-editor-input"
+                                          maxWidth="Infinity"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+
+
+                    <!-- SCAN RULES TAB -->
+                    <VBox fx:id="scanRulesTabPane"
+                          spacing="0"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity">
+
+                        <VBox spacing="0"
+                              maxWidth="Infinity">
+
+                            <styleClass>
+                                <String fx:value="profile-editor-card"/>
+                                <String fx:value="profile-editor-sectioned-card"/>
+                            </styleClass>
+
+                            <VBox spacing="27"
+                                  maxWidth="Infinity"
+                                  styleClass="profile-editor-section">
+
+                                <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                                    <Label text="Barcode Splitting"
+                                           styleClass="profile-editor-section-title"/>
+
+                                    <Region HBox.hgrow="ALWAYS"/>
+
+                                    <ToggleButton fx:id="barcodeSplitToggle"
+                                                  selected="true"
+                                                  focusTraversable="false"
+                                                  styleClass="profile-editor-switch"/>
+                                </HBox>
+
+                                <Label text="Enable barcode document splitting"
+                                       styleClass="profile-editor-strong-text"/>
+
+                                <GridPane hgap="21"
+                                          vgap="6"
+                                          maxWidth="Infinity">
+
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                        <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                    </columnConstraints>
+
+                                    <Label text="When barcode is detected"
+                                           styleClass="profile-editor-field-label"
+                                           GridPane.columnIndex="0"
+                                           GridPane.rowIndex="0"/>
+
+                                    <Label text="Barcode page behavior"
+                                           styleClass="profile-editor-field-label"
+                                           GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0"/>
+
+                                    <ComboBox fx:id="barcodeDetectedComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="profile-editor-input"
+                                              GridPane.columnIndex="0"
+                                              GridPane.rowIndex="1"/>
+
+                                    <ComboBox fx:id="barcodePageBehaviorComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="profile-editor-input"
+                                              GridPane.columnIndex="1"
+                                              GridPane.rowIndex="1"/>
+                                </GridPane>
+                            </VBox>
+
+                            <Region styleClass="profile-editor-section-divider"/>
+
+                            <VBox spacing="27"
+                                  maxWidth="Infinity"
+                                  styleClass="profile-editor-section">
+
+                                <Label text="Page Correction Defaults"
+                                       styleClass="profile-editor-section-title"/>
+
+                                <GridPane hgap="21"
+                                          vgap="6"
+                                          maxWidth="Infinity">
+
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
+                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
+                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
+                                    </columnConstraints>
+
+                                    <Label text="Default rotation"
+                                           styleClass="profile-editor-field-label"
+                                           GridPane.columnIndex="0"
+                                           GridPane.rowIndex="0"/>
+
+                                    <Label text="Brightness"
+                                           styleClass="profile-editor-field-label"
+                                           GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0"/>
+
+                                    <Label text="Contrast"
+                                           styleClass="profile-editor-field-label"
+                                           GridPane.columnIndex="2"
+                                           GridPane.rowIndex="0"/>
+
+                                    <ComboBox fx:id="defaultRotationComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="profile-editor-input"
+                                              GridPane.columnIndex="0"
+                                              GridPane.rowIndex="1"/>
+
+                                    <ComboBox fx:id="brightnessComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="profile-editor-input"
+                                              GridPane.columnIndex="1"
+                                              GridPane.rowIndex="1"/>
+
+                                    <ComboBox fx:id="contrastComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="profile-editor-input"
+                                              GridPane.columnIndex="2"
+                                              GridPane.rowIndex="1"/>
+                                </GridPane>
+
+                                <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                                    <Label text="Deskew / straighten pages"
+                                           styleClass="profile-editor-strong-text"/>
+
+                                    <Region HBox.hgrow="ALWAYS"/>
+
+                                    <ToggleButton fx:id="deskewToggle"
+                                                  selected="true"
+                                                  focusTraversable="false"
+                                                  styleClass="profile-editor-switch"/>
+                                </HBox>
+                            </VBox>
+
+                            <Region styleClass="profile-editor-section-divider"/>
+
+                            <VBox spacing="24"
+                                  maxWidth="Infinity"
+                                  styleClass="profile-editor-section">
+
+                                <Label text="Export Settings"
+                                       styleClass="profile-editor-section-title"/>
+
+                                <VBox spacing="6" maxWidth="420">
+                                    <Label text="Export format"
+                                           styleClass="profile-editor-field-label"/>
+
+                                    <ComboBox fx:id="exportFormatComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="profile-editor-input"/>
+                                </VBox>
+
+                                <VBox spacing="6" maxWidth="Infinity">
+                                    <Label text="Export folder naming"
+                                           styleClass="profile-editor-field-label"/>
+
+                                    <HBox spacing="21"
+                                          alignment="CENTER_LEFT"
+                                          maxWidth="Infinity">
+
+                                        <TextField fx:id="exportNamingField"
+                                                   text="{profileCode}_{boxId}"
+                                                   maxWidth="Infinity"
+                                                   HBox.hgrow="ALWAYS"
+                                                   styleClass="profile-editor-input"/>
+
+                                        <VBox spacing="6"
+                                              minWidth="276"
+                                              prefWidth="276"
+                                              maxWidth="276"
+                                              styleClass="profile-editor-preview-box">
+
+                                            <Label text="Preview:"
+                                                   styleClass="profile-editor-helper-text"/>
+
+                                            <Label fx:id="exportNamingPreviewLabel"
+                                                   text="BuildingArchive_BOX-2026-004"
+                                                   styleClass="profile-editor-code-preview"/>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+
+
+                    <!-- METADATA TAB -->
+                    <VBox fx:id="metadataTabPane"
+                          spacing="24"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-card">
+
+                        <VBox spacing="6">
+                            <Label text="Metadata Template"
+                                   styleClass="profile-editor-section-title"/>
+                            <Label text="Connect this profile to the metadata form users complete after scanning."
+                                   styleClass="profile-editor-subtitle"/>
+                        </VBox>
+
+                        <VBox spacing="6" maxWidth="Infinity">
+                            <Label text="Metadata Template"
+                                   styleClass="profile-editor-field-label"/>
+                            <ComboBox fx:id="metadataTemplateComboBox"
+                                      maxWidth="Infinity"
+                                      styleClass="profile-editor-input"/>
+                            <Label text="This metadata form will be shown to users after scanning."
+                                   styleClass="profile-editor-helper-text"/>
+                        </VBox>
+
+                        <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                            <Label text="Metadata must be completed before export"
+                                   styleClass="profile-editor-strong-text"/>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <ToggleButton fx:id="metadataRequiredToggle"
+                                          selected="true"
+                                          focusTraversable="false"
+                                          styleClass="profile-editor-switch"/>
+                        </HBox>
+
+                        <VBox spacing="12" maxWidth="Infinity">
+                            <Label text="Preview field list:"
+                                   styleClass="profile-editor-helper-text"/>
+
+                            <GridPane hgap="72"
+                                      vgap="12"
+                                      maxWidth="Infinity"
+                                      styleClass="profile-editor-field-preview-card">
+
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                </columnConstraints>
+
+                                <Label text="•  Box ID"
+                                       styleClass="profile-editor-field-preview-item"
+                                       GridPane.columnIndex="0"
+                                       GridPane.rowIndex="0"/>
+
+                                <Label text="•  Case Number"
+                                       styleClass="profile-editor-field-preview-item"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="0"/>
+
+                                <Label text="•  Building Address"
+                                       styleClass="profile-editor-field-preview-item"
+                                       GridPane.columnIndex="0"
+                                       GridPane.rowIndex="1"/>
+
+                                <Label text="•  Date Range"
+                                       styleClass="profile-editor-field-preview-item"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="1"/>
+
+                                <Label text="•  Department"
+                                       styleClass="profile-editor-field-preview-item"
+                                       GridPane.columnIndex="0"
+                                       GridPane.rowIndex="2"/>
+
+                                <Label text="•  Notes"
+                                       styleClass="profile-editor-field-preview-item"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="2"/>
+                            </GridPane>
+                        </VBox>
+
+                        <HBox spacing="15">
+                            <Button text="Preview Metadata Form"
+                                    onAction="#previewMetadataForm"
+                                    focusTraversable="false"
+                                    styleClass="profile-editor-secondary-button"/>
+
+                            <Button text="Edit Template ↗"
+                                    onAction="#editTemplate"
+                                    focusTraversable="false"
+                                    styleClass="profile-editor-link-button"/>
+                        </HBox>
+                    </VBox>
+
+
+                    <!-- ACCESS TAB -->
+                    <VBox fx:id="accessTabPane"
+                          spacing="24"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-card">
+
+                        <VBox spacing="6">
+                            <Label text="Profile Access"
+                                   styleClass="profile-editor-section-title"/>
+
+                            <Label fx:id="accessCountLabel"
+                                   text="5 users assigned"
+                                   styleClass="profile-editor-subtitle"/>
+                        </VBox>
+
+                        <VBox fx:id="accessRowsContainer"
+                              spacing="0"
+                              maxWidth="Infinity"
+                              styleClass="profile-editor-access-list"/>
+
+                        <VBox spacing="9">
+                            <Button text="Manage Access"
+                                    onAction="#manageAccess"
+                                    focusTraversable="false"
+                                    styleClass="profile-editor-primary-button"/>
+
+                            <Label text="Manage Access opens the Profile Access page filtered to this profile."
+                                   styleClass="profile-editor-helper-text"/>
+                        </VBox>
+                    </VBox>
+
+
+                    <!-- PREVIEW TAB -->
+                    <VBox fx:id="previewTabPane"
+                          spacing="24"
+                          visible="false"
+                          managed="false"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-card">
+
+                        <Label text="Scanner Preview"
+                               styleClass="profile-editor-section-title"/>
+
+                        <VBox spacing="18"
+                              maxWidth="Infinity"
+                              styleClass="profile-editor-scanner-preview-box">
+
+                            <VBox spacing="4">
+                                <Label text="Selected Profile:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewProfileNameLabel"
+                                       text="Building Archive"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Box ID:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewBoxIdLabel"
+                                       text="BOX-2026-004"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Export folder:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewExportFolderLabel"
+                                       text="BuildingArchive_BOX-2026-004"
+                                       styleClass="profile-info-code"/>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Barcode splitting:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewBarcodeLabel"
+                                       text="Enabled · Start new document · Remove barcode page"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Metadata template:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewMetadataTemplateLabel"
+                                       text="Building Archive Metadata"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Page correction:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewPageCorrectionLabel"
+                                       text="Rotation 0° · Brightness Normal · Contrast Normal · Deskew Enabled"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+
+                            <VBox spacing="4">
+                                <Label text="Export format:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewExportFormatLabel"
+                                       text="Multi-page TIFF"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </StackPane>
             </VBox>
-        </VBox>
+        </StackPane>
     </content>
 </ScrollPane>

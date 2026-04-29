@@ -1,4 +1,4 @@
-package easv.gui.controller.Admin;
+package easv.gui.controller.admin;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -45,6 +46,11 @@ public class MetadataReviewController {
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
 
+    private MetadataReviewRow activeReviewRecord;
+
+    @FXML private VBox overviewPane;
+    @FXML private VBox workspacePane;
+
     @FXML private TextField searchField;
 
     @FXML private ComboBox<String> clientFilterComboBox;
@@ -66,12 +72,33 @@ public class MetadataReviewController {
     @FXML private HBox paginationButtonsBox;
     @FXML private ComboBox<Integer> rowsPerPageComboBox;
 
+    @FXML private Label workspaceTitleLabel;
+    @FXML private Label workspaceSubtitleLabel;
+    @FXML private Label workspaceWarningLabel;
+
+    @FXML private Button boxTabButton;
+    @FXML private Button caseTabButton;
+    @FXML private Button documentTabButton;
+    @FXML private Button pageTabButton;
+
+    @FXML private ComboBox<String> documentTypeComboBox;
+    @FXML private ComboBox<String> departmentComboBox;
+
+    @FXML private TextField caseNumberField;
+    @FXML private TextField registrationDateField;
+    @FXML private TextField buildingAddressField;
+    @FXML private TextArea notesTextArea;
+
     @FXML
     private void initialize() {
         configureFilters();
+        configureWorkspaceControls();
         configureRowsPerPageSelector();
         loadSampleRecords();
         configureListeners();
+
+        showOverview();
+        setActiveWorkspaceTab(documentTabButton);
         applyFilters();
     }
 
@@ -139,6 +166,29 @@ public class MetadataReviewController {
                 "System Import"
         );
         scannedByFilterComboBox.setValue(ALL_USERS);
+    }
+
+    private void configureWorkspaceControls() {
+        documentTypeComboBox.getItems().setAll(
+                "Building Permit",
+                "Inspection Report",
+                "Planning Document",
+                "Technical Drawing",
+                "Legal Record"
+        );
+
+        departmentComboBox.getItems().setAll(
+                "Technical Services",
+                "Planning",
+                "Municipal Archive",
+                "Legal Department"
+        );
+        departmentComboBox.setValue("Technical Services");
+
+        caseNumberField.setText("2026-042");
+        registrationDateField.setText("Invalid date");
+        buildingAddressField.setText("Skagerrakvej 16");
+        notesTextArea.clear();
     }
 
     private void configureRowsPerPageSelector() {
@@ -487,8 +537,14 @@ public class MetadataReviewController {
     private boolean matchesDateRange(String recordDateGroup, String selectedDateRange) {
         if (selectedDateRange == null
                 || "Last 30 Days".equals(selectedDateRange)
+                || "This Month".equals(selectedDateRange)
                 || "All Time".equals(selectedDateRange)) {
             return true;
+        }
+
+        if ("Last 7 Days".equals(selectedDateRange)) {
+            return "Today".equalsIgnoreCase(recordDateGroup)
+                    || "Last 7 Days".equalsIgnoreCase(recordDateGroup);
         }
 
         return recordDateGroup.equalsIgnoreCase(selectedDateRange);
@@ -534,42 +590,153 @@ public class MetadataReviewController {
     @FXML
     private void showMissingRequiredQueue() {
         metadataStatusFilterComboBox.setValue("Missing Required Fields");
+        qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
+        dateRangeFilterComboBox.setValue("Last 30 Days");
     }
 
     @FXML
     private void showExportBlockedQueue() {
         metadataStatusFilterComboBox.setValue("Missing Required Fields");
         qaStatusFilterComboBox.setValue("Waiting for QA");
+        dateRangeFilterComboBox.setValue("Last 30 Days");
     }
 
     @FXML
     private void showFailedValidationQueue() {
         metadataStatusFilterComboBox.setValue("Invalid");
+        qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
+        dateRangeFilterComboBox.setValue("Last 30 Days");
     }
 
     @FXML
     private void showReadyForQaQueue() {
         metadataStatusFilterComboBox.setValue("Complete");
         qaStatusFilterComboBox.setValue("Ready for QA");
+        dateRangeFilterComboBox.setValue("Last 30 Days");
     }
 
     @FXML
     private void showQaRejectedQueue() {
+        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue("QA Rejected");
+        dateRangeFilterComboBox.setValue("Last 30 Days");
     }
 
     @FXML
     private void showRecentlyScannedQueue() {
+        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
+        qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         dateRangeFilterComboBox.setValue("Today");
     }
 
     @FXML
     private void exportReport() {
-        // Hook this up later.
+        System.out.println("Export Report clicked");
     }
 
     private void openReviewWorkspace(MetadataReviewRow record) {
-        // Hook this up later.
+        activeReviewRecord = record;
+
+        workspaceTitleLabel.setText(record.identity());
+        workspaceSubtitleLabel.setText(
+                record.profile()
+                        + " · "
+                        + record.client()
+                        + " · "
+                        + record.pages()
+                        + " pages · "
+                        + record.metadataStatus()
+        );
+
+        boolean isBlocked = record.metadataStatus().equalsIgnoreCase("Missing Required Fields")
+                || record.metadataStatus().equalsIgnoreCase("Invalid")
+                || record.metadataStatus().equalsIgnoreCase("Incomplete");
+
+        workspaceWarningLabel.setText(
+                isBlocked
+                        ? "Export blocked: 2 required metadata fields are missing."
+                        : "All required metadata is complete. Ready for QA/export."
+        );
+
+        configureWorkspaceControls();
+        showWorkspace();
+    }
+
+    @FXML
+    private void showOverview() {
+        overviewPane.setVisible(true);
+        overviewPane.setManaged(true);
+
+        workspacePane.setVisible(false);
+        workspacePane.setManaged(false);
+    }
+
+    @FXML
+    private void showWorkspace() {
+        overviewPane.setVisible(false);
+        overviewPane.setManaged(false);
+
+        workspacePane.setVisible(true);
+        workspacePane.setManaged(true);
+    }
+
+    @FXML
+    private void saveMetadata() {
+        System.out.println("Save Metadata clicked");
+    }
+
+    @FXML
+    private void markComplete() {
+        System.out.println("Mark Document Complete clicked");
+    }
+
+    @FXML
+    private void sendToQa() {
+        System.out.println("Send to QA clicked");
+    }
+
+    @FXML
+    private void approveReview() {
+        System.out.println("Approve Review clicked");
+    }
+
+    @FXML
+    private void rejectReview() {
+        System.out.println("Reject Review clicked");
+    }
+
+    @FXML
+    private void showBoxTab() {
+        setActiveWorkspaceTab(boxTabButton);
+    }
+
+    @FXML
+    private void showCaseTab() {
+        setActiveWorkspaceTab(caseTabButton);
+    }
+
+    @FXML
+    private void showDocumentTab() {
+        setActiveWorkspaceTab(documentTabButton);
+    }
+
+    @FXML
+    private void showPageTab() {
+        setActiveWorkspaceTab(pageTabButton);
+    }
+
+    private void setActiveWorkspaceTab(Button activeButton) {
+        List<Button> tabButtons = List.of(boxTabButton, caseTabButton, documentTabButton, pageTabButton);
+
+        for (Button tabButton : tabButtons) {
+            tabButton.getStyleClass().removeAll("metadata-workspace-tab-active", "metadata-workspace-tab-button");
+
+            if (tabButton == activeButton) {
+                tabButton.getStyleClass().add("metadata-workspace-tab-active");
+            } else {
+                tabButton.getStyleClass().add("metadata-workspace-tab-button");
+            }
+        }
     }
 
     private String normalize(String value) {

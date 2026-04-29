@@ -1,4 +1,4 @@
-package easv.gui.controller.Admin;
+package easv.gui.controller.admin;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -10,7 +10,11 @@ public class DashboardController {
     @FXML private Label activeProfilesValueLabel;
     @FXML private Label scansTodayValueLabel;
     @FXML private Label waitingForQaValueLabel;
+
     @FXML private Label needsAttentionValueLabel;
+    @FXML private Label usersNoProfilesCountLabel;
+    @FXML private Label failedExportsCountLabel;
+    @FXML private Label draftProfilesCountLabel;
 
     @FXML private Label inProgressValueLabel;
     @FXML private Label workflowWaitingQaValueLabel;
@@ -23,6 +27,7 @@ public class DashboardController {
     @FXML
     private void initialize() {
         populateSummaryCards();
+        populateNeedsAttention();
         populateWorkflowStatus();
     }
 
@@ -31,7 +36,19 @@ public class DashboardController {
         activeProfilesValueLabel.setText("3");
         scansTodayValueLabel.setText("12");
         waitingForQaValueLabel.setText("8");
-        needsAttentionValueLabel.setText("6");
+    }
+
+    private void populateNeedsAttention() {
+        int usersWithNoProfiles = 3;
+        int failedExports = 2;
+        int draftProfiles = 1;
+
+        usersNoProfilesCountLabel.setText(usersWithNoProfiles + " users have no profiles");
+        failedExportsCountLabel.setText(failedExports + " failed exports");
+        draftProfilesCountLabel.setText(draftProfiles + " draft profile");
+
+        int totalNeedsAttention = usersWithNoProfiles + failedExports + draftProfiles;
+        needsAttentionValueLabel.setText(String.valueOf(totalNeedsAttention));
     }
 
     private void populateWorkflowStatus() {

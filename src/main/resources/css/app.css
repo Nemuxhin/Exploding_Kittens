@@ -1,5 +1,17 @@
 /* =========================================================
-   APP BASE + THEME COLORS
+   WEBLAGER ADMIN CSS
+   Exam project UI system:
+   - Montserrat only
+   - 3px spacing scale
+   - 30px default controls / 33px primary header actions
+   - 10px cards, 6px controls, 3px chips
+   - solid fills, light borders, no gradients, no opacity-hover effects
+   ========================================================= */
+
+/* =========================================================
+   01. THEME TOKENS
+   Project note: all screens, cards, dialogs, and controls should use
+   these variables so light mode and dark mode stay consistent.
    ========================================================= */
 
 .root {
@@ -7,7 +19,6 @@
     -fx-font-size: 12px;
 }
 
-/* Light mode */
 .app-shell {
     -wl-background: #F5F5F5;
     -wl-surface: #FFFFFF;
@@ -52,10 +63,12 @@
     -wl-logout-text: #FFFFFF;
     -wl-logout-icon: #FFFFFF;
 
-    -wl-switch-track: #18A982;
-    -wl-switch-track-hover: #138B6D;
-    -wl-switch-thumb: #24C79F;
-    -wl-switch-icon: #FFFFFF;
+    -wl-switch-track: #2D3D4F;
+    -wl-switch-track-hover: #1C252F;
+    -wl-switch-off-track: #64748B;
+    -wl-switch-off-track-hover: #4B5563;
+    -wl-switch-thumb: #FFFFFF;
+    -wl-switch-icon: #2D3D4F;
 
     -wl-avatar-bg: #F1F5F9;
 
@@ -70,7 +83,6 @@
     -fx-background-color: -wl-background;
 }
 
-/* Dark mode */
 .app-shell.dark {
     -wl-background: #465160;
     -wl-surface: #354556;
@@ -117,8 +129,10 @@
 
     -wl-switch-track: #008FF7;
     -wl-switch-track-hover: #33A9EE;
-    -wl-switch-thumb: #0094EA;
-    -wl-switch-icon: #FFFFFF;
+    -wl-switch-off-track: #697489;
+    -wl-switch-off-track-hover: #2B3B4C;
+    -wl-switch-thumb: #FFFFFF;
+    -wl-switch-icon: #008FF7;
 
     -wl-avatar-bg: #2D3D4F;
 
@@ -133,226 +147,23 @@
     -fx-background-color: -wl-background;
 }
 
-
 /* =========================================================
-   BUTTON SYSTEM
-   ========================================================= */
-
-.button {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-
-    -fx-effect: none;
-    -fx-cursor: hand;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.button:disabled,
-.text-field:disabled,
-.combo-box-base:disabled {
-    -fx-opacity: 0.6;
-}
-
-/* Primary header/action buttons */
-.create-user-button {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-
-    -fx-padding: 0 18 0 18;
-
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-.create-user-button:hover,
-.create-user-button:pressed {
-    -fx-background-color: -wl-primary-hover;
-    -fx-border-color: -wl-primary-hover;
-}
-
-/* Primary standard buttons */
-.profile-open-button {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-
-    -fx-padding: 0 15 0 15;
-
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-.profile-open-button:hover,
-.profile-open-button:pressed {
-    -fx-background-color: -wl-primary-hover;
-    -fx-border-color: -wl-primary-hover;
-}
-
-/* Secondary filled buttons */
-.secondary-action-button {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-
-    -fx-padding: 0 15 0 15;
-
-    -fx-background-color: -wl-secondary;
-    -fx-border-color: -wl-secondary;
-    -fx-text-fill: #FFFFFF;
-
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-.secondary-action-button:hover,
-.secondary-action-button:pressed {
-    -fx-background-color: -wl-secondary-hover;
-    -fx-border-color: -wl-secondary-hover;
-}
-
-/* Tertiary buttons */
-.metadata-secondary-header-button,
-.secondary-outline-button,
-.profile-secondary-button,
-.profile-icon-button {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-
-    -fx-padding: 0 15 0 15;
-
-    -fx-background-color: -wl-tertiary;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
-
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-.metadata-secondary-header-button,
-.secondary-outline-button {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-padding: 0 18 0 18;
-}
-
-.metadata-secondary-header-button:hover,
-.metadata-secondary-header-button:pressed,
-.secondary-outline-button:hover,
-.secondary-outline-button:pressed,
-.profile-secondary-button:hover,
-.profile-secondary-button:pressed,
-.profile-icon-button:hover,
-.profile-icon-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
-}
-
-/* Text row actions */
-.edit-link-button,
-.metadata-action-button,
-.metadata-action-button-muted {
-    -fx-min-height: 0;
-    -fx-pref-height: -1;
-
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-
-    -fx-padding: 0;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.edit-link-button:hover,
-.metadata-action-button:hover,
-.metadata-action-button-muted:hover {
-    -fx-text-fill: -wl-primary-hover;
-    -fx-underline: true;
-}
-
-/* Destructive text actions */
-.delete-link-button {
-    -fx-min-height: 0;
-    -fx-pref-height: -1;
-
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-
-    -fx-padding: 0;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-
-    -fx-text-fill: -wl-destructive;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.delete-link-button:hover {
-    -fx-text-fill: -wl-destructive-hover;
-    -fx-underline: true;
-}
-
-.action-icon-shell {
-    -fx-min-width: 15;
-    -fx-pref-width: 15;
-    -fx-max-width: 15;
-
-    -fx-min-height: 15;
-    -fx-pref-height: 15;
-    -fx-max-height: 15;
-
-    -fx-alignment: center;
-}
-
-.edit-link-icon {
-    -fx-fill: -wl-text;
-}
-
-.edit-link-button:hover .edit-link-icon {
-    -fx-fill: -wl-primary-hover;
-}
-
-.delete-link-icon {
-    -fx-fill: -wl-destructive;
-}
-
-.delete-link-button:hover .delete-link-icon {
-    -fx-fill: -wl-destructive-hover;
-}
-
-
-/* =========================================================
-   SHARED ADMIN SHELL + PAGE WRAPPER
+   02. PAGE SHELL
+   Project note: shared page containers use the same background so
+   individual screens do not create mismatched blocks.
    ========================================================= */
 
 .content-host,
-.admin-page {
+.admin-page,
+.dashboard-page,
+.assignments-page,
+.activity-log-page,
+.profiles-page-host,
+.profiles-overview-page,
+.profile-editor-page,
+.metadata-review-page-host,
+.metadata-review-page,
+.metadata-workspace-page {
     -fx-background-color: -wl-background;
 }
 
@@ -366,16 +177,571 @@
     -fx-padding: 0;
 }
 
+.main-content {
+    -fx-spacing: 18;
+}
+
+.page-header,
+.profile-editor-header,
+.metadata-workspace-header {
+    -fx-alignment: center-left;
+    -fx-spacing: 18;
+}
+
+.page-heading-copy {
+    -fx-spacing: 3;
+    -fx-min-width: 0;
+}
+
+.page-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+    -fx-wrap-text: false;
+    -fx-text-overrun: ellipsis;
+}
+
+.page-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-wrap-text: false;
+    -fx-text-overrun: ellipsis;
+}
+
+.page-header-actions,
+.profile-editor-header-actions,
+.metadata-header-actions {
+    -fx-spacing: 12;
+    -fx-alignment: center-right;
+}
 
 /* =========================================================
-   SIDEBAR
+   03. BUTTONS
+   Project note: primary page actions are 33px high. Small table
+   actions stay compact so rows remain vertically centered.
+   ========================================================= */
+
+.button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button:disabled,
+.text-field:disabled,
+.combo-box-base:disabled {
+    -fx-opacity: 0.6;
+}
+
+.create-user-button,
+.header-action-button,
+.secondary-outline-button,
+.metadata-primary-header-button,
+.metadata-secondary-header-button,
+.metadata-destructive-header-button,
+.metadata-workspace-danger-button,
+.metadata-save-button,
+.metadata-complete-button,
+.metadata-send-review-button,
+.metadata-approve-button,
+.metadata-reject-button,
+.profile-editor-primary-button,
+.profile-editor-secondary-button,
+.profile-editor-link-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-wrap-text: false;
+    -fx-alignment: center;
+    -fx-effect: none;
+}
+
+.create-user-button,
+.header-action-button,
+.metadata-primary-header-button,
+.metadata-send-review-button,
+.metadata-approve-button,
+.profile-editor-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.create-user-button:hover,
+.create-user-button:pressed,
+.header-action-button:hover,
+.header-action-button:pressed,
+.metadata-primary-header-button:hover,
+.metadata-primary-header-button:pressed,
+.metadata-send-review-button:hover,
+.metadata-send-review-button:pressed,
+.metadata-approve-button:hover,
+.metadata-approve-button:pressed,
+.profile-editor-primary-button:hover,
+.profile-editor-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-outline-button,
+.metadata-secondary-header-button,
+.metadata-save-button,
+.metadata-complete-button,
+.profile-editor-secondary-button,
+.profile-editor-link-button,
+.profile-secondary-button,
+.profile-icon-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.secondary-outline-button:hover,
+.secondary-outline-button:pressed,
+.metadata-secondary-header-button:hover,
+.metadata-secondary-header-button:pressed,
+.metadata-save-button:hover,
+.metadata-save-button:pressed,
+.metadata-complete-button:hover,
+.metadata-complete-button:pressed,
+.profile-editor-secondary-button:hover,
+.profile-editor-secondary-button:pressed,
+.profile-editor-link-button:hover,
+.profile-editor-link-button:pressed,
+.profile-secondary-button:hover,
+.profile-secondary-button:pressed,
+.profile-icon-button:hover,
+.profile-icon-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.metadata-destructive-header-button,
+.metadata-workspace-danger-button,
+.metadata-reject-button {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: #FFFFFF;
+}
+
+.metadata-destructive-header-button:hover,
+.metadata-destructive-header-button:pressed,
+.metadata-workspace-danger-button:hover,
+.metadata-workspace-danger-button:pressed,
+.metadata-reject-button:hover,
+.metadata-reject-button:pressed {
+    -fx-background-color: -wl-destructive-hover;
+    -fx-border-color: -wl-destructive-hover;
+}
+
+.profile-open-button,
+.profile-secondary-button,
+.profile-icon-button,
+.secondary-action-button,
+.pagination-button,
+.metadata-workspace-tool-button,
+.metadata-workspace-tab-button,
+.metadata-workspace-tab-active,
+.assignment-mode-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+}
+
+.profile-open-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.profile-open-button:hover,
+.profile-open-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-action-button {
+    -fx-background-color: -wl-secondary;
+    -fx-border-color: -wl-secondary;
+    -fx-text-fill: #FFFFFF;
+}
+
+.secondary-action-button:hover,
+.secondary-action-button:pressed {
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
+}
+
+.edit-link-button,
+.delete-link-button,
+.metadata-action-button,
+.metadata-action-button-muted,
+.metadata-review-action-button,
+.metadata-template-action-button,
+.metadata-icon-action-button,
+.metadata-icon-action-button-destructive {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.edit-link-button,
+.metadata-action-button,
+.metadata-action-button-muted,
+.metadata-review-action-button,
+.metadata-template-action-button,
+.metadata-icon-action-button {
+    -fx-text-fill: -wl-text;
+}
+
+.delete-link-button,
+.metadata-icon-action-button-destructive {
+    -fx-text-fill: -wl-destructive;
+}
+
+.edit-link-button:hover,
+.metadata-action-button:hover,
+.metadata-action-button-muted:hover,
+.metadata-review-action-button:hover,
+.metadata-template-action-button:hover,
+.metadata-icon-action-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+.delete-link-button:hover,
+.metadata-icon-action-button-destructive:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-destructive-hover;
+    -fx-underline: true;
+}
+
+.metadata-back-button,
+.profile-editor-back-button,
+.template-editor-back-button,
+.back-button {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+}
+
+.metadata-back-button:hover,
+.profile-editor-back-button:hover,
+.template-editor-back-button:hover,
+.back-button:hover,
+.metadata-back-button:focused,
+.profile-editor-back-button:focused,
+.template-editor-back-button:focused,
+.back-button:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-underline: true;
+}
+
+/* =========================================================
+   04. INPUTS AND SEARCH
+   Project note: normal inputs own their border. Search fields are
+   nested inside an HBox shell, so the shell owns the visible border.
+   ========================================================= */
+
+.text-input,
+.text-field,
+.text-area,
+.combo-box-base {
+    -fx-highlight-fill: -wl-primary-selected;
+    -fx-highlight-text-fill: -wl-on-primary;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.role-filter,
+.rows-per-page-filter,
+.metadata-review-filter,
+.activity-log-filter,
+.metadata-editor-input,
+.metadata-editor-textarea,
+.metadata-workspace-input,
+.metadata-workspace-textarea,
+.profile-editor-input,
+.profile-editor-textarea {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.role-filter,
+.rows-per-page-filter,
+.metadata-review-filter,
+.activity-log-filter {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.role-filter {
+    -fx-pref-width: 144;
+}
+
+.rows-per-page-filter {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+}
+
+.activity-log-filter {
+    -fx-pref-width: 144;
+}
+
+.metadata-editor-input,
+.metadata-workspace-input,
+.metadata-workspace-input-error,
+.profile-editor-input {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+}
+
+.metadata-editor-textarea,
+.metadata-workspace-textarea,
+.profile-editor-textarea {
+    -fx-padding: 9;
+}
+
+.metadata-editor-textarea .content,
+.metadata-workspace-textarea .content,
+.profile-editor-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+}
+
+.role-filter:hover,
+.rows-per-page-filter:hover,
+.metadata-review-filter:hover,
+.activity-log-filter:hover,
+.metadata-editor-input:hover,
+.metadata-editor-textarea:hover,
+.metadata-workspace-input:hover,
+.metadata-workspace-textarea:hover,
+.profile-editor-input:hover,
+.profile-editor-textarea:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.role-filter:focused,
+.rows-per-page-filter:focused,
+.metadata-review-filter:focused,
+.activity-log-filter:focused,
+.metadata-editor-input:focused,
+.metadata-editor-textarea:focused,
+.metadata-workspace-input:focused,
+.metadata-workspace-textarea:focused,
+.profile-editor-input:focused,
+.profile-editor-textarea:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.search-field-shell,
+.metadata-review-search-shell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.metadata-review-search-shell {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+}
+
+.search-field-shell:hover,
+.metadata-review-search-shell:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-secondary;
+}
+
+.search-field-shell-focused,
+.metadata-review-search-shell-focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-primary;
+}
+
+.search-field-input,
+.search-field-input:hover,
+.search-field-input:focused,
+.search-field-input:pressed,
+.search-field-input:armed,
+.search-field-input:focused:hover {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.field-icon-shell,
+.action-icon-shell,
+.metadata-template-action-icon-shell {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.field-icon-path {
+    -fx-fill: -wl-secondary;
+}
+
+.combo-box-base > .arrow-button,
+.role-filter > .arrow-button,
+.rows-per-page-filter > .arrow-button,
+.metadata-review-filter > .arrow-button,
+.activity-log-filter > .arrow-button,
+.metadata-workspace-input > .arrow-button,
+.profile-editor-input > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;
+}
+
+.combo-box-base > .arrow-button > .arrow,
+.role-filter > .arrow-button > .arrow,
+.rows-per-page-filter > .arrow-button > .arrow,
+.metadata-review-filter > .arrow-button > .arrow,
+.activity-log-filter > .arrow-button > .arrow,
+.metadata-workspace-input > .arrow-button > .arrow,
+.profile-editor-input > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.combo-box-base .list-cell,
+.role-filter .list-cell,
+.rows-per-page-filter .list-cell,
+.metadata-review-filter .list-cell,
+.activity-log-filter .list-cell,
+.metadata-workspace-input .list-cell,
+.profile-editor-input .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: -wl-surface;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   05. SIDEBAR
+   Project note: sidebar navigation has its own palette. Green is only
+   used as the light-mode sidebar background, not for toggles or inputs.
    ========================================================= */
 
 .primary-sidebar {
     -fx-pref-width: 252;
     -fx-min-width: 252;
     -fx-max-width: 252;
-
     -fx-background-color: -wl-sidebar-bg;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
@@ -405,7 +771,6 @@
     -fx-min-height: 1;
     -fx-pref-height: 1;
     -fx-max-height: 1;
-
     -fx-background-color: -wl-sidebar-divider;
 }
 
@@ -417,14 +782,11 @@
     -fx-min-height: 36;
     -fx-pref-height: 36;
     -fx-max-width: 9999;
-
     -fx-padding: 0 9 0 9;
     -fx-spacing: 12;
     -fx-alignment: center-left;
-
     -fx-background-radius: 6;
     -fx-border-radius: 6;
-
     -fx-cursor: hand;
 }
 
@@ -440,12 +802,9 @@
     -fx-background-color: -wl-sidebar-hover-bg;
 }
 
-.sidebar-nav-item-active {
-    -fx-background-color: -wl-sidebar-active-bg;
-}
-
+.sidebar-nav-item-active,
 .sidebar-nav-item-active:hover {
-    -fx-background-color: -wl-sidebar-hover-bg;
+    -fx-background-color: -wl-sidebar-active-bg;
 }
 
 .sidebar-logout-row {
@@ -456,21 +815,17 @@
     -fx-background-color: -wl-logout-hover-bg;
 }
 
-
-/* =========================================================
-   SIDEBAR ICONS
-   ========================================================= */
-
 .sidebar-row-icon-shell {
     -fx-min-width: 27;
     -fx-pref-width: 27;
     -fx-max-width: 27;
-
     -fx-min-height: 21;
     -fx-pref-height: 21;
     -fx-max-height: 21;
-
     -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
 }
 
 .sidebar-nav-icon-home,
@@ -509,11 +864,6 @@
     -fx-fill: -wl-sidebar-hover-text;
 }
 
-.sidebar-logout-row:hover .sidebar-logout-icon {
-    -fx-fill: -wl-logout-icon;
-}
-
-/* Small optical alignment fixes by icon shape */
 .sidebar-nav-icon-home,
 .sidebar-nav-icon-profiles,
 .sidebar-nav-icon-metadata,
@@ -527,11 +877,6 @@
 .sidebar-nav-icon-assignments {
     -fx-translate-x: 4;
 }
-
-
-/* =========================================================
-   SIDEBAR TEXT
-   ========================================================= */
 
 .sidebar-nav-label,
 .sidebar-utility-label,
@@ -557,27 +902,15 @@
     -fx-text-fill: -wl-sidebar-hover-text;
 }
 
-.sidebar-logout-row:hover .sidebar-logout-label {
-    -fx-text-fill: -wl-logout-text;
-}
-
-
-/* =========================================================
-   SIDEBAR LANGUAGE CHIP
-   ========================================================= */
-
 .sidebar-language-chip {
     -fx-min-width: 21;
     -fx-pref-width: 21;
     -fx-max-width: 21;
-
     -fx-min-height: 18;
     -fx-pref-height: 18;
     -fx-max-height: 18;
-
     -fx-background-color: #FFFFFF;
     -fx-background-radius: 3;
-
     -fx-alignment: center;
 }
 
@@ -587,37 +920,34 @@
     -fx-font-weight: 700;
 }
 
-
-/* =========================================================
-   THEME SWITCH
-   ========================================================= */
-
 .dark-mode-toggle {
     -fx-min-width: 48;
     -fx-pref-width: 48;
     -fx-max-width: 48;
-
     -fx-min-height: 24;
     -fx-pref-height: 24;
     -fx-max-height: 24;
-
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-
     -fx-effect: none;
-    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .dark-mode-toggle:hover,
 .dark-mode-toggle:armed,
+.dark-mode-toggle:focused,
 .dark-mode-toggle:selected,
-.dark-mode-toggle:selected:hover {
+.dark-mode-toggle:selected:hover,
+.dark-mode-toggle:selected:focused {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
+    -fx-effect: none;
 }
 
 .dark-mode-toggle > .graphic-container {
@@ -628,23 +958,25 @@
     -fx-min-width: 48;
     -fx-pref-width: 48;
     -fx-max-width: 48;
-
     -fx-min-height: 24;
     -fx-pref-height: 24;
     -fx-max-height: 24;
-
     -fx-padding: 3;
     -fx-alignment: center-left;
-
     -fx-background-color: -wl-switch-track;
     -fx-background-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
 }
 
 .dark-mode-toggle:selected .dark-mode-switch-track {
     -fx-alignment: center-right;
+    -fx-background-color: -wl-switch-track;
 }
 
-.dark-mode-toggle:hover .dark-mode-switch-track {
+.dark-mode-toggle:hover .dark-mode-switch-track,
+.dark-mode-toggle:selected:hover .dark-mode-switch-track {
     -fx-background-color: -wl-switch-track-hover;
 }
 
@@ -652,15 +984,15 @@
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
-
     -fx-min-height: 18;
     -fx-pref-height: 18;
     -fx-max-height: 18;
-
     -fx-background-color: -wl-switch-thumb;
     -fx-background-radius: 999;
-
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-alignment: center;
+    -fx-effect: none;
 }
 
 .dark-mode-switch-thumb-icon {
@@ -669,226 +1001,90 @@
     -fx-scale-y: 0.5;
 }
 
-
 /* =========================================================
-   PAGE HEADER
-   ========================================================= */
-
-.main-content {
-    -fx-spacing: 18;
-}
-
-.page-header {
-    -fx-alignment: center-left;
-}
-
-.page-heading-copy {
-    -fx-spacing: 3;
-}
-
-.page-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
-}
-
-.page-subtitle {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-
-/* =========================================================
-   COMMON PANELS + TOOLBARS
+   06. PANELS, TABLES, LISTS
+   Project note: cards share one surface style, and rows stay
+   vertically centered for readable admin tables.
    ========================================================= */
 
 .users-panel,
-.metadata-panel {
+.metadata-panel,
+.dashboard-summary-card,
+.dashboard-section-card,
+.profile-card,
+.profile-editor-card,
+.assignment-panel,
+.assignment-list-panel,
+.assignment-editor-panel,
+.metadata-editor-card,
+.metadata-review-results-card,
+.metadata-review-filter-card,
+.metadata-workspace-shell,
+.activity-log-summary-card,
+.activity-log-timeline-card {
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
-
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 0, 2);
+}
 
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
+.app-shell.dark .users-panel,
+.app-shell.dark .metadata-panel,
+.app-shell.dark .dashboard-summary-card,
+.app-shell.dark .dashboard-section-card,
+.app-shell.dark .profile-card,
+.app-shell.dark .profile-editor-card,
+.app-shell.dark .assignment-panel,
+.app-shell.dark .assignment-list-panel,
+.app-shell.dark .assignment-editor-panel,
+.app-shell.dark .metadata-editor-card,
+.app-shell.dark .metadata-review-results-card,
+.app-shell.dark .metadata-review-filter-card,
+.app-shell.dark .metadata-workspace-shell,
+.app-shell.dark .activity-log-summary-card,
+.app-shell.dark .activity-log-timeline-card {
+    -fx-effect: none;
 }
 
 .users-panel-body,
 .users-body-scroll-pane,
-.users-body-scroll-pane > .viewport {
+.users-body-scroll-pane > .viewport,
+.assignment-list-scroll,
+.assignment-list-scroll > .viewport,
+.metadata-workspace-thumbnail-scroll,
+.metadata-workspace-thumbnail-scroll > .viewport {
     -fx-background-color: -wl-surface;
 }
 
-.users-body-scroll-pane {
+.users-body-scroll-pane,
+.assignment-list-scroll,
+.metadata-workspace-thumbnail-scroll {
     -fx-background: -wl-surface;
     -fx-padding: 0;
 }
 
 .users-toolbar,
 .profiles-toolbar,
-.metadata-toolbar {
+.metadata-toolbar,
+.activity-log-toolbar {
     -fx-spacing: 12;
     -fx-alignment: center-left;
 }
 
-.users-toolbar {
-    -fx-padding: 18 18 15 18;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
+.users-toolbar,
 .metadata-toolbar {
     -fx-padding: 18;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
 
-
-/* =========================================================
-   INPUTS + FILTERS
-   ========================================================= */
-
-.search-field-shell {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-
-    -fx-padding: 0 12 0 12;
-    -fx-spacing: 9;
-    -fx-alignment: center-left;
-}
-
-.search-field-shell:hover {
-    -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-secondary;
-}
-
-.field-icon-shell {
-    -fx-min-width: 15;
-    -fx-pref-width: 15;
-    -fx-max-width: 15;
-
-    -fx-min-height: 15;
-    -fx-pref-height: 15;
-    -fx-max-height: 15;
-
-    -fx-alignment: center;
-}
-
-.field-icon-path {
-    -fx-fill: -wl-secondary;
-}
-
-.search-field-input {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0;
-
-    -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.role-filter,
-.rows-per-page-filter,
-.metadata-review-filter {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-
-    -fx-text-fill: -wl-text;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.role-filter {
-    -fx-pref-width: 144;
-}
-
-.rows-per-page-filter {
-    -fx-pref-width: 72;
-}
-
-.metadata-review-filter {
-    -fx-max-width: Infinity;
-}
-
-.role-filter:hover,
-.rows-per-page-filter:hover,
-.metadata-review-filter:hover {
-    -fx-background-color: -wl-surface-hover;
-    -fx-border-color: -wl-secondary;
-}
-
-.role-filter:focused,
-.rows-per-page-filter:focused,
-.metadata-review-filter:focused {
-    -fx-border-color: -wl-primary;
-}
-
-.role-filter > .arrow-button,
-.rows-per-page-filter > .arrow-button,
-.metadata-review-filter > .arrow-button {
-    -fx-background-color: transparent;
-}
-
-.role-filter > .arrow-button > .arrow,
-.rows-per-page-filter > .arrow-button > .arrow,
-.metadata-review-filter > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
-
-.role-filter .list-cell,
-.rows-per-page-filter .list-cell,
-.metadata-review-filter .list-cell {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-}
-
-.combo-box-popup .list-view {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-}
-
-.combo-box-popup .list-cell {
-    -fx-background-color: -wl-surface;
-    -fx-text-fill: -wl-text;
-}
-
-.combo-box-popup .list-cell:hover,
-.combo-box-popup .list-cell:selected {
-    -fx-background-color: -wl-surface-hover;
-}
-
-
-/* =========================================================
-   TABLES
-   ========================================================= */
-
 .users-list-header,
-.metadata-list-header {
+.metadata-list-header,
+.metadata-review-table-header {
     -fx-hgap: 18;
     -fx-alignment: center-left;
-
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -898,31 +1094,44 @@
     -fx-background-color: -wl-surface;
 }
 
-.metadata-list-header {
+.metadata-list-header,
+.metadata-review-table-header {
     -fx-padding: 15 24 15 24;
     -fx-background-color: -wl-card-content;
 }
 
+.metadata-review-table-header {
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-padding: 0 12 0 12;
+    -fx-hgap: 10;
+    -fx-background-radius: 10 10 0 0;
+}
+
 .list-header-label,
-.list-header-label-right {
+.list-header-label-right,
+.metadata-review-header-label {
     -fx-text-fill: -wl-table-header-text;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
 }
 
-.list-header-label-right {
-    -fx-alignment: center-left;
-    -fx-max-width: 9999;
+.metadata-review-header-label {
+    -fx-wrap-text: true;
 }
 
 .users-list,
-.metadata-list {
+.metadata-list,
+.metadata-review-table-body,
+.assignment-list,
+.assignment-checkbox-list {
     -fx-background-color: -wl-surface;
     -fx-spacing: 0;
 }
 
 .user-record,
-.metadata-row {
+.metadata-row,
+.metadata-review-table-row {
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
@@ -932,11 +1141,9 @@
     -fx-min-height: 54;
     -fx-pref-height: 54;
     -fx-max-height: 54;
-
     -fx-padding: 0 24 0 24;
     -fx-hgap: 18;
     -fx-vgap: 0;
-
     -fx-alignment: center-left;
 }
 
@@ -947,29 +1154,37 @@
     -fx-cursor: hand;
 }
 
-.metadata-row-archived {
-    -fx-opacity: 0.65;
+.metadata-review-table-row {
+    -fx-min-height: 72;
+    -fx-padding: 10 12 10 12;
+    -fx-hgap: 10;
 }
 
 .user-record:hover,
-.metadata-row:hover {
+.metadata-row:hover,
+.metadata-review-table-row:hover {
     -fx-background-color: -wl-surface-hover;
-}
-
-.metadata-row-archived:hover {
-    -fx-background-color: -wl-surface;
 }
 
 .table-cell-text,
 .table-cell-text-muted,
-.metadata-table-text {
+.metadata-table-text,
+.metadata-review-main-cell,
+.metadata-review-cell-text {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 400;
 }
 
-.metadata-table-text {
-    -fx-font-weight: 500;
+.metadata-table-text,
+.metadata-review-main-cell {
+    -fx-font-weight: 600;
+}
+
+.metadata-review-main-cell,
+.metadata-review-cell-text {
+    -fx-font-size: 11px;
+    -fx-wrap-text: true;
 }
 
 .name-cell {
@@ -977,30 +1192,36 @@
     -fx-alignment: center-left;
 }
 
-.user-avatar-initials {
+.user-avatar-initials,
+.assignment-avatar {
     -fx-min-width: 30;
     -fx-pref-width: 30;
     -fx-max-width: 30;
-
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-
     -fx-background-color: -wl-avatar-bg;
     -fx-background-radius: 999;
-
     -fx-alignment: center;
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 600;
 }
 
+.assignment-avatar {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: #FFFFFF;
+}
 
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
-
-.empty-state-box {
+.empty-state-box,
+.metadata-review-empty-state,
+.activity-log-empty-state {
     -fx-padding: 48 24 57 24;
     -fx-spacing: 6;
     -fx-alignment: center-left;
@@ -1018,9 +1239,10 @@
     -fx-font-weight: 400;
 }
 
-
 /* =========================================================
-   BADGES + CHIPS
+   07. BADGES AND CHIPS
+   Project note: chips communicate status or category. Decorative
+   icons use separate borderless containers.
    ========================================================= */
 
 .role-cell {
@@ -1031,11 +1253,18 @@
 .metadata-status-badge,
 .profile-status-badge,
 .metadata-required-pill,
-.profile-config-chip {
+.profile-config-chip,
+.metadata-review-status-badge,
+.activity-log-type-badge,
+.activity-log-status-badge,
+.profile-editor-small-badge,
+.metadata-profile-status,
+.metadata-workspace-tag,
+.metadata-workspace-tag-warning,
+.user-profiles-badge {
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-border-width: 1;
-
     -fx-font-size: 11px;
     -fx-font-weight: 600;
     -fx-alignment: center;
@@ -1048,15 +1277,18 @@
     -fx-padding: 0 12 0 12;
 }
 
-.metadata-status-badge {
-    -fx-padding: 4 10 4 10;
-}
-
-.profile-status-badge {
-    -fx-padding: 3 10 3 10;
-}
-
-.metadata-required-pill {
+.metadata-status-badge,
+.profile-status-badge,
+.metadata-required-pill,
+.metadata-review-status-badge,
+.activity-log-type-badge,
+.activity-log-status-badge,
+.profile-editor-small-badge,
+.metadata-profile-status,
+.metadata-workspace-tag,
+.metadata-workspace-tag-warning,
+.user-profiles-badge {
+    -fx-min-height: 24;
     -fx-padding: 3 9 3 9;
 }
 
@@ -1065,7 +1297,17 @@
     -fx-font-weight: 500;
 }
 
-.role-badge-admin {
+.role-badge-admin,
+.profile-editor-admin-badge,
+.profile-status-draft,
+.metadata-status-draft,
+.metadata-profile-status-draft,
+.profile-editor-user-badge,
+.chip-blue,
+.chip-indigo,
+.chip-purple,
+.metadata-review-status-info,
+.activity-log-status-info {
     -fx-background-color: -wl-role-admin-bg;
     -fx-border-color: -wl-role-admin-border;
     -fx-text-fill: -wl-role-admin-text;
@@ -1074,55 +1316,66 @@
 .role-badge-user,
 .profile-status-active,
 .metadata-status-active,
-.metadata-required-yes {
+.metadata-required-yes,
+.metadata-profile-status-active,
+.profile-editor-active-badge,
+.chip-teal,
+.metadata-review-status-success,
+.activity-log-status-success,
+.user-profiles-badge-all {
     -fx-background-color: -wl-role-user-bg;
     -fx-border-color: -wl-role-user-border;
     -fx-text-fill: -wl-role-user-text;
 }
 
-.profile-status-draft {
-    -fx-background-color: #F3F0FF;
-    -fx-border-color: #DACBFF;
-    -fx-text-fill: #7C3AED;
-}
-
-.app-shell.dark .profile-status-draft {
-    -fx-background-color: #3B255D;
-    -fx-border-color: #6D43A8;
-    -fx-text-fill: #D8B4FE;
-}
-
-.metadata-status-draft {
-    -fx-background-color: #EAF4FF;
-    -fx-border-color: #CFE8FF;
-    -fx-text-fill: #0B6FAE;
-}
-
-.app-shell.dark .metadata-status-draft {
-    -fx-background-color: #0D4F73;
-    -fx-border-color: #176B94;
-    -fx-text-fill: #7DD3FC;
-}
-
 .profile-status-archived,
 .profile-status-default,
 .metadata-status-archived,
-.metadata-required-no {
-    -fx-background-color: -wl-surface-hover;
+.metadata-required-no,
+.metadata-profile-status-archived,
+.chip-neutral,
+.metadata-review-status-neutral,
+.activity-log-status-neutral,
+.metadata-workspace-tag,
+.user-profiles-badge {
+    -fx-background-color: -wl-card-content;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text-muted;
 }
 
+.chip-amber,
+.metadata-review-status-warning,
+.activity-log-status-warning,
+.metadata-workspace-tag-warning,
+.user-profiles-badge-none {
+    -fx-background-color: #FFF7E6;
+    -fx-border-color: #FACC15;
+    -fx-text-fill: #C96A00;
+}
+
+.chip-orange,
+.metadata-review-status-danger,
+.activity-log-status-failed {
+    -fx-background-color: #FFF1F1;
+    -fx-border-color: #FFB4B4;
+    -fx-text-fill: #DC2626;
+}
+
+.user-profiles-cell {
+    -fx-alignment: center;
+}
 
 /* =========================================================
-   PAGINATION
+   08. PAGINATION
+   Project note: pagination uses fixed button sizes so tables do not
+   shift when moving between pages.
    ========================================================= */
 
 .pagination-bar {
     -fx-padding: 15 18 18 18;
     -fx-spacing: 12;
     -fx-alignment: center;
-
+    -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
@@ -1148,25 +1401,28 @@
 .pagination-button {
     -fx-min-width: 39;
     -fx-pref-width: 39;
-
+    -fx-max-width: 39;
     -fx-min-height: 30;
     -fx-pref-height: 30;
-
+    -fx-max-height: 30;
+    -fx-padding: 0;
     -fx-background-color: -wl-tertiary;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
-
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
 }
 
-.pagination-button:hover {
+.pagination-button:hover,
+.pagination-button:pressed {
     -fx-background-color: -wl-tertiary-hover;
     -fx-border-color: -wl-secondary;
+    -fx-text-fill: -wl-text;
 }
 
 .pagination-button-active,
-.pagination-button-active:hover {
+.pagination-button-active:hover,
+.pagination-button-active:pressed {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
@@ -1183,37 +1439,41 @@
     -fx-padding: 0 6 0 6;
 }
 
-
 /* =========================================================
-   DASHBOARD
+   09. DASHBOARD
+   Project note: dashboard status cards use soft icon backgrounds
+   and separate attention styling for blocked work.
    ========================================================= */
 
-.dashboard-page {
-    -fx-background-color: -wl-background;
-}
-
-.dashboard-summary-grid {
+.dashboard-summary-grid,
+.dashboard-main-layout {
     -fx-alignment: top-left;
 }
-
-/* ---------- SUMMARY CARDS ---------- */
 
 .dashboard-summary-card {
     -fx-min-height: 144;
     -fx-pref-height: 144;
-
     -fx-padding: 18;
-
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 10, 0, 0, 1);
 }
 
+.dashboard-attention-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: #FFB4B4;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 0, 2);
+}
+
+.dashboard-attention-summary-row {
+    -fx-padding: 18;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-summary-icon-box,
 .dashboard-summary-icon-teal,
 .dashboard-summary-icon-blue,
 .dashboard-summary-icon-green,
@@ -1222,35 +1482,34 @@
     -fx-min-width: 60;
     -fx-pref-width: 60;
     -fx-max-width: 60;
-
     -fx-min-height: 60;
     -fx-pref-height: 60;
     -fx-max-height: 60;
-
     -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-alignment: center;
 }
 
-.dashboard-summary-icon-teal {
-    -fx-background-color: #DFF4EF;
+.dashboard-activity-icon-box,
+.dashboard-activity-icon-scan-box,
+.dashboard-activity-icon-profile-box,
+.dashboard-activity-icon-qa-box,
+.dashboard-activity-icon-warning-box,
+.dashboard-activity-icon-access-box {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
 }
 
-.dashboard-summary-icon-blue {
-    -fx-background-color: #EAF4FF;
-}
-
-.dashboard-summary-icon-green {
-    -fx-background-color: #E9FBF6;
-}
-
-.dashboard-summary-icon-amber {
-    -fx-background-color: #FFF7E6;
-}
-
-.dashboard-summary-icon-red {
-    -fx-background-color: #FFF1F1;
-}
-
+.dashboard-summary-icon,
 .dashboard-summary-icon-teal-path,
 .dashboard-summary-icon-blue-path,
 .dashboard-summary-icon-green-path,
@@ -1260,36 +1519,85 @@
     -fx-scale-y: 0.82;
 }
 
-.dashboard-summary-icon-teal-path {
-    -fx-fill: #0F8B75;
+.dashboard-activity-icon,
+.dashboard-activity-icon-scan-path,
+.dashboard-activity-icon-profile-path,
+.dashboard-activity-icon-qa-path,
+.dashboard-activity-icon-warning-path,
+.dashboard-activity-icon-access-path {
+    -fx-scale-x: 0.68;
+    -fx-scale-y: 0.68;
 }
 
-.dashboard-summary-icon-blue-path {
-    -fx-fill: #0B6FAE;
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-green,
+.dashboard-activity-icon-scan-box,
+.dashboard-activity-icon-access-box {
+    -fx-background-color: #E9FBF6;
 }
 
-.dashboard-summary-icon-green-path {
+.dashboard-summary-icon-blue,
+.dashboard-activity-icon-profile-box,
+.dashboard-activity-icon-qa-box {
+    -fx-background-color: #EAF4FF;
+}
+
+.dashboard-summary-icon-amber,
+.dashboard-activity-icon-warning-box {
+    -fx-background-color: #FFF7E6;
+}
+
+.dashboard-summary-icon-red {
+    -fx-background-color: #FFF1F1;
+}
+
+.dashboard-summary-icon-teal .dashboard-summary-icon,
+.dashboard-summary-icon-green .dashboard-summary-icon,
+.dashboard-activity-icon-scan-box .dashboard-activity-icon,
+.dashboard-activity-icon-access-box .dashboard-activity-icon,
+.dashboard-summary-icon-teal-path,
+.dashboard-summary-icon-green-path,
+.dashboard-activity-icon-scan-path,
+.dashboard-activity-icon-access-path {
     -fx-fill: #168A72;
 }
 
-.dashboard-summary-icon-amber-path {
+.dashboard-summary-icon-blue .dashboard-summary-icon,
+.dashboard-activity-icon-profile-box .dashboard-activity-icon,
+.dashboard-activity-icon-qa-box .dashboard-activity-icon,
+.dashboard-summary-icon-blue-path,
+.dashboard-activity-icon-profile-path,
+.dashboard-activity-icon-qa-path {
+    -fx-fill: #0B6FAE;
+}
+
+.dashboard-summary-icon-amber .dashboard-summary-icon,
+.dashboard-activity-icon-warning-box .dashboard-activity-icon,
+.dashboard-summary-icon-amber-path,
+.dashboard-activity-icon-warning-path {
     -fx-fill: #C96A00;
 }
 
+.dashboard-summary-icon-red .dashboard-summary-icon,
 .dashboard-summary-icon-red-path {
     -fx-fill: #DC2626;
 }
 
-.dashboard-summary-title {
+.dashboard-summary-title,
+.dashboard-workflow-label {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
 }
 
-.dashboard-summary-subtitle {
+.dashboard-summary-subtitle,
+.dashboard-section-subtitle,
+.dashboard-activity-detail,
+.dashboard-simple-detail {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 400;
+    -fx-wrap-text: true;
 }
 
 .dashboard-summary-value {
@@ -1298,31 +1606,10 @@
     -fx-font-weight: 700;
 }
 
-/* ---------- MAIN LAYOUT ---------- */
-
-.dashboard-main-layout {
-    -fx-alignment: top-left;
-}
-
-/* ---------- SECTION CARDS ---------- */
-
-.dashboard-section-card {
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 10, 0, 0, 1);
-}
-
 .dashboard-section-header {
     -fx-min-height: 66;
     -fx-pref-height: 66;
-
     -fx-padding: 15 18 15 18;
-
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -1333,196 +1620,66 @@
     -fx-font-weight: 700;
 }
 
-.dashboard-section-subtitle {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-/* ---------- ACTIVITY LIST ---------- */
-
-.dashboard-activity-list {
-    -fx-background-color: -wl-surface;
-}
-
-.dashboard-activity-row {
-    -fx-min-height: 72;
-
-    -fx-padding: 15 18 15 18;
-    -fx-spacing: 12;
-    -fx-alignment: center-left;
-
-    -fx-background-color: -wl-surface;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.dashboard-activity-row:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.dashboard-activity-icon-scan-box,
-.dashboard-activity-icon-profile-box,
-.dashboard-activity-icon-qa-box,
-.dashboard-activity-icon-warning-box,
-.dashboard-activity-icon-access-box {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-
-    -fx-background-radius: 10;
-    -fx-alignment: center;
-}
-
-.dashboard-activity-icon-scan-box {
-    -fx-background-color: #E9FBF6;
-}
-
-.dashboard-activity-icon-profile-box {
-    -fx-background-color: #EAF4FF;
-}
-
-.dashboard-activity-icon-qa-box {
-    -fx-background-color: #EEF5FF;
-}
-
-.dashboard-activity-icon-warning-box {
-    -fx-background-color: #FFF7E6;
-}
-
-.dashboard-activity-icon-access-box {
-    -fx-background-color: #F6F0FF;
-}
-
-.dashboard-activity-icon-scan-path,
-.dashboard-activity-icon-profile-path,
-.dashboard-activity-icon-qa-path,
-.dashboard-activity-icon-warning-path,
-.dashboard-activity-icon-access-path {
-    -fx-scale-x: 0.68;
-    -fx-scale-y: 0.68;
-}
-
-.dashboard-activity-icon-scan-path {
-    -fx-fill: #168A72;
-}
-
-.dashboard-activity-icon-profile-path {
-    -fx-fill: #0B6FAE;
-}
-
-.dashboard-activity-icon-qa-path {
-    -fx-fill: #2563EB;
-}
-
-.dashboard-activity-icon-warning-path {
-    -fx-fill: #C96A00;
-}
-
-.dashboard-activity-icon-access-path {
-    -fx-fill: #9333EA;
-}
-
-.dashboard-activity-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
-}
-
-.dashboard-activity-detail {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-.dashboard-activity-time {
-    -fx-min-width: 72;
-
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-    -fx-alignment: center-right;
-}
-
-/* ---------- SIMPLE LIST CARDS ---------- */
-
+.dashboard-activity-list,
 .dashboard-simple-list {
     -fx-background-color: -wl-surface;
 }
 
+.dashboard-activity-row,
 .dashboard-simple-row {
     -fx-min-height: 72;
-
     -fx-padding: 15 18 15 18;
     -fx-spacing: 12;
     -fx-alignment: center-left;
-
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
 
+.dashboard-activity-row:hover,
 .dashboard-simple-row:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
+.dashboard-activity-title,
 .dashboard-simple-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
 }
 
-.dashboard-simple-detail {
+.dashboard-activity-time {
+    -fx-min-width: 72;
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-.dashboard-simple-metric {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
     -fx-font-weight: 500;
+    -fx-alignment: center-right;
 }
 
-/* ---------- WORKFLOW ---------- */
-
-.dashboard-workflow-body {
-    -fx-padding: 18;
-}
-
-.dashboard-workflow-label {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
+.dashboard-simple-metric,
 .dashboard-workflow-value {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
 }
 
-.dashboard-progress-track {
-    -fx-min-height: 12;
-    -fx-pref-height: 12;
-    -fx-max-height: 12;
-
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 999;
+.dashboard-workflow-body,
+.dashboard-actions-grid {
+    -fx-padding: 18;
 }
 
+.dashboard-progress-track,
 .dashboard-progress-fill-blue,
 .dashboard-progress-fill-amber,
 .dashboard-progress-fill-green {
     -fx-min-height: 12;
     -fx-pref-height: 12;
     -fx-max-height: 12;
-
     -fx-background-radius: 999;
+}
+
+.dashboard-progress-track {
+    -fx-background-color: -wl-card-content;
 }
 
 .dashboard-progress-fill-blue {
@@ -1537,77 +1694,10 @@
     -fx-background-color: #168A72;
 }
 
-/* ---------- QUICK ACTIONS ---------- */
-
-.dashboard-actions-grid {
-    -fx-padding: 18;
-}
-
-/* ---------- DARK MODE ---------- */
-
-.app-shell.dark .dashboard-summary-card,
-.app-shell.dark .dashboard-section-card {
-    -fx-effect: none;
-}
-
-.app-shell.dark .dashboard-summary-icon-teal,
-.app-shell.dark .dashboard-summary-icon-green,
-.app-shell.dark .dashboard-activity-icon-scan-box {
-    -fx-background-color: #123E37;
-}
-
-.app-shell.dark .dashboard-summary-icon-blue,
-.app-shell.dark .dashboard-activity-icon-profile-box {
-    -fx-background-color: #0D4F73;
-}
-
-.app-shell.dark .dashboard-summary-icon-amber,
-.app-shell.dark .dashboard-activity-icon-warning-box {
-    -fx-background-color: #4A3512;
-}
-
-.app-shell.dark .dashboard-summary-icon-red {
-    -fx-background-color: #4A2512;
-}
-
-.app-shell.dark .dashboard-activity-icon-qa-box {
-    -fx-background-color: #293056;
-}
-
-.app-shell.dark .dashboard-activity-icon-access-box {
-    -fx-background-color: #3B255D;
-}
-
-.app-shell.dark .dashboard-summary-icon-teal-path,
-.app-shell.dark .dashboard-summary-icon-green-path,
-.app-shell.dark .dashboard-activity-icon-scan-path {
-    -fx-fill: #4CD07D;
-}
-
-.app-shell.dark .dashboard-summary-icon-blue-path,
-.app-shell.dark .dashboard-activity-icon-profile-path {
-    -fx-fill: #7DD3FC;
-}
-
-.app-shell.dark .dashboard-summary-icon-amber-path,
-.app-shell.dark .dashboard-activity-icon-warning-path {
-    -fx-fill: #FACC15;
-}
-
-.app-shell.dark .dashboard-summary-icon-red-path {
-    -fx-fill: #FDBA74;
-}
-
-.app-shell.dark .dashboard-activity-icon-qa-path {
-    -fx-fill: #AAB7FF;
-}
-
-.app-shell.dark .dashboard-activity-icon-access-path {
-    -fx-fill: #D8B4FE;
-}
-
 /* =========================================================
-   PROFILES PAGE
+   10. PROFILES, ASSIGNMENTS, METADATA
+   Project note: profile, assignment, and metadata editors reuse the
+   same section spacing so the admin area feels like one product.
    ========================================================= */
 
 .profiles-cards-container {
@@ -1619,26 +1709,29 @@
 
 .profile-card {
     -fx-min-height: 456;
-
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
     -fx-padding: 18;
-
     -fx-min-width: 0;
-    -fx-max-width: 99999;
+    -fx-max-width: 9999;
+}
+
+.profile-card:hover {
+    -fx-background-color: -wl-surface;
+}
+
+.profile-card-archived,
+.profile-card-archived:hover,
+.metadata-row-archived,
+.metadata-row-archived:hover {
+    -fx-opacity: 0.6;
 }
 
 .profile-card-footer-spacer {
     -fx-min-height: 0;
 }
 
-.profile-card-footer {
+.profile-card-footer,
+.profile-chip-group,
+.profile-editor-header-actions {
     -fx-spacing: 12;
     -fx-alignment: center-left;
 }
@@ -1653,103 +1746,18 @@
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 400;
+    -fx-wrap-text: true;
 }
 
-.profile-card-divider {
-    -fx-background-color: -wl-border;
-
+.profile-card-divider,
+.profile-editor-section-divider,
+.assignment-divider,
+.metadata-workspace-divider,
+.activity-log-date-line {
     -fx-min-height: 1;
     -fx-pref-height: 1;
     -fx-max-height: 1;
-}
-
-.profile-chip-group {
-    -fx-hgap: 8;
-    -fx-vgap: 8;
-}
-
-.chip-teal {
-    -fx-background-color: #E8FBF7;
-    -fx-border-color: #9DE6D8;
-    -fx-text-fill: #0F8B75;
-}
-
-.chip-blue {
-    -fx-background-color: #EEF5FF;
-    -fx-border-color: #BDD6FF;
-    -fx-text-fill: #2563EB;
-}
-
-.chip-indigo {
-    -fx-background-color: #EEF2FF;
-    -fx-border-color: #C7D2FE;
-    -fx-text-fill: #4F46E5;
-}
-
-.chip-purple {
-    -fx-background-color: #F6F0FF;
-    -fx-border-color: #D8B4FE;
-    -fx-text-fill: #9333EA;
-}
-
-.chip-amber {
-    -fx-background-color: #FFF8E8;
-    -fx-border-color: #F7D58B;
-    -fx-text-fill: #D97706;
-}
-
-.chip-orange {
-    -fx-background-color: #FFF2E8;
-    -fx-border-color: #FDBA8C;
-    -fx-text-fill: #EA580C;
-}
-
-.chip-neutral {
-    -fx-background-color: #F8FAFC;
-    -fx-border-color: #DCE5EE;
-    -fx-text-fill: #64748B;
-}
-
-.app-shell.dark .chip-teal {
-    -fx-background-color: #123E37;
-    -fx-border-color: #1B5A4E;
-    -fx-text-fill: #4CD07D;
-}
-
-.app-shell.dark .chip-blue {
-    -fx-background-color: #0D3B66;
-    -fx-border-color: #176B94;
-    -fx-text-fill: #7DD3FC;
-}
-
-.app-shell.dark .chip-indigo {
-    -fx-background-color: #293056;
-    -fx-border-color: #4F5EA8;
-    -fx-text-fill: #AAB7FF;
-}
-
-.app-shell.dark .chip-purple {
-    -fx-background-color: #3B255D;
-    -fx-border-color: #6D43A8;
-    -fx-text-fill: #D8B4FE;
-}
-
-.app-shell.dark .chip-amber {
-    -fx-background-color: #4A3512;
-    -fx-border-color: #8B681F;
-    -fx-text-fill: #FACC15;
-}
-
-.app-shell.dark .chip-orange {
-    -fx-background-color: #4A2512;
-    -fx-border-color: #9A4D1B;
-    -fx-text-fill: #FDBA74;
-}
-
-.app-shell.dark .chip-neutral {
-    -fx-background-color: #2D3D4F;
-    -fx-border-color: #415060;
-    -fx-text-fill: #BFBFBF;
+    -fx-background-color: -wl-border;
 }
 
 .profile-info-label {
@@ -1765,70 +1773,254 @@
     -fx-font-weight: 500;
 }
 
-.profile-info-code {
+.profile-info-code,
+.assignment-code-label {
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 6;
     -fx-padding: 4 8 4 8;
 }
 
-
-/* =========================================================
-   ASSIGNMENTS / PROFILE ACCESS
-   ========================================================= */
-
-.assignments-page {
-    -fx-background-color: -wl-background;
-}
-
-/* ---------- MODE SWITCH ---------- */
-
-.assignment-mode-switch {
-    -fx-padding: 4;
+.profile-editor-tabs,
+.metadata-tabs {
     -fx-spacing: 0;
     -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
 
+.profile-editor-tab-button,
+.metadata-tab-button {
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-radius: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+}
+
+.profile-editor-tab-button:hover,
+.profile-editor-tab-button:focused,
+.profile-editor-tab-button:pressed,
+.profile-editor-tab-button:armed,
+.metadata-tab-button:hover,
+.metadata-tab-button:focused,
+.metadata-tab-button:pressed,
+.metadata-tab-button:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-editor-tab-active,
+.profile-editor-tab-active:hover,
+.profile-editor-tab-active:focused,
+.profile-editor-tab-active:pressed,
+.profile-editor-tab-active:armed,
+.metadata-tab-active,
+.metadata-tab-active:hover,
+.metadata-tab-active:focused,
+.metadata-tab-active:pressed,
+.metadata-tab-active:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-primary transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: -wl-primary;
+    -fx-font-weight: 700;
+}
+
+.profile-editor-content {
+    -fx-alignment: top-left;
+}
+
+.profile-editor-card {
+    -fx-padding: 36;
+}
+
+.profile-editor-sectioned-card {
+    -fx-padding: 0;
+}
+
+.profile-editor-section {
+    -fx-padding: 36;
+}
+
+.profile-editor-section-title,
+.assignment-panel-title,
+.metadata-section-title,
+.metadata-workspace-panel-title,
+.dashboard-section-title,
+.activity-log-details-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.metadata-section-title {
+    -fx-font-size: 16px;
+}
+
+.profile-editor-subtitle,
+.profile-editor-helper-text,
+.metadata-helper-text,
+.metadata-workspace-panel-subtitle,
+.assignment-list-subtitle,
+.assignment-row-subtitle,
+.assignment-selected-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.profile-editor-strong-text,
+.profile-editor-field-label,
+.metadata-field-label,
+.metadata-workspace-field-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.profile-editor-strong-text {
+    -fx-font-size: 13px;
+}
+
+.profile-editor-switch {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-switch-off-track, #FFFFFF;
+    -fx-background-insets: 0, 3 30 3 3;
+    -fx-background-radius: 999, 999;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: transparent;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-editor-switch:selected {
+    -fx-background-color: -wl-switch-track, #FFFFFF;
+    -fx-background-insets: 0, 3 3 3 30;
+    -fx-background-radius: 999, 999;
+}
+
+.profile-editor-switch:hover {
+    -fx-background-color: -wl-switch-off-track-hover, #FFFFFF;
+}
+
+.profile-editor-switch:selected:hover {
+    -fx-background-color: -wl-switch-track-hover, #FFFFFF;
+}
+
+.profile-editor-preview-box,
+.profile-editor-scanner-preview-box {
+    -fx-padding: 18 21 18 21;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+}
+
+.profile-editor-code-preview {
+    -fx-text-fill: -wl-text;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.profile-editor-field-preview-card,
+.profile-editor-access-list,
+.metadata-profile-list {
+    -fx-padding: 21;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
-
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
+}
+
+.profile-editor-field-preview-item,
+.profile-editor-access-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+}
+
+.profile-editor-access-list {
+    -fx-padding: 0;
+}
+
+.profile-editor-access-row {
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
+    -fx-padding: 0 21 0 21;
+    -fx-spacing: 9;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-editor-access-row-last {
+    -fx-border-width: 0;
+}
+
+.profile-editor-preview-key {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.profile-editor-preview-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-wrap-text: true;
+}
+
+.assignment-mode-switch {
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: none;
 }
 
 .assignment-mode-button {
     -fx-min-width: 108;
     -fx-pref-width: 108;
     -fx-max-width: 108;
-
-    -fx-min-height: 39;
-    -fx-pref-height: 39;
-    -fx-max-height: 39;
-
-    -fx-padding: 0;
-
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-padding: 0 15 0 15;
     -fx-background-color: transparent;
     -fx-background-radius: 7;
-
     -fx-border-color: transparent;
     -fx-border-radius: 7;
-    -fx-border-width: 0;
-
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-    -fx-effect: none;
 }
 
 .assignment-mode-button:hover,
 .assignment-mode-button:pressed,
 .assignment-mode-button:armed {
-    -fx-background-color: transparent;
+    -fx-background-color: -wl-surface-hover;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text;
 }
@@ -1837,122 +2029,66 @@
 .assignment-mode-button-active:hover,
 .assignment-mode-button-active:pressed,
 .assignment-mode-button-active:armed {
-    -fx-background-color: -wl-surface-hover;
-    -fx-background-radius: 7;
-
-    -fx-border-color: transparent;
-    -fx-border-radius: 7;
-
-    -fx-text-fill: -wl-text;
-    -fx-font-weight: 700;
+    -fx-background-color: -wl-primary-selected;
+    -fx-border-color: -wl-primary-selected;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 600;
 }
-
-/* ---------- PANELS ---------- */
 
 .assignment-panels {
     -fx-alignment: top-left;
 }
 
-.assignment-panel,
-.assignment-list-panel,
-.assignment-editor-panel {
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
-}
-
-.assignment-panel-header {
-    -fx-padding: 24;
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10 10 0 0;
-}
-
-.assignment-editor-top {
-    -fx-padding: 24 24 0 24;
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10 10 0 0;
-}
-
+.assignment-panel-header,
+.assignment-editor-top,
 .assignment-editor-body {
     -fx-padding: 24;
     -fx-background-color: -wl-surface;
 }
 
-.assignment-panel-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
+.assignment-panel-header,
+.assignment-editor-top {
+    -fx-background-radius: 10 10 0 0;
 }
 
-/* ---------- SCROLL AREAS ---------- */
-
-.assignment-list-scroll,
-.assignment-list-scroll > .viewport {
-    -fx-background-color: -wl-surface;
+.assignment-editor-top {
+    -fx-padding: 24 24 0 24;
 }
-
-.assignment-list-scroll {
-    -fx-background: -wl-surface;
-    -fx-padding: 0;
-}
-
-.assignment-list,
-.assignment-checkbox-list {
-    -fx-background-color: -wl-surface;
-}
-
-/* ---------- LEFT LIST ---------- */
 
 .assignment-list-item {
     -fx-min-height: 96;
-
     -fx-padding: 15 24 15 24;
-
     -fx-background-color: -wl-surface;
-
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
-
     -fx-cursor: hand;
 }
 
-.assignment-list-item:hover {
+.assignment-list-item:hover,
+.assignment-list-item-active,
+.assignment-list-item-active:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
 .assignment-list-item-active,
 .assignment-list-item-active:hover {
-    -fx-background-color: -wl-surface-hover;
-
     -fx-border-color: transparent transparent -wl-border -wl-primary;
     -fx-border-width: 0 0 1 3;
 }
 
-/* ---------- RIGHT ROWS ---------- */
-
 .assignment-checkbox-row {
     -fx-min-height: 69;
-
     -fx-padding: 12 18 12 18;
-
     -fx-background-color: -wl-surface;
-
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
-
     -fx-alignment: center-left;
+    -fx-cursor: hand;
 }
 
 .assignment-checkbox-row:hover {
     -fx-background-color: -wl-surface-hover;
 }
-
-/* ---------- TEXT ---------- */
 
 .assignment-list-title,
 .assignment-row-title,
@@ -1962,64 +2098,27 @@
     -fx-font-weight: 700;
 }
 
-.assignment-list-subtitle,
-.assignment-row-subtitle,
-.assignment-selected-subtitle {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-.assignment-code-label {
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 6;
-    -fx-padding: 6 9 6 9;
-
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-.assignment-divider {
-    -fx-min-height: 1;
-    -fx-pref-height: 1;
-    -fx-max-height: 1;
-
-    -fx-background-color: -wl-border;
-}
-
-/* ---------- AVATAR ---------- */
-
-.assignment-avatar {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-
-    -fx-background-color: #0F8B75;
-    -fx-background-radius: 999;
-
-    -fx-alignment: center;
-
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
-}
-
-/* ---------- CHECKBOX ---------- */
-
 .assignment-checkbox,
 .metadata-review-checkbox {
     -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
 }
 
 .assignment-checkbox > .box,
 .metadata-review-checkbox > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
     -fx-background-color: -wl-surface;
-
     -fx-border-color: -wl-border;
     -fx-border-radius: 3;
     -fx-background-radius: 3;
@@ -2036,14 +2135,10 @@
     -fx-background-color: -wl-on-primary;
 }
 
-/* ---------- SAVE BAR ---------- */
-
 .assignment-save-bar {
     -fx-padding: 15 24 18 24;
-
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 0 0 10 10;
-
     -fx-border-color: -wl-border transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
@@ -2054,11 +2149,6 @@
     -fx-font-weight: 500;
 }
 
-
-/* =========================================================
-   METADATA TEMPLATES
-   ========================================================= */
-
 .metadata-template-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 14px;
@@ -2068,216 +2158,258 @@
 .metadata-template-description {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
-
-/* =========================================================
-   METADATA EDITOR
-   ========================================================= */
-
-.metadata-tabs {
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
+.metadata-template-actions {
+    -fx-alignment: center-left;
+    -fx-spacing: 15;
 }
 
-.metadata-tab-button {
-    -fx-min-height: 42;
-    -fx-padding: 0 18 0 18;
-
+.metadata-template-action-button {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-border-width: 0 0 3 0;
-
-    -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
 }
 
-.metadata-tab-button:hover {
-    -fx-text-fill: -wl-text;
+.metadata-template-action-button:hover,
+.metadata-template-action-button:focused,
+.metadata-template-action-button:pressed,
+.metadata-template-action-button:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-underline: true;
 }
 
-.metadata-tab-active {
-    -fx-border-color: transparent transparent -wl-primary transparent;
+.metadata-template-action-open,
+.metadata-template-action-preview,
+.metadata-template-action-restore {
     -fx-text-fill: -wl-primary;
 }
 
+.metadata-template-action-open-icon,
+.metadata-template-action-preview-icon,
+.metadata-template-action-restore-icon {
+    -fx-fill: -wl-primary;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.metadata-template-action-archive {
+    -fx-text-fill: #C96A00;
+}
+
+.metadata-template-action-archive-icon {
+    -fx-fill: #C96A00;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.metadata-edit-icon {
+    -fx-fill: -wl-primary;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.metadata-delete-icon {
+    -fx-fill: -wl-destructive;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.edit-link-icon,
+.edit-link-button .edit-link-icon,
+.metadata-action-button .edit-link-icon,
+.metadata-action-button-muted .edit-link-icon {
+    -fx-fill: -wl-text;
+}
+
+.edit-link-button:hover .edit-link-icon,
+.metadata-action-button:hover .edit-link-icon,
+.metadata-action-button-muted:hover .edit-link-icon {
+    -fx-fill: -wl-primary-hover;
+}
+
+.delete-link-icon,
+.delete-link-button .delete-link-icon {
+    -fx-fill: -wl-destructive;
+}
+
+.delete-link-button:hover .delete-link-icon {
+    -fx-fill: -wl-destructive-hover;
+}
+
 .metadata-editor-card {
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
     -fx-padding: 24;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
 }
 
-.metadata-field-label {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
+.metadata-preview-form {
+    -fx-max-width: 900;
 }
 
-.metadata-helper-text {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
+.metadata-fields-card {
+    -fx-padding: 0;
 }
 
-.metadata-editor-input {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-}
-
-.metadata-editor-input,
-.metadata-editor-textarea {
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-
-    -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.metadata-editor-input:focused,
-.metadata-editor-textarea:focused {
-    -fx-border-color: -wl-primary;
-}
-
-.metadata-editor-textarea .content {
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-}
-
-.metadata-section-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: 700;
+.metadata-fields-card-header {
+    -fx-padding: 24;
 }
 
 .metadata-fields-header {
-    -fx-padding: 12 18 12 18;
+    -fx-padding: 15 24 15 24;
     -fx-hgap: 18;
-
     -fx-background-color: -wl-card-content;
-    -fx-border-color: -wl-border;
-    -fx-border-width: 1;
+    -fx-border-color: -wl-border transparent -wl-border transparent;
+    -fx-border-width: 1 0 1 0;
 }
 
 .metadata-fields-list {
     -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-border-width: 0 1 1 1;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
 }
 
-.metadata-field-row {
-    -fx-min-height: 57;
-    -fx-padding: 12 18 12 18;
-    -fx-hgap: 18;
-
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.assigned-profile-list {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-border-width: 1;
-}
-
-.assigned-profile-row {
+.metadata-field-row,
+.metadata-profile-row {
     -fx-min-height: 60;
-
-    -fx-padding: 12 18 12 18;
-    -fx-spacing: 12;
+    -fx-padding: 18 24 18 24;
+    -fx-hgap: 18;
     -fx-alignment: center-left;
-
+    -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
 
-.assigned-profile-disabled {
-    -fx-opacity: 0.55;
+.metadata-field-row:hover,
+.metadata-profile-row:hover {
+    -fx-background-color: -wl-surface-hover;
 }
 
-.metadata-checkbox-checked,
-.metadata-checkbox-empty {
-    -fx-min-width: 21;
-    -fx-pref-width: 21;
-    -fx-max-width: 21;
+.metadata-field-name,
+.metadata-profile-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
 
-    -fx-min-height: 21;
-    -fx-pref-height: 21;
-    -fx-max-height: 21;
-
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-
-    -fx-alignment: center;
-    -fx-font-size: 12px;
+.metadata-drag-handle {
+    -fx-text-fill: #98A2B3;
+    -fx-font-size: 14px;
     -fx-font-weight: 700;
 }
 
-.metadata-checkbox-checked {
+.metadata-profile-search,
+.metadata-profile-status-filter {
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+}
+
+.metadata-profile-status-filter {
+    -fx-pref-width: 150;
+}
+
+.metadata-profile-list {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+}
+
+.metadata-profile-row {
+    -fx-min-height: 90;
+    -fx-pref-height: 90;
+    -fx-padding: 18 21 18 21;
+    -fx-spacing: 18;
+}
+
+.metadata-profile-row-last {
+    -fx-border-width: 0;
+    -fx-background-radius: 0 0 10 10;
+}
+
+.metadata-profile-row-archived,
+.metadata-profile-row-archived:hover {
+    -fx-background-color: -wl-surface;
+}
+
+.metadata-profile-row-archived .metadata-profile-title,
+.metadata-profile-row-archived .metadata-profile-code {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.metadata-profile-code {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.metadata-profile-check {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.metadata-profile-check-selected {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
+    -fx-text-fill: #FFFFFF;
 }
 
-.metadata-checkbox-empty {
+.metadata-profile-check-empty {
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
+    -fx-text-fill: transparent;
 }
-
-.metadata-preview-form {
-    -fx-max-width: 720;
-}
-
 
 /* =========================================================
-   METADATA REVIEW / WORK QUEUE
+   11. METADATA REVIEW WORKSPACE
+   Project note: metadata review has a denser workspace layout, so
+   workspace widths and toolbar actions are scoped to that screen.
    ========================================================= */
-
-.metadata-review-page {
-    -fx-background-color: -wl-background;
-}
-
-.metadata-review-search-shell {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-
-    -fx-padding: 0 12 0 12;
-    -fx-spacing: 9;
-    -fx-alignment: center-left;
-
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-}
-
-.metadata-review-search-shell:hover {
-    -fx-border-color: -wl-secondary;
-}
-
-/* Queue cards */
 
 .metadata-review-queue-grid {
     -fx-alignment: center;
+}
+
+.metadata-review-queue-card {
+    -fx-padding: 18 21 18 21;
+    -fx-spacing: 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 9, 0, 0, 1);
+    -fx-cursor: hand;
+}
+
+.metadata-review-queue-card:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.metadata-review-queue-warning {
+    -fx-border-color: #FACC15;
+}
+
+.metadata-review-queue-danger {
+    -fx-border-color: #FFB4B4;
+}
+
+.metadata-review-queue-success {
+    -fx-border-color: #86EFAC;
+}
+
+.metadata-review-queue-neutral {
+    -fx-border-color: -wl-border;
 }
 
 .metadata-review-card-title {
@@ -2292,16 +2424,21 @@
     -fx-font-weight: 700;
 }
 
-.metadata-review-card-icon-box {
+.metadata-review-card-icon-box,
+.metadata-review-card-icon-warning-box,
+.metadata-review-card-icon-danger-box,
+.metadata-review-card-icon-success-box,
+.metadata-review-card-icon-neutral-box {
     -fx-min-width: 30;
     -fx-pref-width: 30;
     -fx-max-width: 30;
-
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-
     -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-alignment: center;
 }
 
@@ -2321,67 +2458,38 @@
     -fx-background-color: -wl-card-content;
 }
 
-.metadata-review-card-icon-warning {
-    -fx-fill: #F59E0B;
+.metadata-review-card-icon-warning,
+.metadata-review-card-icon-danger,
+.metadata-review-card-icon-success,
+.metadata-review-card-icon-neutral {
     -fx-scale-x: 0.82;
     -fx-scale-y: 0.82;
+}
+
+.metadata-review-card-icon-warning {
+    -fx-fill: #C96A00;
 }
 
 .metadata-review-card-icon-danger {
-    -fx-fill: #FF0000;
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
+    -fx-fill: #DC2626;
 }
 
 .metadata-review-card-icon-success {
-    -fx-fill: #00B050;
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
+    -fx-fill: #168A72;
 }
 
 .metadata-review-card-icon-neutral {
     -fx-fill: -wl-text-muted;
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
 }
-
-.app-shell.dark .metadata-review-card-icon-warning-box {
-    -fx-background-color: #4A3512;
-}
-
-.app-shell.dark .metadata-review-card-icon-danger-box {
-    -fx-background-color: #4A1515;
-}
-
-.app-shell.dark .metadata-review-card-icon-success-box {
-    -fx-background-color: #123E37;
-}
-
-.app-shell.dark .metadata-review-card-icon-neutral-box {
-    -fx-background-color: #2D3D4F;
-}
-
-/* Filters */
 
 .metadata-review-filter-card {
     -fx-padding: 18;
-
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
 }
-
-/* Batch action bar */
 
 .metadata-review-batch-bar {
     -fx-padding: 12 15 12 15;
-
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 10;
-
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
@@ -2393,187 +2501,415 @@
     -fx-font-weight: 700;
 }
 
-/* Results table */
+.metadata-review-page-host .metadata-workspace-header,
+.metadata-review-page-host .metadata-workspace-header-grid {
+    -fx-alignment: center-left;
+    -fx-spacing: 18;
+    -fx-hgap: 18;
+    -fx-vgap: 3;
+}
 
-.metadata-review-results-card {
-    -fx-background-color: -wl-surface;
+.metadata-review-page-host .metadata-workspace-header .page-heading-copy {
+    -fx-min-width: 0;
+    -fx-pref-width: 390;
+    -fx-max-width: 9999;
+}
+
+.metadata-review-page-host .metadata-workspace-header .page-title,
+.metadata-review-page-host .metadata-workspace-header .page-subtitle,
+.metadata-review-page-host .metadata-workspace-header-grid .page-title,
+.metadata-review-page-host .metadata-workspace-header-grid .page-subtitle {
+    -fx-min-width: 0;
+    -fx-wrap-text: false;
+    -fx-text-overrun: ellipsis;
+}
+
+.metadata-review-page-host .metadata-workspace-header .metadata-header-actions,
+.metadata-review-page-host .metadata-workspace-header-grid .metadata-header-actions {
+    -fx-alignment: center-right;
+    -fx-spacing: 12;
+    -fx-min-width: 735;
+    -fx-pref-width: 735;
+    -fx-max-width: 735;
+}
+
+.metadata-review-page-host .metadata-workspace-header .metadata-header-actions .button,
+.metadata-review-page-host .metadata-workspace-header-grid .metadata-header-actions .button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 0 18 0 18;
+    -fx-wrap-text: false;
+    -fx-alignment: center;
+}
+
+.metadata-review-page-host .metadata-back-button {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+}
+
+.metadata-workspace-header .metadata-save-button,
+.metadata-workspace-header-grid .metadata-save-button,
+.metadata-workspace-header .metadata-complete-button,
+.metadata-workspace-header-grid .metadata-complete-button {
+    -fx-min-width: 150;
+    -fx-pref-width: 150;
+    -fx-max-width: 150;
+}
+
+.metadata-workspace-header .metadata-send-review-button,
+.metadata-workspace-header-grid .metadata-send-review-button {
+    -fx-min-width: 126;
+    -fx-pref-width: 126;
+    -fx-max-width: 126;
+}
+
+.metadata-workspace-header .metadata-approve-button,
+.metadata-workspace-header-grid .metadata-approve-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+    -fx-max-width: 108;
+}
+
+.metadata-workspace-header .metadata-reject-button,
+.metadata-workspace-header-grid .metadata-reject-button {
+    -fx-min-width: 105;
+    -fx-pref-width: 105;
+    -fx-max-width: 105;
+}
+
+.metadata-workspace-warning-banner {
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: #FFF7E6;
     -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
+    -fx-border-color: #FACC15;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
 }
 
-.metadata-review-table-header {
-    -fx-min-height: 60;
-    -fx-pref-height: 60;
-
-    -fx-padding: 0 12 0 12;
-    -fx-hgap: 10;
-
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 10 10 0 0;
-
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
+.metadata-workspace-warning-icon {
+    -fx-fill: #C96A00;
+    -fx-scale-x: 0.78;
+    -fx-scale-y: 0.78;
 }
 
-.metadata-review-header-label {
-    -fx-text-fill: -wl-table-header-text;
+.metadata-workspace-warning-text {
+    -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
-    -fx-wrap-text: true;
 }
 
-.metadata-review-table-body {
+.metadata-workspace-left-panel,
+.metadata-workspace-right-panel {
+    -fx-padding: 18;
     -fx-background-color: -wl-surface;
 }
 
-.metadata-review-table-row {
-    -fx-min-height: 72;
-
-    -fx-padding: 10 12 10 12;
-    -fx-hgap: 10;
-
-    -fx-background-color: -wl-surface;
-
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
+.metadata-workspace-left-panel {
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-background-radius: 10 0 0 10;
 }
 
-.metadata-review-table-row:hover {
+.metadata-workspace-right-panel {
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+    -fx-background-radius: 0 10 10 0;
+}
+
+.metadata-workspace-tree {
+    -fx-padding: 9 0 0 0;
+}
+
+.metadata-workspace-tree-root {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-tree-case {
+    -fx-padding: 0 0 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.metadata-workspace-tree-row,
+.metadata-workspace-tree-row-active {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 9 0 24;
+    -fx-spacing: 9;
+    -fx-background-radius: 6;
+}
+
+.metadata-workspace-tree-row:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
-.metadata-review-table-row-warning {
-    -fx-background-color: -wl-surface;
-}
-
-.metadata-review-main-cell {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 11px;
-    -fx-font-weight: 600;
-    -fx-wrap-text: true;
-}
-
-.metadata-review-cell-text {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 11px;
-    -fx-font-weight: 400;
-    -fx-wrap-text: true;
-}
-
-/* Status badges */
-
-.metadata-review-status-badge {
-    -fx-min-height: 24;
-    -fx-padding: 3 8 3 8;
-
-    -fx-background-radius: 3;
-    -fx-border-radius: 3;
-    -fx-border-width: 1;
-
-    -fx-font-size: 11px;
-    -fx-font-weight: 600;
-
-    -fx-wrap-text: true;
-    -fx-alignment: center;
-    -fx-text-alignment: center;
-}
-
-.metadata-review-status-danger {
-    -fx-background-color: #FFF1F1;
-    -fx-border-color: #FFB4B4;
-    -fx-text-fill: #DC2626;
-}
-
-.metadata-review-status-warning {
-    -fx-background-color: #FFF7E6;
-    -fx-border-color: #FACC15;
-    -fx-text-fill: #C96A00;
-}
-
-.metadata-review-status-success {
+.metadata-workspace-tree-row-active {
     -fx-background-color: #E9FBF6;
-    -fx-border-color: #B9F0DF;
-    -fx-text-fill: #168A72;
 }
 
-.metadata-review-status-info {
-    -fx-background-color: #EAF4FF;
-    -fx-border-color: #CFE8FF;
-    -fx-text-fill: #0B6FAE;
+.metadata-workspace-tree-title,
+.metadata-workspace-tree-title-active {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
 }
 
-.metadata-review-status-neutral {
-    -fx-background-color: -wl-card-content;
-    -fx-border-color: -wl-border;
+.metadata-workspace-tree-title-active {
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-tree-status-text {
     -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
 }
 
-.app-shell.dark .metadata-review-status-danger {
-    -fx-background-color: #4A2512;
-    -fx-border-color: #9A1D1B;
-    -fx-text-fill: #FDBA74;
+.metadata-workspace-tree-status-complete {
+    -fx-text-fill: #168A72;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
 }
 
-.app-shell.dark .metadata-review-status-warning {
-    -fx-background-color: #4A3512;
-    -fx-border-color: #B7791F;
-    -fx-text-fill: #FACC15;
+.metadata-workspace-tree-status-warning {
+    -fx-text-fill: #C96A00;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
 }
 
-.app-shell.dark .metadata-review-status-success {
-    -fx-background-color: #123E37;
-    -fx-border-color: #1B5A4E;
-    -fx-text-fill: #4CD07D;
+.metadata-workspace-tree-status-danger {
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
 }
 
-.app-shell.dark .metadata-review-status-info {
-    -fx-background-color: #0D4F73;
-    -fx-border-color: #176B94;
-    -fx-text-fill: #7DD3FC;
+.metadata-workspace-tree-status-neutral {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
 }
 
-/* Action */
+.metadata-workspace-viewer-panel {
+    -fx-background-color: -wl-card-content;
+}
 
-.metadata-review-action-button {
-    -fx-min-height: 0;
-    -fx-pref-height: -1;
+.metadata-workspace-viewer-toolbar {
+    -fx-min-height: 57;
+    -fx-pref-height: 57;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
 
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-
-    -fx-padding: 0;
-
+.metadata-workspace-viewer-page-label {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
 }
 
-.metadata-review-action-button:hover {
-    -fx-text-fill: -wl-primary-hover;
-    -fx-underline: true;
+.metadata-workspace-tool-button {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
 }
 
-/* Empty state */
+.metadata-workspace-tool-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
 
-.metadata-review-empty-state {
-    -fx-padding: 48 24 57 24;
-    -fx-alignment: center-left;
+.metadata-workspace-viewer-area {
+    -fx-padding: 36;
+    -fx-background-color: #F1F3F6;
+}
+
+.metadata-workspace-paper-preview {
+    -fx-min-width: 360;
+    -fx-pref-width: 360;
+    -fx-max-width: 360;
+    -fx-min-height: 510;
+    -fx-pref-height: 510;
+    -fx-max-height: 510;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
+}
+
+.metadata-workspace-paper-placeholder {
+    -fx-text-fill: #94A3B8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.metadata-workspace-thumbnail-strip {
+    -fx-padding: 12 18 12 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.metadata-workspace-thumbnail,
+.metadata-workspace-thumbnail-active,
+.metadata-workspace-thumbnail-barcode {
+    -fx-min-width: 54;
+    -fx-pref-width: 54;
+    -fx-max-width: 54;
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-max-height: 72;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.metadata-workspace-thumbnail-active {
+    -fx-background-color: #E9FBF6;
+    -fx-border-color: #168A72;
+    -fx-border-width: 2;
+}
+
+.metadata-workspace-thumbnail-barcode {
+    -fx-border-color: #F59E0B;
+}
+
+.metadata-workspace-thumbnail-label,
+.metadata-workspace-thumbnail-label-active {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.metadata-workspace-thumbnail-label-active {
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-thumbnail-note {
+    -fx-text-fill: #C96A00;
+    -fx-font-size: 9px;
+    -fx-font-weight: 600;
+}
+
+.metadata-workspace-tabs {
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+}
+
+.metadata-workspace-tab-button,
+.metadata-workspace-tab-active {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: transparent;
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+}
+
+.metadata-workspace-tab-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.metadata-workspace-tab-button:hover,
+.metadata-workspace-tab-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.metadata-workspace-tab-active,
+.metadata-workspace-tab-active:hover,
+.metadata-workspace-tab-active:pressed {
+    -fx-background-color: -wl-primary-selected;
+    -fx-border-color: -wl-primary-selected;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 600;
+}
+
+.metadata-workspace-validation-summary {
+    -fx-padding: 12;
+    -fx-background-color: #FFF7E6;
+    -fx-background-radius: 6;
+    -fx-border-color: #FACC15;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.metadata-workspace-validation-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-validation-copy {
+    -fx-text-fill: #C96A00;
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+}
+
+.metadata-workspace-input-error {
+    -fx-background-color: #FFF1F1;
+    -fx-border-color: #FF7A7A;
+}
+
+.metadata-workspace-field-error {
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.metadata-workspace-check-complete {
+    -fx-text-fill: #168A72;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-check-warning {
+    -fx-text-fill: #C96A00;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-check-neutral {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.metadata-workspace-check-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 11px;
+    -fx-font-weight: 400;
+}
+
+.metadata-workspace-side-actions {
+    -fx-padding: 15 0 0 0;
 }
 
 /* =========================================================
-   ACTIVITY LOG
+   12. ACTIVITY LOG
+   Project note: activity type icons are solid category markers.
+   Statuses remain separate semantic chips.
    ========================================================= */
-
-.activity-log-page {
-    -fx-background-color: -wl-background;
-}
-
-/* Summary cards */
 
 .activity-log-summary-grid {
     -fx-alignment: center;
@@ -2582,18 +2918,8 @@
 .activity-log-summary-card {
     -fx-min-height: 84;
     -fx-pref-height: 84;
-
     -fx-padding: 18;
     -fx-spacing: 12;
-
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
     -fx-cursor: hand;
 }
 
@@ -2601,21 +2927,35 @@
     -fx-background-color: -wl-surface-hover;
 }
 
+.activity-log-summary-icon-shell,
+.activity-log-event-icon-shell {
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+}
+
 .activity-log-summary-icon-shell {
     -fx-min-width: 36;
     -fx-pref-width: 36;
     -fx-max-width: 36;
-
     -fx-min-height: 36;
     -fx-pref-height: 36;
     -fx-max-height: 36;
-
-    -fx-background-radius: 10;
-    -fx-alignment: center;
 }
 
-.activity-log-summary-icon {
-    -fx-fill: -wl-on-primary;
+.activity-log-event-icon-shell {
+    -fx-min-width: 39;
+    -fx-pref-width: 39;
+    -fx-max-width: 39;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
+}
+
+.activity-log-summary-icon,
+.activity-log-event-icon {
+    -fx-fill: #FFFFFF;
     -fx-scale-x: 0.78;
     -fx-scale-y: 0.78;
 }
@@ -2632,66 +2972,6 @@
     -fx-font-weight: 700;
 }
 
-/* Toolbar */
-
-.activity-log-toolbar {
-    -fx-spacing: 12;
-    -fx-alignment: center-left;
-}
-
-.activity-log-filter {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-pref-width: 144;
-
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-
-    -fx-text-fill: -wl-text;
-
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.activity-log-filter:hover {
-    -fx-background-color: -wl-surface-hover;
-    -fx-border-color: -wl-secondary;
-}
-
-.activity-log-filter:focused {
-    -fx-border-color: -wl-primary;
-}
-
-.activity-log-filter > .arrow-button {
-    -fx-background-color: transparent;
-}
-
-.activity-log-filter > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
-
-.activity-log-filter .list-cell {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-}
-
-/* Timeline */
-
-.activity-log-timeline-card {
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 12, 0, 0, 2);
-}
-
 .activity-log-timeline {
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
@@ -2700,11 +2980,8 @@
 .activity-log-date-header {
     -fx-min-height: 48;
     -fx-pref-height: 48;
-
     -fx-padding: 0 18 0 18;
-
     -fx-background-color: -wl-card-content;
-
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -2715,20 +2992,10 @@
     -fx-font-weight: 700;
 }
 
-.activity-log-date-line {
-    -fx-min-height: 1;
-    -fx-pref-height: 1;
-    -fx-max-height: 1;
-
-    -fx-background-color: -wl-border;
-}
-
 .activity-log-event-row {
     -fx-background-color: -wl-surface;
-
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
-
     -fx-cursor: hand;
 }
 
@@ -2739,25 +3006,6 @@
 
 .activity-log-event-summary {
     -fx-padding: 15 18 15 18;
-}
-
-.activity-log-event-icon-shell {
-    -fx-min-width: 39;
-    -fx-pref-width: 39;
-    -fx-max-width: 39;
-
-    -fx-min-height: 39;
-    -fx-pref-height: 39;
-    -fx-max-height: 39;
-
-    -fx-background-radius: 10;
-    -fx-alignment: center;
-}
-
-.activity-log-event-icon {
-    -fx-fill: -wl-on-primary;
-    -fx-scale-x: 0.78;
-    -fx-scale-y: 0.78;
 }
 
 .activity-log-event-title {
@@ -2785,73 +3033,39 @@
     -fx-max-width: 132;
 }
 
-/* Type colors */
-
 .activity-log-icon-user,
 .activity-log-type-user {
-    -fx-background-color: #64748B;
+    -fx-background-color: -wl-secondary;
 }
 
 .activity-log-icon-profile,
-.activity-log-type-profile {
-    -fx-background-color: #4F46E5;
+.activity-log-type-profile,
+.activity-log-icon-metadata,
+.activity-log-type-metadata,
+.activity-log-icon-qa,
+.activity-log-type-qa {
+    -fx-background-color: -wl-primary;
 }
 
 .activity-log-icon-access,
-.activity-log-type-access {
-    -fx-background-color: #0F8B75;
-}
-
-.activity-log-icon-metadata,
-.activity-log-type-metadata {
-    -fx-background-color: #7C3AED;
-}
-
+.activity-log-type-access,
 .activity-log-icon-scan,
-.activity-log-type-scan {
-    -fx-background-color: #168A72;
-}
-
+.activity-log-type-scan,
 .activity-log-icon-document,
-.activity-log-type-document {
-    -fx-background-color: #415060;
-}
-
-.activity-log-icon-qa,
-.activity-log-type-qa {
-    -fx-background-color: #0B6FAE;
-}
-
-.activity-log-icon-export,
-.activity-log-type-export {
-    -fx-background-color: #00B050;
-}
-
-.activity-log-icon-security,
-.activity-log-type-security {
-    -fx-background-color: #D97706;
-}
-
+.activity-log-type-document,
 .activity-log-icon-system,
 .activity-log-type-system {
     -fx-background-color: -wl-primary-selected;
 }
 
-/* Badges */
+.activity-log-icon-export,
+.activity-log-type-export {
+    -fx-background-color: -wl-success;
+}
 
-.activity-log-type-badge,
-.activity-log-status-badge {
-    -fx-min-height: 24;
-    -fx-padding: 3 9 3 9;
-
-    -fx-background-radius: 3;
-    -fx-border-radius: 3;
-    -fx-border-width: 1;
-
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 11px;
-    -fx-font-weight: 600;
-    -fx-alignment: center;
+.activity-log-icon-security,
+.activity-log-type-security {
+    -fx-background-color: -wl-destructive;
 }
 
 .activity-log-type-user,
@@ -2865,78 +3079,20 @@
 .activity-log-type-security,
 .activity-log-type-system {
     -fx-border-color: transparent;
+    -fx-text-fill: #FFFFFF;
 }
-
-.activity-log-status-success {
-    -fx-background-color: #E9FBF6;
-    -fx-border-color: #B9F0DF;
-    -fx-text-fill: #168A72;
-}
-
-.activity-log-status-warning {
-    -fx-background-color: #FFF7E6;
-    -fx-border-color: #FACC15;
-    -fx-text-fill: #C96A00;
-}
-
-.activity-log-status-failed {
-    -fx-background-color: #FFF1F1;
-    -fx-border-color: #FFB4B4;
-    -fx-text-fill: #DC2626;
-}
-
-.activity-log-status-info {
-    -fx-background-color: #EAF4FF;
-    -fx-border-color: #CFE8FF;
-    -fx-text-fill: #0B6FAE;
-}
-
-.app-shell.dark .activity-log-status-success {
-    -fx-background-color: #123E37;
-    -fx-border-color: #1B5A4E;
-    -fx-text-fill: #4CD07D;
-}
-
-.app-shell.dark .activity-log-status-warning {
-    -fx-background-color: #4A3512;
-    -fx-border-color: #B7791F;
-    -fx-text-fill: #FACC15;
-}
-
-.app-shell.dark .activity-log-status-failed {
-    -fx-background-color: #4A2512;
-    -fx-border-color: #9A1D1B;
-    -fx-text-fill: #FDBA74;
-}
-
-.app-shell.dark .activity-log-status-info {
-    -fx-background-color: #0D4F73;
-    -fx-border-color: #176B94;
-    -fx-text-fill: #7DD3FC;
-}
-
-/* Expanded details */
 
 .activity-log-details-panel {
     -fx-padding: 0 18 18 69;
     -fx-spacing: 9;
 }
 
-.activity-log-details-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
-}
-
 .activity-log-details-grid {
     -fx-hgap: 15;
     -fx-vgap: 9;
-
     -fx-padding: 15;
-
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 10;
-
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
@@ -2954,7 +3110,603 @@
     -fx-font-weight: 400;
 }
 
-.activity-log-empty-state {
-    -fx-padding: 48 24 57 24;
+/* =========================================================
+   13. CREATE USER DIALOG
+   Project note: JavaFX dialogs use their own scene. The controller
+   gives the dialog pane app-shell/create-user-dialog-pane/dark classes
+   so the modal uses the same WebLager theme as the main window.
+   ========================================================= */
+
+.create-user-dialog-pane {
+    -fx-pref-width: 840;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-font-family: "Montserrat";
+}
+
+.create-user-dialog-pane > .content {
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+}
+
+.create-user-dialog-pane > .button-bar > .container {
+    -fx-padding: 15 18 18 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.create-user-dialog-pane > .button-bar > .container .button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+}
+
+.create-user-dialog-pane > .button-bar > .container .button:hover,
+.create-user-dialog-pane > .button-bar > .container .button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.create-user-dialog-pane .create-user-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.create-user-dialog-pane .create-user-button:hover,
+.create-user-dialog-pane .create-user-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.create-user-modal {
+    -fx-padding: 24;
+    -fx-spacing: 18;
+    -fx-background-color: -wl-surface;
+}
+
+.create-user-modal-scroll,
+.create-user-modal-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.create-user-modal-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+}
+
+.create-user-modal-header {
+    -fx-spacing: 3;
+}
+
+.create-user-modal-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.create-user-modal-subtitle,
+.create-user-section-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.create-user-section {
+    -fx-spacing: 12;
+    -fx-padding: 18;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.create-user-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.create-user-details-grid {
+    -fx-hgap: 12;
+    -fx-vgap: 12;
+}
+
+.create-user-field {
+    -fx-spacing: 6;
+}
+
+.create-user-field-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.create-user-input,
+.create-user-dialog-pane .text-field,
+.create-user-dialog-pane .password-field,
+.create-user-dialog-pane .combo-box-base {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.create-user-input:hover,
+.create-user-dialog-pane .text-field:hover,
+.create-user-dialog-pane .password-field:hover,
+.create-user-dialog-pane .combo-box-base:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.create-user-input:focused,
+.create-user-dialog-pane .text-field:focused,
+.create-user-dialog-pane .password-field:focused,
+.create-user-dialog-pane .combo-box-base:focused {
+    -fx-border-color: -wl-primary;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.create-user-input > .arrow-button,
+.create-user-dialog-pane .combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;
+}
+
+.create-user-input > .arrow-button > .arrow,
+.create-user-dialog-pane .combo-box-base > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.create-user-generate-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.create-user-generate-button:hover,
+.create-user-generate-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.create-user-profile-content {
+    -fx-spacing: 12;
+}
+
+.create-user-profile-list {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.create-user-profile-row {
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-padding: 0 15 0 15;
+    -fx-spacing: 12;
     -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.create-user-profile-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.create-user-profile-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.create-user-profile-status-active {
+    -fx-background-color: -wl-role-user-bg;
+    -fx-border-color: -wl-role-user-border;
+    -fx-text-fill: -wl-role-user-text;
+}
+
+.create-user-profile-status-draft {
+    -fx-background-color: -wl-role-admin-bg;
+    -fx-border-color: -wl-role-admin-border;
+    -fx-text-fill: -wl-role-admin-text;
+}
+
+.create-user-generated-note {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.create-user-warning-message {
+    -fx-padding: 9 12 9 12;
+    -fx-background-color: #FFF7E6;
+    -fx-background-radius: 6;
+    -fx-border-color: #FACC15;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: #C96A00;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.create-user-validation-message {
+    -fx-padding: 9 12 9 12;
+    -fx-background-color: #FFF1F1;
+    -fx-background-radius: 6;
+    -fx-border-color: #FFB4B4;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: #DC2626;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.create-user-dialog-pane .check-box {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+.create-user-dialog-pane .check-box > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.create-user-dialog-pane .check-box:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.create-user-dialog-pane .check-box:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+/* =========================================================
+   14. DARK MODE SEMANTICS
+   Project note: dark mode keeps the same meaning for colors while
+   using darker surfaces and softer status backgrounds.
+   ========================================================= */
+
+.app-shell.dark .metadata-editor-textarea .content,
+.app-shell.dark .metadata-workspace-textarea .content,
+.app-shell.dark .profile-editor-textarea .content {
+    -fx-background-color: -wl-input-bg;
+}
+
+.app-shell.dark .profile-status-active,
+.app-shell.dark .metadata-status-active,
+.app-shell.dark .metadata-required-yes,
+.app-shell.dark .metadata-profile-status-active,
+.app-shell.dark .profile-editor-active-badge,
+.app-shell.dark .role-badge-user,
+.app-shell.dark .chip-teal,
+.app-shell.dark .metadata-review-status-success,
+.app-shell.dark .activity-log-status-success,
+.app-shell.dark .user-profiles-badge-all,
+.app-shell.dark .create-user-profile-status-active {
+    -fx-background-color: #123E37;
+    -fx-border-color: #1B5A4E;
+    -fx-text-fill: #4CD07D;
+}
+
+.app-shell.dark .profile-status-draft,
+.app-shell.dark .metadata-status-draft,
+.app-shell.dark .metadata-profile-status-draft,
+.app-shell.dark .profile-editor-user-badge,
+.app-shell.dark .profile-editor-admin-badge,
+.app-shell.dark .role-badge-admin,
+.app-shell.dark .chip-blue,
+.app-shell.dark .chip-indigo,
+.app-shell.dark .chip-purple,
+.app-shell.dark .metadata-review-status-info,
+.app-shell.dark .activity-log-status-info,
+.app-shell.dark .create-user-profile-status-draft {
+    -fx-background-color: #0D4F73;
+    -fx-border-color: #176B94;
+    -fx-text-fill: #7DD3FC;
+}
+
+.app-shell.dark .profile-status-archived,
+.app-shell.dark .profile-status-default,
+.app-shell.dark .metadata-status-archived,
+.app-shell.dark .metadata-required-no,
+.app-shell.dark .metadata-profile-status-archived,
+.app-shell.dark .chip-neutral,
+.app-shell.dark .metadata-review-status-neutral,
+.app-shell.dark .activity-log-status-neutral,
+.app-shell.dark .metadata-workspace-tag,
+.app-shell.dark .user-profiles-badge {
+    -fx-background-color: #2D3D4F;
+    -fx-border-color: #415060;
+    -fx-text-fill: #BFBFBF;
+}
+
+.app-shell.dark .metadata-review-status-danger,
+.app-shell.dark .activity-log-status-failed,
+.app-shell.dark .chip-orange,
+.app-shell.dark .metadata-workspace-input-error {
+    -fx-background-color: #4A2512;
+    -fx-border-color: #9A1D1B;
+    -fx-text-fill: #FDBA74;
+}
+
+.app-shell.dark .metadata-review-status-warning,
+.app-shell.dark .activity-log-status-warning,
+.app-shell.dark .metadata-workspace-tag-warning,
+.app-shell.dark .chip-amber,
+.app-shell.dark .metadata-workspace-warning-banner,
+.app-shell.dark .metadata-workspace-validation-summary,
+.app-shell.dark .user-profiles-badge-none {
+    -fx-background-color: #4A3512;
+    -fx-border-color: #B7791F;
+    -fx-text-fill: #FACC15;
+}
+
+.app-shell.dark .dashboard-summary-icon-teal,
+.app-shell.dark .dashboard-summary-icon-green,
+.app-shell.dark .dashboard-activity-icon-scan-box,
+.app-shell.dark .dashboard-activity-icon-access-box,
+.app-shell.dark .metadata-review-card-icon-success-box,
+.app-shell.dark .metadata-workspace-tree-row-active,
+.app-shell.dark .metadata-workspace-thumbnail-active {
+    -fx-background-color: #123E37;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.app-shell.dark .dashboard-summary-icon-blue,
+.app-shell.dark .dashboard-activity-icon-profile-box,
+.app-shell.dark .dashboard-activity-icon-qa-box {
+    -fx-background-color: #0D4F73;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.app-shell.dark .dashboard-summary-icon-amber,
+.app-shell.dark .dashboard-activity-icon-warning-box,
+.app-shell.dark .metadata-review-card-icon-warning-box {
+    -fx-background-color: #4A3512;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.app-shell.dark .dashboard-summary-icon-red,
+.app-shell.dark .metadata-review-card-icon-danger-box {
+    -fx-background-color: #4A2512;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.app-shell.dark .metadata-review-card-icon-neutral-box {
+    -fx-background-color: #2D3D4F;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.app-shell.dark .dashboard-summary-icon-teal .dashboard-summary-icon,
+.app-shell.dark .dashboard-summary-icon-green .dashboard-summary-icon,
+.app-shell.dark .dashboard-activity-icon-scan-box .dashboard-activity-icon,
+.app-shell.dark .dashboard-activity-icon-access-box .dashboard-activity-icon,
+.app-shell.dark .dashboard-summary-icon-teal-path,
+.app-shell.dark .dashboard-summary-icon-green-path,
+.app-shell.dark .dashboard-activity-icon-scan-path,
+.app-shell.dark .dashboard-activity-icon-access-path,
+.app-shell.dark .metadata-review-card-icon-success,
+.app-shell.dark .metadata-workspace-tree-status-complete,
+.app-shell.dark .metadata-workspace-check-complete {
+    -fx-fill: #4CD07D;
+    -fx-text-fill: #4CD07D;
+}
+
+.app-shell.dark .dashboard-summary-icon-blue .dashboard-summary-icon,
+.app-shell.dark .dashboard-activity-icon-profile-box .dashboard-activity-icon,
+.app-shell.dark .dashboard-activity-icon-qa-box .dashboard-activity-icon,
+.app-shell.dark .dashboard-summary-icon-blue-path,
+.app-shell.dark .dashboard-activity-icon-profile-path,
+.app-shell.dark .dashboard-activity-icon-qa-path {
+    -fx-fill: #7DD3FC;
+}
+
+.app-shell.dark .dashboard-summary-icon-amber .dashboard-summary-icon,
+.app-shell.dark .dashboard-activity-icon-warning-box .dashboard-activity-icon,
+.app-shell.dark .dashboard-summary-icon-amber-path,
+.app-shell.dark .dashboard-activity-icon-warning-path,
+.app-shell.dark .metadata-review-card-icon-warning,
+.app-shell.dark .metadata-workspace-warning-icon,
+.app-shell.dark .metadata-workspace-tree-status-warning,
+.app-shell.dark .metadata-workspace-check-warning {
+    -fx-fill: #FACC15;
+    -fx-text-fill: #FACC15;
+}
+
+.app-shell.dark .dashboard-summary-icon-red .dashboard-summary-icon,
+.app-shell.dark .dashboard-summary-icon-red-path,
+.app-shell.dark .metadata-review-card-icon-danger,
+.app-shell.dark .metadata-workspace-tree-status-danger {
+    -fx-fill: #FDBA74;
+    -fx-text-fill: #FDBA74;
+}
+
+.app-shell.dark .metadata-review-card-icon-neutral,
+.app-shell.dark .metadata-workspace-tree-status-neutral,
+.app-shell.dark .metadata-workspace-check-neutral {
+    -fx-fill: #BFBFBF;
+    -fx-text-fill: #BFBFBF;
+}
+
+.app-shell.dark .activity-log-icon-user,
+.app-shell.dark .activity-log-type-user {
+    -fx-background-color: -wl-secondary;
+}
+
+.app-shell.dark .activity-log-icon-profile,
+.app-shell.dark .activity-log-type-profile,
+.app-shell.dark .activity-log-icon-metadata,
+.app-shell.dark .activity-log-type-metadata,
+.app-shell.dark .activity-log-icon-qa,
+.app-shell.dark .activity-log-type-qa {
+    -fx-background-color: -wl-primary;
+}
+
+.app-shell.dark .activity-log-icon-access,
+.app-shell.dark .activity-log-type-access,
+.app-shell.dark .activity-log-icon-scan,
+.app-shell.dark .activity-log-type-scan,
+.app-shell.dark .activity-log-icon-document,
+.app-shell.dark .activity-log-type-document,
+.app-shell.dark .activity-log-icon-system,
+.app-shell.dark .activity-log-type-system {
+    -fx-background-color: -wl-primary-selected;
+}
+
+.app-shell.dark .activity-log-icon-export,
+.app-shell.dark .activity-log-type-export {
+    -fx-background-color: -wl-success;
+}
+
+.app-shell.dark .activity-log-icon-security,
+.app-shell.dark .activity-log-type-security {
+    -fx-background-color: -wl-destructive;
+}
+
+.app-shell.dark .metadata-workspace-viewer-area {
+    -fx-background-color: #2D3D4F;
+}
+
+.app-shell.dark .metadata-workspace-paper-preview {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #415060;
+}
+
+.app-shell.dark .metadata-workspace-field-error {
+    -fx-text-fill: #FDBA74;
+}
+
+.app-shell.dark .dashboard-attention-card {
+    -fx-border-color: #9A1D1B;
+    -fx-effect: none;
+}
+
+.create-user-dialog-pane.dark .create-user-warning-message {
+    -fx-background-color: #4A3512;
+    -fx-border-color: #B7791F;
+    -fx-text-fill: #FACC15;
+}
+
+.create-user-dialog-pane.dark .create-user-validation-message {
+    -fx-background-color: #4A2512;
+    -fx-border-color: #9A1D1B;
+    -fx-text-fill: #FDBA74;
+}
+
+/* =========================================================
+   15. CONTROL AND ICON GUARDS
+   Project note: these rules keep JavaFX skin defaults from adding
+   blue inner focus boxes or accidental borders around decorative icons.
+   ========================================================= */
+
+.search-field-input,
+.search-field-input:focused,
+.search-field-input:hover,
+.search-field-input:pressed,
+.search-field-input:armed,
+.search-field-input:focused:hover {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-blue,
+.dashboard-summary-icon-green,
+.dashboard-summary-icon-amber,
+.dashboard-summary-icon-red,
+.dashboard-activity-icon-scan-box,
+.dashboard-activity-icon-profile-box,
+.dashboard-activity-icon-qa-box,
+.dashboard-activity-icon-warning-box,
+.dashboard-activity-icon-access-box,
+.metadata-review-card-icon-warning-box,
+.metadata-review-card-icon-danger-box,
+.metadata-review-card-icon-success-box,
+.metadata-review-card-icon-neutral-box,
+.activity-log-summary-icon-shell,
+.activity-log-event-icon-shell,
+.sidebar-row-icon-shell,
+.field-icon-shell,
+.action-icon-shell,
+.metadata-template-action-icon-shell {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.dark-mode-toggle,
+.dark-mode-toggle:hover,
+.dark-mode-toggle:armed,
+.dark-mode-toggle:focused,
+.dark-mode-toggle:selected,
+.dark-mode-toggle:selected:hover,
+.dark-mode-toggle:selected:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }

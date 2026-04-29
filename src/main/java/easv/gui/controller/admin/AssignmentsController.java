@@ -1,10 +1,11 @@
-package easv.gui.controller.Admin;
+package easv.gui.controller.admin;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -72,8 +73,13 @@ public class AssignmentsController {
         loadSampleData();
         resetWorkingAssignments();
 
-        selectedProfile = profiles.get(0);
-        selectedUser = users.get(0);
+        if (!profiles.isEmpty()) {
+            selectedProfile = profiles.get(0);
+        }
+
+        if (!users.isEmpty()) {
+            selectedUser = users.get(0);
+        }
 
         configureListeners();
         switchToMode(AssignmentMode.BY_PROFILE);
@@ -108,6 +114,15 @@ public class AssignmentsController {
         rightSearchField.clear();
 
         configureFiltersForMode();
+
+        if (mode == AssignmentMode.BY_PROFILE && selectedProfile == null && !profiles.isEmpty()) {
+            selectedProfile = profiles.get(0);
+        }
+
+        if (mode == AssignmentMode.BY_USER && selectedUser == null && !users.isEmpty()) {
+            selectedUser = users.get(0);
+        }
+
         renderPage();
     }
 
@@ -240,7 +255,11 @@ public class AssignmentsController {
 
         item.setOnMouseClicked(event -> {
             selectedProfile = profile;
-            renderPage();
+            renderSelectedDetails();
+            renderAssignmentRows();
+            renderLeftList();
+            updateChangesLabel();
+            resetRightScroll();
         });
 
         return item;
@@ -264,7 +283,11 @@ public class AssignmentsController {
 
         item.setOnMouseClicked(event -> {
             selectedUser = user;
-            renderPage();
+            renderSelectedDetails();
+            renderAssignmentRows();
+            renderLeftList();
+            updateChangesLabel();
+            resetRightScroll();
         });
 
         return item;
@@ -284,6 +307,11 @@ public class AssignmentsController {
 
     private void renderSelectedDetails() {
         if (mode == AssignmentMode.BY_PROFILE) {
+            if (selectedProfile == null) {
+                clearSelectedDetails();
+                return;
+            }
+
             selectedTitleLabel.setText(selectedProfile.name());
             selectedSubtitleLabel.setText(selectedProfile.description());
             selectedCodeLabel.setText(selectedProfile.exportNaming());
@@ -291,10 +319,23 @@ public class AssignmentsController {
             return;
         }
 
+        if (selectedUser == null) {
+            clearSelectedDetails();
+            return;
+        }
+
         selectedTitleLabel.setText(selectedUser.name());
         selectedSubtitleLabel.setText(selectedUser.email());
         selectedCodeLabel.setText(selectedUser.role() + " account");
         updateSelectedStatus(selectedUser.status());
+    }
+
+    private void clearSelectedDetails() {
+        selectedTitleLabel.setText("");
+        selectedSubtitleLabel.setText("");
+        selectedCodeLabel.setText("");
+        selectedStatusBadge.setText("");
+        selectedStatusBadge.getStyleClass().setAll("metadata-status-badge", "metadata-status-archived");
     }
 
     private void renderAssignmentRows() {
@@ -306,6 +347,11 @@ public class AssignmentsController {
     }
 
     private void renderUserAssignmentRows() {
+        if (selectedProfile == null) {
+            assignmentRowsContainer.getChildren().clear();
+            return;
+        }
+
         String searchText = normalize(rightSearchField.getText());
         String selectedRole = rightFilterComboBox.getValue();
 
@@ -319,6 +365,11 @@ public class AssignmentsController {
     }
 
     private void renderProfileAssignmentRows() {
+        if (selectedUser == null) {
+            assignmentRowsContainer.getChildren().clear();
+            return;
+        }
+
         String searchText = normalize(rightSearchField.getText());
         String selectedStatus = rightFilterComboBox.getValue();
 
@@ -335,10 +386,19 @@ public class AssignmentsController {
         HBox row = createAssignmentRow();
 
         CheckBox checkBox = createCheckBox(getAssignedUserIds(selectedProfile.id()).contains(user.id()));
-        checkBox.selectedProperty().addListener((observable, oldValue, selected) -> {
-            updateAssignment(selectedProfile.id(), user.id(), selected);
-            renderLeftList();
-            updateChangesLabel();
+
+        checkBox.setOnAction(event -> {
+            setUserAssignment(user, checkBox.isSelected());
+            event.consume();
+        });
+
+        row.setOnMouseClicked(event -> {
+            if (isInsideCheckBox(event.getPickResult().getIntersectedNode())) {
+                return;
+            }
+
+            checkBox.setSelected(!checkBox.isSelected());
+            setUserAssignment(user, checkBox.isSelected());
         });
 
         VBox textBox = new VBox(3);
@@ -363,10 +423,19 @@ public class AssignmentsController {
         HBox row = createAssignmentRow();
 
         CheckBox checkBox = createCheckBox(getAssignedUserIds(profile.id()).contains(selectedUser.id()));
-        checkBox.selectedProperty().addListener((observable, oldValue, selected) -> {
-            updateAssignment(profile.id(), selectedUser.id(), selected);
-            renderLeftList();
-            updateChangesLabel();
+
+        checkBox.setOnAction(event -> {
+            setProfileAssignment(profile, checkBox.isSelected());
+            event.consume();
+        });
+
+        row.setOnMouseClicked(event -> {
+            if (isInsideCheckBox(event.getPickResult().getIntersectedNode())) {
+                return;
+            }
+
+            checkBox.setSelected(!checkBox.isSelected());
+            setProfileAssignment(profile, checkBox.isSelected());
         });
 
         VBox textBox = new VBox(3);
@@ -390,6 +459,7 @@ public class AssignmentsController {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("assignment-checkbox-row");
+        row.setPickOnBounds(true);
         return row;
     }
 
@@ -397,7 +467,40 @@ public class AssignmentsController {
         CheckBox checkBox = new CheckBox();
         checkBox.getStyleClass().add("assignment-checkbox");
         checkBox.setSelected(selected);
+        checkBox.setFocusTraversable(false);
+        checkBox.setPickOnBounds(true);
+
+        checkBox.setMinSize(24, 24);
+        checkBox.setPrefSize(24, 24);
+        checkBox.setMaxSize(24, 24);
+
         return checkBox;
+    }
+
+    private void setUserAssignment(UserAccessModel user, boolean assigned) {
+        updateAssignment(selectedProfile.id(), user.id(), assigned);
+        renderLeftList();
+        updateChangesLabel();
+    }
+
+    private void setProfileAssignment(ProfileAccessModel profile, boolean assigned) {
+        updateAssignment(profile.id(), selectedUser.id(), assigned);
+        renderLeftList();
+        updateChangesLabel();
+    }
+
+    private boolean isInsideCheckBox(Node node) {
+        Node current = node;
+
+        while (current != null) {
+            if (current instanceof CheckBox) {
+                return true;
+            }
+
+            current = current.getParent();
+        }
+
+        return false;
     }
 
     private void updateAssignment(int profileId, int userId, boolean assigned) {

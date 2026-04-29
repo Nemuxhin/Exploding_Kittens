@@ -16,7 +16,7 @@
 
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="easv.gui.controller.Admin.ActivityController"
+            fx:controller="easv.gui.controller.admin.ActivityController"
             fitToWidth="true"
             fitToHeight="false"
             hbarPolicy="NEVER"
