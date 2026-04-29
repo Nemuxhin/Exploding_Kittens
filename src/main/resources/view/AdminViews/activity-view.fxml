@@ -56,6 +56,12 @@
                         onAction="#exportActivityLog"
                         styleClass="secondary-outline-button"
                         focusTraversable="false"/>
+
+                <Label fx:id="exportStatusLabel"
+                       text=""
+                       visible="false"
+                       managed="false"
+                       styleClass="page-subtitle"/>
             </HBox>
 
             <GridPane hgap="15"
@@ -73,6 +79,10 @@
                 <HBox alignment="CENTER_LEFT"
                       maxWidth="Infinity"
                       onMouseClicked="#showTodayActivity"
+                      onKeyPressed="#showTodayActivityFromKeyboard"
+                      focusTraversable="true"
+                      accessibleRole="BUTTON"
+                      accessibleText="Show today's activity"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="0"
                       GridPane.rowIndex="0">
@@ -83,7 +93,7 @@
                     </StackPane>
 
                     <VBox spacing="3">
-                        <Label text="Today’s Activity" styleClass="activity-log-summary-title"/>
+                        <Label text="Today's Activity" styleClass="activity-log-summary-title"/>
                         <Label fx:id="todayEventsValueLabel"
                                text="0 events"
                                styleClass="activity-log-summary-value"/>
@@ -93,6 +103,10 @@
                 <HBox alignment="CENTER_LEFT"
                       maxWidth="Infinity"
                       onMouseClicked="#showScansOnly"
+                      onKeyPressed="#showScansOnlyFromKeyboard"
+                      focusTraversable="true"
+                      accessibleRole="BUTTON"
+                      accessibleText="Show scans only"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="1"
                       GridPane.rowIndex="0">
@@ -113,6 +127,10 @@
                 <HBox alignment="CENTER_LEFT"
                       maxWidth="Infinity"
                       onMouseClicked="#showQaCompleted"
+                      onKeyPressed="#showQaCompletedFromKeyboard"
+                      focusTraversable="true"
+                      accessibleRole="BUTTON"
+                      accessibleText="Show completed QA activity"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="2"
                       GridPane.rowIndex="0">
@@ -133,6 +151,10 @@
                 <HBox alignment="CENTER_LEFT"
                       maxWidth="Infinity"
                       onMouseClicked="#showFailedEvents"
+                      onKeyPressed="#showFailedEventsFromKeyboard"
+                      focusTraversable="true"
+                      accessibleRole="BUTTON"
+                      accessibleText="Show failed activity"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="3"
                       GridPane.rowIndex="0">

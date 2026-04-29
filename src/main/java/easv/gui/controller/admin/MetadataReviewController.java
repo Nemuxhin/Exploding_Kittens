@@ -12,6 +12,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -19,11 +20,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 public class MetadataReviewController {
 
@@ -230,14 +231,11 @@ public class MetadataReviewController {
                 .toList();
 
         int totalRecords = filteredRecords.size();
-        int totalPages = calculateTotalPages(totalRecords);
+        PaginationHelper.PageSlice pageSlice = PaginationHelper.slice(currentPage, rowsPerPage, totalRecords);
 
-        currentPage = clamp(currentPage, 1, totalPages);
+        currentPage = pageSlice.currentPage();
 
-        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalRecords);
-        int toIndex = Math.min(fromIndex + rowsPerPage, totalRecords);
-
-        pageRecords = filteredRecords.subList(fromIndex, toIndex);
+        pageRecords = filteredRecords.subList(pageSlice.fromIndex(), pageSlice.toIndex());
 
         resultsRowsContainer.getChildren().setAll(
                 pageRecords.stream()
@@ -246,7 +244,7 @@ public class MetadataReviewController {
         );
 
         updateEmptyState(totalRecords);
-        renderPagination(totalPages, totalRecords, fromIndex, toIndex);
+        renderPagination(pageSlice, totalRecords);
         updateBatchBar();
     }
 
@@ -373,6 +371,29 @@ public class MetadataReviewController {
         renderRows();
     }
 
+    @FXML
+    private void assignSelectedToQa() {
+        updateSelectedRecords(record -> record.withAssignedTo("QA Team"));
+    }
+
+    @FXML
+    private void markSelectedReadyForQa() {
+        updateSelectedRecords(record -> record.withReviewState("Complete", "Ready for QA", false));
+    }
+
+    @FXML
+    private void exportSelected() {
+        int selectedCount = selectedRecordIds.size();
+
+        if (selectedCount == 0) {
+            return;
+        }
+
+        selectedRecordIds.clear();
+        renderRows();
+        paginationSummaryLabel.setText("Exported " + selectedCount + " selected records");
+    }
+
     private void updateBatchBar() {
         int selectedCount = selectedRecordIds.size();
         boolean hasSelection = selectedCount > 0;
@@ -381,6 +402,23 @@ public class MetadataReviewController {
         batchActionBar.setManaged(hasSelection);
 
         batchSelectionLabel.setText(selectedCount == 1 ? "1 selected" : selectedCount + " selected");
+    }
+
+    private void updateSelectedRecords(UnaryOperator<MetadataReviewRow> updater) {
+        if (selectedRecordIds.isEmpty()) {
+            return;
+        }
+
+        for (int index = 0; index < records.size(); index++) {
+            MetadataReviewRow record = records.get(index);
+
+            if (selectedRecordIds.contains(record.id())) {
+                records.set(index, updater.apply(record));
+            }
+        }
+
+        selectedRecordIds.clear();
+        renderRows();
     }
 
     private void updateEmptyState(int totalRecords) {
@@ -396,7 +434,7 @@ public class MetadataReviewController {
         paginationBar.setManaged(hasRows);
     }
 
-    private void renderPagination(int totalPages, int totalRecords, int fromIndex, int toIndex) {
+    private void renderPagination(PaginationHelper.PageSlice pageSlice, int totalRecords) {
         paginationButtonsBox.getChildren().clear();
 
         if (totalRecords == 0) {
@@ -405,22 +443,34 @@ public class MetadataReviewController {
         }
 
         paginationSummaryLabel.setText(
-                "Showing " + (fromIndex + 1) + "-" + toIndex + " of " + totalRecords + " records"
+                "Showing " + (pageSlice.fromIndex() + 1) + "-"
+                        + pageSlice.toIndex()
+                        + " of "
+                        + totalRecords
+                        + " records"
         );
 
         paginationButtonsBox.getChildren().add(createPaginationButton("<<", 1, currentPage == 1));
         paginationButtonsBox.getChildren().add(createPaginationButton("<", currentPage - 1, currentPage == 1));
 
-        for (String pageItem : buildPageItems(totalPages)) {
-            Node paginationItem = "...".equals(pageItem)
+        for (String pageItem : PaginationHelper.buildPageItems(currentPage, pageSlice.totalPages())) {
+            Node paginationItem = PaginationHelper.ELLIPSIS.equals(pageItem)
                     ? createPaginationEllipsis()
                     : createPaginationButton(pageItem, Integer.parseInt(pageItem), false);
 
             paginationButtonsBox.getChildren().add(paginationItem);
         }
 
-        paginationButtonsBox.getChildren().add(createPaginationButton(">", currentPage + 1, currentPage == totalPages));
-        paginationButtonsBox.getChildren().add(createPaginationButton(">>", totalPages, currentPage == totalPages));
+        paginationButtonsBox.getChildren().add(createPaginationButton(
+                ">",
+                currentPage + 1,
+                currentPage == pageSlice.totalPages()
+        ));
+        paginationButtonsBox.getChildren().add(createPaginationButton(
+                ">>",
+                pageSlice.totalPages(),
+                currentPage == pageSlice.totalPages()
+        ));
     }
 
     private Button createPaginationButton(String text, int targetPage, boolean disabled) {
@@ -448,57 +498,6 @@ public class MetadataReviewController {
         Label ellipsis = new Label("...");
         ellipsis.getStyleClass().add("pagination-ellipsis");
         return ellipsis;
-    }
-
-    private List<String> buildPageItems(int totalPages) {
-        List<String> items = new ArrayList<>();
-
-        if (totalPages <= 5) {
-            for (int page = 1; page <= totalPages; page++) {
-                items.add(String.valueOf(page));
-            }
-            return items;
-        }
-
-        if (currentPage <= 3) {
-            items.add("1");
-            items.add("2");
-            items.add("3");
-            items.add("...");
-            items.add(String.valueOf(totalPages));
-            return items;
-        }
-
-        if (currentPage >= totalPages - 2) {
-            items.add("1");
-            items.add("...");
-            items.add(String.valueOf(totalPages - 2));
-            items.add(String.valueOf(totalPages - 1));
-            items.add(String.valueOf(totalPages));
-            return items;
-        }
-
-        items.add("1");
-        items.add("...");
-        items.add(String.valueOf(currentPage - 1));
-        items.add(String.valueOf(currentPage));
-        items.add(String.valueOf(currentPage + 1));
-        items.add("...");
-        items.add(String.valueOf(totalPages));
-
-        return items;
-    }
-
-    private int calculateTotalPages(int totalRecords) {
-        if (totalRecords == 0) {
-            return 1;
-        }
-
-        return (int) Math.ceil((double) totalRecords / rowsPerPage);
-    }
-
-    private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
     }
 
     private boolean matchesSearch(MetadataReviewRow record) {
@@ -595,10 +594,20 @@ public class MetadataReviewController {
     }
 
     @FXML
+    private void showMissingRequiredQueueFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showMissingRequiredQueue);
+    }
+
+    @FXML
     private void showExportBlockedQueue() {
         metadataStatusFilterComboBox.setValue("Missing Required Fields");
         qaStatusFilterComboBox.setValue("Waiting for QA");
         dateRangeFilterComboBox.setValue("Last 30 Days");
+    }
+
+    @FXML
+    private void showExportBlockedQueueFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showExportBlockedQueue);
     }
 
     @FXML
@@ -609,10 +618,20 @@ public class MetadataReviewController {
     }
 
     @FXML
+    private void showFailedValidationQueueFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showFailedValidationQueue);
+    }
+
+    @FXML
     private void showReadyForQaQueue() {
         metadataStatusFilterComboBox.setValue("Complete");
         qaStatusFilterComboBox.setValue("Ready for QA");
         dateRangeFilterComboBox.setValue("Last 30 Days");
+    }
+
+    @FXML
+    private void showReadyForQaQueueFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showReadyForQaQueue);
     }
 
     @FXML
@@ -623,6 +642,11 @@ public class MetadataReviewController {
     }
 
     @FXML
+    private void showQaRejectedQueueFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showQaRejectedQueue);
+    }
+
+    @FXML
     private void showRecentlyScannedQueue() {
         metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
@@ -630,8 +654,14 @@ public class MetadataReviewController {
     }
 
     @FXML
+    private void showRecentlyScannedQueueFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showRecentlyScannedQueue);
+    }
+
+    @FXML
     private void exportReport() {
-        System.out.println("Export Report clicked");
+        int exportCount = filteredRecords.isEmpty() ? records.size() : filteredRecords.size();
+        paginationSummaryLabel.setText("Exported report for " + exportCount + " records");
     }
 
     private void openReviewWorkspace(MetadataReviewRow record) {
@@ -682,27 +712,61 @@ public class MetadataReviewController {
 
     @FXML
     private void saveMetadata() {
-        System.out.println("Save Metadata clicked");
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        replaceActiveRecord(activeReviewRecord.withLastUpdated("Saved just now"));
+        workspaceWarningLabel.setText("Metadata saved just now.");
     }
 
     @FXML
     private void markComplete() {
-        System.out.println("Mark Document Complete clicked");
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        replaceActiveRecord(activeReviewRecord.withReviewState("Complete", activeReviewRecord.qaStatus(), false));
     }
 
     @FXML
     private void sendToQa() {
-        System.out.println("Send to QA clicked");
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        replaceActiveRecord(activeReviewRecord.withReviewState("Complete", "Ready for QA", false));
     }
 
     @FXML
     private void approveReview() {
-        System.out.println("Approve Review clicked");
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        replaceActiveRecord(activeReviewRecord.withReviewState("Approved", "QA Approved", false));
     }
 
     @FXML
     private void rejectReview() {
-        System.out.println("Reject Review clicked");
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        replaceActiveRecord(activeReviewRecord.withReviewState(activeReviewRecord.metadataStatus(), "QA Rejected", true));
+    }
+
+    private void replaceActiveRecord(MetadataReviewRow updatedRecord) {
+        for (int index = 0; index < records.size(); index++) {
+            if (records.get(index).id().equals(updatedRecord.id())) {
+                records.set(index, updatedRecord);
+                break;
+            }
+        }
+
+        selectedRecordIds.remove(updatedRecord.id());
+        renderRows();
+        openReviewWorkspace(updatedRecord);
     }
 
     @FXML
@@ -744,23 +808,10 @@ public class MetadataReviewController {
     }
 
     private void loadSampleRecords() {
-        records.setAll(
-                new MetadataReviewRow("record-1", "BOX-2026-004 / Case 2026-042 / Document 3", "Aalborg Municipality", "Building Archive", "Building Archive", "Building Archive Metadata", "Missing Required Fields", "Waiting for QA", 12, "Today 10:42", "Sarah Smith", "Sarah Smith", "Today", true),
-                new MetadataReviewRow("record-2", "BOX-2026-011 / Case 2026-088 / Document 1", "Maersk Archive", "Technical Archive", "Technical Drawings", "Technical Drawings Metadata", "Invalid", "QA Rejected", 4, "Yesterday 15:20", "John Doe", "John Doe", "Last 7 Days", true),
-                new MetadataReviewRow("record-3", "BOX-2026-018 / Case 2026-104 / Document 8", "Copenhagen Airport", "Airport Archive", "Standard Scan", "Standard Box Registration", "Complete", "Ready for QA", 7, "Today 08:15", "Unassigned", "System Import", "Today", false),
-                new MetadataReviewRow("record-4", "BOX-2026-022 / Case 2026-120 / Document 2", "Aalborg Municipality", "Building Archive", "Building Archive", "Building Archive Metadata", "Not Started", "Not Started", 16, "Today 11:03", "Sofia Nielsen", "Sofia Nielsen", "Today", false),
-                new MetadataReviewRow("record-5", "BOX-2026-025 / Case 2026-131 / Document 5", "Maersk Archive", "Technical Archive", "Technical Drawings", "Technical Drawings Metadata", "Incomplete", "QA In Progress", 9, "Today 12:12", "John Doe", "John Doe", "Today", true),
-                new MetadataReviewRow("record-6", "BOX-2026-029 / Case 2026-144 / Document 2", "Copenhagen Airport", "Airport Archive", "Standard Scan", "Standard Box Registration", "Approved", "QA Approved", 6, "Yesterday 09:40", "Sarah Smith", "System Import", "Last 7 Days", false),
-                new MetadataReviewRow("record-7", "BOX-2026-033 / Case 2026-155 / Document 9", "Aalborg Municipality", "Building Archive", "Building Archive", "Building Archive Metadata", "Complete", "Ready for QA", 11, "Today 13:05", "Sofia Nielsen", "Sofia Nielsen", "Today", false),
-                new MetadataReviewRow("record-8", "BOX-2026-041 / Case 2026-170 / Document 4", "Maersk Archive", "Technical Archive", "Technical Drawings", "Technical Drawings Metadata", "Missing Required Fields", "Waiting for QA", 14, "Today 14:22", "Sarah Smith", "Sarah Smith", "Today", true),
-                new MetadataReviewRow("record-9", "BOX-2026-047 / Case 2026-184 / Document 6", "Copenhagen Airport", "Airport Archive", "Standard Scan", "Standard Box Registration", "Not Started", "Not Started", 3, "Yesterday 11:10", "Unassigned", "System Import", "Last 7 Days", false),
-                new MetadataReviewRow("record-10", "BOX-2026-052 / Case 2026-199 / Document 1", "Aalborg Municipality", "Building Archive", "Building Archive", "Building Archive Metadata", "Invalid", "QA Rejected", 8, "Today 15:37", "John Doe", "John Doe", "Today", true),
-                new MetadataReviewRow("record-11", "BOX-2026-058 / Case 2026-208 / Document 7", "Maersk Archive", "Technical Archive", "Technical Drawings", "Technical Drawings Metadata", "Complete", "QA In Progress", 10, "Yesterday 16:02", "Sarah Smith", "Sarah Smith", "Last 7 Days", false),
-                new MetadataReviewRow("record-12", "BOX-2026-063 / Case 2026-216 / Document 3", "Copenhagen Airport", "Airport Archive", "Standard Scan", "Standard Box Registration", "Approved", "QA Approved", 5, "Today 16:55", "Sofia Nielsen", "System Import", "Today", false)
-        );
+        records.setAll(AdminDemoData.metadataReviewRecords());
     }
 
-    private record MetadataReviewRow(
+    record MetadataReviewRow(
             String id,
             String identity,
             String client,
@@ -776,5 +827,61 @@ public class MetadataReviewController {
             String dateGroup,
             boolean warning
     ) {
+        private MetadataReviewRow withLastUpdated(String updatedAt) {
+            return new MetadataReviewRow(
+                    id,
+                    identity,
+                    client,
+                    archive,
+                    profile,
+                    metadataTemplate,
+                    metadataStatus,
+                    qaStatus,
+                    pages,
+                    updatedAt,
+                    assignedTo,
+                    scannedBy,
+                    dateGroup,
+                    warning
+            );
+        }
+
+        private MetadataReviewRow withAssignedTo(String newAssignedTo) {
+            return new MetadataReviewRow(
+                    id,
+                    identity,
+                    client,
+                    archive,
+                    profile,
+                    metadataTemplate,
+                    metadataStatus,
+                    qaStatus,
+                    pages,
+                    "Updated just now",
+                    newAssignedTo,
+                    scannedBy,
+                    dateGroup,
+                    warning
+            );
+        }
+
+        private MetadataReviewRow withReviewState(String newMetadataStatus, String newQaStatus, boolean hasWarning) {
+            return new MetadataReviewRow(
+                    id,
+                    identity,
+                    client,
+                    archive,
+                    profile,
+                    metadataTemplate,
+                    newMetadataStatus,
+                    newQaStatus,
+                    pages,
+                    "Updated just now",
+                    assignedTo,
+                    scannedBy,
+                    dateGroup,
+                    hasWarning
+            );
+        }
     }
 }

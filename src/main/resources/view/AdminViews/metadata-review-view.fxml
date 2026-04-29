@@ -103,6 +103,10 @@
                           prefHeight="111"
                           spacing="15"
                           onMouseClicked="#showMissingRequiredQueue"
+                          onKeyPressed="#showMissingRequiredQueueFromKeyboard"
+                          focusTraversable="true"
+                          accessibleRole="BUTTON"
+                          accessibleText="Show missing required metadata queue"
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="0">
 
@@ -135,6 +139,10 @@
                           prefHeight="111"
                           spacing="15"
                           onMouseClicked="#showExportBlockedQueue"
+                          onKeyPressed="#showExportBlockedQueueFromKeyboard"
+                          focusTraversable="true"
+                          accessibleRole="BUTTON"
+                          accessibleText="Show export blocked queue"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="0">
 
@@ -167,6 +175,10 @@
                           prefHeight="111"
                           spacing="15"
                           onMouseClicked="#showFailedValidationQueue"
+                          onKeyPressed="#showFailedValidationQueueFromKeyboard"
+                          focusTraversable="true"
+                          accessibleRole="BUTTON"
+                          accessibleText="Show failed validation queue"
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="0">
 
@@ -199,6 +211,10 @@
                           prefHeight="111"
                           spacing="15"
                           onMouseClicked="#showReadyForQaQueue"
+                          onKeyPressed="#showReadyForQaQueueFromKeyboard"
+                          focusTraversable="true"
+                          accessibleRole="BUTTON"
+                          accessibleText="Show ready for QA queue"
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="1">
 
@@ -231,6 +247,10 @@
                           prefHeight="111"
                           spacing="15"
                           onMouseClicked="#showQaRejectedQueue"
+                          onKeyPressed="#showQaRejectedQueueFromKeyboard"
+                          focusTraversable="true"
+                          accessibleRole="BUTTON"
+                          accessibleText="Show QA rejected queue"
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="1">
 
@@ -263,6 +283,10 @@
                           prefHeight="111"
                           spacing="15"
                           onMouseClicked="#showRecentlyScannedQueue"
+                          onKeyPressed="#showRecentlyScannedQueueFromKeyboard"
+                          focusTraversable="true"
+                          accessibleRole="BUTTON"
+                          accessibleText="Show recently scanned queue"
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="1">
 
@@ -330,10 +354,10 @@
 
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button text="Assign QA" styleClass="profile-secondary-button" focusTraversable="false"/>
-                    <Button text="Apply Tag" styleClass="profile-secondary-button" focusTraversable="false"/>
-                    <Button text="Mark Ready for QA" styleClass="profile-secondary-button" focusTraversable="false"/>
-                    <Button text="Export Selected" styleClass="profile-secondary-button" focusTraversable="false"/>
+                    <Button text="Assign QA" onAction="#assignSelectedToQa" styleClass="profile-secondary-button" focusTraversable="false"/>
+                    <Button text="Apply Tag" disable="true" styleClass="profile-secondary-button" focusTraversable="false"/>
+                    <Button text="Mark Ready for QA" onAction="#markSelectedReadyForQa" styleClass="profile-secondary-button" focusTraversable="false"/>
+                    <Button text="Export Selected" onAction="#exportSelected" styleClass="profile-secondary-button" focusTraversable="false"/>
                     <Button text="Clear Selection" onAction="#clearSelection" styleClass="profile-secondary-button" focusTraversable="false"/>
                 </HBox>
 

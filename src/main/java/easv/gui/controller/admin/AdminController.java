@@ -20,15 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public class AdminController {
-
-    private static final String DASHBOARD_VIEW = "/view/AdminViews/dashboard-view.fxml";
-    private static final String USERS_VIEW = "/view/AdminViews/manage-users-view.fxml";
-    private static final String PROFILES_VIEW = "/view/AdminViews/manage-profiles-view.fxml";
-    private static final String ASSIGNMENTS_VIEW = "/view/AdminViews/assignments-view.fxml";
-    private static final String METADATA_TEMPLATES_VIEW = "/view/AdminViews/metadata-view.fxml";
-    private static final String METADATA_REVIEW_VIEW = "/view/AdminViews/metadata-review-view.fxml";
-    private static final String ACTIVITY_VIEW = "/view/AdminViews/activity-view.fxml";
+public class AdminController implements AdminNavigator {
 
     private static final String LIGHT_MODE_LOGO =
             "/images/weblager/styleguide/Main Blue/LogoBlueH.png";
@@ -90,6 +82,11 @@ public class AdminController {
                 darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected());
             }
         });
+        AdminKeyboard.makeActivatable(
+                darkModeRow,
+                "Toggle dark mode",
+                () -> darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected())
+        );
     }
 
     private boolean isDarkModeEnabled() {
@@ -160,72 +157,85 @@ public class AdminController {
     }
 
     private void configureNavigation() {
-        setNavigationAction(dashboardNavItem, this::showDashboard);
-        setNavigationAction(usersNavItem, this::showUsers);
-        setNavigationAction(profilesNavItem, this::showProfiles);
-        setNavigationAction(assignmentsNavItem, this::showAssignments);
-        setNavigationAction(metadataNavItem, this::showMetadataTemplates);
-        setNavigationAction(metadataReviewNavItem, this::showMetadataReview);
-        setNavigationAction(activityNavItem, this::showActivity);
+        for (AdminPage page : AdminPage.values()) {
+            setNavigationAction(getNavItem(page), "Show " + page.title(), () -> showPage(page));
+        }
     }
 
-    private void setNavigationAction(HBox navItem, Runnable action) {
+    private void setNavigationAction(HBox navItem, String accessibleText, Runnable action) {
         if (navItem == null) {
             return;
         }
 
         navItem.setOnMouseClicked(event -> action.run());
+        AdminKeyboard.makeActivatable(navItem, accessibleText, action);
     }
 
-    private void showDashboard() {
-        showPage(DASHBOARD_VIEW, "Dashboard", dashboardNavItem);
+    @Override
+    public void showDashboard() {
+        showPage(AdminPage.DASHBOARD);
     }
 
-    private void showUsers() {
-        showPage(USERS_VIEW, "Users", usersNavItem);
+    @Override
+    public void showUsers() {
+        showPage(AdminPage.USERS);
     }
 
-    private void showProfiles() {
-        showPage(PROFILES_VIEW, "Profiles", profilesNavItem);
+    @Override
+    public void showProfiles() {
+        showPage(AdminPage.PROFILES);
     }
 
-    private void showAssignments() {
-        showPage(ASSIGNMENTS_VIEW, "Assignments", assignmentsNavItem);
+    @Override
+    public void showAssignments() {
+        showPage(AdminPage.ASSIGNMENTS);
     }
 
-    private void showMetadataTemplates() {
-        showPage(METADATA_TEMPLATES_VIEW, "Metadata Templates", metadataNavItem);
+    @Override
+    public void showMetadataTemplates() {
+        showPage(AdminPage.METADATA_TEMPLATES);
     }
 
-    private void showMetadataReview() {
-        showPage(METADATA_REVIEW_VIEW, "Metadata Review", metadataReviewNavItem);
+    @Override
+    public void showMetadataReview() {
+        showPage(AdminPage.METADATA_REVIEW);
     }
 
-    private void showActivity() {
-        showPage(ACTIVITY_VIEW, "Activity", activityNavItem);
+    @Override
+    public void showActivity() {
+        showPage(AdminPage.ACTIVITY);
     }
 
-    private void showPage(String fxmlPath, String pageTitle, HBox activeNavItem) {
-        loadPage(fxmlPath, pageTitle);
-        setActiveNavItem(activeNavItem);
+    private void showPage(AdminPage page) {
+        loadPage(page);
+        setActiveNavItem(getNavItem(page));
     }
 
-    private void loadPage(String fxmlPath, String pageTitle) {
-        URL pageUrl = getClass().getResource(fxmlPath);
+    private void loadPage(AdminPage page) {
+        URL pageUrl = getClass().getResource(page.fxmlPath());
 
         if (pageUrl == null) {
-            contentHost.getChildren().setAll(createMissingPagePlaceholder(pageTitle));
+            contentHost.getChildren().setAll(createMissingPagePlaceholder(page.title()));
             return;
         }
 
         try {
             FXMLLoader loader = new FXMLLoader(pageUrl);
-            Parent page = loader.load();
+            Parent loadedPage = loader.load();
 
-            configureLoadedPageSize(page);
-            contentHost.getChildren().setAll(page);
+            configureLoadedController(loader.getController());
+            configureLoadedPageSize(loadedPage);
+            contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not load page: " + fxmlPath, exception);
+            throw new IllegalStateException("Could not load page: " + page.fxmlPath(), exception);
+        }
+    }
+
+    private void configureLoadedController(Object controller) {
+        if (controller instanceof DashboardController dashboardController) {
+            dashboardController.setNavigator(this);
+        } else if (controller instanceof ProfilesController profilesController) {
+            profilesController.setNavigator(this);
         }
     }
 
@@ -282,5 +292,17 @@ public class AdminController {
                 metadataReviewNavItem,
                 activityNavItem
         );
+    }
+
+    private HBox getNavItem(AdminPage page) {
+        return switch (page) {
+            case DASHBOARD -> dashboardNavItem;
+            case USERS -> usersNavItem;
+            case PROFILES -> profilesNavItem;
+            case ASSIGNMENTS -> assignmentsNavItem;
+            case METADATA_TEMPLATES -> metadataNavItem;
+            case METADATA_REVIEW -> metadataReviewNavItem;
+            case ACTIVITY -> activityNavItem;
+        };
     }
 }

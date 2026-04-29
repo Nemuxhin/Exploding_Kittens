@@ -253,14 +253,17 @@ public class AssignmentsController {
                 createStatusBadge(profile.status())
         );
 
-        item.setOnMouseClicked(event -> {
+        Runnable selectProfile = () -> {
             selectedProfile = profile;
             renderSelectedDetails();
             renderAssignmentRows();
             renderLeftList();
             updateChangesLabel();
             resetRightScroll();
-        });
+        };
+
+        item.setOnMouseClicked(event -> selectProfile.run());
+        AdminKeyboard.makeActivatable(item, "Select profile " + profile.name(), selectProfile);
 
         return item;
     }
@@ -281,14 +284,17 @@ public class AssignmentsController {
                 createRoleBadge(user.role())
         );
 
-        item.setOnMouseClicked(event -> {
+        Runnable selectUser = () -> {
             selectedUser = user;
             renderSelectedDetails();
             renderAssignmentRows();
             renderLeftList();
             updateChangesLabel();
             resetRightScroll();
-        });
+        };
+
+        item.setOnMouseClicked(event -> selectUser.run());
+        AdminKeyboard.makeActivatable(item, "Select user " + user.name(), selectUser);
 
         return item;
     }
@@ -392,14 +398,19 @@ public class AssignmentsController {
             event.consume();
         });
 
+        Runnable toggleUserAssignment = () -> {
+            checkBox.setSelected(!checkBox.isSelected());
+            setUserAssignment(user, checkBox.isSelected());
+        };
+
         row.setOnMouseClicked(event -> {
             if (isInsideCheckBox(event.getPickResult().getIntersectedNode())) {
                 return;
             }
 
-            checkBox.setSelected(!checkBox.isSelected());
-            setUserAssignment(user, checkBox.isSelected());
+            toggleUserAssignment.run();
         });
+        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + user.name(), toggleUserAssignment);
 
         VBox textBox = new VBox(3);
         textBox.getChildren().addAll(
@@ -429,14 +440,19 @@ public class AssignmentsController {
             event.consume();
         });
 
+        Runnable toggleProfileAssignment = () -> {
+            checkBox.setSelected(!checkBox.isSelected());
+            setProfileAssignment(profile, checkBox.isSelected());
+        };
+
         row.setOnMouseClicked(event -> {
             if (isInsideCheckBox(event.getPickResult().getIntersectedNode())) {
                 return;
             }
 
-            checkBox.setSelected(!checkBox.isSelected());
-            setProfileAssignment(profile, checkBox.isSelected());
+            toggleProfileAssignment.run();
         });
+        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + profile.name(), toggleProfileAssignment);
 
         VBox textBox = new VBox(3);
         textBox.getChildren().addAll(
@@ -676,50 +692,9 @@ public class AssignmentsController {
     }
 
     private void loadSampleData() {
-        profiles.setAll(
-                new ProfileAccessModel(
-                        1,
-                        "Building Archive",
-                        "Used for municipal building archive scans.",
-                        "BuildingArchive_{boxId}",
-                        "Active"
-                ),
-                new ProfileAccessModel(
-                        2,
-                        "Technical Drawings",
-                        "Used for engineering and drawing archives.",
-                        "TechnicalDrawings_{boxId}",
-                        "Active"
-                ),
-                new ProfileAccessModel(
-                        3,
-                        "Court Records",
-                        "Used for legal archive workflows.",
-                        "CourtRecords_{boxId}",
-                        "Draft"
-                ),
-                new ProfileAccessModel(
-                        4,
-                        "Legacy Archive",
-                        "Archived scanning workflow for older cases.",
-                        "LegacyArchive_{boxId}",
-                        "Archived"
-                )
-        );
-
-        users.setAll(
-                new UserAccessModel(1, "John Doe", "john@example.com", "Admin", "Active"),
-                new UserAccessModel(2, "Sarah Smith", "sarah@example.com", "User", "Active"),
-                new UserAccessModel(3, "Michael Johnson", "michael@example.com", "User", "Active"),
-                new UserAccessModel(4, "Emily Davis", "emily@example.com", "User", "Active"),
-                new UserAccessModel(5, "David Wilson", "david@example.com", "User", "Active"),
-                new UserAccessModel(6, "Olivia Brown", "olivia@example.com", "User", "Active")
-        );
-
-        savedAssignments.put(1, new HashSet<>(List.of(1, 2, 3)));
-        savedAssignments.put(2, new HashSet<>(List.of(4, 5)));
-        savedAssignments.put(3, new HashSet<>(List.of(6)));
-        savedAssignments.put(4, new HashSet<>());
+        profiles.setAll(AdminDemoData.assignmentProfiles());
+        users.setAll(AdminDemoData.assignmentUsers());
+        copyAssignments(AdminDemoData.profileAssignments(), savedAssignments);
     }
 
     private enum AssignmentMode {
@@ -727,7 +702,7 @@ public class AssignmentsController {
         BY_USER
     }
 
-    private record ProfileAccessModel(
+    record ProfileAccessModel(
             int id,
             String name,
             String description,
@@ -736,7 +711,7 @@ public class AssignmentsController {
     ) {
     }
 
-    private record UserAccessModel(
+    record UserAccessModel(
             int id,
             String name,
             String email,

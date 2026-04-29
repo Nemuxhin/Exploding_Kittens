@@ -254,6 +254,7 @@
 
                             <Button fx:id="saveHeaderButton"
                                     text="Save Changes"
+                                    onAction="#saveTemplate"
                                     styleClass="create-user-button"
                                     focusTraversable="false"/>
                         </HBox>

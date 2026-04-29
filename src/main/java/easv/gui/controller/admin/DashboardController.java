@@ -24,6 +24,12 @@ public class DashboardController {
     @FXML private Region waitingQaBar;
     @FXML private Region exportedBar;
 
+    private AdminNavigator navigator = AdminNavigator.none();
+
+    void setNavigator(AdminNavigator navigator) {
+        this.navigator = navigator == null ? AdminNavigator.none() : navigator;
+    }
+
     @FXML
     private void initialize() {
         populateSummaryCards();
@@ -32,38 +38,33 @@ public class DashboardController {
     }
 
     private void populateSummaryCards() {
-        totalUsersValueLabel.setText("24");
-        activeProfilesValueLabel.setText("3");
-        scansTodayValueLabel.setText("12");
-        waitingForQaValueLabel.setText("8");
+        AdminDemoData.DashboardSummary summary = AdminDemoData.dashboardSummary();
+
+        totalUsersValueLabel.setText(String.valueOf(summary.totalUsers()));
+        activeProfilesValueLabel.setText(String.valueOf(summary.activeProfiles()));
+        scansTodayValueLabel.setText(String.valueOf(summary.scansToday()));
+        waitingForQaValueLabel.setText(String.valueOf(summary.waitingForQa()));
     }
 
     private void populateNeedsAttention() {
-        int usersWithNoProfiles = 3;
-        int failedExports = 2;
-        int draftProfiles = 1;
+        AdminDemoData.NeedsAttention needsAttention = AdminDemoData.needsAttention();
 
-        usersNoProfilesCountLabel.setText(usersWithNoProfiles + " users have no profiles");
-        failedExportsCountLabel.setText(failedExports + " failed exports");
-        draftProfilesCountLabel.setText(draftProfiles + " draft profile");
-
-        int totalNeedsAttention = usersWithNoProfiles + failedExports + draftProfiles;
-        needsAttentionValueLabel.setText(String.valueOf(totalNeedsAttention));
+        usersNoProfilesCountLabel.setText(needsAttention.usersWithNoProfiles() + " users have no profiles");
+        failedExportsCountLabel.setText(needsAttention.failedExports() + " failed exports");
+        draftProfilesCountLabel.setText(needsAttention.draftProfiles() + " draft profile");
+        needsAttentionValueLabel.setText(String.valueOf(needsAttention.total()));
     }
 
     private void populateWorkflowStatus() {
-        int inProgress = 18;
-        int waitingForQa = 8;
-        int exported = 31;
-        int total = inProgress + waitingForQa + exported;
+        AdminDemoData.WorkflowStatus workflowStatus = AdminDemoData.workflowStatus();
 
-        inProgressValueLabel.setText(String.valueOf(inProgress));
-        workflowWaitingQaValueLabel.setText(String.valueOf(waitingForQa));
-        exportedValueLabel.setText(String.valueOf(exported));
+        inProgressValueLabel.setText(String.valueOf(workflowStatus.inProgress()));
+        workflowWaitingQaValueLabel.setText(String.valueOf(workflowStatus.waitingForQa()));
+        exportedValueLabel.setText(String.valueOf(workflowStatus.exported()));
 
-        setProgressWidth(inProgressBar, inProgress, total);
-        setProgressWidth(waitingQaBar, waitingForQa, total);
-        setProgressWidth(exportedBar, exported, total);
+        setProgressWidth(inProgressBar, workflowStatus.inProgress(), workflowStatus.total());
+        setProgressWidth(waitingQaBar, workflowStatus.waitingForQa(), workflowStatus.total());
+        setProgressWidth(exportedBar, workflowStatus.exported(), workflowStatus.total());
     }
 
     private void setProgressWidth(Region bar, int value, int total) {
@@ -73,31 +74,31 @@ public class DashboardController {
 
     @FXML
     private void createUser() {
-        // Later: navigate to Users / open create-user flow.
+        navigator.showUsers();
     }
 
     @FXML
     private void createProfile() {
-        // Later: navigate to Profiles / open create-profile flow.
+        navigator.showProfiles();
     }
 
     @FXML
     private void createMetadataTemplate() {
-        // Later: navigate to Metadata Templates / open create-template flow.
+        navigator.showMetadataTemplates();
     }
 
     @FXML
     private void manageAccess() {
-        // Later: navigate to Profile Access.
+        navigator.showAssignments();
     }
 
     @FXML
     private void viewActivity() {
-        // Later: navigate to Activity Log.
+        navigator.showActivity();
     }
 
     @FXML
     private void reviewFailedExports() {
-        // Later: navigate to Metadata Review filtered by failed/export-blocked records.
+        navigator.showMetadataReview();
     }
 }

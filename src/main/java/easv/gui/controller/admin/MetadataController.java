@@ -9,8 +9,13 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -107,6 +112,7 @@ public class MetadataController {
     private FilteredList<MetadataTemplateRow> filteredTemplates;
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
+    private MetadataTemplateRow selectedTemplate;
 
     @FXML
     private void initialize() {
@@ -214,14 +220,14 @@ public class MetadataController {
         List<MetadataTemplateRow> visibleTemplates = new ArrayList<>(filteredTemplates);
 
         int totalTemplates = visibleTemplates.size();
-        int totalPages = calculateTotalPages(totalTemplates);
+        PaginationHelper.PageSlice pageSlice = PaginationHelper.slice(currentPage, rowsPerPage, totalTemplates);
 
-        currentPage = clamp(currentPage, 1, totalPages);
+        currentPage = pageSlice.currentPage();
 
-        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalTemplates);
-        int toIndex = Math.min(fromIndex + rowsPerPage, totalTemplates);
-
-        List<MetadataTemplateRow> pageTemplates = visibleTemplates.subList(fromIndex, toIndex);
+        List<MetadataTemplateRow> pageTemplates = visibleTemplates.subList(
+                pageSlice.fromIndex(),
+                pageSlice.toIndex()
+        );
 
         metadataListContainer.getChildren().setAll(
                 pageTemplates.stream()
@@ -237,7 +243,7 @@ public class MetadataController {
         paginationBar.setVisible(hasTemplates);
         paginationBar.setManaged(hasTemplates);
 
-        renderPagination(totalPages, totalTemplates, fromIndex, toIndex);
+        renderPagination(pageSlice, totalTemplates);
     }
 
     private GridPane buildTemplateRow(MetadataTemplateRow template) {
@@ -253,6 +259,7 @@ public class MetadataController {
             row.getStyleClass().add("metadata-row-archived");
         } else {
             row.setOnMouseClicked(event -> showEditEditor(template));
+            AdminKeyboard.makeActivatable(row, "Edit metadata template " + template.name(), () -> showEditEditor(template));
         }
 
         addCell(row, buildTemplateNameCell(template), 0, HPos.LEFT);
@@ -400,14 +407,7 @@ public class MetadataController {
     }
 
     private void loadTemplateFields() {
-        templateFields.setAll(
-                new TemplateFieldRow("Box ID", "Text", true, "Enter box ID"),
-                new TemplateFieldRow("Case Number", "Text", true, "Enter case number"),
-                new TemplateFieldRow("Building Address", "Text", true, "Enter building address"),
-                new TemplateFieldRow("Date Range", "Date", false, "Select date range"),
-                new TemplateFieldRow("Department", "Dropdown", false, "Select department"),
-                new TemplateFieldRow("Notes", "Long Text", false, "Optional notes")
-        );
+        templateFields.setAll(AdminDemoData.metadataTemplateFields());
     }
 
     private void renderTemplateFields() {
@@ -453,6 +453,8 @@ public class MetadataController {
         Button editButton = createFieldIconButton(EDIT_ICON, "metadata-edit-icon", false);
         Button deleteButton = createFieldIconButton(DELETE_ICON, "metadata-delete-icon", true);
 
+        editButton.setOnAction(event -> editField(field));
+
         deleteButton.setOnAction(event -> {
             templateFields.remove(field);
             renderTemplateFields();
@@ -469,6 +471,90 @@ public class MetadataController {
         addCell(row, actions, 5, HPos.LEFT);
 
         return row;
+    }
+
+    private void editField(TemplateFieldRow field) {
+        int fieldIndex = templateFields.indexOf(field);
+
+        if (fieldIndex < 0) {
+            return;
+        }
+
+        Dialog<TemplateFieldRow> dialog = new Dialog<>();
+        dialog.setTitle("Edit Field");
+
+        if (metadataFieldsList.getScene() != null) {
+            dialog.initOwner(metadataFieldsList.getScene().getWindow());
+        }
+
+        ButtonType cancelButtonType = ButtonType.CANCEL;
+        ButtonType saveButtonType = new ButtonType("Save Field", ButtonBar.ButtonData.OK_DONE);
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        AdminDialogStyler.apply(dialogPane, metadataFieldsList);
+        dialogPane.getButtonTypes().setAll(cancelButtonType, saveButtonType);
+
+        TextField nameField = new TextField(field.name());
+        nameField.getStyleClass().add("metadata-editor-input");
+
+        ComboBox<String> typeComboBox = new ComboBox<>();
+        typeComboBox.getItems().setAll("Text", "Long Text", "Date", "Dropdown", "Number");
+        typeComboBox.setValue(field.type());
+        typeComboBox.getStyleClass().add("metadata-filter-combo");
+        typeComboBox.setMaxWidth(Double.MAX_VALUE);
+
+        CheckBox requiredCheckBox = new CheckBox("Required field");
+        requiredCheckBox.setSelected(field.required());
+
+        TextField placeholderField = new TextField(field.placeholder());
+        placeholderField.getStyleClass().add("metadata-editor-input");
+
+        GridPane form = new GridPane();
+        form.setHgap(12);
+        form.setVgap(12);
+        form.getStyleClass().add("metadata-field-dialog");
+        form.getColumnConstraints().setAll(createPercentColumn(32), createPercentColumn(68));
+
+        form.add(createFieldDialogLabel("Field Label"), 0, 0);
+        form.add(nameField, 1, 0);
+        form.add(createFieldDialogLabel("Type"), 0, 1);
+        form.add(typeComboBox, 1, 1);
+        form.add(createFieldDialogLabel("Required"), 0, 2);
+        form.add(requiredCheckBox, 1, 2);
+        form.add(createFieldDialogLabel("Placeholder"), 0, 3);
+        form.add(placeholderField, 1, 3);
+
+        dialogPane.setContent(form);
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType != saveButtonType) {
+                return null;
+            }
+
+            String fieldName = nameField.getText().isBlank()
+                    ? "Untitled Field"
+                    : nameField.getText().trim();
+            String placeholder = placeholderField.getText().isBlank()
+                    ? "Enter value"
+                    : placeholderField.getText().trim();
+
+            return new TemplateFieldRow(
+                    fieldName,
+                    typeComboBox.getValue(),
+                    requiredCheckBox.isSelected(),
+                    placeholder
+            );
+        });
+
+        dialog.showAndWait().ifPresent(updatedField -> {
+            templateFields.set(fieldIndex, updatedField);
+            renderTemplateFields();
+        });
+    }
+
+    private Label createFieldDialogLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("metadata-field-label");
+        return label;
     }
 
     private Button createFieldIconButton(String iconPath, String iconClass, boolean destructive) {
@@ -493,14 +579,7 @@ public class MetadataController {
     }
 
     private void loadAssignedProfiles() {
-        assignedProfiles.setAll(
-                new AssignedProfileRow("Aalborg Building Archive", "AalborgBuilding_{boxId}", "Active", true, false),
-                new AssignedProfileRow("Standard Building Scan", "StandardBuilding_{boxId}", "Active", true, false),
-                new AssignedProfileRow("Municipal Archive Scan", "MunicipalArchive_{boxId}", "Active", true, false),
-                new AssignedProfileRow("Technical Archive", "TechnicalArchive_{boxId}", "Active", false, false),
-                new AssignedProfileRow("Court Records", "CourtRecords_{boxId}", "Draft", false, false),
-                new AssignedProfileRow("Old Court Records", "OldCourtRecords_{boxId}", "Archived", false, true)
-        );
+        assignedProfiles.setAll(AdminDemoData.metadataAssignedProfiles());
     }
 
     private void renderAssignedProfiles() {
@@ -554,6 +633,7 @@ public class MetadataController {
 
         if (!profile.archived()) {
             row.setOnMouseClicked(event -> toggleAssignedProfile(profile));
+            AdminKeyboard.makeActivatable(row, "Toggle assigned profile " + profile.name(), () -> toggleAssignedProfile(profile));
         }
 
         return row;
@@ -627,19 +707,7 @@ public class MetadataController {
         return count == 1 ? "1 profile" : count + " profiles";
     }
 
-    private int calculateTotalPages(int totalTemplates) {
-        if (totalTemplates == 0) {
-            return 1;
-        }
-
-        return (int) Math.ceil((double) totalTemplates / rowsPerPage);
-    }
-
-    private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
-    }
-
-    private void renderPagination(int totalPages, int totalTemplates, int fromIndex, int toIndex) {
+    private void renderPagination(PaginationHelper.PageSlice pageSlice, int totalTemplates) {
         paginationButtonsBox.getChildren().clear();
 
         if (totalTemplates == 0) {
@@ -648,67 +716,40 @@ public class MetadataController {
         }
 
         paginationSummaryLabel.setText(
-                "Showing " + (fromIndex + 1) + "-" + toIndex + " of " + totalTemplates + " templates"
+                "Showing " + (pageSlice.fromIndex() + 1) + "-"
+                        + pageSlice.toIndex()
+                        + " of "
+                        + totalTemplates
+                        + " templates"
         );
 
         paginationButtonsBox.getChildren().add(createPaginationButton("<<", 1, currentPage == 1));
         paginationButtonsBox.getChildren().add(createPaginationButton("<", currentPage - 1, currentPage == 1));
 
-        for (String pageItem : buildPageItems(totalPages)) {
-            Node paginationItem = "...".equals(pageItem)
+        for (String pageItem : PaginationHelper.buildPageItems(currentPage, pageSlice.totalPages())) {
+            Node paginationItem = PaginationHelper.ELLIPSIS.equals(pageItem)
                     ? createPaginationEllipsis()
                     : createPaginationButton(pageItem, Integer.parseInt(pageItem), false);
 
             paginationButtonsBox.getChildren().add(paginationItem);
         }
 
-        paginationButtonsBox.getChildren().add(createPaginationButton(">", currentPage + 1, currentPage == totalPages));
-        paginationButtonsBox.getChildren().add(createPaginationButton(">>", totalPages, currentPage == totalPages));
+        paginationButtonsBox.getChildren().add(createPaginationButton(
+                ">",
+                currentPage + 1,
+                currentPage == pageSlice.totalPages()
+        ));
+        paginationButtonsBox.getChildren().add(createPaginationButton(
+                ">>",
+                pageSlice.totalPages(),
+                currentPage == pageSlice.totalPages()
+        ));
     }
 
     private Label createPaginationEllipsis() {
         Label ellipsis = new Label("...");
         ellipsis.getStyleClass().add("pagination-ellipsis");
         return ellipsis;
-    }
-
-    private List<String> buildPageItems(int totalPages) {
-        List<String> items = new ArrayList<>();
-
-        if (totalPages <= 5) {
-            for (int page = 1; page <= totalPages; page++) {
-                items.add(String.valueOf(page));
-            }
-            return items;
-        }
-
-        if (currentPage <= 3) {
-            items.add("1");
-            items.add("2");
-            items.add("3");
-            items.add("...");
-            items.add(String.valueOf(totalPages));
-            return items;
-        }
-
-        if (currentPage >= totalPages - 2) {
-            items.add("1");
-            items.add("...");
-            items.add(String.valueOf(totalPages - 2));
-            items.add(String.valueOf(totalPages - 1));
-            items.add(String.valueOf(totalPages));
-            return items;
-        }
-
-        items.add("1");
-        items.add("...");
-        items.add(String.valueOf(currentPage - 1));
-        items.add(String.valueOf(currentPage));
-        items.add(String.valueOf(currentPage + 1));
-        items.add("...");
-        items.add(String.valueOf(totalPages));
-
-        return items;
     }
 
     private Button createPaginationButton(String text, int targetPage, boolean disabled) {
@@ -736,6 +777,8 @@ public class MetadataController {
 
     @FXML
     private void showOverview() {
+        selectedTemplate = null;
+
         editorPage.setVisible(false);
         editorPage.setManaged(false);
 
@@ -745,14 +788,9 @@ public class MetadataController {
 
     @FXML
     private void showCreateEditor() {
-        MetadataTemplateRow template = new MetadataTemplateRow(
-                "Create Metadata Template",
-                "Create a reusable metadata form for scanning profiles.",
-                List.of(),
-                0,
-                "Draft",
-                "New"
-        );
+        selectedTemplate = null;
+
+        MetadataTemplateRow template = AdminDemoData.newMetadataTemplate();
 
         editorTitleLabel.setText(template.name());
         editorSubtitleLabel.setText(template.description());
@@ -771,14 +809,14 @@ public class MetadataController {
 
     @FXML
     private void showEditEditor() {
-        if (masterTemplates.isEmpty()) {
-            return;
+        if (selectedTemplate != null) {
+            showEditEditor(selectedTemplate);
         }
-
-        showEditEditor(masterTemplates.get(0));
     }
 
     private void showEditEditor(MetadataTemplateRow template) {
+        selectedTemplate = template;
+
         editorTitleLabel.setText(template.name());
         editorSubtitleLabel.setText(template.description());
         setEditorStatus(template.status());
@@ -796,16 +834,62 @@ public class MetadataController {
 
     @FXML
     private void showPreviewEditor() {
-        if (masterTemplates.isEmpty()) {
-            return;
+        if (selectedTemplate != null) {
+            showPreviewEditor(selectedTemplate);
+        } else if (editorPage.isVisible()) {
+            selectPreviewTab();
         }
-
-        showPreviewEditor(masterTemplates.get(0));
     }
 
     private void showPreviewEditor(MetadataTemplateRow template) {
         showEditEditor(template);
         selectPreviewTab();
+    }
+
+    @FXML
+    private void saveTemplate() {
+        String templateName = templateNameField.getText().isBlank()
+                ? "Untitled Template"
+                : templateNameField.getText().trim();
+        String templateDescription = templateDescriptionArea.getText().isBlank()
+                ? "No description provided."
+                : templateDescriptionArea.getText().trim();
+        String templateStatus = templateStatusComboBox.getValue() == null
+                ? "Draft"
+                : templateStatusComboBox.getValue();
+
+        MetadataTemplateRow savedTemplate = new MetadataTemplateRow(
+                templateName,
+                templateDescription,
+                selectedAssignedProfileNames(),
+                templateFields.size(),
+                templateStatus,
+                "Just now"
+        );
+
+        if (selectedTemplate == null) {
+            masterTemplates.add(0, savedTemplate);
+        } else {
+            int selectedIndex = masterTemplates.indexOf(selectedTemplate);
+
+            if (selectedIndex >= 0) {
+                masterTemplates.set(selectedIndex, savedTemplate);
+            }
+        }
+
+        selectedTemplate = savedTemplate;
+        editorTitleLabel.setText(savedTemplate.name());
+        editorSubtitleLabel.setText(savedTemplate.description());
+        setEditorStatus(savedTemplate.status());
+        saveHeaderButton.setText("Save Changes");
+        applyFilters();
+    }
+
+    private List<String> selectedAssignedProfileNames() {
+        return assignedProfiles.stream()
+                .filter(AssignedProfileRow::selected)
+                .map(AssignedProfileRow::name)
+                .toList();
     }
 
     private void showEditor() {
@@ -890,59 +974,10 @@ public class MetadataController {
     }
 
     private void loadSampleTemplates() {
-        masterTemplates.setAll(
-                new MetadataTemplateRow(
-                        "Building Archive Metadata",
-                        "Used for municipal building archive scans.",
-                        List.of("Building Archive", "Standard Building Scan", "Aalborg Building Archive"),
-                        7,
-                        "Active",
-                        "Today"
-                ),
-                new MetadataTemplateRow(
-                        "Technical Drawings Metadata",
-                        "Used for engineering drawings and technical documentation.",
-                        List.of("Technical Drawings", "Engineering Archive"),
-                        5,
-                        "Active",
-                        "Yesterday"
-                ),
-                new MetadataTemplateRow(
-                        "Court Records Metadata",
-                        "Registration fields for legal archive documents.",
-                        List.of("Court Records"),
-                        9,
-                        "Draft",
-                        "3 days ago"
-                ),
-                new MetadataTemplateRow(
-                        "Client Intake Metadata",
-                        "Basic metadata used when creating new archive cases.",
-                        List.of("Building Archive"),
-                        6,
-                        "Active",
-                        "1 week ago"
-                ),
-                new MetadataTemplateRow(
-                        "Box Registration Metadata",
-                        "Fields used when preparing boxes before scanning.",
-                        List.of("Standard Building Scan"),
-                        4,
-                        "Active",
-                        "2 weeks ago"
-                ),
-                new MetadataTemplateRow(
-                        "Legacy Archive Metadata",
-                        "Archived template kept for older scanning workflows.",
-                        List.of("Court Records"),
-                        8,
-                        "Archived",
-                        "Last month"
-                )
-        );
+        masterTemplates.setAll(AdminDemoData.metadataTemplates());
     }
 
-    private record MetadataTemplateRow(
+    record MetadataTemplateRow(
             String name,
             String description,
             List<String> assignedProfiles,
@@ -952,7 +987,7 @@ public class MetadataController {
     ) {
     }
 
-    private record TemplateFieldRow(
+    record TemplateFieldRow(
             String name,
             String type,
             boolean required,
@@ -960,7 +995,7 @@ public class MetadataController {
     ) {
     }
 
-    private record AssignedProfileRow(
+    record AssignedProfileRow(
             String name,
             String code,
             String status,

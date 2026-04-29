@@ -104,6 +104,11 @@ public class ProfilesController {
     private FilteredList<ProfileCardModel> filteredProfiles;
 
     private ProfileCardModel currentProfile;
+    private AdminNavigator navigator = AdminNavigator.none();
+
+    void setNavigator(AdminNavigator navigator) {
+        this.navigator = navigator == null ? AdminNavigator.none() : navigator;
+    }
 
     @FXML
     private void initialize() {
@@ -512,13 +517,7 @@ public class ProfilesController {
     private void populateAccessRows(ProfileCardModel profile) {
         accessCountLabel.setText(formatAssignedUsers(profile.assignedUsersCount));
 
-        List<AccessUser> users = List.of(
-                new AccessUser("John Doe", "Admin", "Active"),
-                new AccessUser("Sarah Smith", "User", "Active"),
-                new AccessUser("Michael Johnson", "User", "Active"),
-                new AccessUser("Emily Davis", "User", "Active"),
-                new AccessUser("Sofia Nielsen", "User", "Active")
-        );
+        List<AccessUser> users = AdminDemoData.profileAccessUsers();
 
         accessRowsContainer.getChildren().clear();
 
@@ -649,30 +648,7 @@ public class ProfilesController {
 
     @FXML
     private void createProfile() {
-        ProfileCardModel newProfile = new ProfileCardModel(
-                "New Profile",
-                "NewProfile",
-                "Describe this scanning workflow profile.",
-                "Draft",
-                new ArrayList<>(List.of(
-                        new ConfigChip("Barcode Split Off", "chip-neutral"),
-                        new ConfigChip("Deskew", "chip-indigo")
-                )),
-                "Building Archive Metadata",
-                "{profileCode}_{boxId}",
-                0,
-                "Created just now",
-                false,
-                false,
-                "Start new document",
-                "Remove barcode page from final document",
-                "0°",
-                "Normal",
-                "Normal",
-                true,
-                "Multi-page TIFF",
-                true
-        );
+        ProfileCardModel newProfile = AdminDemoData.newProfile();
 
         masterProfiles.add(0, newProfile);
 
@@ -731,15 +707,12 @@ public class ProfilesController {
 
     @FXML
     private void editTemplate() {
-        // Hook this up to your Metadata Template editor route later.
-        // Keeping this method prevents FXML load errors.
+        navigator.showMetadataTemplates();
     }
 
     @FXML
     private void manageAccess() {
-        // Hook this up to your Profile Access page route later.
-        // Keeping this method prevents FXML load errors.
-        selectTab(EditorTab.ACCESS);
+        navigator.showAssignments();
     }
 
     @FXML
@@ -852,84 +825,7 @@ public class ProfilesController {
     }
 
     private void loadSampleProfiles() {
-        masterProfiles.setAll(
-                new ProfileCardModel(
-                        "Building Archive",
-                        "BuildingArchive",
-                        "Used for municipal building archive scanning.",
-                        "Active",
-                        new ArrayList<>(List.of(
-                                new ConfigChip("Barcode Split On", "chip-teal"),
-                                new ConfigChip("Auto Rotate On", "chip-blue"),
-                                new ConfigChip("Deskew", "chip-indigo")
-                        )),
-                        "Building Archive Metadata",
-                        "{profileCode}_{boxId}",
-                        5,
-                        "Updated today",
-                        false,
-                        true,
-                        "Start new document",
-                        "Remove barcode page from final document",
-                        "0°",
-                        "Normal",
-                        "Normal",
-                        true,
-                        "Multi-page TIFF",
-                        true
-                ),
-                new ProfileCardModel(
-                        "Technical Drawings",
-                        "TechnicalDrawings",
-                        "Used for engineering and drawing archives.",
-                        "Active",
-                        new ArrayList<>(List.of(
-                                new ConfigChip("Barcode Split On", "chip-teal"),
-                                new ConfigChip("OCR Enabled", "chip-purple"),
-                                new ConfigChip("Deskew", "chip-indigo"),
-                                new ConfigChip("Blank Page Removal", "chip-amber")
-                        )),
-                        "Technical Drawings Metadata",
-                        "{profileCode}_{boxId}",
-                        2,
-                        "Updated yesterday",
-                        false,
-                        true,
-                        "Start new document",
-                        "Remove barcode page from final document",
-                        "0°",
-                        "Normal",
-                        "Normal",
-                        true,
-                        "Multi-page TIFF",
-                        true
-                ),
-                new ProfileCardModel(
-                        "Court Records",
-                        "CourtRecords",
-                        "Used for legal archive workflows.",
-                        "Draft",
-                        new ArrayList<>(List.of(
-                                new ConfigChip("Barcode Split Off", "chip-neutral"),
-                                new ConfigChip("OCR Enabled", "chip-purple"),
-                                new ConfigChip("Brightness Correction", "chip-orange")
-                        )),
-                        "Court Records Metadata",
-                        "{profileCode}_{boxId}",
-                        1,
-                        "Updated 3 days ago",
-                        false,
-                        false,
-                        "Start new document",
-                        "Keep barcode page in final document",
-                        "0°",
-                        "Lighter",
-                        "Normal",
-                        true,
-                        "PDF/A",
-                        true
-                )
-        );
+        masterProfiles.setAll(AdminDemoData.profiles());
     }
 
     private enum EditorTab {
@@ -940,7 +836,7 @@ public class ProfilesController {
         PREVIEW
     }
 
-    private static final class ProfileCardModel {
+    static final class ProfileCardModel {
         private String name;
         private String code;
         private String description;
@@ -964,7 +860,7 @@ public class ProfilesController {
         private String exportFormat;
         private boolean metadataRequiredBeforeExport;
 
-        private ProfileCardModel(
+        ProfileCardModel(
                 String name,
                 String code,
                 String description,
@@ -989,7 +885,7 @@ public class ProfilesController {
             this.code = code;
             this.description = description;
             this.status = status;
-            this.configChips = configChips;
+            this.configChips = new ArrayList<>(configChips);
             this.metadataTemplate = metadataTemplate;
             this.exportNaming = exportNaming;
             this.assignedUsersCount = assignedUsersCount;
@@ -1011,9 +907,9 @@ public class ProfilesController {
         }
     }
 
-    private record ConfigChip(String label, String styleClass) {
+    record ConfigChip(String label, String styleClass) {
     }
 
-    private record AccessUser(String name, String role, String status) {
+    record AccessUser(String name, String role, String status) {
     }
 }

@@ -9,6 +9,7 @@ import javafx.geometry.VPos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -40,6 +41,7 @@ public class ActivityController {
     @FXML private ComboBox<String> userFilterComboBox;
     @FXML private ComboBox<String> statusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
+    @FXML private Label exportStatusLabel;
 
     @FXML private Label todayEventsValueLabel;
     @FXML private Label scansCompletedValueLabel;
@@ -104,19 +106,16 @@ public class ActivityController {
     }
 
     private void configureListeners() {
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> renderTimeline());
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
 
-        typeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderTimeline());
-        userFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderTimeline());
-        statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderTimeline());
-        dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderTimeline());
+        typeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
+        userFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
+        statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
+        dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
     }
 
     private void renderTimeline() {
-        List<ActivityLogEntry> filteredEntries = activityEntries.stream()
-                .filter(this::matchesSearch)
-                .filter(this::matchesFilters)
-                .toList();
+        List<ActivityLogEntry> filteredEntries = filteredActivityEntries();
 
         timelineContainer.getChildren().clear();
 
@@ -197,7 +196,7 @@ public class ActivityController {
         descriptionLabel.getStyleClass().add("activity-log-event-description");
         descriptionLabel.setWrapText(true);
 
-        Label metaLabel = new Label(entry.actor() + " · " + entry.target());
+        Label metaLabel = new Label(entry.actor() + " - " + entry.target());
         metaLabel.getStyleClass().add("activity-log-event-meta");
         metaLabel.setWrapText(true);
 
@@ -223,10 +222,13 @@ public class ActivityController {
             row.getChildren().add(createDetailsPanel(entry));
         }
 
-        row.setOnMouseClicked(event -> {
+        Runnable toggleDetails = () -> {
             expandedEntryId = entry.id().equals(expandedEntryId) ? null : entry.id();
             renderTimeline();
-        });
+        };
+
+        row.setOnMouseClicked(event -> toggleDetails.run());
+        AdminKeyboard.makeActivatable(row, "Toggle details for " + entry.action(), toggleDetails);
 
         return row;
     }
@@ -389,9 +391,19 @@ public class ActivityController {
     }
 
     @FXML
+    private void showTodayActivityFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showTodayActivity);
+    }
+
+    @FXML
     private void showScansOnly() {
         typeFilterComboBox.setValue("Scans");
         statusFilterComboBox.setValue(ALL_STATUSES);
+    }
+
+    @FXML
+    private void showScansOnlyFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showScansOnly);
     }
 
     @FXML
@@ -401,8 +413,18 @@ public class ActivityController {
     }
 
     @FXML
+    private void showQaCompletedFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showQaCompleted);
+    }
+
+    @FXML
     private void showFailedEvents() {
         statusFilterComboBox.setValue("Failed");
+    }
+
+    @FXML
+    private void showFailedEventsFromKeyboard(KeyEvent event) {
+        AdminKeyboard.runOnActivationKey(event, this::showFailedEvents);
     }
 
     @FXML
@@ -413,12 +435,39 @@ public class ActivityController {
         statusFilterComboBox.setValue(ALL_STATUSES);
         dateRangeFilterComboBox.setValue("Last 7 Days");
         expandedEntryId = null;
+        hideExportStatus();
         renderTimeline();
     }
 
     @FXML
     private void exportActivityLog() {
-        // Hook this up to CSV/report export later.
+        List<ActivityLogEntry> visibleEntries = filteredActivityEntries();
+        String eventLabel = visibleEntries.size() == 1 ? "event" : "events";
+        showExportStatus("Prepared " + visibleEntries.size() + " visible " + eventLabel + " for export.");
+    }
+
+    private void refreshFilteredTimeline() {
+        hideExportStatus();
+        renderTimeline();
+    }
+
+    private List<ActivityLogEntry> filteredActivityEntries() {
+        return activityEntries.stream()
+                .filter(this::matchesSearch)
+                .filter(this::matchesFilters)
+                .toList();
+    }
+
+    private void showExportStatus(String message) {
+        exportStatusLabel.setText(message);
+        exportStatusLabel.setVisible(true);
+        exportStatusLabel.setManaged(true);
+    }
+
+    private void hideExportStatus() {
+        exportStatusLabel.setText("");
+        exportStatusLabel.setVisible(false);
+        exportStatusLabel.setManaged(false);
     }
 
     private String normalize(String value) {
@@ -490,223 +539,10 @@ public class ActivityController {
     }
 
     private void loadSampleActivity() {
-        activityEntries.setAll(
-                new ActivityLogEntry(
-                        "a-001",
-                        "Today",
-                        "10:42",
-                        "2026-04-25 10:42",
-                        "Scans",
-                        "Sarah Smith",
-                        "Sarah Smith completed scan",
-                        "BOX-2026-004",
-                        "Success",
-                        "BOX-2026-004 · Building Archive · 42 pages",
-                        List.of(
-                                new ActivityDetail("Profile", "Building Archive"),
-                                new ActivityDetail("Pages scanned", "42"),
-                                new ActivityDetail("Documents created", "6"),
-                                new ActivityDetail("Barcode splits", "5"),
-                                new ActivityDetail("Current status", "Waiting for QA")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-002",
-                        "Today",
-                        "10:31",
-                        "2026-04-25 10:31",
-                        "Scans",
-                        "System",
-                        "System detected barcode split",
-                        "Document 3",
-                        "Success",
-                        "Barcode separator detected and document split was applied automatically.",
-                        List.of(
-                                new ActivityDetail("Box", "BOX-2026-004"),
-                                new ActivityDetail("Document", "Document 3"),
-                                new ActivityDetail("Split rule", "Barcode Split On"),
-                                new ActivityDetail("Result", "New document boundary created")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-003",
-                        "Today",
-                        "09:58",
-                        "2026-04-25 09:58",
-                        "Access",
-                        "Admin",
-                        "Admin assigned profile access",
-                        "Building Archive",
-                        "Success",
-                        "Building Archive profile was assigned to Sarah Smith.",
-                        List.of(
-                                new ActivityDetail("Profile", "Building Archive"),
-                                new ActivityDetail("Assigned user", "Sarah Smith"),
-                                new ActivityDetail("Before", "Sarah Smith did not have access"),
-                                new ActivityDetail("After", "Sarah Smith has access")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-004",
-                        "Today",
-                        "09:44",
-                        "2026-04-25 09:44",
-                        "Metadata",
-                        "Admin",
-                        "Admin updated metadata template",
-                        "Court Records Metadata",
-                        "Success",
-                        "Field “Case Number” was added to Court Records Metadata.",
-                        List.of(
-                                new ActivityDetail("Template", "Court Records Metadata"),
-                                new ActivityDetail("Field added", "Case Number"),
-                                new ActivityDetail("Required", "Yes"),
-                                new ActivityDetail("Field type", "Text")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-005",
-                        "Today",
-                        "09:12",
-                        "2026-04-25 09:12",
-                        "Users",
-                        "Admin",
-                        "Admin created user",
-                        "Sarah Smith",
-                        "Success",
-                        "A new user account was created for Sarah Smith.",
-                        List.of(
-                                new ActivityDetail("User", "Sarah Smith"),
-                                new ActivityDetail("Role", "User"),
-                                new ActivityDetail("Status", "Active")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-006",
-                        "Today",
-                        "08:51",
-                        "2026-04-25 08:51",
-                        "Security",
-                        "System",
-                        "Failed login attempt",
-                        "david",
-                        "Failed",
-                        "A failed login attempt was recorded for username “david”.",
-                        List.of(
-                                new ActivityDetail("Username", "david"),
-                                new ActivityDetail("Reason", "Invalid password"),
-                                new ActivityDetail("Source", "Login screen")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-007",
-                        "Yesterday",
-                        "15:12",
-                        "2026-04-24 15:12",
-                        "Profiles",
-                        "Admin",
-                        "Admin created profile",
-                        "Technical Drawings",
-                        "Success",
-                        "Technical Drawings scan profile was created.",
-                        List.of(
-                                new ActivityDetail("Profile", "Technical Drawings"),
-                                new ActivityDetail("Barcode split", "On"),
-                                new ActivityDetail("OCR", "Enabled"),
-                                new ActivityDetail("Export naming", "TechnicalDrawings_{boxId}")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-008",
-                        "Yesterday",
-                        "14:30",
-                        "2026-04-24 14:30",
-                        "QA",
-                        "John Doe",
-                        "John Doe completed QA",
-                        "BOX-2026-003",
-                        "Success",
-                        "QA was completed for BOX-2026-003.",
-                        List.of(
-                                new ActivityDetail("Box", "BOX-2026-003"),
-                                new ActivityDetail("QA result", "Approved"),
-                                new ActivityDetail("Documents reviewed", "4")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-009",
-                        "Yesterday",
-                        "13:44",
-                        "2026-04-24 13:44",
-                        "Documents",
-                        "John Doe",
-                        "Document status changed",
-                        "DOC-2026-042",
-                        "Info",
-                        "Document changed from Waiting for QA to QA Completed.",
-                        List.of(
-                                new ActivityDetail("Document", "DOC-2026-042"),
-                                new ActivityDetail("Before", "Waiting for QA"),
-                                new ActivityDetail("After", "QA Completed")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-010",
-                        "Yesterday",
-                        "11:25",
-                        "2026-04-24 11:25",
-                        "Exports",
-                        "System",
-                        "System created export",
-                        "BuildingArchive_BOX-2026-004",
-                        "Success",
-                        "Export package was generated successfully.",
-                        List.of(
-                                new ActivityDetail("Export name", "BuildingArchive_BOX-2026-004"),
-                                new ActivityDetail("Format", "PDF/A + metadata CSV"),
-                                new ActivityDetail("Documents", "6"),
-                                new ActivityDetail("Status", "Completed")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-011",
-                        "Yesterday",
-                        "10:05",
-                        "2026-04-24 10:05",
-                        "Exports",
-                        "System",
-                        "Export failed",
-                        "CourtRecords_BOX-2026-011",
-                        "Failed",
-                        "Export failed because required metadata fields were missing.",
-                        List.of(
-                                new ActivityDetail("Export name", "CourtRecords_BOX-2026-011"),
-                                new ActivityDetail("Reason", "Missing required metadata"),
-                                new ActivityDetail("Missing fields", "Document Type, Registration Date")
-                        )
-                ),
-                new ActivityLogEntry(
-                        "a-012",
-                        "Earlier This Week",
-                        "16:20",
-                        "2026-04-22 16:20",
-                        "Metadata",
-                        "Admin",
-                        "Admin marked metadata field as required",
-                        "Building Archive Metadata",
-                        "Warning",
-                        "Box ID was marked as required for Building Archive Metadata.",
-                        List.of(
-                                new ActivityDetail("Template", "Building Archive Metadata"),
-                                new ActivityDetail("Field", "Box ID"),
-                                new ActivityDetail("Before", "Optional"),
-                                new ActivityDetail("After", "Required")
-                        )
-                )
-        );
+        activityEntries.setAll(AdminDemoData.activityLogEntries());
     }
 
-    private record ActivityLogEntry(
+    record ActivityLogEntry(
             String id,
             String dateGroup,
             String timestamp,
@@ -721,6 +557,6 @@ public class ActivityController {
     ) {
     }
 
-    private record ActivityDetail(String label, String value) {
+    record ActivityDetail(String label, String value) {
     }
 }
