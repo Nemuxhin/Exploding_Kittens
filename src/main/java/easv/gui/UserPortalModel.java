@@ -128,7 +128,7 @@ public class UserPortalModel {
 
     public List<ScanningDocument> scanningDocuments() {
         return List.of(
-                new ScanningDocument(
+                                new ScanningDocument(
                         "Document 1",
                         "12 files",
                         List.of(
