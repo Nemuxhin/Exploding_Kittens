@@ -1,14 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
+<BorderPane fx:id="root"
+            xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="easv.gui.controller.DashboardController">
+    <left>
+        <VBox fx:id="sidebar"
+              spacing="16"
+              prefWidth="205"
+              minWidth="200"
+              styleClass="portal-sidebar">
+            <children>
+                <VBox spacing="14" styleClass="sidebar-brand">
+                    <children>
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="WL" styleClass="brand-mark"/>
+                                <VBox spacing="2">
+                                    <children>
+                                        <Label text="WebLager" styleClass="brand-title"/>
+                                        <Label text="Scanning Portal" styleClass="brand-subtitle"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
 
-</AnchorPane>
+                <VBox spacing="8">
+                    <children>
+                        <HBox fx:id="dashboardNav" spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="dashboardNavIcon" text="[]" styleClass="nav-icon"/>
+                                <Label fx:id="dashboardNavText" text="Dashboard" styleClass="sidebar-nav-text-active"/>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="exportsNav" spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="exportsNavIcon" text="-" styleClass="nav-icon"/>
+                                <Label fx:id="exportsNavText" text="Exports" styleClass="sidebar-nav-text"/>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="profilesNav" spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="profilesNavIcon" text="-" styleClass="nav-icon"/>
+                                <Label fx:id="profilesNavText" text="Profiles" styleClass="sidebar-nav-text"/>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="myScansNav" spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="myScansNavIcon" text="-" styleClass="nav-icon"/>
+                                <Label fx:id="myScansNavText" text="My Scans" styleClass="sidebar-nav-text"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <VBox spacing="14" styleClass="sidebar-footer">
+                    <children>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="DK" styleClass="language-badge"/>
+                                <Label text="Dansk" styleClass="footer-text"/>
+                            </children>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="logout-row">
+                            <children>
+                                <Label text="&lt;-" styleClass="nav-icon"/>
+                                <Label text="Log Out" styleClass="logout-text"/>
+                            </children>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="&#x263E;" styleClass="nav-icon"/>
+                                <Label text="Dark Mode" styleClass="footer-text"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <HBox fx:id="darkSwitch" styleClass="dark-switch">
+                                    <children>
+                                        <Label fx:id="darkSwitchKnob" text="&#x263C;" styleClass="dark-switch-knob"/>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </left>
+</BorderPane>
