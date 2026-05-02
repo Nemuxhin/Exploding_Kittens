@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -18,10 +19,12 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -40,6 +43,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
@@ -89,7 +93,7 @@ public class DashboardController {
     private record ScanRow(String boxId, String profile, String status, String date, int pages) {
     }
 
-    private record MyScanRow(String file, String document, String profile, String boxId, String date, String time, String size, String status, List<String> actions) {
+    private record MyScanRow(String file, String document, String profile, String boxId, String date, String time, int pages, String size, String status, List<String> actions) {
     }
 
     private record ExportRow(String fileName, String boxId, String profile, String dateCreated, String size, String status) {
@@ -129,20 +133,20 @@ public class DashboardController {
 
     private List<ExportRow> exports() {
         return List.of(
-                new ExportRow("StandardScan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan", "2026-04-24", "45.2 MB", "Ready"),
-                new ExportRow("HighQuality_BOX-2026-041.pdf", "BOX-2026-041", "High Quality", "2026-04-24", "89.7 MB", "Processing"),
-                new ExportRow("StandardScan_BOX-2026-040.pdf", "BOX-2026-040", "Standard Scan", "2026-04-23", "67.3 MB", "Ready"),
-                new ExportRow("Archive_BOX-2026-038.pdf", "BOX-2026-038", "Archive", "2026-04-22", "34.8 MB", "Ready")
+                new ExportRow("StandardScan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan", "2026-04-24 14:52", "45.2 MB", "Ready"),
+                new ExportRow("HighQuality_BOX-2026-041.pdf", "BOX-2026-041", "High Quality", "2026-04-24 13:30", "89.7 MB", "Processing"),
+                new ExportRow("StandardScan_BOX-2026-040.pdf", "BOX-2026-040", "Standard Scan", "2026-04-23 16:45", "67.3 MB", "Ready"),
+                new ExportRow("Archive_BOX-2026-038.pdf", "BOX-2026-038", "Archive", "2026-04-22 12:02", "34.8 MB", "Ready")
         );
     }
 
     private List<MyScanRow> myScanRows() {
         return List.of(
-                new MyScanRow("File 03", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:08", "45.2 MB", "QA Completed", List.of("View Scan", "Export")),
-                new MyScanRow("File 02", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:18", "38.6 MB", "Metadata Required", List.of("View Scan", "Export")),
-                new MyScanRow("File 01", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:40", "42.8 MB", "In Progress", List.of("View Scan", "Export")),
-                new MyScanRow("File 04", "Building Plans", "Building Archive", "BOX-2026-004", "2026-04-28", "11:30", "89.7 MB", "Waiting for QA", List.of("View Scan", "Export")),
-                new MyScanRow("File 05", "Court Document", "Court Records", "BOX-2026-007", "2026-04-29", "14:45", "34.8 MB", "Exported", List.of("View Scan", "Export"))
+                new MyScanRow("StandardScan_BOX-2026-042", "BOX-2026-042", "Standard Scan", "BOX-2026-042", "2026-04-24", "14:45", 125, "45.2 MB", "Completed", List.of("View", "Export")),
+                new MyScanRow("HighQuality_BOX-2026-041", "BOX-2026-041", "High Quality", "BOX-2026-041", "2026-04-24", "13:15", 89, "89.7 MB", "Processing", List.of()),
+                new MyScanRow("StandardScan_BOX-2026-040", "BOX-2026-040", "Standard Scan", "BOX-2026-040", "2026-04-23", "16:38", 203, "67.3 MB", "Completed", List.of("View", "Export")),
+                new MyScanRow("Archive_BOX-2026-039", "BOX-2026-039", "Archive", "BOX-2026-039", "2026-04-23", "10:05", 0, "0 MB", "Failed", List.of()),
+                new MyScanRow("Archive_BOX-2026-038", "BOX-2026-038", "Archive", "BOX-2026-038", "2026-04-22", "12:02", 98, "34.8 MB", "Completed", List.of("View", "Export"))
         );
     }
 
@@ -259,14 +263,17 @@ public class DashboardController {
     @FXML private HBox profilesNav;
     @FXML private HBox metadataNav;
     @FXML private HBox myScansNav;
+    @FXML private HBox exportsNav;
     @FXML private Label dashboardNavIcon;
     @FXML private Label profilesNavIcon;
     @FXML private Label metadataNavIcon;
     @FXML private Label myScansNavIcon;
+    @FXML private Label exportsNavIcon;
     @FXML private Label dashboardNavText;
     @FXML private Label profilesNavText;
     @FXML private Label metadataNavText;
     @FXML private Label myScansNavText;
+    @FXML private Label exportsNavText;
     @FXML private HBox darkSwitch;
     @FXML private Label darkSwitchKnob;
 
@@ -592,7 +599,8 @@ public class DashboardController {
         updateNavItem(dashboardNav, dashboardNavIcon, dashboardNavText, "Dashboard", currentPage, onNavigate);
         updateNavItem(profilesNav, profilesNavIcon, profilesNavText, "Start Scan", currentPage, onNavigate);
         updateNavItem(metadataNav, metadataNavIcon, metadataNavText, "Metadata", currentPage, onNavigate);
-        updateNavItem(myScansNav, myScansNavIcon, myScansNavText, "My Scans", currentPage, onNavigate);
+        updateNavItem(myScansNav, myScansNavIcon, myScansNavText, "Scans", currentPage, onNavigate);
+        updateNavItem(exportsNav, exportsNavIcon, exportsNavText, "Exports", currentPage, onNavigate);
 
         darkSwitch.getStyleClass().setAll("dark-switch");
         darkSwitchKnob.getStyleClass().setAll("dark-switch-knob");
@@ -682,6 +690,7 @@ public class DashboardController {
                 && pageState != PageState.METADATA
                 && pageState != PageState.METADATA_FORM
                 && pageState != PageState.MY_SCAN_DETAIL
+                && pageState != PageState.LOGS
                 && pageState != PageState.SCAN_PROGRESS
                 && pageState != PageState.SCAN_COMPLETE) {
             content.setTop(buildTopBar());
@@ -1000,166 +1009,376 @@ public class DashboardController {
 
     private VBox buildLogsBody() {
         VBox body = new VBox(14);
-        body.getStyleClass().add("dashboard-body");
+        body.getStyleClass().addAll("dashboard-body", "exports-page");
 
         Label heading = new Label("Exports");
-        heading.getStyleClass().add("dashboard-heading");
-        Label subtitle = new Label("Download your exported scan files");
-        subtitle.getStyleClass().add("dashboard-subtitle");
+        heading.getStyleClass().add("exports-title");
+        Label subtitle = new Label("Download and manage your exported files");
+        subtitle.getStyleClass().add("exports-subtitle");
+
+        VBox titleBlock = new VBox(6, heading, subtitle);
+
+        HBox summaryRow = new HBox(14,
+                buildExportMetricCard("Total Files", String.valueOf(exports().size())),
+                buildExportMetricCard("Ready to Download", String.valueOf(exports().stream().filter(export -> "Ready".equals(export.status())).count())),
+                buildExportMetricCard("Total Size", totalExportSizeText())
+        );
+        summaryRow.getStyleClass().add("exports-summary-row");
+        summaryRow.setFillHeight(true);
+        summaryRow.getChildren().forEach(node -> HBox.setHgrow(node, Priority.ALWAYS));
+
         TextField searchField = new TextField();
-        searchField.setPromptText("Search exports");
-        searchField.getStyleClass().addAll("box-id-field", "compact-search-field");
+        searchField.setPromptText("Box ID or filename...");
+        searchField.getStyleClass().add("exports-filter-input");
+        HBox searchBox = buildExportSearchBox(searchField);
+
+        Runnable[] refreshTable = new Runnable[1];
+        String[] statusFilterValue = {"All"};
+        HBox statusFilter = buildExportStatusMenu(statusFilterValue, () -> {
+            if (refreshTable[0] != null) {
+                refreshTable[0].run();
+            }
+        });
+
+        TextField fromDate = buildExportDateField();
+        TextField toDate = buildExportDateField();
+
+        HBox filterRow = new HBox(14,
+                buildExportFilter("Search", searchBox),
+                buildExportFilter("Status", statusFilter),
+                buildExportFilter("From Date", buildExportDateBox(fromDate)),
+                buildExportFilter("To Date", buildExportDateBox(toDate))
+        );
+        filterRow.getStyleClass().add("exports-filter-panel");
+        filterRow.getChildren().forEach(node -> HBox.setHgrow(node, Priority.ALWAYS));
 
         VBox panel = new VBox(0);
-        panel.getStyleClass().addAll("panel-card", "exports-panel");
+        panel.getStyleClass().add("exports-table-panel");
 
         GridPane table = new GridPane();
-        table.getStyleClass().addAll("recent-table", "exports-table");
+        table.getStyleClass().add("exports-table");
         table.setMaxWidth(Double.MAX_VALUE);
         table.getColumnConstraints().addAll(
-                column(310),
-                column(170),
-                column(170),
-                column(150),
-                column(110),
-                column(145),
-                column(130)
+                column(44),
+                column(245),
+                column(122),
+                column(118),
+                column(148),
+                column(86),
+                column(98),
+                column(136)
         );
 
-        table.add(headerCell("File Name"), 0, 0);
-        table.add(headerCell("Box ID"), 1, 0);
-        table.add(headerCell("Profile"), 2, 0);
-        table.add(headerCell("Date Created"), 3, 0);
-        table.add(headerCell("Size"), 4, 0);
-        table.add(headerCell("Status"), 5, 0);
-        table.add(headerCell("Action"), 6, 0);
+        Set<String> selectedExports = new HashSet<>();
 
-        Runnable refreshTable = () -> {
-            while (table.getChildren().size() > 7) {
-                table.getChildren().remove(table.getChildren().size() - 1);
-            }
+        Label selectedCount = new Label("0 selected");
+        selectedCount.getStyleClass().add("exports-selection-count");
+        Region selectionSpacer = new Region();
+        HBox.setHgrow(selectionSpacer, Priority.ALWAYS);
+        Button downloadSelected = exportSelectionButton("Download All", "exports-selection-download-button");
+        SVGPath downloadAllIcon = new SVGPath();
+        downloadAllIcon.setContent("M12 3V15 M7 10L12 15L17 10 M5 21H19");
+        downloadAllIcon.getStyleClass().add("exports-selection-download-icon");
+        downloadSelected.setGraphic(downloadAllIcon);
+        downloadSelected.setContentDisplay(ContentDisplay.LEFT);
+        Button deleteSelected = exportSelectionButton("Delete Selected", "exports-selection-delete-button");
+        Button clearSelected = exportSelectionButton("Clear", "exports-selection-clear-button");
+        HBox selectionBar = new HBox(14, selectedCount, selectionSpacer, downloadSelected, deleteSelected, clearSelected);
+        selectionBar.getStyleClass().add("exports-selection-bar");
+        selectionBar.setAlignment(Pos.CENTER_LEFT);
+        selectionBar.setVisible(false);
+        selectionBar.setManaged(false);
+
+        Runnable updateSelectionBar = () -> {
+            int count = selectedExports.size();
+            selectedCount.setText(count + " selected");
+            selectionBar.setVisible(count > 0);
+            selectionBar.setManaged(count > 0);
+        };
+        clearSelected.setOnAction(event -> {
+            selectedExports.clear();
+            refreshTable[0].run();
+        });
+
+        refreshTable[0] = () -> {
+            table.getChildren().clear();
+
             String search = normalizeSearch(searchField.getText());
-            int row = 1;
+            String status = statusFilterValue[0];
+            List<ExportRow> visibleExports = new ArrayList<>();
             for (ExportRow export : exports()) {
-                if (!matchesSearch(search,
+                boolean statusMatches = "All".equals(status) || status.equals(export.status());
+                if (statusMatches && matchesSearch(search,
                         export.fileName(),
                         export.boxId(),
                         export.profile(),
                         export.dateCreated(),
                         export.size(),
                         export.status())) {
-                    continue;
+                    visibleExports.add(export);
                 }
-                table.add(bodyCell(export.fileName()), 0, row);
-                table.add(bodyCell(export.boxId()), 1, row);
-                table.add(bodyCell(export.profile()), 2, row);
-                table.add(bodyCell(export.dateCreated()), 3, row);
-                table.add(bodyCell(export.size()), 4, row);
-                table.add(exportStatusCell(export.status()), 5, row);
-                table.add(exportActionCell(export), 6, row);
+            }
+            Set<String> visibleExportNames = new HashSet<>();
+            for (ExportRow export : visibleExports) {
+                visibleExportNames.add(export.fileName());
+            }
+            selectedExports.removeIf(fileName -> !visibleExportNames.contains(fileName));
+
+            List<ExportRow> visibleReadyExports = new ArrayList<>();
+            for (ExportRow export : visibleExports) {
+                if ("Ready".equals(export.status())) {
+                    visibleReadyExports.add(export);
+                }
+            }
+            boolean allReadySelected = !visibleReadyExports.isEmpty()
+                    && visibleReadyExports.stream().allMatch(export -> selectedExports.contains(export.fileName()));
+
+            table.add(exportCheckboxCell(false, allReadySelected, selected -> {
+                for (ExportRow export : visibleReadyExports) {
+                    if (selected) {
+                        selectedExports.add(export.fileName());
+                    } else {
+                        selectedExports.remove(export.fileName());
+                    }
+                }
+                refreshTable[0].run();
+            }), 0, 0);
+            table.add(exportHeaderCell("FILE NAME"), 1, 0);
+            table.add(exportHeaderCell("BOX ID"), 2, 0);
+            table.add(exportHeaderCell("PROFILE"), 3, 0);
+            table.add(exportSortableHeaderCell("DATE"), 4, 0);
+            table.add(exportHeaderCell("SIZE"), 5, 0);
+            table.add(exportHeaderCell("STATUS"), 6, 0);
+            table.add(exportHeaderCell("ACTION"), 7, 0);
+
+            int row = 1;
+            for (ExportRow export : visibleExports) {
+                boolean disabled = !"Ready".equals(export.status());
+                table.add(exportCheckboxCell(disabled, selectedExports.contains(export.fileName()), selected -> {
+                    if (selected) {
+                        selectedExports.add(export.fileName());
+                    } else {
+                        selectedExports.remove(export.fileName());
+                    }
+                    refreshTable[0].run();
+                }), 0, row);
+                table.add(exportBodyCell(export.fileName(), true), 1, row);
+                table.add(exportBodyCell(export.boxId(), false), 2, row);
+                table.add(exportBodyCell(export.profile(), false), 3, row);
+                table.add(exportBodyCell(export.dateCreated(), false), 4, row);
+                table.add(exportBodyCell(export.size(), false), 5, row);
+                table.add(exportStatusCell(export.status()), 6, row);
+                table.add(exportActionCell(export), 7, row);
                 row++;
             }
+            updateSelectionBar.run();
         };
-        searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshTable.run());
-        refreshTable.run();
+        searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshTable[0].run());
+        fromDate.textProperty().addListener((obs, oldValue, newValue) -> refreshTable[0].run());
+        toDate.textProperty().addListener((obs, oldValue, newValue) -> refreshTable[0].run());
+        refreshTable[0].run();
 
-        panel.getChildren().add(table);
-        body.getChildren().addAll(heading, subtitle, searchField, panel);
+        HBox pageSize = buildExportPageSizeMenu();
+
+        Label showing = new Label("Showing 1 to 4 of 4");
+        showing.getStyleClass().add("exports-footer-text");
+        HBox footerLeft = new HBox(12, showing, pageSize);
+        footerLeft.setAlignment(Pos.CENTER_LEFT);
+
+        HBox footerRight = new HBox(10,
+                exportPagerButton("First", true),
+                exportPagerButton("Previous", true),
+                exportPageLabel(),
+                exportPagerButton("Next", true),
+                exportPagerButton("Last", true)
+        );
+        footerRight.setAlignment(Pos.CENTER_RIGHT);
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+        HBox footer = new HBox(16, footerLeft, footerSpacer, footerRight);
+        footer.getStyleClass().add("exports-table-footer");
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        panel.getChildren().addAll(table, footer);
+        body.getChildren().addAll(titleBlock, summaryRow, filterRow, selectionBar, panel);
         return body;
+    }
+
+    private VBox buildExportMetricCard(String labelText, String valueText) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("exports-metric-label");
+        Label value = new Label(valueText);
+        value.getStyleClass().add("exports-metric-value");
+        VBox card = new VBox(8, label, value);
+        card.getStyleClass().add("exports-metric-card");
+        card.setMaxWidth(Double.MAX_VALUE);
+        return card;
+    }
+
+    private VBox buildExportFilter(String labelText, Node control) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("exports-filter-label");
+        VBox wrap = new VBox(8, label, control);
+        wrap.getStyleClass().add("exports-filter-wrap");
+        wrap.setMaxWidth(Double.MAX_VALUE);
+        return wrap;
+    }
+
+    private HBox buildExportSearchBox(TextField searchField) {
+        SVGPath icon = new SVGPath();
+        icon.setContent("M21 21L15.8 15.8 M17 10.5A6.5 6.5 0 1 1 4 10.5A6.5 6.5 0 0 1 17 10.5");
+        icon.getStyleClass().add("exports-search-icon");
+        HBox box = new HBox(12, icon, searchField);
+        box.getStyleClass().add("exports-search-box");
+        box.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+        box.setMaxWidth(Double.MAX_VALUE);
+        return box;
+    }
+
+    private TextField buildExportDateField() {
+        TextField field = new TextField();
+        field.setPromptText("dd/mm/yyyy");
+        field.getStyleClass().add("exports-date-field");
+        field.setMaxWidth(Double.MAX_VALUE);
+        return field;
+    }
+
+    private HBox buildExportDateBox(TextField field) {
+        SVGPath icon = new SVGPath();
+        icon.setContent("M7 3V6 M17 3V6 M4 8H20 M5 5H19V20H5Z M8 11H10 M12 11H14 M16 11H18 M8 15H10 M12 15H14");
+        icon.getStyleClass().add("exports-calendar-icon");
+        HBox box = new HBox(10, field, icon);
+        box.getStyleClass().add("exports-date-box");
+        box.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(field, Priority.ALWAYS);
+        box.setMaxWidth(Double.MAX_VALUE);
+        return box;
+    }
+
+    private String totalExportSizeText() {
+        double total = 0;
+        for (ExportRow export : exports()) {
+            try {
+                total += Double.parseDouble(export.size().replace(" MB", "").trim());
+            } catch (NumberFormatException ignored) {
+                // Keep summary stable if future size text includes another unit.
+            }
+        }
+        return String.format(java.util.Locale.US, "%.1f MB", total);
     }
 
     private VBox buildMyScansBody(Consumer<MyScanRow> onOpenMyScanDetail) {
         VBox body = new VBox(14);
-        body.getStyleClass().addAll("dashboard-body", "my-scans-page");
+        body.getStyleClass().addAll("dashboard-body", "my-scans-page", "exports-page");
 
-        Label heading = new Label("My Scans");
-        heading.getStyleClass().add("dashboard-heading");
-        Label subtitle = new Label("Search and manage your scanned files");
-        subtitle.getStyleClass().add("dashboard-subtitle");
+        Label heading = new Label("Scans");
+        heading.getStyleClass().add("exports-title");
+        Label subtitle = new Label("View and manage your scan history");
+        subtitle.getStyleClass().add("exports-subtitle");
+        VBox titleBlock = new VBox(6, heading, subtitle);
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Search box ID or profile...");
-        searchField.getStyleClass().add("my-scans-search-field");
-        HBox.setHgrow(searchField, Priority.ALWAYS);
+        searchField.setPromptText("Box ID...");
+        searchField.getStyleClass().add("exports-filter-input");
+        HBox searchBox = buildExportSearchBox(searchField);
 
-        SVGPath searchIcon = new SVGPath();
-        searchIcon.setContent("M21 21L15.8 15.8 M17 10.5A6.5 6.5 0 1 1 4 10.5A6.5 6.5 0 0 1 17 10.5");
-        searchIcon.getStyleClass().add("my-scans-search-icon");
-
-        HBox searchBox = new HBox(10, searchIcon, searchField);
-        searchBox.getStyleClass().add("my-scans-search-box");
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(searchBox, Priority.ALWAYS);
-
-        ComboBox<String> statusFilter = new ComboBox<>();
-        statusFilter.getItems().addAll("All Statuses", "In Progress", "Waiting for QA", "Metadata Required", "QA Completed", "Exported");
-        statusFilter.setValue("All Statuses");
-        statusFilter.setVisibleRowCount(6);
-        statusFilter.setCellFactory(listView -> {
-            if (!listView.getStyleClass().contains("my-scans-status-popup-list")) {
-                listView.getStyleClass().add("my-scans-status-popup-list");
+        Runnable[] refreshTable = new Runnable[1];
+        String[] statusFilterValue = {"All"};
+        HBox statusFilter = buildMyScansStatusMenu(statusFilterValue, () -> {
+            if (refreshTable[0] != null) {
+                refreshTable[0].run();
             }
-            return new ListCell<>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? null : item);
-                }
-            };
         });
-        statusFilter.getStyleClass().add("my-scans-status-filter");
 
-        HBox filterRow = new HBox(16, searchBox, statusFilter);
-        filterRow.getStyleClass().add("my-scans-filter-row");
-        filterRow.setAlignment(Pos.CENTER_LEFT);
+        TextField fromDate = buildExportDateField();
+        TextField toDate = buildExportDateField();
 
-        VBox tablePanel = buildMyScansTablePanel(searchField, statusFilter, onOpenMyScanDetail);
-        VBox.setVgrow(tablePanel, Priority.ALWAYS);
+        HBox filterRow = new HBox(14,
+                buildExportFilter("Search", searchBox),
+                buildExportFilter("Status", statusFilter),
+                buildExportFilter("From Date", buildExportDateBox(fromDate)),
+                buildExportFilter("To Date", buildExportDateBox(toDate))
+        );
+        filterRow.getStyleClass().add("exports-filter-panel");
+        filterRow.getChildren().forEach(node -> HBox.setHgrow(node, Priority.ALWAYS));
 
-        body.getChildren().addAll(heading, subtitle, filterRow, tablePanel);
+        Set<String> selectedScans = new HashSet<>();
+        Label selectedCount = new Label("0 selected");
+        selectedCount.getStyleClass().add("exports-selection-count");
+        Region selectionSpacer = new Region();
+        HBox.setHgrow(selectionSpacer, Priority.ALWAYS);
+        Button exportSelected = exportSelectionButton("Export Selected", "my-scans-selection-export-button");
+        Button deleteSelected = exportSelectionButton("Delete Selected", "exports-selection-delete-button");
+        Button clearSelected = exportSelectionButton("Clear", "exports-selection-clear-button");
+        HBox selectionBar = new HBox(14, selectedCount, selectionSpacer, exportSelected, deleteSelected, clearSelected);
+        selectionBar.getStyleClass().add("exports-selection-bar");
+        selectionBar.setAlignment(Pos.CENTER_LEFT);
+        selectionBar.setVisible(false);
+        selectionBar.setManaged(false);
+
+        Runnable updateSelectionBar = () -> {
+            int count = selectedScans.size();
+            selectedCount.setText(count + " selected");
+            selectionBar.setVisible(count > 0);
+            selectionBar.setManaged(count > 0);
+        };
+        clearSelected.setOnAction(event -> {
+            selectedScans.clear();
+            if (refreshTable[0] != null) {
+                refreshTable[0].run();
+            }
+        });
+
+        VBox tablePanel = buildMyScansTablePanel(
+                searchField,
+                statusFilterValue,
+                fromDate,
+                toDate,
+                selectedScans,
+                updateSelectionBar,
+                refreshTable,
+                onOpenMyScanDetail
+        );
+        body.getChildren().addAll(titleBlock, filterRow, selectionBar, tablePanel);
         return body;
     }
 
     private VBox buildMyScansTablePanel(TextField searchField,
-                                        ComboBox<String> statusFilter,
+                                        String[] statusFilterValue,
+                                        TextField fromDate,
+                                        TextField toDate,
+                                        Set<String> selectedScans,
+                                        Runnable updateSelectionBar,
+                                        Runnable[] refreshTable,
                                         Consumer<MyScanRow> onOpenMyScanDetail) {
         VBox panel = new VBox(0);
-        panel.getStyleClass().add("my-scans-table-panel");
+        panel.getStyleClass().add("exports-table-panel");
         panel.setMaxWidth(Double.MAX_VALUE);
 
         GridPane table = new GridPane();
-        table.getStyleClass().add("my-scans-table");
+        table.getStyleClass().add("exports-table");
         table.setMaxWidth(Double.MAX_VALUE);
         table.getColumnConstraints().addAll(
-                column(85),
-                column(125),
-                column(135),
-                column(145),
+                column(44),
+                column(160),
+                column(150),
+                column(126),
+                column(86),
+                column(76),
+                column(100),
                 column(120),
-                column(95),
-                column(145),
-                column(185)
+                column(160)
         );
 
-        table.add(myScansHeaderCell("File"), 0, 0);
-        table.add(myScansHeaderCell("Document"), 1, 0);
-        table.add(myScansHeaderCell("Profile"), 2, 0);
-        table.add(myScansHeaderCell("Box ID"), 3, 0);
-        table.add(myScansHeaderCell("Date &\nTime"), 4, 0);
-        table.add(myScansHeaderCell("Size"), 5, 0);
-        table.add(myScansHeaderCell("Status"), 6, 0);
-        table.add(myScansHeaderCell("Actions"), 7, 0);
+        refreshTable[0] = () -> {
+            table.getChildren().clear();
 
-        Runnable refreshTable = () -> {
-            while (table.getChildren().size() > 8) {
-                table.getChildren().remove(table.getChildren().size() - 1);
-            }
             String search = normalizeSearch(searchField.getText());
-            String selectedStatus = statusFilter.getValue();
-            int row = 1;
+            String selectedStatus = statusFilterValue[0];
+            List<MyScanRow> visibleScans = new ArrayList<>();
             for (MyScanRow scan : myScanRows()) {
-                boolean statusMatches = selectedStatus == null
-                        || "All Statuses".equals(selectedStatus)
+                boolean statusMatches = "All".equals(selectedStatus)
                         || selectedStatus.equals(scan.status());
                 if (!statusMatches) {
                     continue;
@@ -1171,26 +1390,92 @@ public class DashboardController {
                         scan.boxId(),
                         scan.date(),
                         scan.time(),
+                        String.valueOf(scan.pages()),
                         scan.size(),
                         scan.status())) {
                     continue;
                 }
-                table.add(myScansBodyCell(scan.file()), 0, row);
-                table.add(myScansBodyCell(scan.document()), 1, row);
-                table.add(myScansBodyCell(scan.profile()), 2, row);
-                table.add(myScansBodyCell(scan.boxId()), 3, row);
-                table.add(myScansDateCell(scan.date(), scan.time()), 4, row);
-                table.add(myScansBodyCell(scan.size()), 5, row);
-                table.add(myScansStatusCell(scan.status()), 6, row);
-                table.add(myScansActionsCell(scan, onOpenMyScanDetail), 7, row);
+                visibleScans.add(scan);
+            }
+
+            Set<String> visibleScanKeys = new HashSet<>();
+            for (MyScanRow scan : visibleScans) {
+                visibleScanKeys.add(myScanSelectionKey(scan));
+            }
+            selectedScans.removeIf(key -> !visibleScanKeys.contains(key));
+
+            boolean allVisibleSelected = !visibleScans.isEmpty()
+                    && visibleScans.stream().allMatch(scan -> selectedScans.contains(myScanSelectionKey(scan)));
+
+            table.add(exportCheckboxCell(false, allVisibleSelected, selected -> {
+                for (MyScanRow scan : visibleScans) {
+                    String key = myScanSelectionKey(scan);
+                    if (selected) {
+                        selectedScans.add(key);
+                    } else {
+                        selectedScans.remove(key);
+                    }
+                }
+                refreshTable[0].run();
+            }), 0, 0);
+            table.add(exportHeaderCell("BOX ID"), 1, 0);
+            table.add(exportHeaderCell("PROFILE"), 2, 0);
+            table.add(exportSortableHeaderCell("DATE"), 3, 0);
+            table.add(exportHeaderCell("TIME"), 4, 0);
+            table.add(exportHeaderCell("PAGES"), 5, 0);
+            table.add(exportHeaderCell("SIZE"), 6, 0);
+            table.add(exportHeaderCell("STATUS"), 7, 0);
+            table.add(exportHeaderCell("ACTIONS"), 8, 0);
+
+            int row = 1;
+            for (MyScanRow scan : visibleScans) {
+                String scanKey = myScanSelectionKey(scan);
+                table.add(exportCheckboxCell(false, selectedScans.contains(scanKey), selected -> {
+                    if (selected) {
+                        selectedScans.add(scanKey);
+                    } else {
+                        selectedScans.remove(scanKey);
+                    }
+                    refreshTable[0].run();
+                }), 0, row);
+                table.add(exportBodyCell(scan.boxId(), true), 1, row);
+                table.add(exportBodyCell(scan.profile(), false), 2, row);
+                table.add(exportBodyCell(scan.date(), false), 3, row);
+                table.add(exportBodyCell(scan.time(), false), 4, row);
+                table.add(exportBodyCell(String.valueOf(scan.pages()), false), 5, row);
+                table.add(exportBodyCell(scan.size(), false), 6, row);
+                table.add(myScansStatusCell(scan.status()), 7, row);
+                table.add(myScansActionsCell(scan, onOpenMyScanDetail), 8, row);
                 row++;
             }
+            updateSelectionBar.run();
         };
-        searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshTable.run());
-        statusFilter.valueProperty().addListener((obs, oldValue, newValue) -> refreshTable.run());
-        refreshTable.run();
+        searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshTable[0].run());
+        fromDate.textProperty().addListener((obs, oldValue, newValue) -> refreshTable[0].run());
+        toDate.textProperty().addListener((obs, oldValue, newValue) -> refreshTable[0].run());
+        refreshTable[0].run();
 
-        panel.getChildren().add(table);
+        HBox pageSize = buildExportPageSizeMenu();
+        Label showing = new Label("Showing 1 to 5 of 5");
+        showing.getStyleClass().add("exports-footer-text");
+        HBox footerLeft = new HBox(12, showing, pageSize);
+        footerLeft.setAlignment(Pos.CENTER_LEFT);
+
+        HBox footerRight = new HBox(10,
+                exportPagerButton("First", true),
+                exportPagerButton("Previous", true),
+                exportPageLabel(),
+                exportPagerButton("Next", true),
+                exportPagerButton("Last", true)
+        );
+        footerRight.setAlignment(Pos.CENTER_RIGHT);
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+        HBox footer = new HBox(16, footerLeft, footerSpacer, footerRight);
+        footer.getStyleClass().add("exports-table-footer");
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        panel.getChildren().addAll(table, footer);
         return panel;
     }
 
@@ -1416,7 +1701,13 @@ public class DashboardController {
     }
 
     private int myScanPageCount(MyScanRow row) {
-        if (row == null || row.size() == null) {
+        if (row == null) {
+            return 1;
+        }
+        if (row.pages() >= 0) {
+            return row.pages();
+        }
+        if (row.size() == null) {
             return 1;
         }
         try {
@@ -3410,7 +3701,7 @@ public class DashboardController {
     private String actionIconPath(String title) {
         return switch (title) {
             case "Start Scan" -> "M7 3H5A2 2 0 0 0 3 5V7 M17 3H19A2 2 0 0 1 21 5V7 M21 17V19A2 2 0 0 1 19 21H17 M7 21H5A2 2 0 0 1 3 19V17 M8 12H16";
-            case "My Scans" -> "M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2Z M14 2V8H20 M8 13H16 M8 17H14";
+            case "Scans", "My Scans" -> "M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2Z M14 2V8H20 M8 13H16 M8 17H14";
             case "Metadata" -> "M4 5H20V19H4Z M8 9H16 M8 13H16 M8 17H13";
             case "Exports" -> "M21 8V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V8 M1 3H23V8H1Z M10 12H14";
             default -> "M12 5V19 M5 12H19";
@@ -3422,7 +3713,7 @@ public class DashboardController {
             case "Start Scan" -> PageState.PROFILES;
             case "Metadata" -> PageState.METADATA;
             case "Exports" -> PageState.LOGS;
-            case "My Scans" -> PageState.MY_SCANS;
+            case "Scans", "My Scans" -> PageState.MY_SCANS;
             default -> PageState.DASHBOARD;
         };
     }
@@ -3579,11 +3870,11 @@ public class DashboardController {
     }
 
     private HBox myScansStatusCell(String status) {
-        Label pill = new Label(status);
-        pill.getStyleClass().addAll("my-scans-status-pill", myScansStatusClass(status));
+        Label value = new Label(status);
+        value.getStyleClass().addAll("my-scans-status-text", myScansStatusClass(status));
 
-        HBox cell = new HBox(pill);
-        cell.getStyleClass().add("my-scans-table-cell");
+        HBox cell = new HBox(value);
+        cell.getStyleClass().add("exports-table-cell-wrap");
         cell.setAlignment(Pos.CENTER_LEFT);
         cell.setMaxWidth(Double.MAX_VALUE);
         return cell;
@@ -3591,20 +3882,41 @@ public class DashboardController {
 
     private HBox myScansActionsCell(MyScanRow scan, Consumer<MyScanRow> onOpenMyScanDetail) {
         HBox cell = new HBox(8);
-        cell.getStyleClass().add("my-scans-actions-cell");
+        cell.getStyleClass().add("exports-table-cell-wrap");
         cell.setAlignment(Pos.CENTER_LEFT);
         cell.setMaxWidth(Double.MAX_VALUE);
 
         for (String action : scan.actions()) {
-            boolean primary = "Export".equals(action) || "Fix Issues".equals(action) || "Continue".equals(action);
-            Button actionButton = myScansActionButton(action, primary);
-            if ("View Scan".equals(action)) {
-                actionButton.setOnAction(event -> onOpenMyScanDetail.accept(scan));
+            HBox actionButton = myScansActionLink(action);
+            if ("View".equals(action) || "View Scan".equals(action)) {
+                actionButton.setOnMouseClicked(event -> onOpenMyScanDetail.accept(scan));
             }
             cell.getChildren().add(actionButton);
         }
 
         return cell;
+    }
+
+    private HBox myScansActionLink(String text) {
+        SVGPath icon = new SVGPath();
+        if ("Export".equals(text)) {
+            icon.setContent("M12 3V15 M7 10L12 15L17 10 M5 21H19");
+        } else {
+            icon.setContent("M2 12S5.5 5 12 5S22 12 22 12S18.5 19 12 19S2 12 2 12 M12 15A3 3 0 1 0 12 9A3 3 0 0 0 12 15");
+        }
+        icon.getStyleClass().add("my-scans-action-icon");
+
+        Label label = new Label(text);
+        label.getStyleClass().add("my-scans-action-text");
+
+        HBox link = new HBox(5, icon, label);
+        link.getStyleClass().add("my-scans-action-link");
+        link.setAlignment(Pos.CENTER_LEFT);
+        return link;
+    }
+
+    private String myScanSelectionKey(MyScanRow scan) {
+        return scan.boxId() + "|" + scan.file();
     }
 
     private Button myScansActionButton(String text, boolean primary) {
@@ -3616,12 +3928,10 @@ public class DashboardController {
 
     private String myScansStatusClass(String status) {
         return switch (status) {
-            case "QA Completed" -> "my-scans-status-qa";
-            case "Metadata Required" -> "my-scans-status-fix";
-            case "In Progress" -> "my-scans-status-progress";
-            case "Waiting for QA" -> "my-scans-status-ready";
-            case "Exported" -> "my-scans-status-exported";
-            default -> "my-scans-status-progress";
+            case "Completed", "QA Completed", "Exported" -> "my-scans-status-completed";
+            case "Processing", "In Progress", "Waiting for QA" -> "my-scans-status-processing";
+            case "Failed", "Metadata Required" -> "my-scans-status-failed";
+            default -> "my-scans-status-processing";
         };
     }
 
@@ -3644,25 +3954,25 @@ public class DashboardController {
 
     private HBox exportStatusCell(String status) {
         Label pill = new Label(status);
-        pill.getStyleClass().add("status-pill");
+        pill.getStyleClass().add("exports-status-text");
         if ("Ready".equals(status)) {
-            pill.getStyleClass().add("status-ready");
+            pill.getStyleClass().add("exports-status-ready");
         } else {
-            pill.getStyleClass().add("status-processing");
+            pill.getStyleClass().add("exports-status-processing");
         }
 
         HBox wrap = new HBox(pill);
         wrap.setAlignment(Pos.CENTER_LEFT);
-        wrap.getStyleClass().add("table-row-wrap");
+        wrap.getStyleClass().add("exports-table-cell-wrap");
         return wrap;
     }
 
     private HBox exportActionCell(ExportRow export) {
-        HBox wrap = new HBox(6);
+        HBox wrap = new HBox(8);
         wrap.setAlignment(Pos.CENTER_LEFT);
-        wrap.getStyleClass().add("table-row-wrap");
+        wrap.getStyleClass().add("exports-table-cell-wrap");
         if (!"Ready".equals(export.status())) {
-            Label pending = new Label("Pending");
+            Label pending = new Label("Processing");
             pending.getStyleClass().add("export-pending-text");
             wrap.getChildren().add(pending);
             return wrap;
@@ -3673,9 +3983,313 @@ public class DashboardController {
         downloadIcon.getStyleClass().add("export-download-icon");
         Label download = new Label("Download");
         download.getStyleClass().add("export-download-text");
-        wrap.getStyleClass().add("export-download-action");
-        wrap.getChildren().addAll(downloadIcon, download);
+        HBox downloadButton = new HBox(5, downloadIcon, download);
+        downloadButton.getStyleClass().add("export-download-button");
+        downloadButton.setAlignment(Pos.CENTER_LEFT);
+
+        SVGPath shareIcon = new SVGPath();
+        shareIcon.setContent("M18 8A3 3 0 1 0 15 5A3 3 0 0 0 18 8Z M6 15A3 3 0 1 0 3 12A3 3 0 0 0 6 15Z M18 22A3 3 0 1 0 15 19A3 3 0 0 0 18 22Z M8.6 13.4L15.4 17.6 M15.4 6.4L8.6 10.6");
+        shareIcon.getStyleClass().add("export-action-icon");
+        StackPane shareButton = exportIconButton(shareIcon, "export-share-button");
+
+        SVGPath deleteIcon = new SVGPath();
+        deleteIcon.setContent("M4 7H20 M10 11V17 M14 11V17 M6 7L7 21H17L18 7 M9 7V4H15V7");
+        deleteIcon.getStyleClass().addAll("export-action-icon", "export-delete-icon");
+        StackPane deleteButton = exportIconButton(deleteIcon, "export-delete-button");
+
+        wrap.getChildren().addAll(downloadButton, shareButton, deleteButton);
         return wrap;
+    }
+
+    private StackPane exportIconButton(SVGPath icon, String styleClass) {
+        StackPane button = new StackPane(icon);
+        button.getStyleClass().addAll("export-icon-button", styleClass);
+        return button;
+    }
+
+    private Label exportHeaderCell(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("exports-table-header");
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
+
+    private Label exportBodyCell(String text, boolean primary) {
+        Label label = new Label(text);
+        label.getStyleClass().add(primary ? "exports-table-cell-primary" : "exports-table-cell");
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
+
+    private HBox exportCheckboxCell(boolean disabled, boolean selected, Consumer<Boolean> onSelected) {
+        CheckBox checkBox = new CheckBox();
+        checkBox.getStyleClass().add("exports-checkbox");
+        checkBox.setDisable(disabled);
+        checkBox.setSelected(selected);
+        checkBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (oldValue != newValue) {
+                onSelected.accept(newValue);
+            }
+        });
+        HBox wrap = new HBox(checkBox);
+        wrap.getStyleClass().add("exports-table-cell-wrap");
+        wrap.setAlignment(Pos.CENTER_LEFT);
+        return wrap;
+    }
+
+    private Button exportSelectionButton(String text, String styleClass) {
+        Button button = new Button(text);
+        button.getStyleClass().add(styleClass);
+        return button;
+    }
+
+    private HBox buildExportPageSizeMenu() {
+        double menuWidth = 170;
+        Label value = new Label("25 per page");
+        value.getStyleClass().add("exports-page-size-value");
+        StackPane arrow = exportDropdownArrowBox();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox button = new HBox(8, value, spacer, arrow);
+        button.getStyleClass().add("exports-page-size");
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setMinWidth(menuWidth);
+        button.setPrefWidth(menuWidth);
+        button.setMaxWidth(menuWidth);
+
+        VBox menu = new VBox(0);
+        menu.setMinWidth(menuWidth);
+        menu.setPrefWidth(menuWidth);
+        menu.setMaxWidth(menuWidth);
+        menu.setStyle("-fx-background-color: #ffffff; -fx-border-color: #d9dee6; -fx-border-width: 1; -fx-padding: 0;");
+        Popup popup = exportDropdownPopup(menu);
+
+        List<Label> items = new ArrayList<>();
+        for (String option : List.of("10 per page", "25 per page", "50 per page", "100 per page")) {
+            Label item = new Label(option);
+            item.setMinWidth(menuWidth);
+            item.setPrefWidth(menuWidth);
+            item.setMaxWidth(menuWidth);
+            item.setTextOverrun(OverrunStyle.CLIP);
+            item.setAlignment(Pos.CENTER_LEFT);
+            item.setOnMouseClicked(event -> {
+                value.setText(option);
+                updateExportPageSizeSelection(items, option);
+                popup.hide();
+            });
+            items.add(item);
+            menu.getChildren().add(item);
+        }
+        updateExportPageSizeSelection(items, value.getText());
+
+        button.setOnMouseClicked(event -> {
+            showExportDropdown(button, popup);
+        });
+        return button;
+    }
+
+    private HBox buildExportStatusMenu(String[] selectedStatus, Runnable onChange) {
+        Label value = new Label(selectedStatus[0]);
+        value.getStyleClass().add("exports-status-value");
+        StackPane arrow = exportDropdownArrowBox();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox button = new HBox(8, value, spacer, arrow);
+        button.getStyleClass().add("exports-status-filter");
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setMaxWidth(Double.MAX_VALUE);
+
+        VBox menu = new VBox(0);
+        menu.setStyle("-fx-background-color: #ffffff; -fx-border-color: #d9dee6; -fx-border-width: 1; -fx-padding: 0;");
+        Popup popup = exportDropdownPopup(menu);
+
+        List<Label> items = new ArrayList<>();
+        for (String option : List.of("All", "Ready", "Processing")) {
+            Label item = new Label(option);
+            item.setMaxWidth(Double.MAX_VALUE);
+            item.setTextOverrun(OverrunStyle.CLIP);
+            item.setAlignment(Pos.CENTER_LEFT);
+            item.setOnMouseClicked(event -> {
+                selectedStatus[0] = option;
+                value.setText(option);
+                updateExportStatusSelection(items, option);
+                popup.hide();
+                onChange.run();
+            });
+            items.add(item);
+            menu.getChildren().add(item);
+        }
+        updateExportStatusSelection(items, selectedStatus[0]);
+
+        button.setOnMouseClicked(event -> {
+            double width = button.getWidth();
+            menu.setMinWidth(width);
+            menu.setPrefWidth(width);
+            menu.setMaxWidth(width);
+            for (Label item : items) {
+                item.setMinWidth(width);
+                item.setPrefWidth(width);
+                item.setMaxWidth(width);
+            }
+            showExportDropdown(button, popup);
+        });
+        return button;
+    }
+
+    private HBox buildMyScansStatusMenu(String[] selectedStatus, Runnable onChange) {
+        Label value = new Label(selectedStatus[0]);
+        value.getStyleClass().add("exports-status-value");
+        StackPane arrow = exportDropdownArrowBox();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox button = new HBox(8, value, spacer, arrow);
+        button.getStyleClass().add("exports-status-filter");
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setMaxWidth(Double.MAX_VALUE);
+
+        VBox menu = new VBox(0);
+        menu.setStyle("-fx-background-color: #ffffff; -fx-border-color: #d9dee6; -fx-border-width: 1; -fx-padding: 0;");
+        Popup popup = exportDropdownPopup(menu);
+
+        List<Label> items = new ArrayList<>();
+        for (String option : List.of("All", "Completed", "Processing", "Failed")) {
+            Label item = new Label(option);
+            item.setMaxWidth(Double.MAX_VALUE);
+            item.setTextOverrun(OverrunStyle.CLIP);
+            item.setAlignment(Pos.CENTER_LEFT);
+            item.setOnMouseClicked(event -> {
+                selectedStatus[0] = option;
+                value.setText(option);
+                updateExportStatusSelection(items, option);
+                popup.hide();
+                onChange.run();
+            });
+            items.add(item);
+            menu.getChildren().add(item);
+        }
+        updateExportStatusSelection(items, selectedStatus[0]);
+
+        button.setOnMouseClicked(event -> {
+            double width = button.getWidth();
+            menu.setMinWidth(width);
+            menu.setPrefWidth(width);
+            menu.setMaxWidth(width);
+            for (Label item : items) {
+                item.setMinWidth(width);
+                item.setPrefWidth(width);
+                item.setMaxWidth(width);
+            }
+            showExportDropdown(button, popup);
+        });
+        return button;
+    }
+
+    private void updateExportStatusSelection(List<Label> items, String selectedOption) {
+        for (Label item : items) {
+            styleExportDropdownItem(item, item.getText().equals(selectedOption));
+        }
+    }
+
+    private void updateExportPageSizeSelection(List<Label> items, String selectedOption) {
+        for (Label item : items) {
+            styleExportDropdownItem(item, item.getText().equals(selectedOption));
+        }
+    }
+
+    private SVGPath exportChevronIcon() {
+        SVGPath arrow = new SVGPath();
+        arrow.setContent("M6 9L12 15L18 9");
+        arrow.getStyleClass().add("exports-dropdown-arrow");
+        arrow.setMouseTransparent(true);
+        return arrow;
+    }
+
+    private StackPane exportDropdownArrowBox() {
+        StackPane box = new StackPane(exportChevronIcon());
+        box.getStyleClass().add("exports-dropdown-arrow-box");
+        box.setMouseTransparent(true);
+        return box;
+    }
+
+    private SVGPath exportSortArrowIcon() {
+        SVGPath arrow = new SVGPath();
+        arrow.setContent("M6 8L12 14L18 8");
+        arrow.getStyleClass().add("exports-sort-arrow");
+        arrow.setMouseTransparent(true);
+        return arrow;
+    }
+
+    private Popup exportDropdownPopup(VBox menu) {
+        Popup popup = new Popup();
+        popup.setAutoHide(true);
+        popup.setAutoFix(false);
+        popup.getContent().add(menu);
+        return popup;
+    }
+
+    private void showExportDropdown(Node owner, Popup popup) {
+        if (popup.isShowing()) {
+            popup.hide();
+            return;
+        }
+        Point2D point = owner.localToScreen(0, owner.getBoundsInLocal().getHeight());
+        popup.show(owner, point.getX(), point.getY());
+    }
+
+    private void styleExportDropdownItem(Label item, boolean selected) {
+        String background = selected ? "#8a8986" : "#ffffff";
+        String text = selected ? "#ffffff" : "#000000";
+        item.setStyle(
+                "-fx-background-color: " + background + ";"
+                        + "-fx-text-fill: " + text + ";"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-padding: 8 16;"
+                        + "-fx-min-height: 34;"
+                        + "-fx-pref-height: 34;"
+                        + "-fx-max-height: 34;"
+                        + "-fx-cursor: hand;"
+        );
+        item.setOnMouseEntered(event -> {
+            if (!selected) {
+                item.setStyle(
+                        "-fx-background-color: #eeeeee;"
+                                + "-fx-text-fill: #000000;"
+                                + "-fx-font-size: 14px;"
+                                + "-fx-padding: 8 16;"
+                                + "-fx-min-height: 34;"
+                                + "-fx-pref-height: 34;"
+                                + "-fx-max-height: 34;"
+                                + "-fx-cursor: hand;"
+                );
+            }
+        });
+        item.setOnMouseExited(event -> styleExportDropdownItem(item, selected));
+    }
+
+    private Button exportPagerButton(String text, boolean disabled) {
+        Button button = new Button(text);
+        button.getStyleClass().add("exports-pager-button");
+        button.setDisable(disabled);
+        return button;
+    }
+
+    private Label exportPageLabel() {
+        Label label = new Label("Page 1 of 1");
+        label.getStyleClass().add("exports-footer-text");
+        return label;
+    }
+
+    private HBox exportSortableHeaderCell(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("exports-table-header-text");
+        HBox cell = new HBox(6, label, exportSortArrowIcon());
+        cell.getStyleClass().add("exports-table-header");
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        return cell;
     }
 
     private PageState mapPage(String label) {

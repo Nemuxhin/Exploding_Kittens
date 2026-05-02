@@ -56,7 +56,13 @@
                         <HBox fx:id="myScansNav" spacing="10" alignment="CENTER_LEFT">
                             <children>
                                 <Label fx:id="myScansNavIcon" text="-" styleClass="nav-icon"/>
-                                <Label fx:id="myScansNavText" text="My Scans" styleClass="sidebar-nav-text"/>
+                                <Label fx:id="myScansNavText" text="Scans" styleClass="sidebar-nav-text"/>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="exportsNav" spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="exportsNavIcon" text="-" styleClass="nav-icon"/>
+                                <Label fx:id="exportsNavText" text="Exports" styleClass="sidebar-nav-text"/>
                             </children>
                         </HBox>
                     </children>
