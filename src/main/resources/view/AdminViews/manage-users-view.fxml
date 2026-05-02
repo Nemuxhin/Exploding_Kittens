@@ -28,28 +28,41 @@
         <Insets top="24" right="24" bottom="24" left="24"/>
     </padding>
 
-    <HBox alignment="CENTER_LEFT"
+    <VBox fx:id="overviewPane"
+          spacing="18"
+          fillWidth="true"
           maxWidth="Infinity"
-          styleClass="page-header">
+          maxHeight="Infinity"
+          VBox.vgrow="ALWAYS">
 
-        <VBox spacing="3" styleClass="page-heading-copy">
-            <Label text="Users" styleClass="page-title"/>
-            <Label fx:id="usersCountLabel" styleClass="page-subtitle"/>
-        </VBox>
+        <HBox alignment="CENTER_LEFT"
+              maxWidth="Infinity"
+              styleClass="page-header">
 
-        <Region HBox.hgrow="ALWAYS"/>
+            <VBox spacing="3" styleClass="page-heading-copy">
+                <Label text="Users" styleClass="page-title"/>
+                <Label fx:id="usersCountLabel" styleClass="page-subtitle"/>
+            </VBox>
 
-        <Button text="+ Create User"
-                onAction="#openCreateUserDialog"
-                styleClass="create-user-button"
-                focusTraversable="false"/>
-    </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
 
-    <BorderPane fx:id="usersPanel"
-                styleClass="users-panel"
-                maxWidth="Infinity"
-                maxHeight="Infinity"
-                VBox.vgrow="ALWAYS">
+            <Button text="+ Create User"
+                    onAction="#showCreateUserEditor"
+                    styleClass="create-user-button"
+                    focusTraversable="false"/>
+        </HBox>
+
+        <Label fx:id="userActionMessageLabel"
+               text=""
+               visible="false"
+               managed="false"
+               styleClass="create-user-generated-note"/>
+
+        <BorderPane fx:id="usersPanel"
+                    styleClass="users-panel"
+                    maxWidth="Infinity"
+                    maxHeight="Infinity"
+                    VBox.vgrow="ALWAYS">
 
         <top>
             <VBox fx:id="usersPanelTop"
@@ -194,5 +207,200 @@
                 </HBox>
             </HBox>
         </bottom>
-    </BorderPane>
+        </BorderPane>
+    </VBox>
+
+    <ScrollPane fx:id="userEditorPane"
+                fitToWidth="true"
+                fitToHeight="false"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED"
+                visible="false"
+                managed="false"
+                maxWidth="Infinity"
+                maxHeight="Infinity"
+                styleClass="admin-page-scroll"
+                VBox.vgrow="ALWAYS">
+
+        <content>
+            <VBox spacing="18"
+                  fillWidth="true"
+                  maxWidth="Infinity"
+                  styleClass="profile-editor-page">
+
+                <HBox alignment="CENTER_LEFT"
+                      maxWidth="Infinity"
+                      styleClass="profile-editor-header">
+
+                    <VBox spacing="6">
+                        <Button text="&lt; Back to Users"
+                                onAction="#showOverview"
+                                styleClass="profile-editor-back-button"
+                                focusTraversable="false"/>
+
+                        <Label fx:id="userEditorTitleLabel"
+                               text="Create User"
+                               styleClass="page-title"/>
+
+                        <Label fx:id="userEditorSubtitleLabel"
+                               text="Add a new user and choose what they can access."
+                               styleClass="page-subtitle"/>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <HBox alignment="CENTER_RIGHT"
+                          spacing="12"
+                          styleClass="profile-editor-header-actions">
+
+                        <Button text="Cancel"
+                                onAction="#showOverview"
+                                styleClass="profile-editor-secondary-button"
+                                focusTraversable="false"/>
+
+                        <Button fx:id="saveUserButton"
+                                text="Create User"
+                                onAction="#saveUser"
+                                styleClass="profile-editor-primary-button"
+                                focusTraversable="false"/>
+                    </HBox>
+                </HBox>
+
+                <VBox spacing="18"
+                      maxWidth="Infinity"
+                      styleClass="profile-editor-content">
+
+                    <VBox spacing="18"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-card create-user-editor">
+
+                        <VBox spacing="12" styleClass="create-user-section">
+                            <Label text="User Details" styleClass="create-user-section-title"/>
+
+                            <GridPane hgap="12"
+                                      vgap="12"
+                                      maxWidth="Infinity"
+                                      styleClass="create-user-details-grid">
+
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                </columnConstraints>
+
+                                <VBox spacing="6" styleClass="create-user-field" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                    <Label text="Full Name *" styleClass="create-user-field-label"/>
+                                    <TextField fx:id="fullNameField"
+                                               promptText="Sarah Smith"
+                                               maxWidth="Infinity"
+                                               styleClass="create-user-input"/>
+                                </VBox>
+
+                                <VBox spacing="6" styleClass="create-user-field" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <Label text="Username *" styleClass="create-user-field-label"/>
+                                    <TextField fx:id="usernameField"
+                                               promptText="sarah"
+                                               maxWidth="Infinity"
+                                               styleClass="create-user-input"/>
+                                </VBox>
+
+                                <VBox spacing="6" styleClass="create-user-field" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                    <Label text="Email" styleClass="create-user-field-label"/>
+                                    <TextField fx:id="emailField"
+                                               promptText="sarah@example.com"
+                                               maxWidth="Infinity"
+                                               styleClass="create-user-input"/>
+                                </VBox>
+
+                                <VBox spacing="6" styleClass="create-user-field" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <Label text="Role *" styleClass="create-user-field-label"/>
+                                    <ComboBox fx:id="userRoleComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="create-user-input"/>
+                                </VBox>
+
+                                <VBox spacing="6" styleClass="create-user-field" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                    <Label fx:id="temporaryPasswordLabel"
+                                           text="Temporary Password *"
+                                           styleClass="create-user-field-label"/>
+
+                                    <HBox spacing="9" alignment="CENTER_LEFT">
+                                        <TextField fx:id="temporaryPasswordField"
+                                                   promptText="Temporary password"
+                                                   maxWidth="Infinity"
+                                                   HBox.hgrow="ALWAYS"
+                                                   styleClass="create-user-input"/>
+
+                                        <Button text="Generate"
+                                                onAction="#generateTemporaryPassword"
+                                                styleClass="metadata-secondary-header-button"
+                                                focusTraversable="false"/>
+                                    </HBox>
+                                </VBox>
+
+                                <VBox spacing="6" styleClass="create-user-field" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                    <Label text="Status" styleClass="create-user-field-label"/>
+                                    <ComboBox fx:id="userStatusComboBox"
+                                              maxWidth="Infinity"
+                                              styleClass="create-user-input"/>
+                                </VBox>
+                            </GridPane>
+
+                            <Label fx:id="generatedPasswordNoticeLabel"
+                                   text="Temporary password generated. Copy it before leaving this page."
+                                   visible="false"
+                                   managed="false"
+                                   wrapText="true"
+                                   styleClass="create-user-generated-note"/>
+                        </VBox>
+
+                        <VBox spacing="12" styleClass="create-user-section">
+                            <Label text="Profile Access" styleClass="create-user-section-title"/>
+
+                            <Label fx:id="profileHelpLabel"
+                                   text="Choose which scan profiles this user can access."
+                                   wrapText="true"
+                                   styleClass="create-user-section-copy"/>
+
+                            <Button fx:id="showProfileAccessButton"
+                                    text="Show profile access"
+                                    onAction="#showProfileAccessForAdmin"
+                                    visible="false"
+                                    managed="false"
+                                    styleClass="metadata-action-button"
+                                    focusTraversable="false"/>
+
+                            <VBox fx:id="profileAccessContent"
+                                  spacing="12"
+                                  maxWidth="Infinity"
+                                  styleClass="create-user-profile-content">
+
+                                <TextField fx:id="profileSearchField"
+                                           promptText="Search profiles..."
+                                           maxWidth="Infinity"
+                                           styleClass="create-user-input"/>
+
+                                <VBox fx:id="profileListBox"
+                                      maxWidth="Infinity"
+                                      styleClass="create-user-profile-list"/>
+                            </VBox>
+
+                            <Label fx:id="noProfilesWarningLabel"
+                                   text="This user has no assigned profiles and will not be able to start scans."
+                                   visible="false"
+                                   managed="false"
+                                   wrapText="true"
+                                   styleClass="create-user-warning-message"/>
+                        </VBox>
+
+                        <Label fx:id="validationLabel"
+                               text=""
+                               visible="false"
+                               managed="false"
+                               wrapText="true"
+                               styleClass="create-user-validation-message"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </content>
+    </ScrollPane>
 </VBox>

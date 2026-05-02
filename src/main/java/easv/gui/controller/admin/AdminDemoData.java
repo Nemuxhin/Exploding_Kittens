@@ -21,19 +21,6 @@ final class AdminDemoData {
         return new WorkflowStatus(18, 8, 31);
     }
 
-    static List<ManageUsersController.UserRow> users() {
-        return List.of(
-                new ManageUsersController.UserRow("John Doe", "john", "john@example.com", "Admin", "Active", List.of(), true),
-                new ManageUsersController.UserRow("Sarah Smith", "sarah", "sarah@example.com", "User", "Active", List.of("Building Archive", "Technical Drawings", "Standard Scan"), false),
-                new ManageUsersController.UserRow("Michael Johnson", "michael", "michael@example.com", "User", "Active", List.of("Building Archive", "Technical Drawings"), false),
-                new ManageUsersController.UserRow("Emily Davis", "emily", "emily@example.com", "User", "Active", List.of("Standard Scan"), false),
-                new ManageUsersController.UserRow("David Wilson", "david", "david@example.com", "User", "Active", List.of(), false),
-                new ManageUsersController.UserRow("Olivia Brown", "olivia", "olivia@example.com", "User", "Active", List.of("Building Archive", "Technical Drawings", "Court Records", "Standard Scan"), false),
-                new ManageUsersController.UserRow("Lucas Andersen", "lucas", "lucas@example.com", "Admin", "Active", List.of(), false),
-                new ManageUsersController.UserRow("Sofia Nielsen", "sofia", "sofia@example.com", "User", "Active", List.of("Building Archive", "Standard Scan"), false)
-        );
-    }
-
     static List<ProfileOption> createUserProfileOptions() {
         return List.of(
                 new ProfileOption("Building Archive", "Active"),

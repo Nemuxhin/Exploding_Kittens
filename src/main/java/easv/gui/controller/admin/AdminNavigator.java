@@ -1,54 +1,38 @@
 package easv.gui.controller.admin;
 
 interface AdminNavigator {
+    void showPage(AdminPage page);
 
-    static AdminNavigator none() {
-        return NoOpAdminNavigator.INSTANCE;
+    default void showDashboard() {
+        showPage(AdminPage.DASHBOARD);
     }
 
-    void showDashboard();
+    default void showUsers() {
+        showPage(AdminPage.USERS);
+    }
 
-    void showUsers();
+    default void showProfiles() {
+        showPage(AdminPage.PROFILES);
+    }
 
-    void showProfiles();
+    default void showAssignments() {
+        showPage(AdminPage.ASSIGNMENTS);
+    }
 
-    void showAssignments();
+    default void showMetadataTemplates() {
+        showPage(AdminPage.METADATA_TEMPLATES);
+    }
 
-    void showMetadataTemplates();
+    default void showMetadataReview() {
+        showPage(AdminPage.METADATA_REVIEW);
+    }
 
-    void showMetadataReview();
+    default void showActivity() {
+        showPage(AdminPage.ACTIVITY);
+    }
 
-    void showActivity();
-
-    enum NoOpAdminNavigator implements AdminNavigator {
-        INSTANCE;
-
-        @Override
-        public void showDashboard() {
-        }
-
-        @Override
-        public void showUsers() {
-        }
-
-        @Override
-        public void showProfiles() {
-        }
-
-        @Override
-        public void showAssignments() {
-        }
-
-        @Override
-        public void showMetadataTemplates() {
-        }
-
-        @Override
-        public void showMetadataReview() {
-        }
-
-        @Override
-        public void showActivity() {
-        }
+    static AdminNavigator none() {
+        return page -> {
+        };
     }
 }

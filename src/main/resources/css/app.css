@@ -512,6 +512,7 @@
 .rows-per-page-filter,
 .metadata-review-filter,
 .activity-log-filter,
+.activity-log-date-picker,
 .metadata-editor-input,
 .metadata-editor-textarea,
 .metadata-workspace-input,
@@ -534,7 +535,8 @@
 .role-filter,
 .rows-per-page-filter,
 .metadata-review-filter,
-.activity-log-filter {
+.activity-log-filter,
+.activity-log-date-picker {
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -552,6 +554,52 @@
 
 .activity-log-filter {
     -fx-pref-width: 144;
+}
+
+.activity-log-date-range {
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.activity-log-date-filter-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-date-picker {
+    -fx-min-width: 184;
+    -fx-pref-width: 184;
+    -fx-max-width: 184;
+}
+
+.activity-log-date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0 0 0 12;
+}
+
+.activity-log-date-range-start,
+.activity-log-date-range-end {
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-date-range-between {
+    -fx-background-color: #E8F2FF;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-date-disabled {
+    -fx-opacity: 0.35;
+}
+
+.activity-log-date-range-start:hover,
+.activity-log-date-range-end:hover {
+    -fx-background-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .metadata-editor-input,
@@ -581,6 +629,7 @@
 .rows-per-page-filter:hover,
 .metadata-review-filter:hover,
 .activity-log-filter:hover,
+.activity-log-date-picker:hover,
 .metadata-editor-input:hover,
 .metadata-editor-textarea:hover,
 .metadata-workspace-input:hover,
@@ -594,6 +643,7 @@
 .rows-per-page-filter:focused,
 .metadata-review-filter:focused,
 .activity-log-filter:focused,
+.activity-log-date-picker:focused,
 .metadata-editor-input:focused,
 .metadata-editor-textarea:focused,
 .metadata-workspace-input:focused,
@@ -685,6 +735,7 @@
 .rows-per-page-filter > .arrow-button,
 .metadata-review-filter > .arrow-button,
 .activity-log-filter > .arrow-button,
+.activity-log-date-picker > .arrow-button,
 .metadata-workspace-input > .arrow-button,
 .profile-editor-input > .arrow-button {
     -fx-background-color: transparent;
@@ -697,6 +748,7 @@
 .rows-per-page-filter > .arrow-button > .arrow,
 .metadata-review-filter > .arrow-button > .arrow,
 .activity-log-filter > .arrow-button > .arrow,
+.activity-log-date-picker > .arrow-button > .arrow,
 .metadata-workspace-input > .arrow-button > .arrow,
 .profile-editor-input > .arrow-button > .arrow {
     -fx-background-color: -wl-text;
@@ -707,6 +759,7 @@
 .rows-per-page-filter .list-cell,
 .metadata-review-filter .list-cell,
 .activity-log-filter .list-cell,
+.activity-log-date-picker .text-field,
 .metadata-workspace-input .list-cell,
 .profile-editor-input .list-cell {
     -fx-text-fill: -wl-text;
@@ -3035,37 +3088,52 @@
 
 .activity-log-icon-user,
 .activity-log-type-user {
-    -fx-background-color: -wl-secondary;
+    -fx-background-color: #64748B;
 }
 
 .activity-log-icon-profile,
-.activity-log-type-profile,
+.activity-log-type-profile {
+    -fx-background-color: #7C3AED;
+}
+
 .activity-log-icon-metadata,
-.activity-log-type-metadata,
+.activity-log-type-metadata {
+    -fx-background-color: #2563EB;
+}
+
 .activity-log-icon-qa,
 .activity-log-type-qa {
-    -fx-background-color: -wl-primary;
+    -fx-background-color: #15803D;
 }
 
 .activity-log-icon-access,
-.activity-log-type-access,
+.activity-log-type-access {
+    -fx-background-color: #0F766E;
+}
+
 .activity-log-icon-scan,
-.activity-log-type-scan,
+.activity-log-type-scan {
+    -fx-background-color: #0E7490;
+}
+
 .activity-log-icon-document,
-.activity-log-type-document,
+.activity-log-type-document {
+    -fx-background-color: #A16207;
+}
+
 .activity-log-icon-system,
 .activity-log-type-system {
-    -fx-background-color: -wl-primary-selected;
+    -fx-background-color: #475569;
 }
 
 .activity-log-icon-export,
 .activity-log-type-export {
-    -fx-background-color: -wl-success;
+    -fx-background-color: #047857;
 }
 
 .activity-log-icon-security,
 .activity-log-type-security {
-    -fx-background-color: -wl-destructive;
+    -fx-background-color: #B42318;
 }
 
 .activity-log-type-user,
@@ -3113,11 +3181,11 @@
 /* =========================================================
    13. CREATE USER DIALOG
    Project note: JavaFX dialogs use their own scene. The controller
-   gives the dialog pane app-shell/create-user-dialog-pane/dark classes
+   gives the dialog pane app-shell/admin-dialog-pane/dark classes
    so the modal uses the same WebLager theme as the main window.
    ========================================================= */
 
-.create-user-dialog-pane {
+.admin-dialog-pane {
     -fx-pref-width: 840;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
@@ -3127,19 +3195,19 @@
     -fx-font-family: "Montserrat";
 }
 
-.create-user-dialog-pane > .content {
+.admin-dialog-pane > .content {
     -fx-padding: 0;
     -fx-background-color: -wl-surface;
 }
 
-.create-user-dialog-pane > .button-bar > .container {
+.admin-dialog-pane > .button-bar > .container {
     -fx-padding: 15 18 18 18;
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
 
-.create-user-dialog-pane > .button-bar > .container .button {
+.admin-dialog-pane > .button-bar > .container .button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
@@ -3154,51 +3222,51 @@
     -fx-effect: none;
 }
 
-.create-user-dialog-pane > .button-bar > .container .button:hover,
-.create-user-dialog-pane > .button-bar > .container .button:pressed {
+.admin-dialog-pane > .button-bar > .container .button:hover,
+.admin-dialog-pane > .button-bar > .container .button:pressed {
     -fx-background-color: -wl-tertiary-hover;
     -fx-border-color: -wl-secondary;
 }
 
-.create-user-dialog-pane .create-user-button {
+.admin-dialog-pane .create-user-button {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
 }
 
-.create-user-dialog-pane .create-user-button:hover,
-.create-user-dialog-pane .create-user-button:pressed {
+.admin-dialog-pane .create-user-button:hover,
+.admin-dialog-pane .create-user-button:pressed {
     -fx-background-color: -wl-primary-hover;
     -fx-border-color: -wl-primary-hover;
 }
 
-.create-user-modal {
+.create-user-editor {
     -fx-padding: 24;
     -fx-spacing: 18;
     -fx-background-color: -wl-surface;
 }
 
-.create-user-modal-scroll,
-.create-user-modal-scroll > .viewport {
+.create-user-editor-scroll,
+.create-user-editor-scroll > .viewport {
     -fx-background-color: -wl-surface;
 }
 
-.create-user-modal-scroll {
+.create-user-editor-scroll {
     -fx-background: -wl-surface;
     -fx-padding: 0;
 }
 
-.create-user-modal-header {
+.create-user-editor-header {
     -fx-spacing: 3;
 }
 
-.create-user-modal-title {
+.create-user-editor-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 21px;
     -fx-font-weight: 700;
 }
 
-.create-user-modal-subtitle,
+.create-user-editor-subtitle,
 .create-user-section-copy {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
@@ -3237,9 +3305,9 @@
 }
 
 .create-user-input,
-.create-user-dialog-pane .text-field,
-.create-user-dialog-pane .password-field,
-.create-user-dialog-pane .combo-box-base {
+.admin-dialog-pane .text-field,
+.admin-dialog-pane .password-field,
+.admin-dialog-pane .combo-box-base {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
@@ -3259,16 +3327,16 @@
 }
 
 .create-user-input:hover,
-.create-user-dialog-pane .text-field:hover,
-.create-user-dialog-pane .password-field:hover,
-.create-user-dialog-pane .combo-box-base:hover {
+.admin-dialog-pane .text-field:hover,
+.admin-dialog-pane .password-field:hover,
+.admin-dialog-pane .combo-box-base:hover {
     -fx-border-color: -wl-secondary;
 }
 
 .create-user-input:focused,
-.create-user-dialog-pane .text-field:focused,
-.create-user-dialog-pane .password-field:focused,
-.create-user-dialog-pane .combo-box-base:focused {
+.admin-dialog-pane .text-field:focused,
+.admin-dialog-pane .password-field:focused,
+.admin-dialog-pane .combo-box-base:focused {
     -fx-border-color: -wl-primary;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
@@ -3276,14 +3344,14 @@
 }
 
 .create-user-input > .arrow-button,
-.create-user-dialog-pane .combo-box-base > .arrow-button {
+.admin-dialog-pane .combo-box-base > .arrow-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 0 12 0 9;
 }
 
 .create-user-input > .arrow-button > .arrow,
-.create-user-dialog-pane .combo-box-base > .arrow-button > .arrow {
+.admin-dialog-pane .combo-box-base > .arrow-button > .arrow {
     -fx-background-color: -wl-text;
 }
 
@@ -3381,12 +3449,12 @@
     -fx-font-weight: 500;
 }
 
-.create-user-dialog-pane .check-box {
+.admin-dialog-pane .check-box {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
 }
 
-.create-user-dialog-pane .check-box > .box {
+.admin-dialog-pane .check-box > .box {
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
@@ -3399,12 +3467,12 @@
     -fx-background-radius: 3;
 }
 
-.create-user-dialog-pane .check-box:selected > .box {
+.admin-dialog-pane .check-box:selected > .box {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
 }
 
-.create-user-dialog-pane .check-box:selected > .box > .mark {
+.admin-dialog-pane .check-box:selected > .box > .mark {
     -fx-background-color: -wl-on-primary;
 }
 
@@ -3583,37 +3651,63 @@
 
 .app-shell.dark .activity-log-icon-user,
 .app-shell.dark .activity-log-type-user {
-    -fx-background-color: -wl-secondary;
+    -fx-background-color: #74849A;
 }
 
 .app-shell.dark .activity-log-icon-profile,
-.app-shell.dark .activity-log-type-profile,
+.app-shell.dark .activity-log-type-profile {
+    -fx-background-color: #8B5CF6;
+}
+
 .app-shell.dark .activity-log-icon-metadata,
-.app-shell.dark .activity-log-type-metadata,
+.app-shell.dark .activity-log-type-metadata {
+    -fx-background-color: #3B82F6;
+}
+
 .app-shell.dark .activity-log-icon-qa,
 .app-shell.dark .activity-log-type-qa {
-    -fx-background-color: -wl-primary;
+    -fx-background-color: #16A34A;
 }
 
 .app-shell.dark .activity-log-icon-access,
-.app-shell.dark .activity-log-type-access,
+.app-shell.dark .activity-log-type-access {
+    -fx-background-color: #0D9488;
+}
+
 .app-shell.dark .activity-log-icon-scan,
-.app-shell.dark .activity-log-type-scan,
+.app-shell.dark .activity-log-type-scan {
+    -fx-background-color: #0891B2;
+}
+
 .app-shell.dark .activity-log-icon-document,
-.app-shell.dark .activity-log-type-document,
+.app-shell.dark .activity-log-type-document {
+    -fx-background-color: #B7791F;
+}
+
 .app-shell.dark .activity-log-icon-system,
 .app-shell.dark .activity-log-type-system {
-    -fx-background-color: -wl-primary-selected;
+    -fx-background-color: #64748B;
 }
 
 .app-shell.dark .activity-log-icon-export,
 .app-shell.dark .activity-log-type-export {
-    -fx-background-color: -wl-success;
+    -fx-background-color: #059669;
 }
 
 .app-shell.dark .activity-log-icon-security,
 .app-shell.dark .activity-log-type-security {
-    -fx-background-color: -wl-destructive;
+    -fx-background-color: #DC2626;
+}
+
+.app-shell.dark .activity-log-date-range-start,
+.app-shell.dark .activity-log-date-range-end {
+    -fx-background-color: #3B82F6;
+    -fx-text-fill: #FFFFFF;
+}
+
+.app-shell.dark .activity-log-date-range-between {
+    -fx-background-color: #143358;
+    -fx-text-fill: -wl-text;
 }
 
 .app-shell.dark .metadata-workspace-viewer-area {
@@ -3634,13 +3728,13 @@
     -fx-effect: none;
 }
 
-.create-user-dialog-pane.dark .create-user-warning-message {
+.admin-dialog-pane.dark .create-user-warning-message {
     -fx-background-color: #4A3512;
     -fx-border-color: #B7791F;
     -fx-text-fill: #FACC15;
 }
 
-.create-user-dialog-pane.dark .create-user-validation-message {
+.admin-dialog-pane.dark .create-user-validation-message {
     -fx-background-color: #4A2512;
     -fx-border-color: #9A1D1B;
     -fx-text-fill: #FDBA74;

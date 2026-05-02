@@ -7,9 +7,12 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,7 +21,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
+import javafx.util.StringConverter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,10 +38,23 @@ public class ActivityController {
     private static final String ALL_TYPES = "All Types";
     private static final String ALL_USERS = "All Users";
     private static final String ALL_STATUSES = "All Statuses";
+    private static final String RANGE_LAST_7_DAYS = "Last 7 Days";
+    private static final String RANGE_TODAY = "Today";
+    private static final String RANGE_YESTERDAY = "Yesterday";
+    private static final String RANGE_ALL_DATES = "All Dates";
+    private static final String RANGE_CUSTOM = "Custom Range";
+    private static final DateTimeFormatter ACTIVITY_TIMESTAMP_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter DATE_RANGE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final ObservableList<ActivityLogEntry> activityEntries = FXCollections.observableArrayList();
 
     private String expandedEntryId;
+    private boolean updatingDateControls;
+    private LocalDate fromDate;
+    private LocalDate toDate;
+    private LocalDate pendingRangeStart;
 
     @FXML private TextField searchField;
 
@@ -41,6 +62,7 @@ public class ActivityController {
     @FXML private ComboBox<String> userFilterComboBox;
     @FXML private ComboBox<String> statusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
+    @FXML private DatePicker dateRangePicker;
     @FXML private Label exportStatusLabel;
 
     @FXML private Label todayEventsValueLabel;
@@ -61,6 +83,8 @@ public class ActivityController {
     }
 
     private void configureFilters() {
+        configureDateRangePicker();
+
         typeFilterComboBox.getItems().setAll(
                 ALL_TYPES,
                 "Users",
@@ -97,12 +121,14 @@ public class ActivityController {
         statusFilterComboBox.setValue(ALL_STATUSES);
 
         dateRangeFilterComboBox.getItems().setAll(
-                "Last 7 Days",
-                "Today",
-                "Yesterday",
-                "All Dates"
+                RANGE_LAST_7_DAYS,
+                RANGE_TODAY,
+                RANGE_YESTERDAY,
+                RANGE_ALL_DATES,
+                RANGE_CUSTOM
         );
-        dateRangeFilterComboBox.setValue("Last 7 Days");
+
+        setDateRange(RANGE_LAST_7_DAYS, LocalDate.now().minusDays(7), LocalDate.now());
     }
 
     private void configureListeners() {
@@ -111,7 +137,16 @@ public class ActivityController {
         typeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
         userFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
-        dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
+        dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (updatingDateControls) {
+                return;
+            }
+
+            applyPresetDateRange(newValue);
+            refreshFilteredTimeline();
+        });
+
+        dateRangePicker.setOnAction(event -> handleDateRangeSelection(dateRangePicker.getValue()));
     }
 
     private void renderTimeline() {
@@ -340,7 +375,7 @@ public class ActivityController {
         return matchesCombo(entry.type(), typeFilterComboBox.getValue(), ALL_TYPES)
                 && matchesCombo(entry.actor(), userFilterComboBox.getValue(), ALL_USERS)
                 && matchesCombo(entry.status(), statusFilterComboBox.getValue(), ALL_STATUSES)
-                && matchesDateRange(entry.dateGroup(), dateRangeFilterComboBox.getValue());
+                && matchesDateRange(entry);
     }
 
     private boolean matchesCombo(String value, String selectedValue, String allValue) {
@@ -349,14 +384,42 @@ public class ActivityController {
                 || value.equalsIgnoreCase(selectedValue);
     }
 
-    private boolean matchesDateRange(String dateGroup, String selectedRange) {
-        if (selectedRange == null
-                || "Last 7 Days".equals(selectedRange)
-                || "All Dates".equals(selectedRange)) {
+    private boolean matchesDateRange(ActivityLogEntry entry) {
+        if (RANGE_ALL_DATES.equals(dateRangeFilterComboBox.getValue())) {
             return true;
         }
 
-        return dateGroup.equalsIgnoreCase(selectedRange);
+        LocalDate activityDate = parseActivityDate(entry);
+
+        if (activityDate == null) {
+            return false;
+        }
+
+        LocalDate rangeStart = fromDate;
+        LocalDate rangeEnd = toDate;
+
+        if (rangeStart == null && rangeEnd == null) {
+            return true;
+        }
+
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            LocalDate swappedDate = rangeStart;
+            rangeStart = rangeEnd;
+            rangeEnd = swappedDate;
+        }
+
+        boolean afterStart = rangeStart == null || !activityDate.isBefore(rangeStart);
+        boolean beforeEnd = rangeEnd == null || !activityDate.isAfter(rangeEnd);
+
+        return afterStart && beforeEnd;
+    }
+
+    private LocalDate parseActivityDate(ActivityLogEntry entry) {
+        try {
+            return LocalDateTime.parse(entry.fullTimestamp(), ACTIVITY_TIMESTAMP_FORMATTER).toLocalDate();
+        } catch (DateTimeParseException exception) {
+            return null;
+        }
     }
 
     private void updateSummaryCards() {
@@ -387,7 +450,9 @@ public class ActivityController {
 
     @FXML
     private void showTodayActivity() {
-        dateRangeFilterComboBox.setValue("Today");
+        LocalDate today = LocalDate.now();
+        setDateRange(RANGE_TODAY, today, today);
+        refreshFilteredTimeline();
     }
 
     @FXML
@@ -433,7 +498,7 @@ public class ActivityController {
         typeFilterComboBox.setValue(ALL_TYPES);
         userFilterComboBox.setValue(ALL_USERS);
         statusFilterComboBox.setValue(ALL_STATUSES);
-        dateRangeFilterComboBox.setValue("Last 7 Days");
+        setDateRange(RANGE_LAST_7_DAYS, LocalDate.now().minusDays(7), LocalDate.now());
         expandedEntryId = null;
         hideExportStatus();
         renderTimeline();
@@ -449,6 +514,172 @@ public class ActivityController {
     private void refreshFilteredTimeline() {
         hideExportStatus();
         renderTimeline();
+    }
+
+    private void applyPresetDateRange(String selectedRange) {
+        LocalDate today = LocalDate.now();
+
+        switch (selectedRange) {
+            case RANGE_TODAY -> setDateRange(RANGE_TODAY, today, today);
+            case RANGE_YESTERDAY -> {
+                LocalDate yesterday = today.minusDays(1);
+                setDateRange(RANGE_YESTERDAY, yesterday, yesterday);
+            }
+            case RANGE_ALL_DATES -> setDateRange(RANGE_ALL_DATES, null, null);
+            case RANGE_CUSTOM -> {
+            }
+            default -> setDateRange(RANGE_LAST_7_DAYS, today.minusDays(7), today);
+        }
+    }
+
+    private void setDateRange(String selectedRange, LocalDate fromDate, LocalDate toDate) {
+        updatingDateControls = true;
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+        pendingRangeStart = null;
+        dateRangeFilterComboBox.setValue(selectedRange);
+        dateRangePicker.setValue(toDate != null ? toDate : fromDate);
+        dateRangePicker.getEditor().setText(formatDateRange());
+        dateRangePicker.setDayCellFactory(dateRangePicker.getDayCellFactory());
+        updatingDateControls = false;
+    }
+
+    private void handleDateRangeSelection(LocalDate selectedDate) {
+        if (updatingDateControls) {
+            return;
+        }
+
+        if (selectedDate == null) {
+            return;
+        }
+
+        updatingDateControls = true;
+        if (pendingRangeStart == null) {
+            pendingRangeStart = selectedDate;
+            fromDate = selectedDate;
+            toDate = null;
+        } else {
+            if (selectedDate.isBefore(pendingRangeStart)) {
+                fromDate = selectedDate;
+                toDate = pendingRangeStart;
+            } else {
+                fromDate = pendingRangeStart;
+                toDate = selectedDate;
+            }
+
+            pendingRangeStart = null;
+        }
+
+        dateRangeFilterComboBox.setValue(RANGE_CUSTOM);
+        dateRangePicker.setValue(toDate != null ? toDate : fromDate);
+        dateRangePicker.getEditor().setText(formatDateRange());
+        dateRangePicker.setDayCellFactory(dateRangePicker.getDayCellFactory());
+        updatingDateControls = false;
+        refreshFilteredTimeline();
+    }
+
+    private void configureDateRangePicker() {
+        dateRangePicker.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate value) {
+                return formatDateRange();
+            }
+
+            @Override
+            public LocalDate fromString(String value) {
+                return null;
+            }
+        });
+
+        dateRangePicker.setDayCellFactory(picker -> new DateCell() {
+            {
+                addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                    LocalDate selectedDate = getItem();
+
+                    if (isSelectableDate(selectedDate)) {
+                        selectDateFromCalendar(selectedDate, event);
+                    }
+                });
+                addEventFilter(MouseEvent.MOUSE_RELEASED, MouseEvent::consume);
+                addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
+            }
+
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                getStyleClass().removeAll(
+                        "activity-log-date-range-start",
+                        "activity-log-date-range-end",
+                        "activity-log-date-range-between",
+                        "activity-log-date-disabled"
+                );
+
+                if (empty || date == null) {
+                    return;
+                }
+
+                if (date.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                    getStyleClass().add("activity-log-date-disabled");
+                    return;
+                }
+
+                if (isRangeStart(date)) {
+                    getStyleClass().add("activity-log-date-range-start");
+                }
+
+                if (isRangeEnd(date)) {
+                    getStyleClass().add("activity-log-date-range-end");
+                }
+
+                if (isBetweenRange(date)) {
+                    getStyleClass().add("activity-log-date-range-between");
+                }
+            }
+        });
+    }
+
+    private void selectDateFromCalendar(LocalDate selectedDate, MouseEvent event) {
+        handleDateRangeSelection(selectedDate);
+
+        if (pendingRangeStart == null) {
+            dateRangePicker.hide();
+        } else {
+            dateRangePicker.show();
+        }
+
+        event.consume();
+    }
+
+    private boolean isSelectableDate(LocalDate date) {
+        return date != null && !date.isAfter(LocalDate.now());
+    }
+
+    private boolean isRangeStart(LocalDate date) {
+        return fromDate != null && date.equals(fromDate);
+    }
+
+    private boolean isRangeEnd(LocalDate date) {
+        return toDate != null && date.equals(toDate);
+    }
+
+    private boolean isBetweenRange(LocalDate date) {
+        return fromDate != null
+                && toDate != null
+                && date.isAfter(fromDate)
+                && date.isBefore(toDate);
+    }
+
+    private String formatDateRange() {
+        if (fromDate == null && toDate == null) {
+            return RANGE_ALL_DATES;
+        }
+
+        if (fromDate != null && toDate == null) {
+            return DATE_RANGE_FORMATTER.format(fromDate);
+        }
+
+        return DATE_RANGE_FORMATTER.format(fromDate) + " - " + DATE_RANGE_FORMATTER.format(toDate);
     }
 
     private List<ActivityLogEntry> filteredActivityEntries() {

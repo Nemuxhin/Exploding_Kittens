@@ -63,7 +63,7 @@ public class AdminController implements AdminNavigator {
         configureBrandLogo();
         configureThemeToggle();
         configureNavigation();
-        showDashboard();
+        showPage(AdminPage.DASHBOARD);
     }
 
     private void configureBrandLogo() {
@@ -82,6 +82,7 @@ public class AdminController implements AdminNavigator {
                 darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected());
             }
         });
+
         AdminKeyboard.makeActivatable(
                 darkModeRow,
                 "Toggle dark mode",
@@ -172,41 +173,7 @@ public class AdminController implements AdminNavigator {
     }
 
     @Override
-    public void showDashboard() {
-        showPage(AdminPage.DASHBOARD);
-    }
-
-    @Override
-    public void showUsers() {
-        showPage(AdminPage.USERS);
-    }
-
-    @Override
-    public void showProfiles() {
-        showPage(AdminPage.PROFILES);
-    }
-
-    @Override
-    public void showAssignments() {
-        showPage(AdminPage.ASSIGNMENTS);
-    }
-
-    @Override
-    public void showMetadataTemplates() {
-        showPage(AdminPage.METADATA_TEMPLATES);
-    }
-
-    @Override
-    public void showMetadataReview() {
-        showPage(AdminPage.METADATA_REVIEW);
-    }
-
-    @Override
-    public void showActivity() {
-        showPage(AdminPage.ACTIVITY);
-    }
-
-    private void showPage(AdminPage page) {
+    public void showPage(AdminPage page) {
         loadPage(page);
         setActiveNavItem(getNavItem(page));
     }

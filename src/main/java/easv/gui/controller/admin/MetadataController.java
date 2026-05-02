@@ -29,6 +29,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -491,7 +492,7 @@ public class MetadataController {
         ButtonType saveButtonType = new ButtonType("Save Field", ButtonBar.ButtonData.OK_DONE);
 
         DialogPane dialogPane = dialog.getDialogPane();
-        AdminDialogStyler.apply(dialogPane, metadataFieldsList);
+        applyDialogStyles(dialogPane);
         dialogPane.getButtonTypes().setAll(cancelButtonType, saveButtonType);
 
         TextField nameField = new TextField(field.name());
@@ -555,6 +556,28 @@ public class MetadataController {
         Label label = new Label(text);
         label.getStyleClass().add("metadata-field-label");
         return label;
+    }
+
+    private void applyDialogStyles(DialogPane dialogPane) {
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
+
+        if (stylesheetUrl != null && !dialogPane.getStylesheets().contains(stylesheetUrl.toExternalForm())) {
+            dialogPane.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
+
+        dialogPane.getStyleClass().removeAll("app-shell", "dark", "admin-dialog-pane");
+        dialogPane.getStyleClass().addAll("app-shell", "admin-dialog-pane");
+
+        if (isDarkModeEnabled()) {
+            dialogPane.getStyleClass().add("dark");
+        }
+    }
+
+    private boolean isDarkModeEnabled() {
+        return metadataFieldsList != null
+                && metadataFieldsList.getScene() != null
+                && metadataFieldsList.getScene().getRoot() != null
+                && metadataFieldsList.getScene().getRoot().getStyleClass().contains("dark");
     }
 
     private Button createFieldIconButton(String iconPath, String iconClass, boolean destructive) {
