@@ -1,5 +1,7 @@
 package easv.gui.controller.admin;
 
+import easv.be.AuditLog;
+import easv.bll.AdminManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,8 +12,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -50,6 +52,7 @@ public class ActivityController {
 
     private final ObservableList<ActivityLogEntry> activityEntries = FXCollections.observableArrayList();
 
+    private AdminManager adminManager = new AdminManager();
     private String expandedEntryId;
     private boolean updatingDateControls;
     private LocalDate fromDate;
@@ -76,8 +79,15 @@ public class ActivityController {
     @FXML
     private void initialize() {
         configureFilters();
-        loadSampleActivity();
+        loadActivity();
         configureListeners();
+        updateSummaryCards();
+        renderTimeline();
+    }
+
+    void setAdminManager(AdminManager adminManager) {
+        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        loadActivity();
         updateSummaryCards();
         renderTimeline();
     }
@@ -100,15 +110,7 @@ public class ActivityController {
         );
         typeFilterComboBox.setValue(ALL_TYPES);
 
-        userFilterComboBox.getItems().setAll(
-                ALL_USERS,
-                "Admin",
-                "Sarah Smith",
-                "John Doe",
-                "System",
-                "Michael Johnson",
-                "Sofia Nielsen"
-        );
+        userFilterComboBox.getItems().setAll(ALL_USERS);
         userFilterComboBox.setValue(ALL_USERS);
 
         statusFilterComboBox.getItems().setAll(
@@ -249,21 +251,25 @@ public class ActivityController {
 
         rightBox.getChildren().setAll(timeLabel, typeBadge, statusBadge);
 
-        summary.getChildren().setAll(iconShell, copyBox, rightBox);
-
-        row.getChildren().add(summary);
-
-        if (entry.id().equals(expandedEntryId)) {
-            row.getChildren().add(createDetailsPanel(entry));
-        }
-
         Runnable toggleDetails = () -> {
             expandedEntryId = entry.id().equals(expandedEntryId) ? null : entry.id();
             renderTimeline();
         };
 
-        row.setOnMouseClicked(event -> toggleDetails.run());
-        AdminKeyboard.makeActivatable(row, "Toggle details for " + entry.action(), toggleDetails);
+        summary.getChildren().setAll(iconShell, copyBox, rightBox);
+
+        Button summaryButton = new Button();
+        summaryButton.setGraphic(summary);
+        summaryButton.setMaxWidth(Double.MAX_VALUE);
+        summaryButton.setFocusTraversable(true);
+        summaryButton.setOnAction(event -> toggleDetails.run());
+        summaryButton.getStyleClass().add("activity-log-event-summary-button");
+
+        row.getChildren().add(summaryButton);
+
+        if (entry.id().equals(expandedEntryId)) {
+            row.getChildren().add(createDetailsPanel(entry));
+        }
 
         return row;
     }
@@ -456,19 +462,9 @@ public class ActivityController {
     }
 
     @FXML
-    private void showTodayActivityFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showTodayActivity);
-    }
-
-    @FXML
     private void showScansOnly() {
         typeFilterComboBox.setValue("Scans");
         statusFilterComboBox.setValue(ALL_STATUSES);
-    }
-
-    @FXML
-    private void showScansOnlyFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showScansOnly);
     }
 
     @FXML
@@ -478,18 +474,8 @@ public class ActivityController {
     }
 
     @FXML
-    private void showQaCompletedFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showQaCompleted);
-    }
-
-    @FXML
     private void showFailedEvents() {
         statusFilterComboBox.setValue("Failed");
-    }
-
-    @FXML
-    private void showFailedEventsFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showFailedEvents);
     }
 
     @FXML
@@ -769,8 +755,75 @@ public class ActivityController {
         };
     }
 
-    private void loadSampleActivity() {
-        activityEntries.setAll(AdminDemoData.activityLogEntries());
+    private void loadActivity() {
+        activityEntries.setAll(
+                adminManager.getAuditLogs().stream()
+                        .map(this::toActivityLogEntry)
+                        .toList()
+        );
+
+        refreshUserFilterOptions();
+    }
+
+    private ActivityLogEntry toActivityLogEntry(AuditLog log) {
+        LocalDateTime timestamp = log.getTimestamp() == null ? LocalDateTime.now() : log.getTimestamp();
+
+        return new ActivityLogEntry(
+                String.valueOf(log.getId()),
+                dateGroupFor(timestamp.toLocalDate()),
+                DateTimeFormatter.ofPattern("HH:mm").format(timestamp),
+                ACTIVITY_TIMESTAMP_FORMATTER.format(timestamp),
+                log.getType(),
+                log.getActor(),
+                log.getAction(),
+                log.getTarget(),
+                log.getStatus(),
+                log.getDescription(),
+                log.getDetails().stream()
+                        .map(detail -> new ActivityDetail(detail.getLabel(), detail.getValue()))
+                        .toList()
+        );
+    }
+
+    private void refreshUserFilterOptions() {
+        if (userFilterComboBox == null) {
+            return;
+        }
+
+        String selectedUser = userFilterComboBox.getValue();
+
+        List<String> actors = activityEntries.stream()
+                .map(ActivityLogEntry::actor)
+                .filter(actor -> !actor.isBlank())
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+
+        List<String> filterOptions = new ArrayList<>();
+        filterOptions.add(ALL_USERS);
+        filterOptions.addAll(actors);
+
+        userFilterComboBox.getItems().setAll(filterOptions);
+
+        if (selectedUser != null && filterOptions.contains(selectedUser)) {
+            userFilterComboBox.setValue(selectedUser);
+        } else {
+            userFilterComboBox.setValue(ALL_USERS);
+        }
+    }
+
+    private String dateGroupFor(LocalDate date) {
+        LocalDate today = LocalDate.now();
+
+        if (date.equals(today)) {
+            return "Today";
+        }
+
+        if (date.equals(today.minusDays(1))) {
+            return "Yesterday";
+        }
+
+        return DATE_RANGE_FORMATTER.format(date);
     }
 
     record ActivityLogEntry(

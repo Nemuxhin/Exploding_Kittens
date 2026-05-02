@@ -1,5 +1,7 @@
 package easv.gui.controller.admin;
 
+import easv.be.MetadataReviewRecord;
+import easv.bll.AdminManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,7 +14,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -20,6 +21,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -48,6 +50,7 @@ public class MetadataReviewController {
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
 
     private MetadataReviewRow activeReviewRecord;
+    private AdminManager adminManager = new AdminManager();
 
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
@@ -95,11 +98,17 @@ public class MetadataReviewController {
         configureFilters();
         configureWorkspaceControls();
         configureRowsPerPageSelector();
-        loadSampleRecords();
+        loadRecords();
         configureListeners();
 
         showOverview();
         setActiveWorkspaceTab(documentTabButton);
+        applyFilters();
+    }
+
+    void setAdminManager(AdminManager adminManager) {
+        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        loadRecords();
         applyFilters();
     }
 
@@ -389,6 +398,9 @@ public class MetadataReviewController {
             return;
         }
 
+        adminManager.addAuditLog("Exports", "Admin", "Exported metadata review records", "Metadata Review", "Success",
+                selectedCount + " metadata review records were exported.");
+
         selectedRecordIds.clear();
         renderRows();
         paginationSummaryLabel.setText("Exported " + selectedCount + " selected records");
@@ -413,7 +425,9 @@ public class MetadataReviewController {
             MetadataReviewRow record = records.get(index);
 
             if (selectedRecordIds.contains(record.id())) {
-                records.set(index, updater.apply(record));
+                MetadataReviewRow updatedRecord = updater.apply(record);
+                adminManager.saveMetadataReviewRecord(toMetadataReviewRecord(updatedRecord));
+                records.set(index, updatedRecord);
             }
         }
 
@@ -594,20 +608,10 @@ public class MetadataReviewController {
     }
 
     @FXML
-    private void showMissingRequiredQueueFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showMissingRequiredQueue);
-    }
-
-    @FXML
     private void showExportBlockedQueue() {
         metadataStatusFilterComboBox.setValue("Missing Required Fields");
         qaStatusFilterComboBox.setValue("Waiting for QA");
         dateRangeFilterComboBox.setValue("Last 30 Days");
-    }
-
-    @FXML
-    private void showExportBlockedQueueFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showExportBlockedQueue);
     }
 
     @FXML
@@ -618,20 +622,10 @@ public class MetadataReviewController {
     }
 
     @FXML
-    private void showFailedValidationQueueFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showFailedValidationQueue);
-    }
-
-    @FXML
     private void showReadyForQaQueue() {
         metadataStatusFilterComboBox.setValue("Complete");
         qaStatusFilterComboBox.setValue("Ready for QA");
         dateRangeFilterComboBox.setValue("Last 30 Days");
-    }
-
-    @FXML
-    private void showReadyForQaQueueFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showReadyForQaQueue);
     }
 
     @FXML
@@ -642,11 +636,6 @@ public class MetadataReviewController {
     }
 
     @FXML
-    private void showQaRejectedQueueFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showQaRejectedQueue);
-    }
-
-    @FXML
     private void showRecentlyScannedQueue() {
         metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
@@ -654,13 +643,10 @@ public class MetadataReviewController {
     }
 
     @FXML
-    private void showRecentlyScannedQueueFromKeyboard(KeyEvent event) {
-        AdminKeyboard.runOnActivationKey(event, this::showRecentlyScannedQueue);
-    }
-
-    @FXML
     private void exportReport() {
         int exportCount = filteredRecords.isEmpty() ? records.size() : filteredRecords.size();
+        adminManager.addAuditLog("Exports", "Admin", "Exported metadata review report", "Metadata Review", "Success",
+                "A metadata review report was exported.");
         paginationSummaryLabel.setText("Exported report for " + exportCount + " records");
     }
 
@@ -757,6 +743,8 @@ public class MetadataReviewController {
     }
 
     private void replaceActiveRecord(MetadataReviewRow updatedRecord) {
+        adminManager.saveMetadataReviewRecord(toMetadataReviewRecord(updatedRecord));
+
         for (int index = 0; index < records.size(); index++) {
             if (records.get(index).id().equals(updatedRecord.id())) {
                 records.set(index, updatedRecord);
@@ -807,8 +795,82 @@ public class MetadataReviewController {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private void loadSampleRecords() {
-        records.setAll(AdminDemoData.metadataReviewRecords());
+    private void loadRecords() {
+        records.setAll(
+                adminManager.getMetadataReviewRecords().stream()
+                        .map(this::toMetadataReviewRow)
+                        .toList()
+        );
+        refreshFilterOptions();
+    }
+
+    private MetadataReviewRow toMetadataReviewRow(MetadataReviewRecord record) {
+        return new MetadataReviewRow(
+                record.getId(),
+                record.getIdentity(),
+                record.getClient(),
+                record.getArchive(),
+                record.getProfile(),
+                record.getMetadataTemplate(),
+                record.getMetadataStatus(),
+                record.getQaStatus(),
+                record.getPages(),
+                record.getLastUpdated(),
+                record.getAssignedTo(),
+                record.getScannedBy(),
+                record.getDateGroup(),
+                record.hasWarning()
+        );
+    }
+
+    private MetadataReviewRecord toMetadataReviewRecord(MetadataReviewRow row) {
+        return new MetadataReviewRecord(
+                row.id(),
+                row.identity(),
+                row.client(),
+                row.archive(),
+                row.profile(),
+                row.metadataTemplate(),
+                row.metadataStatus(),
+                row.qaStatus(),
+                row.pages(),
+                row.lastUpdated(),
+                row.assignedTo(),
+                row.scannedBy(),
+                row.dateGroup(),
+                row.warning()
+        );
+    }
+
+    private void refreshFilterOptions() {
+        setComboOptions(clientFilterComboBox, ALL_CLIENTS, records.stream().map(MetadataReviewRow::client).toList());
+        setComboOptions(archiveFilterComboBox, ALL_ARCHIVES, records.stream().map(MetadataReviewRow::archive).toList());
+        setComboOptions(profileFilterComboBox, ALL_PROFILES, records.stream().map(MetadataReviewRow::profile).toList());
+        setComboOptions(scannedByFilterComboBox, ALL_USERS, records.stream().map(MetadataReviewRow::scannedBy).toList());
+    }
+
+    private void setComboOptions(ComboBox<String> comboBox, String allOption, List<String> values) {
+        if (comboBox == null) {
+            return;
+        }
+
+        String selectedValue = comboBox.getValue();
+        List<String> options = new ArrayList<>();
+        options.add(allOption);
+
+        values.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .forEach(options::add);
+
+        comboBox.getItems().setAll(options);
+
+        if (selectedValue != null && options.contains(selectedValue)) {
+            comboBox.setValue(selectedValue);
+        } else {
+            comboBox.setValue(allOption);
+        }
     }
 
     record MetadataReviewRow(

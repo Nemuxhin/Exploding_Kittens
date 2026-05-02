@@ -348,10 +348,6 @@ public class ManageUsersController {
     }
 
     private ProfileAccessControl createProfileAccessControl(ProfileOption profile) {
-        CheckBox checkBox = new CheckBox();
-        checkBox.getStyleClass().add("assignment-checkbox");
-        checkBox.setFocusTraversable(false);
-
         Label nameLabel = new Label(profile.getName());
         nameLabel.getStyleClass().add("create-user-profile-name");
 
@@ -366,17 +362,17 @@ public class ManageUsersController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox row = new HBox(12, checkBox, nameLabel, spacer, statusBadge);
+        HBox content = new HBox(12, nameLabel, spacer, statusBadge);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+
+        CheckBox row = new CheckBox();
+        row.setGraphic(content);
         row.getStyleClass().add("create-user-profile-row");
-        row.setAlignment(Pos.CENTER_LEFT);
+        row.setFocusTraversable(true);
         row.setMaxWidth(Double.MAX_VALUE);
 
-        Runnable toggleProfile = () -> checkBox.setSelected(!checkBox.isSelected());
-        row.setOnMouseClicked(event -> toggleProfile.run());
-        AdminKeyboard.makeActivatable(row, "Toggle profile access " + profile.getName(), toggleProfile);
-        checkBox.setOnMouseClicked(event -> event.consume());
-
-        return new ProfileAccessControl(profile, row, checkBox);
+        return new ProfileAccessControl(profile, row);
     }
 
     private boolean validateUserEditor() {
@@ -876,12 +872,10 @@ public class ManageUsersController {
 
     private static class ProfileAccessControl {
         private final ProfileOption profile;
-        private final HBox row;
         private final CheckBox checkBox;
 
-        private ProfileAccessControl(ProfileOption profile, HBox row, CheckBox checkBox) {
+        private ProfileAccessControl(ProfileOption profile, CheckBox checkBox) {
             this.profile = profile;
-            this.row = row;
             this.checkBox = checkBox;
         }
 
@@ -889,8 +883,8 @@ public class ManageUsersController {
             return profile;
         }
 
-        private HBox getRow() {
-            return row;
+        private CheckBox getRow() {
+            return checkBox;
         }
 
         private CheckBox getCheckBox() {

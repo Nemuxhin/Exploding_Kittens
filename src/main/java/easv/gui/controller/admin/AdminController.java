@@ -4,14 +4,12 @@ import easv.bll.AdminManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -45,15 +43,14 @@ public class AdminController implements AdminNavigator {
     @FXML private Label brandLogoFallbackLabel;
     @FXML private ImageView brandLogoImageView;
 
-    @FXML private HBox dashboardNavItem;
-    @FXML private HBox usersNavItem;
-    @FXML private HBox profilesNavItem;
-    @FXML private HBox assignmentsNavItem;
-    @FXML private HBox metadataNavItem;
-    @FXML private HBox metadataReviewNavItem;
-    @FXML private HBox activityNavItem;
+    @FXML private ToggleButton dashboardNavItem;
+    @FXML private ToggleButton usersNavItem;
+    @FXML private ToggleButton profilesNavItem;
+    @FXML private ToggleButton assignmentsNavItem;
+    @FXML private ToggleButton metadataNavItem;
+    @FXML private ToggleButton metadataReviewNavItem;
+    @FXML private ToggleButton activityNavItem;
 
-    @FXML private HBox darkModeRow;
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private Label themeModeLabel;
     @FXML private SVGPath themeModeIcon;
@@ -78,18 +75,6 @@ public class AdminController implements AdminNavigator {
 
         darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
                 updateTheme(isDark)
-        );
-
-        darkModeRow.setOnMouseClicked(event -> {
-            if (!isInsideNode(event.getTarget(), darkModeToggleButton)) {
-                darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected());
-            }
-        });
-
-        AdminKeyboard.makeActivatable(
-                darkModeRow,
-                "Toggle dark mode",
-                () -> darkModeToggleButton.setSelected(!darkModeToggleButton.isSelected())
         );
     }
 
@@ -142,37 +127,18 @@ public class AdminController implements AdminNavigator {
         }
     }
 
-    private boolean isInsideNode(Object target, Node parentNode) {
-        if (!(target instanceof Node targetNode)) {
-            return false;
-        }
-
-        Node current = targetNode;
-
-        while (current != null) {
-            if (current == parentNode) {
-                return true;
-            }
-
-            current = current.getParent();
-        }
-
-        return false;
-    }
-
     private void configureNavigation() {
         for (AdminPage page : AdminPage.values()) {
-            setNavigationAction(getNavItem(page), "Show " + page.title(), () -> showPage(page));
+            setNavigationAction(getNavItem(page), () -> showPage(page));
         }
     }
 
-    private void setNavigationAction(HBox navItem, String accessibleText, Runnable action) {
+    private void setNavigationAction(ToggleButton navItem, Runnable action) {
         if (navItem == null) {
             return;
         }
 
-        navItem.setOnMouseClicked(event -> action.run());
-        AdminKeyboard.makeActivatable(navItem, accessibleText, action);
+        navItem.setOnAction(event -> action.run());
     }
 
     @Override
@@ -204,6 +170,7 @@ public class AdminController implements AdminNavigator {
     private void configureLoadedController(Object controller) {
         if (controller instanceof DashboardController dashboardController) {
             dashboardController.setNavigator(this);
+            dashboardController.setAdminManager(adminManager);
         } else if (controller instanceof ManageUsersController manageUsersController) {
             manageUsersController.setAdminManager(adminManager);
         } else if (controller instanceof ProfilesController profilesController) {
@@ -211,6 +178,12 @@ public class AdminController implements AdminNavigator {
             profilesController.setAdminManager(adminManager);
         } else if (controller instanceof AssignmentsController assignmentsController) {
             assignmentsController.setAdminManager(adminManager);
+        } else if (controller instanceof MetadataController metadataController) {
+            metadataController.setAdminManager(adminManager);
+        } else if (controller instanceof MetadataReviewController metadataReviewController) {
+            metadataReviewController.setAdminManager(adminManager);
+        } else if (controller instanceof ActivityController activityController) {
+            activityController.setAdminManager(adminManager);
         }
     }
 
@@ -242,22 +215,23 @@ public class AdminController implements AdminNavigator {
         return placeholder;
     }
 
-    private void setActiveNavItem(HBox activeNavItem) {
-        for (HBox navItem : getNavigationItems()) {
+    private void setActiveNavItem(ToggleButton activeNavItem) {
+        for (ToggleButton navItem : getNavigationItems()) {
             if (navItem != null) {
                 setNavItemActive(navItem, navItem == activeNavItem);
             }
         }
     }
 
-    private void setNavItemActive(HBox navItem, boolean active) {
+    private void setNavItemActive(ToggleButton navItem, boolean active) {
+        navItem.setSelected(active);
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
         navItem.getStyleClass().remove(INACTIVE_NAV_CLASS);
 
         navItem.getStyleClass().add(active ? ACTIVE_NAV_CLASS : INACTIVE_NAV_CLASS);
     }
 
-    private List<HBox> getNavigationItems() {
+    private List<ToggleButton> getNavigationItems() {
         return List.of(
                 dashboardNavItem,
                 usersNavItem,
@@ -269,7 +243,7 @@ public class AdminController implements AdminNavigator {
         );
     }
 
-    private HBox getNavItem(AdminPage page) {
+    private ToggleButton getNavItem(AdminPage page) {
         return switch (page) {
             case DASHBOARD -> dashboardNavItem;
             case USERS -> usersNavItem;

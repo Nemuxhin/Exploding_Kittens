@@ -2,6 +2,7 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.MetadataField;
+import easv.be.MetadataReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -21,6 +22,7 @@ public class AdminManager {
     private final List<User> users = new ArrayList<>();
     private final List<ScanProfile> profiles = new ArrayList<>();
     private final List<MetadataTemplate> metadataTemplates = new ArrayList<>();
+    private final List<MetadataReviewRecord> metadataReviewRecords = new ArrayList<>();
     private final List<AuditLog> auditLogs = new ArrayList<>();
 
     private final Map<Integer, Set<Integer>> profileAssignments = new HashMap<>();
@@ -294,6 +296,38 @@ public class AdminManager {
                 .anyMatch(existingName -> existingName.equals(normalizedName));
     }
 
+    public List<MetadataReviewRecord> getMetadataReviewRecords() {
+        return metadataReviewRecords.stream()
+                .map(this::copyMetadataReviewRecord)
+                .toList();
+    }
+
+    public MetadataReviewRecord saveMetadataReviewRecord(MetadataReviewRecord updatedRecord) {
+        if (updatedRecord == null || clean(updatedRecord.getId()).isBlank()) {
+            throw new IllegalArgumentException("Metadata review record is required.");
+        }
+
+        for (int index = 0; index < metadataReviewRecords.size(); index++) {
+            MetadataReviewRecord existingRecord = metadataReviewRecords.get(index);
+
+            if (existingRecord.getId().equals(updatedRecord.getId())) {
+                metadataReviewRecords.set(index, copyMetadataReviewRecord(updatedRecord));
+
+                addAuditLog("Metadata", "Admin", "Updated metadata review", updatedRecord.getIdentity(), "Success",
+                        "A metadata review record was updated.");
+
+                return copyMetadataReviewRecord(updatedRecord);
+            }
+        }
+
+        metadataReviewRecords.add(copyMetadataReviewRecord(updatedRecord));
+
+        addAuditLog("Metadata", "Admin", "Created metadata review", updatedRecord.getIdentity(), "Success",
+                "A metadata review record was created.");
+
+        return copyMetadataReviewRecord(updatedRecord);
+    }
+
     public Map<Integer, Set<Integer>> getProfileAssignments() {
         return copyAssignments(profileAssignments);
     }
@@ -365,6 +399,25 @@ public class AdminManager {
                 .count();
 
         return new DashboardSummary(totalUsers, activeProfiles, draftProfiles, usersWithoutProfiles, failedEvents);
+    }
+
+    private MetadataReviewRecord copyMetadataReviewRecord(MetadataReviewRecord record) {
+        return new MetadataReviewRecord(
+                record.getId(),
+                record.getIdentity(),
+                record.getClient(),
+                record.getArchive(),
+                record.getProfile(),
+                record.getMetadataTemplate(),
+                record.getMetadataStatus(),
+                record.getQaStatus(),
+                record.getPages(),
+                record.getLastUpdated(),
+                record.getAssignedTo(),
+                record.getScannedBy(),
+                record.getDateGroup(),
+                record.hasWarning()
+        );
     }
 
     private User findRequiredUser(int userId) {

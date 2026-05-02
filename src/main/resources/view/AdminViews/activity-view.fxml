@@ -77,16 +77,15 @@
                     <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
                 </columnConstraints>
 
-                <HBox alignment="CENTER_LEFT"
-                      maxWidth="Infinity"
-                      onMouseClicked="#showTodayActivity"
-                      onKeyPressed="#showTodayActivityFromKeyboard"
+                <Button maxWidth="Infinity"
+                      onAction="#showTodayActivity"
                       focusTraversable="true"
-                      accessibleRole="BUTTON"
-                      accessibleText="Show today's activity"
+                      contentDisplay="GRAPHIC_ONLY"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="0"
                       GridPane.rowIndex="0">
+                    <graphic>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
 
                     <StackPane styleClass="activity-log-summary-icon-shell activity-log-icon-system">
                         <SVGPath content="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h8v2H8V8zm0 4h5v2H8v-2z"
@@ -99,18 +98,20 @@
                                text="0 events"
                                styleClass="activity-log-summary-value"/>
                     </VBox>
-                </HBox>
 
-                <HBox alignment="CENTER_LEFT"
-                      maxWidth="Infinity"
-                      onMouseClicked="#showScansOnly"
-                      onKeyPressed="#showScansOnlyFromKeyboard"
+                        </HBox>
+                    </graphic>
+                </Button>
+
+                <Button maxWidth="Infinity"
+                      onAction="#showScansOnly"
                       focusTraversable="true"
-                      accessibleRole="BUTTON"
-                      accessibleText="Show scans only"
+                      contentDisplay="GRAPHIC_ONLY"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="1"
                       GridPane.rowIndex="0">
+                    <graphic>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
 
                     <StackPane styleClass="activity-log-summary-icon-shell activity-log-icon-scan">
                         <SVGPath content="M5 3h14v18H5V3zm2 2v14h10V5H7zm2 3h6v2H9V8zm0 4h6v2H9v-2z"
@@ -123,18 +124,20 @@
                                text="0"
                                styleClass="activity-log-summary-value"/>
                     </VBox>
-                </HBox>
 
-                <HBox alignment="CENTER_LEFT"
-                      maxWidth="Infinity"
-                      onMouseClicked="#showQaCompleted"
-                      onKeyPressed="#showQaCompletedFromKeyboard"
+                        </HBox>
+                    </graphic>
+                </Button>
+
+                <Button maxWidth="Infinity"
+                      onAction="#showQaCompleted"
                       focusTraversable="true"
-                      accessibleRole="BUTTON"
-                      accessibleText="Show completed QA activity"
+                      contentDisplay="GRAPHIC_ONLY"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="2"
                       GridPane.rowIndex="0">
+                    <graphic>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
 
                     <StackPane styleClass="activity-log-summary-icon-shell activity-log-icon-qa">
                         <SVGPath content="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14-4-4 1.4-1.4L11 13.2l5.6-5.6L18 9l-7 7z"
@@ -147,18 +150,20 @@
                                text="0"
                                styleClass="activity-log-summary-value"/>
                     </VBox>
-                </HBox>
 
-                <HBox alignment="CENTER_LEFT"
-                      maxWidth="Infinity"
-                      onMouseClicked="#showFailedEvents"
-                      onKeyPressed="#showFailedEventsFromKeyboard"
+                        </HBox>
+                    </graphic>
+                </Button>
+
+                <Button maxWidth="Infinity"
+                      onAction="#showFailedEvents"
                       focusTraversable="true"
-                      accessibleRole="BUTTON"
-                      accessibleText="Show failed activity"
+                      contentDisplay="GRAPHIC_ONLY"
                       styleClass="activity-log-summary-card"
                       GridPane.columnIndex="3"
                       GridPane.rowIndex="0">
+                    <graphic>
+                        <HBox alignment="CENTER_LEFT" spacing="12">
 
                     <StackPane styleClass="activity-log-summary-icon-shell activity-log-icon-failed">
                         <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-2h2v2zm0-4h-2V6h2v7z"
@@ -171,7 +176,10 @@
                                text="0"
                                styleClass="activity-log-summary-value"/>
                     </VBox>
-                </HBox>
+
+                        </HBox>
+                    </graphic>
+                </Button>
             </GridPane>
 
             <HBox spacing="12"

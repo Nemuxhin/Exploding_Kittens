@@ -840,7 +840,15 @@
     -fx-alignment: center-left;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
     -fx-cursor: hand;
+}
+
+.sidebar-nav-item > .graphic-container,
+.sidebar-nav-item-active > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
 }
 
 .sidebar-nav-item,
@@ -1007,6 +1015,11 @@
     -fx-padding: 0;
 }
 
+.sidebar-theme-toggle > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
 .dark-mode-switch-track {
     -fx-min-width: 48;
     -fx-pref-width: 48;
@@ -1023,13 +1036,16 @@
     -fx-effect: none;
 }
 
-.dark-mode-toggle:selected .dark-mode-switch-track {
+.dark-mode-toggle:selected .dark-mode-switch-track,
+.sidebar-theme-toggle:selected .dark-mode-switch-track {
     -fx-alignment: center-right;
     -fx-background-color: -wl-switch-track;
 }
 
 .dark-mode-toggle:hover .dark-mode-switch-track,
-.dark-mode-toggle:selected:hover .dark-mode-switch-track {
+.dark-mode-toggle:selected:hover .dark-mode-switch-track,
+.sidebar-theme-toggle:hover .dark-mode-switch-track,
+.sidebar-theme-toggle:selected:hover .dark-mode-switch-track {
     -fx-background-color: -wl-switch-track-hover;
 }
 
@@ -2112,9 +2128,16 @@
     -fx-min-height: 96;
     -fx-padding: 15 24 15 24;
     -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
     -fx-cursor: hand;
+}
+
+.assignment-list-item > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
 }
 
 .assignment-list-item:hover,
@@ -2133,10 +2156,16 @@
     -fx-min-height: 69;
     -fx-padding: 12 18 12 18;
     -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
     -fx-alignment: center-left;
     -fx-cursor: hand;
+}
+
+.assignment-checkbox-row > .graphic-container {
+    -fx-padding: 0 0 0 12;
+    -fx-alignment: center-left;
 }
 
 .assignment-checkbox-row:hover {
@@ -2164,6 +2193,9 @@
 }
 
 .assignment-checkbox > .box,
+.assignment-checkbox-row > .box,
+.create-user-profile-row > .box,
+.metadata-profile-row > .box,
 .metadata-review-checkbox > .box {
     -fx-min-width: 18;
     -fx-pref-width: 18;
@@ -2178,12 +2210,18 @@
 }
 
 .assignment-checkbox:selected > .box,
+.assignment-checkbox-row:selected > .box,
+.create-user-profile-row:selected > .box,
+.metadata-profile-row:selected > .box,
 .metadata-review-checkbox:selected > .box {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
 }
 
 .assignment-checkbox:selected > .box > .mark,
+.assignment-checkbox-row:selected > .box > .mark,
+.create-user-profile-row:selected > .box > .mark,
+.metadata-profile-row:selected > .box > .mark,
 .metadata-review-checkbox:selected > .box > .mark {
     -fx-background-color: -wl-on-primary;
 }
@@ -2435,13 +2473,19 @@
 }
 
 .metadata-review-queue-card {
+    -fx-min-height: 111;
+    -fx-pref-height: 111;
+    -fx-max-height: 111;
     -fx-padding: 18 21 18 21;
     -fx-spacing: 15;
     -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
     -fx-background-radius: 10;
+    -fx-border-insets: 0;
     -fx-border-radius: 10;
     -fx-border-width: 1;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 9, 0, 0, 1);
+    -fx-alignment: center-left;
     -fx-cursor: hand;
 }
 
@@ -2973,7 +3017,25 @@
     -fx-pref-height: 84;
     -fx-padding: 18;
     -fx-spacing: 12;
+    -fx-background-insets: 0;
+    -fx-alignment: center-left;
     -fx-cursor: hand;
+}
+
+.activity-log-summary-card > .graphic-container,
+.metadata-review-queue-card > .graphic-container,
+.activity-log-event-summary-button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.activity-log-event-summary-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-alignment: center-left;
 }
 
 .activity-log-summary-card:hover {
@@ -3179,10 +3241,10 @@
 }
 
 /* =========================================================
-   13. CREATE USER DIALOG
-   Project note: JavaFX dialogs use their own scene. The controller
-   gives the dialog pane app-shell/admin-dialog-pane/dark classes
-   so the modal uses the same WebLager theme as the main window.
+   13. USER EDITOR AND ADMIN DIALOG
+   Project note: the user editor shares these form styles, and the
+   metadata field editor still uses JavaFX DialogPane with the
+   app-shell/admin-dialog-pane/dark classes.
    ========================================================= */
 
 .admin-dialog-pane {
@@ -3395,6 +3457,12 @@
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
     -fx-cursor: hand;
+}
+
+.create-user-profile-row > .graphic-container,
+.metadata-profile-row > .graphic-container {
+    -fx-padding: 0 0 0 12;
+    -fx-alignment: center-left;
 }
 
 .create-user-profile-row:hover {

@@ -1,5 +1,9 @@
 package easv.gui.controller.admin;
 
+import easv.be.MetadataField;
+import easv.be.MetadataTemplate;
+import easv.be.ScanProfile;
+import easv.bll.AdminManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -20,7 +24,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -114,14 +117,23 @@ public class MetadataController {
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private MetadataTemplateRow selectedTemplate;
+    private AdminManager adminManager = new AdminManager();
+
+    void setAdminManager(AdminManager adminManager) {
+        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        loadTemplates();
+        loadAssignedProfiles(List.of());
+        renderAssignedProfiles();
+        applyFilters();
+    }
 
     @FXML
     private void initialize() {
         configureFilters();
         configureRowsPerPageSelector();
-        loadSampleTemplates();
-        loadTemplateFields();
-        loadAssignedProfiles();
+        loadTemplates();
+        templateFields.clear();
+        loadAssignedProfiles(List.of());
         configureFiltering();
 
         renderTemplateFields();
@@ -135,16 +147,7 @@ public class MetadataController {
         statusFilterComboBox.getItems().setAll(ALL_STATUSES, "Active", "Draft", "Archived");
         statusFilterComboBox.setValue(ALL_STATUSES);
 
-        profileFilterComboBox.getItems().setAll(
-                ALL_PROFILES,
-                "Building Archive",
-                "Technical Drawings",
-                "Court Records",
-                "Standard Building Scan",
-                "Engineering Archive",
-                "Aalborg Building Archive",
-                "Municipal Archive Scan"
-        );
+        profileFilterComboBox.getItems().setAll(ALL_PROFILES);
         profileFilterComboBox.setValue(ALL_PROFILES);
 
         templateStatusComboBox.getItems().setAll("Draft", "Active", "Archived");
@@ -258,9 +261,6 @@ public class MetadataController {
 
         if (archived) {
             row.getStyleClass().add("metadata-row-archived");
-        } else {
-            row.setOnMouseClicked(event -> showEditEditor(template));
-            AdminKeyboard.makeActivatable(row, "Edit metadata template " + template.name(), () -> showEditEditor(template));
         }
 
         addCell(row, buildTemplateNameCell(template), 0, HPos.LEFT);
@@ -329,7 +329,6 @@ public class MetadataController {
         HBox actions = new HBox(15);
         actions.getStyleClass().add("metadata-template-actions");
         actions.setAlignment(Pos.CENTER_LEFT);
-        actions.setOnMouseClicked(MouseEvent::consume);
 
         Button previewButton = createTemplateActionButton(
                 "Preview",
@@ -408,7 +407,16 @@ public class MetadataController {
     }
 
     private void loadTemplateFields() {
-        templateFields.setAll(AdminDemoData.metadataTemplateFields());
+        templateFields.clear();
+    }
+
+    private void loadTemplateFields(MetadataTemplateRow template) {
+        if (template == null) {
+            loadTemplateFields();
+            return;
+        }
+
+        templateFields.setAll(template.fields());
     }
 
     private void renderTemplateFields() {
@@ -433,7 +441,7 @@ public class MetadataController {
                 createPercentColumn(14)
         );
 
-        Label dragHandle = new Label("⋮⋮");
+        Label dragHandle = new Label("::");
         dragHandle.getStyleClass().add("metadata-drag-handle");
 
         Label nameLabel = new Label(field.name());
@@ -539,6 +547,7 @@ public class MetadataController {
                     : placeholderField.getText().trim();
 
             return new TemplateFieldRow(
+                    field.id(),
                     fieldName,
                     typeComboBox.getValue(),
                     requiredCheckBox.isSelected(),
@@ -601,8 +610,27 @@ public class MetadataController {
         return button;
     }
 
-    private void loadAssignedProfiles() {
-        assignedProfiles.setAll(AdminDemoData.metadataAssignedProfiles());
+    private void loadAssignedProfiles(List<String> selectedProfileNames) {
+        List<String> selectedProfiles = selectedProfileNames == null ? List.of() : selectedProfileNames;
+
+        assignedProfiles.setAll(
+                adminManager.getProfiles().stream()
+                        .map(profile -> toAssignedProfileRow(profile, selectedProfiles))
+                        .toList()
+        );
+    }
+
+    private AssignedProfileRow toAssignedProfileRow(ScanProfile profile, List<String> selectedProfileNames) {
+        boolean selected = selectedProfileNames.stream()
+                .anyMatch(profileName -> profileName.equalsIgnoreCase(profile.getName()));
+
+        return new AssignedProfileRow(
+                profile.getName(),
+                profile.getExportNaming(),
+                profile.getStatus(),
+                selected,
+                profile.isArchived()
+        );
     }
 
     private void renderAssignedProfiles() {
@@ -618,10 +646,16 @@ public class MetadataController {
         metadataProfileList.getChildren().setAll(rows);
     }
 
-    private HBox buildAssignedProfileRow(AssignedProfileRow profile, boolean lastRow) {
-        HBox row = new HBox(18);
+    private CheckBox buildAssignedProfileRow(AssignedProfileRow profile, boolean lastRow) {
+        CheckBox row = new CheckBox();
+        HBox content = new HBox(18);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+
         row.setMaxWidth(Double.MAX_VALUE);
-        row.setAlignment(Pos.CENTER_LEFT);
+        row.setSelected(profile.selected());
+        row.setFocusTraversable(true);
+        row.setGraphic(content);
         row.getStyleClass().add("metadata-profile-row");
 
         if (lastRow) {
@@ -631,12 +665,6 @@ public class MetadataController {
         if (profile.archived()) {
             row.getStyleClass().add("metadata-profile-row-archived");
         }
-
-        Label checkLabel = new Label(profile.selected() ? "✓" : "");
-        checkLabel.getStyleClass().addAll(
-                "metadata-profile-check",
-                profile.selected() ? "metadata-profile-check-selected" : "metadata-profile-check-empty"
-        );
 
         Label titleLabel = new Label(profile.name());
         titleLabel.getStyleClass().add("metadata-profile-title");
@@ -651,12 +679,12 @@ public class MetadataController {
         codeLabel.getStyleClass().add("metadata-profile-code");
 
         VBox textBox = new VBox(4, titleRow, codeLabel);
-
-        row.getChildren().addAll(checkLabel, textBox);
+        content.getChildren().add(textBox);
 
         if (!profile.archived()) {
-            row.setOnMouseClicked(event -> toggleAssignedProfile(profile));
-            AdminKeyboard.makeActivatable(row, "Toggle assigned profile " + profile.name(), () -> toggleAssignedProfile(profile));
+            row.setOnAction(event -> toggleAssignedProfile(profile));
+        } else {
+            row.setDisable(true);
         }
 
         return row;
@@ -698,22 +726,13 @@ public class MetadataController {
     }
 
     private void updateTemplateStatus(MetadataTemplateRow template, String newStatus) {
-        int index = masterTemplates.indexOf(template);
-
-        if (index < 0) {
-            return;
+        if ("Archived".equalsIgnoreCase(newStatus)) {
+            adminManager.archiveMetadataTemplate(template.id());
+        } else {
+            adminManager.restoreMetadataTemplate(template.id());
         }
 
-        MetadataTemplateRow updatedTemplate = new MetadataTemplateRow(
-                template.name(),
-                template.description(),
-                template.assignedProfiles(),
-                template.fieldCount(),
-                newStatus,
-                "Today"
-        );
-
-        masterTemplates.set(index, updatedTemplate);
+        loadTemplates();
         applyFilters();
     }
 
@@ -813,15 +832,17 @@ public class MetadataController {
     private void showCreateEditor() {
         selectedTemplate = null;
 
-        MetadataTemplateRow template = AdminDemoData.newMetadataTemplate();
-
-        editorTitleLabel.setText(template.name());
-        editorSubtitleLabel.setText(template.description());
+        editorTitleLabel.setText("Create Metadata Template");
+        editorSubtitleLabel.setText("Create a reusable metadata form for scanning profiles.");
         setEditorStatus("Draft");
 
         templateNameField.clear();
         templateDescriptionArea.clear();
         templateStatusComboBox.setValue("Draft");
+        loadTemplateFields();
+        loadAssignedProfiles(List.of());
+        renderTemplateFields();
+        renderAssignedProfiles();
 
         previewHeaderButton.setText("Preview Form");
         saveHeaderButton.setText("Create Template");
@@ -847,6 +868,10 @@ public class MetadataController {
         templateNameField.setText(template.name());
         templateDescriptionArea.setText(template.description());
         templateStatusComboBox.setValue(template.status());
+        loadTemplateFields(template);
+        loadAssignedProfiles(template.assignedProfiles());
+        renderTemplateFields();
+        renderAssignedProfiles();
 
         previewHeaderButton.setText("Preview Form");
         saveHeaderButton.setText("Save Changes");
@@ -881,31 +906,41 @@ public class MetadataController {
                 ? "Draft"
                 : templateStatusComboBox.getValue();
 
-        MetadataTemplateRow savedTemplate = new MetadataTemplateRow(
+        AdminManager.MetadataTemplateInput input = new AdminManager.MetadataTemplateInput(
                 templateName,
                 templateDescription,
                 selectedAssignedProfileNames(),
-                templateFields.size(),
-                templateStatus,
-                "Just now"
+                toMetadataFields(templateFields),
+                templateStatus
         );
 
-        if (selectedTemplate == null) {
-            masterTemplates.add(0, savedTemplate);
-        } else {
-            int selectedIndex = masterTemplates.indexOf(selectedTemplate);
+        MetadataTemplate savedTemplate;
 
-            if (selectedIndex >= 0) {
-                masterTemplates.set(selectedIndex, savedTemplate);
-            }
+        if (selectedTemplate == null) {
+            savedTemplate = adminManager.createMetadataTemplate(input);
+        } else {
+            savedTemplate = adminManager.updateMetadataTemplate(selectedTemplate.id(), input);
         }
 
-        selectedTemplate = savedTemplate;
-        editorTitleLabel.setText(savedTemplate.name());
-        editorSubtitleLabel.setText(savedTemplate.description());
-        setEditorStatus(savedTemplate.status());
+        selectedTemplate = toMetadataTemplateRow(savedTemplate);
+        loadTemplates();
+        editorTitleLabel.setText(selectedTemplate.name());
+        editorSubtitleLabel.setText(selectedTemplate.description());
+        setEditorStatus(selectedTemplate.status());
         saveHeaderButton.setText("Save Changes");
         applyFilters();
+    }
+
+    private List<MetadataField> toMetadataFields(List<TemplateFieldRow> fields) {
+        return fields.stream()
+                .map(field -> new MetadataField(
+                        field.id(),
+                        field.name(),
+                        field.type(),
+                        field.required(),
+                        field.placeholder()
+                ))
+                .toList();
     }
 
     private List<String> selectedAssignedProfileNames() {
@@ -996,26 +1031,99 @@ public class MetadataController {
                 : value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private void loadSampleTemplates() {
-        masterTemplates.setAll(AdminDemoData.metadataTemplates());
+    private void loadTemplates() {
+        masterTemplates.setAll(
+                adminManager.getMetadataTemplates().stream()
+                        .map(this::toMetadataTemplateRow)
+                        .toList()
+        );
+
+        refreshProfileFilterOptions();
+    }
+
+    private MetadataTemplateRow toMetadataTemplateRow(MetadataTemplate template) {
+        List<TemplateFieldRow> fields = template.getFields().stream()
+                .map(this::toTemplateFieldRow)
+                .toList();
+
+        return new MetadataTemplateRow(
+                template.getId(),
+                template.getName(),
+                template.getDescription(),
+                template.getAssignedProfileNames(),
+                fields.size(),
+                template.getStatus(),
+                template.getLastUpdated(),
+                fields
+        );
+    }
+
+    private TemplateFieldRow toTemplateFieldRow(MetadataField field) {
+        return new TemplateFieldRow(
+                field.getId(),
+                field.getName(),
+                field.getType(),
+                field.isRequired(),
+                field.getPlaceholder()
+        );
+    }
+
+    private void refreshProfileFilterOptions() {
+        if (profileFilterComboBox == null) {
+            return;
+        }
+
+        String selectedProfile = profileFilterComboBox.getValue();
+        List<String> profileNames = adminManager.getProfiles().stream()
+                .map(ScanProfile::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+
+        List<String> filterOptions = new ArrayList<>();
+        filterOptions.add(ALL_PROFILES);
+        filterOptions.addAll(profileNames);
+
+        profileFilterComboBox.getItems().setAll(filterOptions);
+
+        if (selectedProfile != null && filterOptions.contains(selectedProfile)) {
+            profileFilterComboBox.setValue(selectedProfile);
+        } else {
+            profileFilterComboBox.setValue(ALL_PROFILES);
+        }
     }
 
     record MetadataTemplateRow(
+            int id,
             String name,
             String description,
             List<String> assignedProfiles,
             int fieldCount,
             String status,
-            String lastUpdated
+            String lastUpdated,
+            List<TemplateFieldRow> fields
     ) {
+        MetadataTemplateRow(
+                String name,
+                String description,
+                List<String> assignedProfiles,
+                int fieldCount,
+                String status,
+                String lastUpdated
+        ) {
+            this(0, name, description, assignedProfiles, fieldCount, status, lastUpdated, List.of());
+        }
     }
 
     record TemplateFieldRow(
+            int id,
             String name,
             String type,
             boolean required,
             String placeholder
     ) {
+        TemplateFieldRow(String name, String type, boolean required, String placeholder) {
+            this(0, name, type, required, placeholder);
+        }
     }
 
     record AssignedProfileRow(

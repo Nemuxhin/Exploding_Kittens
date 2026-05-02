@@ -8,7 +8,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -261,8 +260,9 @@ public class AssignmentsController {
         );
     }
 
-    private HBox buildProfileListItem(ScanProfile profile) {
-        HBox item = createListItem(isSelectedProfile(profile));
+    private Button buildProfileListItem(ScanProfile profile) {
+        Button item = createListItem(isSelectedProfile(profile));
+        HBox content = createListItemContent();
 
         VBox textBox = new VBox(6);
         textBox.getChildren().addAll(
@@ -271,7 +271,7 @@ public class AssignmentsController {
                 createLabel("Export: " + displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-list-subtitle")
         );
 
-        item.getChildren().addAll(
+        content.getChildren().addAll(
                 textBox,
                 createSpacer(),
                 createStatusBadge(displayProfileStatus(profile))
@@ -286,14 +286,15 @@ public class AssignmentsController {
             resetRightScroll();
         };
 
-        item.setOnMouseClicked(event -> selectProfile.run());
-        AdminKeyboard.makeActivatable(item, "Select profile " + profile.getName(), selectProfile);
+        item.setGraphic(content);
+        item.setOnAction(event -> selectProfile.run());
 
         return item;
     }
 
-    private HBox buildUserListItem(User user) {
-        HBox item = createListItem(isSelectedUser(user));
+    private Button buildUserListItem(User user) {
+        Button item = createListItem(isSelectedUser(user));
+        HBox content = createListItemContent();
 
         VBox textBox = new VBox(6);
         textBox.getChildren().addAll(
@@ -302,7 +303,7 @@ public class AssignmentsController {
                 createLabel(formatAssignedProfiles(getAssignedProfileIds(user.getId()).size()), "assignment-list-subtitle")
         );
 
-        item.getChildren().addAll(
+        content.getChildren().addAll(
                 textBox,
                 createSpacer(),
                 createRoleBadge(user.getRole())
@@ -317,15 +318,17 @@ public class AssignmentsController {
             resetRightScroll();
         };
 
-        item.setOnMouseClicked(event -> selectUser.run());
-        AdminKeyboard.makeActivatable(item, "Select user " + user.getName(), selectUser);
+        item.setGraphic(content);
+        item.setOnAction(event -> selectUser.run());
 
         return item;
     }
 
-    private HBox createListItem(boolean active) {
-        HBox item = new HBox(12);
-        item.setAlignment(Pos.CENTER_LEFT);
+    private Button createListItem(boolean active) {
+        Button item = new Button();
+        item.setMaxWidth(Double.MAX_VALUE);
+        item.setFocusTraversable(true);
+        item.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
         item.getStyleClass().add("assignment-list-item");
 
         if (active) {
@@ -333,6 +336,13 @@ public class AssignmentsController {
         }
 
         return item;
+    }
+
+    private HBox createListItemContent() {
+        HBox content = new HBox(12);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+        return content;
     }
 
     private void renderSelectedDetails() {
@@ -419,30 +429,8 @@ public class AssignmentsController {
         );
     }
 
-    private HBox buildUserAssignmentRow(User user) {
-        HBox row = createAssignmentRow();
-
-        CheckBox checkBox = createCheckBox(getAssignedUserIds(selectedProfile.getId()).contains(user.getId()));
-
-        checkBox.setOnAction(event -> {
-            setUserAssignment(user, checkBox.isSelected());
-            event.consume();
-        });
-
-        Runnable toggleUserAssignment = () -> {
-            checkBox.setSelected(!checkBox.isSelected());
-            setUserAssignment(user, checkBox.isSelected());
-        };
-
-        row.setOnMouseClicked(event -> {
-            if (isInsideCheckBox(event.getPickResult().getIntersectedNode())) {
-                return;
-            }
-
-            toggleUserAssignment.run();
-        });
-
-        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + user.getName(), toggleUserAssignment);
+    private CheckBox buildUserAssignmentRow(User user) {
+        CheckBox row = createAssignmentRow(getAssignedUserIds(selectedProfile.getId()).contains(user.getId()));
 
         VBox textBox = new VBox(3);
         textBox.getChildren().addAll(
@@ -450,8 +438,8 @@ public class AssignmentsController {
                 createLabel(displayText(user.getEmail(), "No email"), "assignment-row-subtitle")
         );
 
-        row.getChildren().addAll(
-                checkBox,
+        HBox content = createAssignmentRowContent();
+        content.getChildren().addAll(
                 createAvatar(initialsFor(user.getName())),
                 textBox,
                 createSpacer(),
@@ -459,33 +447,14 @@ public class AssignmentsController {
                 createStatusBadge(user.getStatus())
         );
 
+        row.setGraphic(content);
+        row.setOnAction(event -> setUserAssignment(user, row.isSelected()));
+
         return row;
     }
 
-    private HBox buildProfileAssignmentRow(ScanProfile profile) {
-        HBox row = createAssignmentRow();
-
-        CheckBox checkBox = createCheckBox(getAssignedUserIds(profile.getId()).contains(selectedUser.getId()));
-
-        checkBox.setOnAction(event -> {
-            setProfileAssignment(profile, checkBox.isSelected());
-            event.consume();
-        });
-
-        Runnable toggleProfileAssignment = () -> {
-            checkBox.setSelected(!checkBox.isSelected());
-            setProfileAssignment(profile, checkBox.isSelected());
-        };
-
-        row.setOnMouseClicked(event -> {
-            if (isInsideCheckBox(event.getPickResult().getIntersectedNode())) {
-                return;
-            }
-
-            toggleProfileAssignment.run();
-        });
-
-        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + profile.getName(), toggleProfileAssignment);
+    private CheckBox buildProfileAssignmentRow(ScanProfile profile) {
+        CheckBox row = createAssignmentRow(getAssignedUserIds(profile.getId()).contains(selectedUser.getId()));
 
         VBox textBox = new VBox(3);
         textBox.getChildren().addAll(
@@ -493,37 +462,34 @@ public class AssignmentsController {
                 createLabel(displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-row-subtitle")
         );
 
-        row.getChildren().addAll(
-                checkBox,
+        HBox content = createAssignmentRowContent();
+        content.getChildren().addAll(
                 createAvatar(initialsFor(profile.getName())),
                 textBox,
                 createSpacer(),
                 createStatusBadge(displayProfileStatus(profile))
         );
 
+        row.setGraphic(content);
+        row.setOnAction(event -> setProfileAssignment(profile, row.isSelected()));
+
         return row;
     }
 
-    private HBox createAssignmentRow() {
-        HBox row = new HBox(12);
-        row.setAlignment(Pos.CENTER_LEFT);
+    private CheckBox createAssignmentRow(boolean selected) {
+        CheckBox row = new CheckBox();
+        row.setSelected(selected);
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setFocusTraversable(true);
         row.getStyleClass().add("assignment-checkbox-row");
-        row.setPickOnBounds(true);
         return row;
     }
 
-    private CheckBox createCheckBox(boolean selected) {
-        CheckBox checkBox = new CheckBox();
-        checkBox.getStyleClass().add("assignment-checkbox");
-        checkBox.setSelected(selected);
-        checkBox.setFocusTraversable(false);
-        checkBox.setPickOnBounds(true);
-
-        checkBox.setMinSize(24, 24);
-        checkBox.setPrefSize(24, 24);
-        checkBox.setMaxSize(24, 24);
-
-        return checkBox;
+    private HBox createAssignmentRowContent() {
+        HBox content = new HBox(12);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+        return content;
     }
 
     private void setUserAssignment(User user, boolean assigned) {
@@ -536,20 +502,6 @@ public class AssignmentsController {
         updateAssignment(profile.getId(), selectedUser.getId(), assigned);
         renderLeftList();
         updateChangesLabel();
-    }
-
-    private boolean isInsideCheckBox(Node node) {
-        Node current = node;
-
-        while (current != null) {
-            if (current instanceof CheckBox) {
-                return true;
-            }
-
-            current = current.getParent();
-        }
-
-        return false;
     }
 
     private void updateAssignment(int profileId, int userId, boolean assigned) {
