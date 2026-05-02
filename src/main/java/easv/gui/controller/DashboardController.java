@@ -5,18 +5,25 @@ import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -25,6 +32,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -34,6 +42,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +57,10 @@ public class DashboardController {
         DASHBOARD,
         LOGS,
         PROFILES,
+        METADATA,
+        METADATA_FORM,
         MY_SCANS,
+        MY_SCAN_DETAIL,
         SCAN_PROGRESS,
         SCAN_COMPLETE,
         SCANNING,
@@ -77,10 +89,13 @@ public class DashboardController {
     private record ScanRow(String boxId, String profile, String status, String date, int pages) {
     }
 
-    private record ActivityLogEntry(String user, String action, String file, String document, String profile, String boxId, String date, String time) {
+    private record MyScanRow(String file, String document, String profile, String boxId, String date, String time, String size, String status, List<String> actions) {
     }
 
     private record ExportRow(String fileName, String boxId, String profile, String dateCreated, String size, String status) {
+    }
+
+    private record MetadataRow(String profile, String boxId, String file, String document, boolean hasMetadata) {
     }
 
     private record ProfileSummary(String profileName, String autoRotate, String brightness, String removeBlankPages) {
@@ -99,7 +114,7 @@ public class DashboardController {
         return List.of(
                 new ActionCard("[]", "Start Scan", "Begin a new scanning session", true),
                 new ActionCard("MY", "My Scans", "View scan history", false),
-                new ActionCard("EX", "Exports", "Download your files", false)
+                new ActionCard("MD", "Metadata", "Create and review document metadata", false)
         );
     }
 
@@ -112,21 +127,6 @@ public class DashboardController {
         );
     }
 
-    private List<ActivityLogEntry> activityLog() {
-        return List.of(
-                new ActivityLogEntry("Mike", "Deleted", "File 05", "Old Contract", "Legal", "Box 18", "2026-04-23", "11:10"),
-                new ActivityLogEntry("Admin", "Created User", "New Scanner User", "-", "-", "-", "2026-04-23", "11:30"),
-                new ActivityLogEntry("Emma", "Exported", "Document A", "Invoice A", "Finance", "Box 12", "2026-04-23", "10:45"),
-                new ActivityLogEntry("Emma", "QA Approved", "Document A", "Invoice A", "Finance", "Box 12", "2026-04-23", "10:30"),
-                new ActivityLogEntry("John", "Sent to QA", "Document A", "Invoice A", "Finance", "Box 12", "2026-04-23", "10:00"),
-                new ActivityLogEntry("Sara", "Updated", "File 03", "Contract B", "Legal", "Box 15", "2026-04-23", "09:25"),
-                new ActivityLogEntry("Sara", "Moved", "File 03", "Contract B", "Legal", "Box 15", "2026-04-23", "09:20"),
-                new ActivityLogEntry("JD", "Scanned", "File 03", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:08"),
-                new ActivityLogEntry("JD", "Sent to QA", "File 02", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:18"),
-                new ActivityLogEntry("JD", "Exported", "File 01", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:40")
-        );
-    }
-
     private List<ExportRow> exports() {
         return List.of(
                 new ExportRow("StandardScan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan", "2026-04-24", "45.2 MB", "Ready"),
@@ -136,10 +136,25 @@ public class DashboardController {
         );
     }
 
-    private List<ActivityLogEntry> myScanActivity() {
-        return activityLog().stream()
-                .filter(entry -> "JD".equals(entry.user()))
-                .toList();
+    private List<MyScanRow> myScanRows() {
+        return List.of(
+                new MyScanRow("File 03", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:08", "45.2 MB", "QA Completed", List.of("View Scan", "Export")),
+                new MyScanRow("File 02", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:18", "38.6 MB", "Metadata Required", List.of("View Scan", "Export")),
+                new MyScanRow("File 01", "Invoice A", "Standard Scan", "BOX-2026-043", "2026-04-27", "09:40", "42.8 MB", "In Progress", List.of("View Scan", "Export")),
+                new MyScanRow("File 04", "Building Plans", "Building Archive", "BOX-2026-004", "2026-04-28", "11:30", "89.7 MB", "Waiting for QA", List.of("View Scan", "Export")),
+                new MyScanRow("File 05", "Court Document", "Court Records", "BOX-2026-007", "2026-04-29", "14:45", "34.8 MB", "Exported", List.of("View Scan", "Export"))
+        );
+    }
+
+    private List<MetadataRow> metadataRows() {
+        return List.of(
+                new MetadataRow("Building Archive", "BOX-2026-004", "File 01", "Document 1", true),
+                new MetadataRow("Building Archive", "BOX-2026-004", "File 02", "Document 1", false),
+                new MetadataRow("Building Archive", "BOX-2026-004", "File 03", "Document 1", false),
+                new MetadataRow("Court Records", "BOX-2026-007", "File 01", "Document 2", false),
+                new MetadataRow("Court Records", "BOX-2026-007", "File 02", "Document 2", false),
+                new MetadataRow("Standard Scan", "BOX-2026-043", "File 01", "Document 3", false)
+        );
     }
 
     private ProfileSummary activeProfile() {
@@ -148,6 +163,11 @@ public class DashboardController {
 
     private List<ScanProfile> scanProfiles() {
         return List.of(
+                new ScanProfile(
+                        "Building Archive",
+                        "Building records, plans, and long-term archive files",
+                        "Brightness: +12% | Remove blanks: On | TIFF: Multi-page"
+                ),
                 new ScanProfile(
                         "Finance Profile",
                         "Financial document intake and classification",
@@ -179,6 +199,11 @@ public class DashboardController {
                         "Brightness: +10% | Remove blanks: On | OCR: On"
                 )
         );
+    }
+
+    private ScanProfile defaultScanProfile() {
+        List<ScanProfile> profiles = scanProfiles();
+        return profiles.isEmpty() ? null : profiles.get(0);
     }
 
     private List<ScanningDocument> scanningDocuments() {
@@ -231,19 +256,21 @@ public class DashboardController {
     @FXML private BorderPane root;
     @FXML private VBox sidebar;
     @FXML private HBox dashboardNav;
-    @FXML private HBox exportsNav;
     @FXML private HBox profilesNav;
+    @FXML private HBox metadataNav;
     @FXML private HBox myScansNav;
     @FXML private Label dashboardNavIcon;
-    @FXML private Label exportsNavIcon;
     @FXML private Label profilesNavIcon;
+    @FXML private Label metadataNavIcon;
     @FXML private Label myScansNavIcon;
     @FXML private Label dashboardNavText;
-    @FXML private Label exportsNavText;
     @FXML private Label profilesNavText;
+    @FXML private Label metadataNavText;
     @FXML private Label myScansNavText;
     @FXML private HBox darkSwitch;
     @FXML private Label darkSwitchKnob;
+
+    private double singlePageThumbnailScrollValue = 0;
 
     @FXML
     private void initialize() {
@@ -252,7 +279,7 @@ public class DashboardController {
         }
 
         PageState[] currentPage = {PageState.DASHBOARD};
-        ScanProfile[] selectedProfile = {null};
+        ScanProfile[] selectedProfile = {defaultScanProfile()};
         String[] currentBoxId = {""};
         PageMode[] currentPageMode = {PageMode.MULTI_PAGE};
         List<ScanningDocument>[] scanningDocuments = new List[]{copyScanningDocuments(currentPageMode[0])};
@@ -269,6 +296,10 @@ public class DashboardController {
         boolean[] qaApproved = {false};
         Set<String> qaCompletedDocuments = new HashSet<>();
         Set<String> qaHighlightedText = new HashSet<>();
+        MetadataRow[] activeMetadataRow = {null};
+        PageState[] metadataReturnPage = {PageState.METADATA};
+        MyScanRow[] activeMyScanRow = {null};
+        ScanningFile[] activeMyScanDetailFile = {null};
         String[] selectedTiffAction = {""};
         double[] scanProgress = {0};
         Timeline[] scanProgressTimeline = new Timeline[1];
@@ -280,6 +311,13 @@ public class DashboardController {
             }
             Consumer<PageState> onNavigate = page -> {
                 currentPage[0] = page;
+                if (page == PageState.METADATA) {
+                    activeMetadataRow[0] = null;
+                }
+                if (page == PageState.MY_SCANS) {
+                    activeMyScanRow[0] = null;
+                    activeMyScanDetailFile[0] = null;
+                }
                 render[0].run();
             };
             Consumer<ScanProfile> onSelectProfile = profile -> {
@@ -321,6 +359,9 @@ public class DashboardController {
                     qaApproved,
                     qaCompletedDocuments,
                     qaHighlightedText,
+                    activeMetadataRow[0],
+                    activeMyScanRow[0],
+                    activeMyScanDetailFile[0],
                     selectedTiffAction[0],
                     scanProgress[0],
                     onNavigate,
@@ -333,6 +374,7 @@ public class DashboardController {
                         scannedWorkspaceDocuments[0] = new ArrayList<>();
                         activeScanningDocument[0] = null;
                         activeScanningFile[0] = null;
+                        singlePageThumbnailScrollValue = 0;
                         qaCurrentPage[0] = 1;
                         qaRotation[0] = 0;
                         qaZoom[0] = 0.78;
@@ -347,49 +389,40 @@ public class DashboardController {
                         if (scanProgressTimeline[0] != null) {
                             scanProgressTimeline[0].stop();
                         }
-                        currentPage[0] = PageState.SCAN_PROGRESS;
+                        currentPage[0] = PageState.SCANNING;
                         render[0].run();
-                        scanProgressTimeline[0] = new Timeline(new KeyFrame(Duration.millis(35), event -> {
-                            if (currentPage[0] != PageState.SCAN_PROGRESS) {
-                                scanProgressTimeline[0].stop();
-                                return;
-                            }
-                            scanProgress[0] = Math.min(100, scanProgress[0] + 1.2);
-                            if (scanProgress[0] >= 100) {
-                                for (ScanningDocument document : scanningDocuments[0]) {
-                                    if (!containsDocument(scannedWorkspaceDocuments[0], document.title())) {
-                                        scannedWorkspaceDocuments[0].add(document);
-                                    }
-                                }
-                                if (!scannedWorkspaceDocuments[0].isEmpty()) {
-                                    activeScanningDocument[0] = scannedWorkspaceDocuments[0].get(0);
-                                }
-                                activeScanningFile[0] = null;
-                                currentPage[0] = PageState.SCAN_COMPLETE;
-                            }
-                            render[0].run();
-                        }));
-                        scanProgressTimeline[0].setCycleCount(Timeline.INDEFINITE);
-                        scanProgressTimeline[0].play();
                     },
                     document -> {
-                        if (!containsDocument(scannedWorkspaceDocuments[0], document.title())) {
-                            scannedWorkspaceDocuments[0].add(document);
-                        }
                         activeScanningDocument[0] = document;
-                        activeScanningFile[0] = null;
+                        if (document != null && !document.files().isEmpty()) {
+                            activeScanningFile[0] = document.files().get(0);
+                        }
                         render[0].run();
                     },
                     () -> {
                         for (ScanningDocument document : scanningDocuments[0]) {
-                            if (!containsDocument(scannedWorkspaceDocuments[0], document.title())) {
-                                scannedWorkspaceDocuments[0].add(document);
+                            for (ScanningFile file : document.files()) {
+                                activeScanningDocument[0] = scanFileIntoWorkspace(scanningDocuments[0], scannedWorkspaceDocuments[0], file);
+                                activeScanningFile[0] = file;
                             }
                         }
                         if (!scannedWorkspaceDocuments[0].isEmpty()) {
                             activeScanningDocument[0] = scannedWorkspaceDocuments[0].get(0);
                         }
                         activeScanningFile[0] = null;
+                        render[0].run();
+                    },
+                    file -> {
+                        activeScanningFile[0] = file;
+                        activeScanningDocument[0] = findDocumentForFile(scannedWorkspaceDocuments[0], file);
+                        if (activeScanningDocument[0] == null) {
+                            activeScanningDocument[0] = findDocumentForFile(scanningDocuments[0], file);
+                        }
+                        render[0].run();
+                    },
+                    file -> {
+                        activeScanningDocument[0] = scanFileIntoWorkspace(scanningDocuments[0], scannedWorkspaceDocuments[0], file);
+                        activeScanningFile[0] = file;
                         render[0].run();
                     },
                     file -> {
@@ -441,6 +474,16 @@ public class DashboardController {
                     },
                     () -> {
                         currentPage[0] = PageState.DASHBOARD;
+                        render[0].run();
+                    },
+                    scan -> {
+                        activeMyScanRow[0] = scan;
+                        activeMyScanDetailFile[0] = myScanFileForRow(scan);
+                        currentPage[0] = PageState.MY_SCAN_DETAIL;
+                        render[0].run();
+                    },
+                    file -> {
+                        activeMyScanDetailFile[0] = file;
                         render[0].run();
                     },
                     () -> {
@@ -521,6 +564,20 @@ public class DashboardController {
                     tiffAction -> {
                         selectedTiffAction[0] = tiffAction;
                         render[0].run();
+                    },
+                    metadata -> {
+                        activeMetadataRow[0] = metadata;
+                        metadataReturnPage[0] = currentPage[0] == PageState.METADATA_FORM
+                                ? PageState.METADATA
+                                : currentPage[0];
+                        currentPage[0] = PageState.METADATA_FORM;
+                        render[0].run();
+                    },
+                    () -> {
+                        activeMetadataRow[0] = null;
+                        currentPage[0] = metadataReturnPage[0];
+                        metadataReturnPage[0] = PageState.METADATA;
+                        render[0].run();
                     }
             ));
         };
@@ -533,8 +590,8 @@ public class DashboardController {
                                Consumer<PageState> onNavigate,
                                Runnable onToggleTheme) {
         updateNavItem(dashboardNav, dashboardNavIcon, dashboardNavText, "Dashboard", currentPage, onNavigate);
-        updateNavItem(exportsNav, exportsNavIcon, exportsNavText, "Exports", currentPage, onNavigate);
-        updateNavItem(profilesNav, profilesNavIcon, profilesNavText, "Profiles", currentPage, onNavigate);
+        updateNavItem(profilesNav, profilesNavIcon, profilesNavText, "Start Scan", currentPage, onNavigate);
+        updateNavItem(metadataNav, metadataNavIcon, metadataNavText, "Metadata", currentPage, onNavigate);
         updateNavItem(myScansNav, myScansNavIcon, myScansNavText, "My Scans", currentPage, onNavigate);
 
         darkSwitch.getStyleClass().setAll("dark-switch");
@@ -554,6 +611,8 @@ public class DashboardController {
                                Consumer<PageState> onNavigate) {
         PageState page = mapPage(label);
         boolean active = currentPage == page
+                || (currentPage == PageState.METADATA_FORM && page == PageState.METADATA)
+                || (currentPage == PageState.MY_SCAN_DETAIL && page == PageState.MY_SCANS)
                 || ((currentPage == PageState.SCANNING || currentPage == PageState.QA_REVIEW) && page == PageState.PROFILES);
         row.getStyleClass().setAll(active ? "sidebar-nav-item-active" : "sidebar-nav-item");
         icon.setText(active ? "[]" : "-");
@@ -580,6 +639,9 @@ public class DashboardController {
                                     boolean[] qaApproved,
                                     Set<String> qaCompletedDocuments,
                                     Set<String> qaHighlightedText,
+                                    MetadataRow activeMetadataRow,
+                                    MyScanRow activeMyScanRow,
+                                    ScanningFile activeMyScanDetailFile,
                                     String selectedTiffAction,
                                     double scanProgress,
                                     Consumer<PageState> onNavigate,
@@ -588,6 +650,8 @@ public class DashboardController {
                                     BiConsumer<String, PageMode> onStartScanning,
                                     Consumer<ScanningDocument> onSelectScanningDocument,
                                     Runnable onScanAllDocuments,
+                                    Consumer<ScanningFile> onSelectScanFile,
+                                    Consumer<ScanningFile> onScanFile,
                                     Consumer<ScanningFile> onOpenScanningFile,
                                     Runnable onOpenQaReview,
                                     Runnable onScanningChanged,
@@ -595,6 +659,8 @@ public class DashboardController {
                                     Consumer<ScanningFile> onSelectQaFile,
                                     Runnable onBackFromQa,
                                     Runnable onBackToDashboard,
+                                    Consumer<MyScanRow> onOpenMyScanDetail,
+                                    Consumer<ScanningFile> onSelectMyScanDetailFile,
                                     Runnable onExportQa,
                                     Consumer<Integer> onStepQaPage,
                                     Runnable onRotateQaPage,
@@ -604,20 +670,38 @@ public class DashboardController {
                                     Consumer<String> onToggleQaTextHighlight,
                                     Runnable onApproveQa,
                                     Runnable onRejectQa,
-                                    Consumer<String> onSelectTiffAction) {
+                                    Consumer<String> onSelectTiffAction,
+                                    Consumer<MetadataRow> onOpenMetadataForm,
+                                    Runnable onBackToMetadata) {
         BorderPane content = new BorderPane();
         content.getStyleClass().add("dashboard-shell");
-        if (pageState != PageState.QA_REVIEW && pageState != PageState.SCAN_PROGRESS && pageState != PageState.SCAN_COMPLETE) {
+        boolean singlePageScanning = pageState == PageState.SCANNING
+                && resolvedPageMode(currentPageMode) == PageMode.SINGLE_PAGE;
+        if (!singlePageScanning
+                && pageState != PageState.QA_REVIEW
+                && pageState != PageState.METADATA
+                && pageState != PageState.METADATA_FORM
+                && pageState != PageState.MY_SCAN_DETAIL
+                && pageState != PageState.SCAN_PROGRESS
+                && pageState != PageState.SCAN_COMPLETE) {
             content.setTop(buildTopBar());
         }
         Parent pageBody = switch (pageState) {
             case DASHBOARD -> buildDashboardBody(onNavigate);
-            case PROFILES -> buildProfilesBody(selectedProfile, currentBoxId, currentPageMode, onSelectProfile, onSelectPageMode, onStartScanning);
+            case PROFILES -> buildProfilesBody(selectedProfile, currentBoxId, currentPageMode, onSelectProfile, onSelectPageMode, onStartScanning, onNavigate);
+            case METADATA -> buildMetadataBody(onOpenMetadataForm);
+            case METADATA_FORM -> buildMetadataFormBody(activeMetadataRow, onBackToMetadata);
             case LOGS -> buildLogsBody();
-            case MY_SCANS -> buildMyScansBody();
+            case MY_SCANS -> buildMyScansBody(onOpenMyScanDetail);
+            case MY_SCAN_DETAIL -> buildMyScanDetailBody(
+                    activeMyScanRow,
+                    activeMyScanDetailFile,
+                    onSelectMyScanDetailFile,
+                    () -> onNavigate.accept(PageState.MY_SCANS)
+            );
             case SCAN_PROGRESS -> buildScanProgressBody(selectedProfile, currentBoxId, currentPageMode, scanProgress, onBackToProfiles);
             case SCAN_COMPLETE -> buildScanCompleteBody(selectedProfile, currentBoxId, currentPageMode, onScanningChanged, onBackToProfiles);
-            case SCANNING -> buildScanningBody(selectedProfile, currentBoxId, scanningDocuments, scannedWorkspaceDocuments, activeScanningDocument, qaCompletedDocuments, onSelectScanningDocument, onOpenScanningFile, onOpenQaReview, onScanningChanged, onBackToProfiles, onScanAllDocuments);
+            case SCANNING -> buildScanningBody(selectedProfile, currentBoxId, currentPageMode, scanningDocuments, scannedWorkspaceDocuments, activeScanningDocument, activeScanningFile, qaCompletedDocuments, onSelectScanningDocument, onSelectScanFile, onScanFile, onOpenScanningFile, onOpenQaReview, onScanningChanged, onBackToProfiles, onScanAllDocuments);
             case FILE_PAGES -> buildFilePagesBody(selectedProfile, currentBoxId, activeScanningDocument, activeScanningFile, () -> onScanningChanged.run());
             case QA_REVIEW -> buildQaReviewBody(
                     selectedProfile,
@@ -647,7 +731,8 @@ public class DashboardController {
                     onToggleQaTextHighlight,
                     onApproveQa,
                     onRejectQa,
-                    onSelectTiffAction
+                    onSelectTiffAction,
+                    onOpenMetadataForm
             );
         };
         content.setCenter(pageBody);
@@ -672,7 +757,7 @@ public class DashboardController {
 
     private VBox buildDashboardBody(Consumer<PageState> onNavigate) {
         VBox body = new VBox(14);
-        body.getStyleClass().add("dashboard-body");
+        body.getStyleClass().addAll("dashboard-body", "dashboard-home-page");
 
         Label heading = new Label("Dashboard");
         heading.getStyleClass().add("dashboard-heading");
@@ -700,59 +785,104 @@ public class DashboardController {
                                      PageMode selectedPageMode,
                                      Consumer<ScanProfile> onSelectProfile,
                                      Consumer<PageMode> onSelectPageMode,
-                                     BiConsumer<String, PageMode> onStartScanning) {
-        VBox body = new VBox(8);
-        body.getStyleClass().addAll("dashboard-body", "qa-page-body");
+                                     BiConsumer<String, PageMode> onStartScanning,
+                                     Consumer<PageState> onNavigate) {
+        StackPane body = new StackPane();
+        body.getStyleClass().addAll("dashboard-body", "new-scan-page");
 
-        Label heading = new Label("Start New Scan");
-        heading.getStyleClass().add("dashboard-heading");
-        Label subtitle = new Label("Select a profile and enter box information");
-        subtitle.getStyleClass().add("dashboard-subtitle");
-        TextField searchField = new TextField();
-        searchField.setPromptText("Search profiles");
-        searchField.getStyleClass().addAll("box-id-field", "compact-search-field");
+        VBox content = new VBox(12);
+        content.getStyleClass().add("new-scan-content");
+
+        Label heading = new Label("New Scan");
+        heading.getStyleClass().add("new-scan-title");
+        Label subtitle = new Label("Choose a profile and box before scanning.");
+        subtitle.getStyleClass().add("new-scan-subtitle");
+        VBox header = new VBox(4, heading, subtitle);
+        header.getStyleClass().add("new-scan-header");
 
         VBox formCard = new VBox(10);
-        formCard.getStyleClass().add("panel-card");
-        formCard.setPadding(new Insets(14));
-        formCard.setMaxWidth(860);
+        formCard.getStyleClass().add("new-scan-card");
+        formCard.setMaxWidth(Double.MAX_VALUE);
 
-        Label profileSectionTitle = new Label("Select Profile");
-        profileSectionTitle.getStyleClass().add("form-section-title");
+        Label profileSectionTitle = new Label("Profile");
+        profileSectionTitle.getStyleClass().add("new-scan-form-label");
 
-        VBox profilesList = new VBox(6);
-        Runnable refreshProfiles = () -> {
-            profilesList.getChildren().clear();
-            String search = normalizeSearch(searchField.getText());
-            for (ScanProfile profile : scanProfiles()) {
-                if (!matchesSearch(search, profile.title(), profile.description(), profile.settingsLine())) {
-                    continue;
-                }
-                profilesList.getChildren().add(buildProfileCard(profile, profile.equals(selectedProfile), onSelectProfile));
+        Label profileInfoIcon = new Label("i");
+        profileInfoIcon.getStyleClass().add("profile-info-icon");
+        Label profileInfoText = new Label("Profile info");
+        profileInfoText.getStyleClass().add("profile-info-text");
+        HBox profileInfo = new HBox(5, profileInfoIcon, profileInfoText);
+        profileInfo.getStyleClass().add("profile-info-link");
+        profileInfo.setAlignment(Pos.CENTER_RIGHT);
+
+        Region profileSpacer = new Region();
+        HBox.setHgrow(profileSpacer, Priority.ALWAYS);
+        HBox profileHeader = new HBox(8, profileSectionTitle, profileSpacer, profileInfo);
+        profileHeader.getStyleClass().add("new-scan-profile-header");
+
+        ObservableList<ScanProfile> allProfiles = FXCollections.observableArrayList(scanProfiles());
+        FilteredList<ScanProfile> filteredProfiles = new FilteredList<>(allProfiles, profile -> true);
+        ComboBox<ScanProfile> profileCombo = new ComboBox<>(filteredProfiles);
+        profileCombo.setEditable(true);
+        profileCombo.setMaxWidth(Double.MAX_VALUE);
+        profileCombo.setVisibleRowCount(5);
+        profileCombo.getStyleClass().add("profile-combo-box");
+        profileCombo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(ScanProfile profile) {
+                return profile == null ? "" : profile.title();
             }
-        };
-        searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshProfiles.run());
-        refreshProfiles.run();
 
-        Label boxIdTitle = new Label("Enter Box ID");
-        boxIdTitle.getStyleClass().add("form-section-title");
+            @Override
+            public ScanProfile fromString(String value) {
+                return findProfile(value, allProfiles);
+            }
+        });
+        profileCombo.setCellFactory(listView -> {
+            if (!listView.getStyleClass().contains("profile-combo-popup-list")) {
+                listView.getStyleClass().add("profile-combo-popup-list");
+            }
+            return profileComboCell();
+        });
+        profileCombo.setButtonCell(profileComboCell());
+
+        ScanProfile activeProfile = selectedProfile == null ? defaultScanProfile() : selectedProfile;
+        profileCombo.setValue(activeProfile);
+        if (activeProfile != null) {
+            profileCombo.getEditor().setText(activeProfile.title());
+        }
+
+        Label profileHint = new Label("Only profiles assigned to you are shown.");
+        profileHint.getStyleClass().add("new-scan-helper-text");
+
+        Label boxIdTitle = new Label("Box ID");
+        boxIdTitle.getStyleClass().add("new-scan-form-label");
 
         TextField boxIdField = new TextField();
-        boxIdField.setPromptText("e.g., BOX-2026-043");
-        boxIdField.getStyleClass().add("box-id-field");
+        boxIdField.setPromptText("");
+        boxIdField.getStyleClass().addAll("box-id-field", "new-scan-input");
         boxIdField.setText(currentBoxId);
 
-        Label boxIdHint = new Label("Box ID will be used in the export filename");
-        boxIdHint.getStyleClass().add("form-helper-text");
-
-        Label pageModeTitle = new Label("Page Mode");
-        pageModeTitle.getStyleClass().add("form-section-title");
+        Label pageModeTitle = new Label("Document Handling");
+        pageModeTitle.getStyleClass().add("new-scan-form-label");
 
         PageMode currentMode = selectedPageMode == null ? PageMode.MULTI_PAGE : selectedPageMode;
         PageMode[] pageModeSelection = {currentMode};
         ToggleGroup pageModeGroup = new ToggleGroup();
-        ToggleButton singlePageButton = buildPageModeToggle(PageMode.SINGLE_PAGE, pageModeGroup, currentMode);
-        ToggleButton multiPageButton = buildPageModeToggle(PageMode.MULTI_PAGE, pageModeGroup, currentMode);
+        ToggleButton singlePageButton = buildPageModeToggle(
+                PageMode.SINGLE_PAGE,
+                "Single page",
+                "1 file = 1 page (each page is saved as a separate file)",
+                pageModeGroup,
+                currentMode
+        );
+        ToggleButton multiPageButton = buildPageModeToggle(
+                PageMode.MULTI_PAGE,
+                "Multi-page TIFF",
+                "1 file = multiple pages (all pages are combined into one file)",
+                pageModeGroup,
+                currentMode
+        );
         pageModeGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
             if (newToggle == null) {
                 if (oldToggle != null) {
@@ -765,36 +895,101 @@ public class DashboardController {
             onSelectPageMode.accept(pageMode);
         });
 
-        HBox pageModeRow = new HBox(8, singlePageButton, multiPageButton);
-        pageModeRow.getStyleClass().add("scan-mode-toggle-row");
+        HBox pageModeRow = new HBox(10, singlePageButton, multiPageButton);
+        pageModeRow.getStyleClass().add("document-handling-row");
+        HBox.setHgrow(singlePageButton, Priority.ALWAYS);
+        HBox.setHgrow(multiPageButton, Priority.ALWAYS);
 
         Button startButton = new Button("Start Scanning");
-        startButton.getStyleClass().add("start-scanning-button");
+        startButton.getStyleClass().addAll("start-scanning-button", "new-scan-primary-button");
         startButton.setMaxWidth(Double.MAX_VALUE);
-        startButton.setDisable(selectedProfile == null || currentBoxId == null || currentBoxId.isBlank());
-        boxIdField.textProperty().addListener((obs, oldValue, newValue) ->
-                startButton.setDisable(selectedProfile == null || newValue == null || newValue.isBlank()));
+
+        Button myScansButton = new Button("View My Scans");
+        myScansButton.getStyleClass().add("new-scan-secondary-button");
+        myScansButton.setOnAction(event -> onNavigate.accept(PageState.MY_SCANS));
+
+        ScanProfile[] profileSelection = {profileCombo.getValue()};
+        Runnable updateStartButton = () -> {
+            String boxId = boxIdField.getText() == null ? "" : boxIdField.getText().trim();
+            startButton.setDisable(profileSelection[0] == null || boxId.isBlank());
+        };
+
+        profileCombo.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
+            String search = normalizeSearch(newValue);
+            filteredProfiles.setPredicate(profile ->
+                    matchesSearch(search, profile.title(), profile.description(), profile.settingsLine()));
+            if (profileCombo.isFocused() && !profileCombo.isShowing()) {
+                profileCombo.show();
+            }
+        });
+        profileCombo.valueProperty().addListener((obs, oldValue, newValue) -> {
+            profileSelection[0] = newValue;
+            updateStartButton.run();
+            if (newValue != null && !newValue.equals(oldValue)) {
+                onSelectProfile.accept(newValue);
+            }
+        });
+        boxIdField.textProperty().addListener((obs, oldValue, newValue) -> updateStartButton.run());
+        updateStartButton.run();
+
         startButton.setOnAction(event -> {
             String boxId = boxIdField.getText() == null ? "" : boxIdField.getText().trim();
-            if (selectedProfile != null && !boxId.isEmpty()) {
+            if (profileSelection[0] != null && !boxId.isEmpty()) {
                 onStartScanning.accept(boxId, pageModeSelection[0]);
             }
         });
 
-        formCard.getChildren().addAll(profileSectionTitle, profilesList, boxIdTitle, boxIdField, pageModeTitle, pageModeRow, boxIdHint, startButton);
+        HBox actionRow = new HBox(10, startButton, myScansButton);
+        actionRow.getStyleClass().add("new-scan-action-row");
+        HBox.setHgrow(startButton, Priority.ALWAYS);
 
-        ScrollPane formScroll = new ScrollPane(formCard);
-        formScroll.setFitToWidth(true);
-        formScroll.getStyleClass().add("profile-form-scroll");
-        VBox.setVgrow(formScroll, Priority.ALWAYS);
+        formCard.getChildren().addAll(
+                profileHeader,
+                profileCombo,
+                profileHint,
+                boxIdTitle,
+                boxIdField,
+                pageModeTitle,
+                pageModeRow,
+                actionRow
+        );
 
-        body.getChildren().addAll(heading, subtitle, searchField, formScroll);
+        content.getChildren().addAll(header, formCard);
+        body.getChildren().add(content);
+        StackPane.setAlignment(content, Pos.TOP_CENTER);
+
+        Label topHelp = new Label("?");
+        topHelp.getStyleClass().addAll("new-scan-help-button", "new-scan-help-top");
+        StackPane.setAlignment(topHelp, Pos.TOP_RIGHT);
+
+        Label bottomHelp = new Label("?");
+        bottomHelp.getStyleClass().addAll("new-scan-help-button", "new-scan-help-bottom");
+        StackPane.setAlignment(bottomHelp, Pos.BOTTOM_RIGHT);
+
+        body.getChildren().addAll(topHelp, bottomHelp);
         return body;
     }
 
-    private ToggleButton buildPageModeToggle(PageMode pageMode, ToggleGroup group, PageMode selectedPageMode) {
-        ToggleButton button = new ToggleButton(pageMode.label());
-        button.getStyleClass().add("scan-mode-toggle");
+    private ToggleButton buildPageModeToggle(PageMode pageMode,
+                                             String titleText,
+                                             String descriptionText,
+                                             ToggleGroup group,
+                                             PageMode selectedPageMode) {
+        Label title = new Label(titleText);
+        title.getStyleClass().add("document-handling-title");
+
+        Label description = new Label(descriptionText);
+        description.getStyleClass().add("document-handling-description");
+        description.setWrapText(true);
+
+        VBox content = new VBox(6, title, description);
+        content.getStyleClass().add("document-handling-content");
+        content.setAlignment(Pos.CENTER_LEFT);
+
+        ToggleButton button = new ToggleButton();
+        button.setGraphic(content);
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        button.getStyleClass().addAll("scan-mode-toggle", "document-handling-option");
         button.setToggleGroup(group);
         button.setUserData(pageMode);
         button.setSelected(pageMode == selectedPageMode);
@@ -873,114 +1068,651 @@ public class DashboardController {
         return body;
     }
 
-    private VBox buildMyScansBody() {
+    private VBox buildMyScansBody(Consumer<MyScanRow> onOpenMyScanDetail) {
         VBox body = new VBox(14);
-        body.getStyleClass().add("dashboard-body");
+        body.getStyleClass().addAll("dashboard-body", "my-scans-page");
 
         Label heading = new Label("My Scans");
         heading.getStyleClass().add("dashboard-heading");
-        Label subtitle = new Label("Only your own scan activity and export history.");
+        Label subtitle = new Label("Search and manage your scanned files");
         subtitle.getStyleClass().add("dashboard-subtitle");
+
         TextField searchField = new TextField();
-        searchField.setPromptText("Search my scans");
-        searchField.getStyleClass().addAll("box-id-field", "compact-search-field");
+        searchField.setPromptText("Search box ID or profile...");
+        searchField.getStyleClass().add("my-scans-search-field");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
 
-        HBox contentRow = new HBox(14, buildMyScansTablePanel(searchField), buildMyScansSideColumn());
-        HBox.setHgrow(contentRow.getChildren().get(0), Priority.ALWAYS);
+        SVGPath searchIcon = new SVGPath();
+        searchIcon.setContent("M21 21L15.8 15.8 M17 10.5A6.5 6.5 0 1 1 4 10.5A6.5 6.5 0 0 1 17 10.5");
+        searchIcon.getStyleClass().add("my-scans-search-icon");
 
-        body.getChildren().addAll(heading, subtitle, searchField, contentRow);
+        HBox searchBox = new HBox(10, searchIcon, searchField);
+        searchBox.getStyleClass().add("my-scans-search-box");
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
+
+        ComboBox<String> statusFilter = new ComboBox<>();
+        statusFilter.getItems().addAll("All Statuses", "In Progress", "Waiting for QA", "Metadata Required", "QA Completed", "Exported");
+        statusFilter.setValue("All Statuses");
+        statusFilter.setVisibleRowCount(6);
+        statusFilter.setCellFactory(listView -> {
+            if (!listView.getStyleClass().contains("my-scans-status-popup-list")) {
+                listView.getStyleClass().add("my-scans-status-popup-list");
+            }
+            return new ListCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? null : item);
+                }
+            };
+        });
+        statusFilter.getStyleClass().add("my-scans-status-filter");
+
+        HBox filterRow = new HBox(16, searchBox, statusFilter);
+        filterRow.getStyleClass().add("my-scans-filter-row");
+        filterRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox tablePanel = buildMyScansTablePanel(searchField, statusFilter, onOpenMyScanDetail);
+        VBox.setVgrow(tablePanel, Priority.ALWAYS);
+
+        body.getChildren().addAll(heading, subtitle, filterRow, tablePanel);
         return body;
     }
 
-    private VBox buildMyScansTablePanel(TextField searchField) {
+    private VBox buildMyScansTablePanel(TextField searchField,
+                                        ComboBox<String> statusFilter,
+                                        Consumer<MyScanRow> onOpenMyScanDetail) {
         VBox panel = new VBox(0);
-        panel.getStyleClass().add("panel-card");
-        HBox.setHgrow(panel, Priority.ALWAYS);
-
-        Label title = new Label("My Activity");
-        title.getStyleClass().add("panel-title");
-        VBox header = new VBox(title);
-        header.setPadding(new Insets(18, 22, 18, 22));
+        panel.getStyleClass().add("my-scans-table-panel");
+        panel.setMaxWidth(Double.MAX_VALUE);
 
         GridPane table = new GridPane();
-        table.getStyleClass().add("recent-table");
+        table.getStyleClass().add("my-scans-table");
         table.setMaxWidth(Double.MAX_VALUE);
         table.getColumnConstraints().addAll(
-                column(130),
-                column(130),
+                column(85),
+                column(125),
+                column(135),
                 column(145),
-                column(150),
-                column(150),
                 column(120),
-                column(90)
+                column(95),
+                column(145),
+                column(185)
         );
 
-        table.add(headerCell("Action"), 0, 0);
-        table.add(headerCell("File"), 1, 0);
-        table.add(headerCell("Document"), 2, 0);
-        table.add(headerCell("Profile"), 3, 0);
-        table.add(headerCell("Box ID"), 4, 0);
-        table.add(headerCell("Date"), 5, 0);
-        table.add(headerCell("Time"), 6, 0);
+        table.add(myScansHeaderCell("File"), 0, 0);
+        table.add(myScansHeaderCell("Document"), 1, 0);
+        table.add(myScansHeaderCell("Profile"), 2, 0);
+        table.add(myScansHeaderCell("Box ID"), 3, 0);
+        table.add(myScansHeaderCell("Date &\nTime"), 4, 0);
+        table.add(myScansHeaderCell("Size"), 5, 0);
+        table.add(myScansHeaderCell("Status"), 6, 0);
+        table.add(myScansHeaderCell("Actions"), 7, 0);
 
         Runnable refreshTable = () -> {
-            while (table.getChildren().size() > 7) {
+            while (table.getChildren().size() > 8) {
+                table.getChildren().remove(table.getChildren().size() - 1);
+            }
+            String search = normalizeSearch(searchField.getText());
+            String selectedStatus = statusFilter.getValue();
+            int row = 1;
+            for (MyScanRow scan : myScanRows()) {
+                boolean statusMatches = selectedStatus == null
+                        || "All Statuses".equals(selectedStatus)
+                        || selectedStatus.equals(scan.status());
+                if (!statusMatches) {
+                    continue;
+                }
+                if (!matchesSearch(search,
+                        scan.file(),
+                        scan.document(),
+                        scan.profile(),
+                        scan.boxId(),
+                        scan.date(),
+                        scan.time(),
+                        scan.size(),
+                        scan.status())) {
+                    continue;
+                }
+                table.add(myScansBodyCell(scan.file()), 0, row);
+                table.add(myScansBodyCell(scan.document()), 1, row);
+                table.add(myScansBodyCell(scan.profile()), 2, row);
+                table.add(myScansBodyCell(scan.boxId()), 3, row);
+                table.add(myScansDateCell(scan.date(), scan.time()), 4, row);
+                table.add(myScansBodyCell(scan.size()), 5, row);
+                table.add(myScansStatusCell(scan.status()), 6, row);
+                table.add(myScansActionsCell(scan, onOpenMyScanDetail), 7, row);
+                row++;
+            }
+        };
+        searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshTable.run());
+        statusFilter.valueProperty().addListener((obs, oldValue, newValue) -> refreshTable.run());
+        refreshTable.run();
+
+        panel.getChildren().add(table);
+        return panel;
+    }
+
+    private Parent buildMyScanDetailBody(MyScanRow scan,
+                                         ScanningFile activeDetailFile,
+                                         Consumer<ScanningFile> onSelectDetailFile,
+                                         Runnable onBackToMyScans) {
+        MyScanRow row = scan == null ? firstMyScanRow() : scan;
+        if (row == null) {
+            VBox empty = new VBox(12, new Label("No scan selected."));
+            empty.getStyleClass().addAll("dashboard-body", "my-scan-detail-page");
+            return empty;
+        }
+
+        ScanningDocument document = myScanDocumentFor(row);
+        List<ScanningFile> documentFiles = document.files();
+        ScanningFile selectedFile = resolveMyScanDetailFile(document, activeDetailFile, row);
+
+        BorderPane body = new BorderPane();
+        body.getStyleClass().addAll("dashboard-body", "qa-review-page", "my-scan-detail-page");
+        BorderPane detailMain = new BorderPane();
+        detailMain.getStyleClass().add("qa-main-content");
+        body.setCenter(detailMain);
+
+        Label backArrow = new Label("<");
+        backArrow.getStyleClass().add("qa-back-link");
+        backArrow.setOnMouseClicked(event -> onBackToMyScans.run());
+
+        Label brandName = new Label("Scan Details");
+        brandName.getStyleClass().add("qa-brand-name");
+
+        HBox breadcrumbs = new HBox(10,
+                new Label("My Scans"),
+                new Label(">"),
+                new Label(row.boxId()),
+                new Label(">"),
+                new Label(row.document())
+        );
+        breadcrumbs.getStyleClass().add("qa-breadcrumbs");
+        breadcrumbs.setAlignment(Pos.CENTER_LEFT);
+
+        VBox titleBlock = new VBox(2, brandName, breadcrumbs);
+        titleBlock.getStyleClass().add("qa-title-block");
+
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        Label status = new Label(row.status());
+        status.getStyleClass().addAll("my-scans-status-pill", myScansStatusClass(row.status()));
+        HBox headerRow = new HBox(14, backArrow, titleBlock, headerSpacer, status);
+        headerRow.getStyleClass().add("qa-app-header");
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        if (documentFiles.isEmpty() || selectedFile == null) {
+            VBox emptyPanel = new VBox(new Label("No scanned files available for this document."));
+            emptyPanel.getStyleClass().add("panel-card");
+            emptyPanel.setPadding(new Insets(22));
+            detailMain.setTop(headerRow);
+            detailMain.setCenter(emptyPanel);
+            return body;
+        }
+
+        VBox filesPanel = new VBox(10);
+        filesPanel.getStyleClass().addAll("qa-file-list-panel", "qa-files-panel");
+        Label filesTitle = new Label("Files in " + document.title());
+        filesTitle.getStyleClass().add("panel-title");
+        Label filesCount = new Label(String.valueOf(documentFiles.size()));
+        filesCount.getStyleClass().add("qa-count-pill");
+        HBox filesHeader = new HBox(8, filesTitle, filesCount);
+        filesHeader.setAlignment(Pos.CENTER_LEFT);
+
+        FlowPane fileRows = new FlowPane(12, 12);
+        fileRows.getStyleClass().add("qa-mini-file-list");
+        fileRows.setAlignment(Pos.TOP_LEFT);
+        fileRows.setPrefWrapLength(206);
+        int fileIndex = 1;
+        for (ScanningFile file : documentFiles) {
+            boolean selected = file.reference().equals(selectedFile.reference());
+            fileRows.getChildren().add(buildQaScanningFileCard(
+                    file,
+                    fileIndex++,
+                    selected,
+                    () -> onSelectDetailFile.accept(file)
+            ));
+        }
+
+        ScrollPane fileScroll = new ScrollPane(fileRows);
+        fileScroll.setFitToWidth(true);
+        fileScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        fileScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        fileScroll.getStyleClass().add("scan-document-scroll");
+        VBox.setVgrow(fileScroll, Priority.ALWAYS);
+        filesPanel.getChildren().addAll(filesHeader, fileScroll);
+        VBox.setVgrow(filesPanel, Priority.ALWAYS);
+
+        VBox leftColumn = new VBox(filesPanel);
+        leftColumn.getStyleClass().add("qa-left-column");
+        leftColumn.setPrefWidth(240);
+        leftColumn.setMinWidth(240);
+        leftColumn.setMaxWidth(240);
+        leftColumn.setMaxHeight(Double.MAX_VALUE);
+
+        VBox previewPaper = buildQaPreviewPaper(1, false, Set.of(), ignored -> {
+        });
+        StackPane previewStage = new StackPane(previewPaper);
+        previewStage.getStyleClass().add("qa-preview-stage");
+        Rectangle previewClip = new Rectangle();
+        previewClip.arcWidthProperty().set(24);
+        previewClip.arcHeightProperty().set(24);
+        previewClip.widthProperty().bind(previewStage.widthProperty());
+        previewClip.heightProperty().bind(previewStage.heightProperty());
+        previewStage.setClip(previewClip);
+        VBox.setVgrow(previewStage, Priority.ALWAYS);
+
+        Label previewTitle = new Label("SCANNED FILE PREVIEW");
+        previewTitle.getStyleClass().add("qa-bottom-title");
+        Region toolbarSpacer = new Region();
+        HBox.setHgrow(toolbarSpacer, Priority.ALWAYS);
+        Label previewPage = new Label("Page 1 / " + selectedFile.pageCount());
+        previewPage.getStyleClass().add("qa-page-counter");
+        HBox toolbar = new HBox(8, previewTitle, toolbarSpacer, previewPage);
+        toolbar.getStyleClass().add("qa-toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+
+        VBox bottomStrip = buildQaBottomFileStrip(document.title(), documentFiles, selectedFile, onSelectDetailFile);
+        VBox previewColumn = new VBox(0, toolbar, previewStage, bottomStrip);
+        previewColumn.getStyleClass().add("qa-preview-column");
+        HBox.setHgrow(previewColumn, Priority.ALWAYS);
+
+        VBox selectionPanel = qaSidePanel("Current File",
+                qaMetaBlock("Profile", row.profile()),
+                qaMetaBlock("Box ID", row.boxId()),
+                qaMetaBlock("Document", document.title()),
+                qaMetaBlock("File", selectedFile.badge()),
+                qaMetaBlock("Reference ID", selectedFile.reference().replace("Ref: ", "")),
+                qaMetaBlock("Filename", selectedFile.fileName()),
+                qaMetaBlock("Pages", selectedFile.pages()),
+                qaMetaBlock("Scanned", row.date() + " " + row.time()),
+                qaMetaBlock("Size", row.size())
+        );
+
+        Region rightSpacer = new Region();
+        VBox.setVgrow(rightSpacer, Priority.ALWAYS);
+        Button backButton = new Button("Back to My Scans");
+        backButton.getStyleClass().add("qa-side-action-button");
+        backButton.setMaxWidth(Double.MAX_VALUE);
+        backButton.setOnAction(event -> onBackToMyScans.run());
+
+        VBox rightColumn = new VBox(10, selectionPanel, rightSpacer, backButton);
+        rightColumn.getStyleClass().add("qa-right-column");
+        rightColumn.setPrefWidth(230);
+        rightColumn.setMinWidth(230);
+        rightColumn.setMaxWidth(230);
+
+        HBox workspace = new HBox(0, leftColumn, previewColumn, rightColumn);
+        workspace.getStyleClass().add("qa-workspace");
+        workspace.setMinHeight(0);
+        workspace.setMaxHeight(Double.MAX_VALUE);
+        HBox.setHgrow(previewColumn, Priority.ALWAYS);
+
+        detailMain.setTop(headerRow);
+        detailMain.setCenter(workspace);
+        BorderPane.setAlignment(workspace, Pos.TOP_LEFT);
+        return body;
+    }
+
+    private MyScanRow firstMyScanRow() {
+        List<MyScanRow> rows = myScanRows();
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    private ScanningDocument myScanDocumentFor(MyScanRow scan) {
+        if (scan == null) {
+            return new ScanningDocument("Document", "0 files", List.of());
+        }
+
+        List<MyScanRow> matchingRows = new ArrayList<>();
+        for (MyScanRow row : myScanRows()) {
+            if (sameMyScanDocument(row, scan)) {
+                matchingRows.add(row);
+            }
+        }
+        matchingRows.sort((left, right) -> Integer.compare(fileNumber(left.file()), fileNumber(right.file())));
+
+        List<ScanningFile> files = new ArrayList<>();
+        for (MyScanRow row : matchingRows) {
+            files.add(myScanFileForRow(row));
+        }
+
+        return new ScanningDocument(scan.document(), scannedFileCountText(files.size()), files);
+    }
+
+    private boolean sameMyScanDocument(MyScanRow left, MyScanRow right) {
+        return left != null
+                && right != null
+                && left.document().equals(right.document())
+                && left.profile().equals(right.profile())
+                && left.boxId().equals(right.boxId());
+    }
+
+    private ScanningFile resolveMyScanDetailFile(ScanningDocument document, ScanningFile requestedFile, MyScanRow sourceRow) {
+        String requestedReference = requestedFile == null && sourceRow != null
+                ? myScanFileForRow(sourceRow).reference()
+                : requestedFile == null ? "" : requestedFile.reference();
+        for (ScanningFile file : document.files()) {
+            if (file.reference().equals(requestedReference)) {
+                return file;
+            }
+        }
+        return document.files().isEmpty() ? null : document.files().get(0);
+    }
+
+    private ScanningFile myScanFileForRow(MyScanRow row) {
+        int pageCount = myScanPageCount(row);
+        String fileId = row.file().replace(" ", "-").toUpperCase();
+        return new ScanningFile(
+                row.file(),
+                fileBaseName(row.document() + "_" + row.file()) + ".tiff",
+                "Ref: " + row.boxId() + "-" + fileId,
+                pageCountText(pageCount),
+                pageCount,
+                false
+        );
+    }
+
+    private int myScanPageCount(MyScanRow row) {
+        if (row == null || row.size() == null) {
+            return 1;
+        }
+        try {
+            String sizeValue = row.size().replace("MB", "").trim();
+            double megabytes = Double.parseDouble(sizeValue);
+            return Math.max(1, Math.min(8, (int) Math.round(megabytes / 15.0)));
+        } catch (NumberFormatException ignored) {
+            return 1;
+        }
+    }
+
+    private int fileNumber(String fileLabel) {
+        if (fileLabel == null) {
+            return Integer.MAX_VALUE;
+        }
+        String digits = fileLabel.replaceAll("[^0-9]", "");
+        if (digits.isBlank()) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            return Integer.parseInt(digits);
+        } catch (NumberFormatException ignored) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    private VBox buildMetadataBody(Consumer<MetadataRow> onOpenMetadataForm) {
+        VBox body = new VBox(18);
+        body.getStyleClass().addAll("dashboard-body", "metadata-page");
+
+        Label heading = new Label("Metadata");
+        heading.getStyleClass().add("metadata-title");
+        Label subtitle = new Label("Create metadata records for your scanned documents.");
+        subtitle.getStyleClass().add("metadata-subtitle");
+        VBox titleBlock = new VBox(8, heading, subtitle);
+        titleBlock.getStyleClass().add("metadata-title-block");
+
+        Label help = new Label("?");
+        help.getStyleClass().add("metadata-help-button");
+        HBox header = new HBox(titleBlock, help);
+        header.getStyleClass().add("metadata-header");
+        header.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(titleBlock, Priority.ALWAYS);
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search by box ID, profile, file or document...");
+        searchField.getStyleClass().add("metadata-search-field");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        SVGPath searchIcon = new SVGPath();
+        searchIcon.setContent("M21 21L15.8 15.8 M17 10.5A6.5 6.5 0 1 1 4 10.5A6.5 6.5 0 0 1 17 10.5");
+        searchIcon.getStyleClass().add("metadata-search-icon");
+
+        HBox searchBox = new HBox(14, searchIcon, searchField);
+        searchBox.getStyleClass().add("metadata-search-box");
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
+
+        VBox tablePanel = buildMetadataTablePanel(searchField, onOpenMetadataForm);
+        VBox.setVgrow(tablePanel, Priority.ALWAYS);
+
+        body.getChildren().addAll(header, searchBox, tablePanel);
+        return body;
+    }
+
+    private VBox buildMetadataTablePanel(TextField searchField, Consumer<MetadataRow> onOpenMetadataForm) {
+        VBox panel = new VBox(0);
+        panel.getStyleClass().add("metadata-table-panel");
+        panel.setMaxWidth(Double.MAX_VALUE);
+
+        GridPane table = new GridPane();
+        table.getStyleClass().add("metadata-table");
+        table.setMaxWidth(Double.MAX_VALUE);
+        table.getColumnConstraints().addAll(
+                column(180),
+                column(150),
+                column(130),
+                column(150),
+                column(300)
+        );
+
+        table.add(metadataHeaderCell("Profile"), 0, 0);
+        table.add(metadataHeaderCell("Box ID"), 1, 0);
+        table.add(metadataHeaderCell("File"), 2, 0);
+        table.add(metadataHeaderCell("Document"), 3, 0);
+        table.add(metadataHeaderCell("Actions"), 4, 0);
+
+        Runnable refreshTable = () -> {
+            while (table.getChildren().size() > 5) {
                 table.getChildren().remove(table.getChildren().size() - 1);
             }
             String search = normalizeSearch(searchField.getText());
             int row = 1;
-            for (ActivityLogEntry entry : myScanActivity()) {
+            for (MetadataRow metadata : metadataRows()) {
                 if (!matchesSearch(search,
-                        entry.action(),
-                        entry.file(),
-                        entry.document(),
-                        entry.profile(),
-                        entry.boxId(),
-                        entry.date(),
-                        entry.time())) {
+                        metadata.profile(),
+                        metadata.boxId(),
+                        metadata.file(),
+                        metadata.document())) {
                     continue;
                 }
-                table.add(bodyCell(entry.action()), 0, row);
-                table.add(bodyCell(entry.file()), 1, row);
-                table.add(bodyCell(entry.document()), 2, row);
-                table.add(bodyCell(entry.profile()), 3, row);
-                table.add(bodyCell(entry.boxId()), 4, row);
-                table.add(bodyCell(entry.date()), 5, row);
-                table.add(bodyCell(entry.time()), 6, row);
+                table.add(metadataBodyCell(metadata.profile()), 0, row);
+                table.add(metadataBodyCell(metadata.boxId()), 1, row);
+                table.add(metadataBodyCell(metadata.file()), 2, row);
+                table.add(metadataBodyCell(metadata.document()), 3, row);
+                table.add(metadataActionsCell(metadata, onOpenMetadataForm), 4, row);
                 row++;
             }
         };
         searchField.textProperty().addListener((obs, oldValue, newValue) -> refreshTable.run());
         refreshTable.run();
 
-        panel.getChildren().addAll(header, table);
+        panel.getChildren().add(table);
         return panel;
     }
 
-    private VBox buildMyScansSideColumn() {
-        List<ActivityLogEntry> myActivity = myScanActivity();
-        long exportCount = myActivity.stream().filter(entry -> "Exported".equals(entry.action())).count();
-        long qaCount = myActivity.stream().filter(entry -> entry.action().contains("QA")).count();
+    private Label metadataHeaderCell(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("metadata-table-header");
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
 
-        VBox column = new VBox(18);
-        column.setPrefWidth(220);
-        column.setMinWidth(220);
-        column.setMaxWidth(220);
+    private Label metadataBodyCell(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("metadata-table-cell");
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setWrapText(true);
+        return label;
+    }
 
-        VBox summaryPanel = new VBox(16);
-        summaryPanel.getStyleClass().add("panel-card");
-        summaryPanel.setPadding(new Insets(18));
-        Label summaryTitle = new Label("My Summary");
-        summaryTitle.getStyleClass().add("panel-title");
-        summaryPanel.getChildren().addAll(
-                summaryTitle,
-                infoBlock("My Log Entries", String.valueOf(myActivity.size())),
-                infoBlock("Exports", String.valueOf(exportCount)),
-                infoBlock("QA Actions", String.valueOf(qaCount))
+    private HBox metadataActionsCell(MetadataRow metadata, Consumer<MetadataRow> onOpenMetadataForm) {
+        HBox cell = new HBox(10);
+        cell.getStyleClass().add("metadata-actions-cell");
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+
+        Button primary = new Button(metadata.hasMetadata() ? "Edit Metadata" : "Create Metadata");
+        primary.getStyleClass().add("metadata-primary-action");
+        primary.setFocusTraversable(false);
+        primary.setOnAction(event -> onOpenMetadataForm.accept(metadata));
+        cell.getChildren().add(primary);
+
+        if (metadata.hasMetadata()) {
+            Button delete = new Button("Delete Metadata");
+            delete.getStyleClass().add("metadata-delete-action");
+            delete.setFocusTraversable(false);
+            cell.getChildren().add(delete);
+        }
+
+        return cell;
+    }
+
+    private Parent buildMetadataFormBody(MetadataRow metadata, Runnable onBackToMetadata) {
+        MetadataRow row = metadata == null
+                ? new MetadataRow("Building Archive", "BOX-2026-004", "File 01", "Document 1", true)
+                : metadata;
+
+        VBox form = new VBox(14);
+        form.getStyleClass().add("metadata-form-content");
+
+        boolean editMode = row.hasMetadata();
+
+        TextField titleField = metadataFormTextField(editMode ? "Q1 Invoice - Acme Corp" : "");
+        titleField.setPromptText("Q1 Invoice - Acme Corp");
+
+        ComboBox<String> documentType = new ComboBox<>();
+        documentType.getItems().addAll("Invoice", "Contract", "Report", "Archive Record", "Case File");
+        documentType.setPromptText("Select document type");
+        documentType.getStyleClass().add("metadata-form-combo");
+        documentType.setMaxWidth(Double.MAX_VALUE);
+        documentType.setMinHeight(42);
+        documentType.setPrefHeight(42);
+        if (editMode) {
+            documentType.setValue("Invoice");
+        }
+
+        TextField customerField = metadataFormTextField(editMode ? "Acme Corporation" : "");
+        customerField.setPromptText("Acme Corporation");
+
+        TextField dateField = metadataFormTextField(editMode ? "15/04/2026" : "");
+        dateField.setPromptText("dd/mm/yyyy");
+        Label calendarIcon = new Label("□");
+        calendarIcon.getStyleClass().add("metadata-calendar-icon");
+        HBox dateBox = new HBox(dateField, calendarIcon);
+        dateBox.getStyleClass().add("metadata-date-field");
+        dateBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(dateField, Priority.ALWAYS);
+
+        TextField tagsField = metadataFormTextField(editMode ? "invoice, Q1, finance" : "");
+        tagsField.setPromptText("invoice, Q1, finance");
+        Button addTag = new Button("Add Tag");
+        addTag.getStyleClass().add("metadata-tag-button");
+        HBox tagsRow = new HBox(12, tagsField, addTag);
+        tagsRow.getStyleClass().add("metadata-tags-row");
+        HBox.setHgrow(tagsField, Priority.ALWAYS);
+        VBox tagsControl = new VBox(8, tagsRow);
+        if (editMode) {
+            HBox tagChips = new HBox(10,
+                    metadataTagChip("invoice"),
+                    metadataTagChip("Q1"),
+                    metadataTagChip("finance")
+            );
+            tagChips.getStyleClass().add("metadata-tag-chip-row");
+            tagsControl.getChildren().add(tagChips);
+        }
+
+        TextArea notes = new TextArea(editMode ? "Includes service and support fees" : "");
+        notes.setPromptText("Includes service and support fees");
+        notes.getStyleClass().add("metadata-notes-area");
+        notes.setWrapText(true);
+
+        VBox formHeader = new VBox(8);
+        formHeader.getStyleClass().add("metadata-form-top-header");
+        Label title = new Label(editMode ? "Edit Metadata" : "Create Metadata");
+        title.getStyleClass().add("metadata-form-title");
+        Label context = new Label(row.profile() + " \u00b7 " + row.boxId() + " \u00b7 " + row.file() + " \u00b7 " + row.document());
+        context.getStyleClass().add("metadata-form-context");
+        formHeader.getChildren().addAll(title, context);
+
+        form.getChildren().addAll(
+                metadataFormField("Document Title", true, titleField),
+                metadataFormField("Document Type", true, documentType),
+                metadataFormField("Customer / Client Name", true, customerField),
+                metadataFormField("Date (Document Date)", true, dateBox),
+                metadataFormField("Tags", false, tagsControl),
+                metadataFormField("Notes / Description", false, notes, "(optional)")
         );
 
-        column.getChildren().add(summaryPanel);
-        return column;
+        ScrollPane formScroll = new ScrollPane(form);
+        formScroll.getStyleClass().add("metadata-form-scroll");
+        formScroll.setFitToWidth(true);
+
+        Button cancel = new Button("Cancel");
+        cancel.getStyleClass().add("metadata-form-cancel");
+        cancel.setOnAction(event -> onBackToMetadata.run());
+
+        Button save = new Button(editMode ? "Save Metadata" : "Create Metadata");
+        save.getStyleClass().add("metadata-form-save");
+        save.setOnAction(event -> onBackToMetadata.run());
+
+        HBox footer = new HBox(18, cancel, save);
+        footer.getStyleClass().add("metadata-form-footer");
+        footer.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(save, Priority.ALWAYS);
+
+        BorderPane body = new BorderPane();
+        body.getStyleClass().add("metadata-form-page");
+        body.setTop(formHeader);
+        body.setCenter(formScroll);
+        body.setBottom(footer);
+        return body;
+    }
+
+    private TextField metadataFormTextField(String text) {
+        TextField field = new TextField(text);
+        field.getStyleClass().add("metadata-form-field");
+        field.setMaxWidth(Double.MAX_VALUE);
+        return field;
+    }
+
+    private HBox metadataTagChip(String text) {
+        Label value = new Label(text);
+        value.getStyleClass().add("metadata-tag-chip-text");
+        Label close = new Label("×");
+        close.getStyleClass().add("metadata-tag-chip-close");
+        HBox chip = new HBox(6, value, close);
+        chip.getStyleClass().add("metadata-tag-chip");
+        chip.setAlignment(Pos.CENTER_LEFT);
+        return chip;
+    }
+
+    private VBox metadataFormField(String labelText, boolean required, Node control) {
+        return metadataFormField(labelText, required, control, "");
+    }
+
+    private VBox metadataFormField(String labelText, boolean required, Node control, String suffix) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("metadata-form-label");
+        HBox labelRow = new HBox(4, label);
+        labelRow.setAlignment(Pos.CENTER_LEFT);
+
+        if (required) {
+            Label star = new Label("*");
+            star.getStyleClass().add("metadata-required-star");
+            labelRow.getChildren().add(star);
+        }
+        if (suffix != null && !suffix.isBlank()) {
+            Label suffixLabel = new Label(suffix);
+            suffixLabel.getStyleClass().add("metadata-label-suffix");
+            labelRow.getChildren().add(suffixLabel);
+        }
+
+        VBox field = new VBox(8, labelRow, control);
+        field.getStyleClass().add("metadata-form-row");
+        return field;
     }
 
     private VBox buildScanProgressBody(ScanProfile selectedProfile,
@@ -1200,11 +1932,15 @@ public class DashboardController {
 
     private VBox buildScanningBody(ScanProfile selectedProfile,
                                    String currentBoxId,
+                                   PageMode currentPageMode,
                                    List<ScanningDocument> scanningDocuments,
                                    List<ScanningDocument> scannedWorkspaceDocuments,
                                    ScanningDocument activeScanningDocument,
+                                   ScanningFile activeScanningFile,
                                    Set<String> qaCompletedDocuments,
                                    Consumer<ScanningDocument> onSelectScanningDocument,
+                                   Consumer<ScanningFile> onSelectScanFile,
+                                   Consumer<ScanningFile> onScanFile,
                                    Consumer<ScanningFile> onOpenScanningFile,
                                    Runnable onOpenQaReview,
                                    Runnable onScanningChanged,
@@ -1215,9 +1951,9 @@ public class DashboardController {
 
         Label heading = new Label("Scanned Files");
         heading.getStyleClass().add("dashboard-heading");
-        Label subtitle = new Label(selectedProfile.title() + " / " + currentBoxId);
+        Label subtitle = new Label(selectedProfile.title() + " / " + currentBoxId + " / " + pageModeLabel(currentPageMode));
         subtitle.getStyleClass().add("dashboard-subtitle");
-        Button backButton = new Button("Back To Profiles");
+        Button backButton = new Button("Back To Start Scan");
         backButton.getStyleClass().add("qa-review-button");
         backButton.setOnAction(event -> onBackToProfiles.run());
         Button qaButton = new Button("QA Review");
@@ -1229,12 +1965,33 @@ public class DashboardController {
         HBox.setHgrow(headerRow.getChildren().get(0), Priority.ALWAYS);
 
         HBox layout = new HBox(10);
+        VBox.setVgrow(layout, Priority.ALWAYS);
+        boolean singlePageMode = resolvedPageMode(currentPageMode) == PageMode.SINGLE_PAGE;
+        if (singlePageMode) {
+            backButton.setText("Back");
+            backButton.getStyleClass().add("scan-single-back-button");
+            qaButton.getStyleClass().add("scan-single-qa-button");
+            body.setSpacing(0);
+            layout.setSpacing(0);
+        }
+
+        VBox scanFileSidebar = buildScanFileSidebar(
+                scanningDocuments,
+                scannedWorkspaceDocuments,
+                activeScanningFile,
+                onSelectScanFile,
+                onScanFile,
+                onScanAllDocuments
+        );
 
         VBox center = new VBox(8);
+        if (singlePageMode) {
+            center.setSpacing(0);
+        }
         HBox.setHgrow(center, Priority.ALWAYS);
 
         ComboBox<String> assignDocumentCombo = new ComboBox<>();
-        for (ScanningDocument document : scannedWorkspaceDocuments.isEmpty() ? scanningDocuments : scannedWorkspaceDocuments) {
+        for (ScanningDocument document : scannedWorkspaceDocuments) {
             assignDocumentCombo.getItems().add(document.title());
         }
         assignDocumentCombo.setPromptText("Select document");
@@ -1249,32 +2006,79 @@ public class DashboardController {
         assignDocumentCombo.setOnAction(event -> {
             String selectedTitle = assignDocumentCombo.getSelectionModel().getSelectedItem();
             if (selectedTitle != null) {
-                onSelectScanningDocument.accept(findScanningDocument(scannedWorkspaceDocuments.isEmpty() ? scanningDocuments : scannedWorkspaceDocuments, selectedTitle));
+                onSelectScanningDocument.accept(findScanningDocument(scannedWorkspaceDocuments, selectedTitle));
             }
         });
 
-        HBox topPanel = new HBox(6,
-                compactScanBlock("Scan Date", "2026-04-27"),
-                compactScanBlock("Scanned Documents", String.valueOf(scannedWorkspaceDocuments.size())),
-                compactScanBlock("Scanned Files", String.valueOf(totalFiles(scannedWorkspaceDocuments))),
-                compactScanComboBlock("Assign To Document", assignDocumentCombo)
-        );
+        String activeDocumentTitle = activeScanningDocument == null ? "Document" : activeScanningDocument.title();
+        HBox topPanel = new HBox(6);
+        if (singlePageMode) {
+            List<VBox> statBlocks = List.of(
+                    compactScanBlock("SCAN DATE", "2026-04-27"),
+                    compactScanBlock("BOX ID", currentBoxId),
+                    compactScanBlock("OUTPUT DOCS", String.valueOf(scannedWorkspaceDocuments.size())),
+                    compactScanBlock("SCANNED", String.valueOf(totalFiles(scannedWorkspaceDocuments))),
+                    compactScanBlock("CURRENT DOC", activeDocumentTitle)
+            );
+            double[] statWidths = {118, 92, 122, 108, 166};
+            for (int i = 0; i < statBlocks.size(); i++) {
+                VBox statBlock = statBlocks.get(i);
+                statBlock.getStyleClass().add("scan-single-stat-block");
+                statBlock.setMinWidth(statWidths[i]);
+                statBlock.setPrefWidth(statWidths[i]);
+                statBlock.setMaxWidth(statWidths[i]);
+                HBox.setHgrow(statBlock, Priority.NEVER);
+            }
+            topPanel.getChildren().addAll(statBlocks);
+            Region topSpacer = new Region();
+            HBox.setHgrow(topSpacer, Priority.ALWAYS);
+            topPanel.getChildren().add(topSpacer);
+            Button helpButton = new Button("?");
+            helpButton.getStyleClass().add("scan-single-help-button");
+            HBox topActions = new HBox(10, backButton, qaButton, helpButton);
+            topActions.getStyleClass().add("scan-single-top-actions");
+            topActions.setAlignment(Pos.CENTER_RIGHT);
+            topPanel.getChildren().add(topActions);
+        } else {
+            topPanel.getChildren().addAll(
+                    compactScanBlock("Scan Date", "2026-04-27"),
+                    compactScanBlock("Output Documents", String.valueOf(scannedWorkspaceDocuments.size())),
+                    compactScanBlock("Scanned Files", String.valueOf(totalFiles(scannedWorkspaceDocuments))),
+                    compactScanComboBlock("Output Document", assignDocumentCombo)
+            );
+        }
         topPanel.getStyleClass().add("scan-top-strip");
-        topPanel.setMinHeight(70);
-        topPanel.setPrefHeight(70);
-        topPanel.setMaxHeight(70);
+        if (singlePageMode) {
+            topPanel.getStyleClass().add("scan-single-top-strip");
+        }
+        topPanel.setAlignment(Pos.CENTER_LEFT);
+        int topPanelHeight = singlePageMode ? 86 : 70;
+        topPanel.setMinHeight(topPanelHeight);
+        topPanel.setPrefHeight(topPanelHeight);
+        topPanel.setMaxHeight(topPanelHeight);
 
         VBox workspacePanel = new VBox(8);
+        if (singlePageMode) {
+            workspacePanel.setSpacing(0);
+        }
         workspacePanel.getStyleClass().add("scan-main-panel");
         HBox.setHgrow(workspacePanel, Priority.ALWAYS);
         VBox.setVgrow(workspacePanel, Priority.ALWAYS);
 
-        VBox documentBoard;
+        Node workspaceContent;
         if (scannedWorkspaceDocuments.isEmpty()) {
-            Label emptyState = new Label("No document scanned yet.");
+            Label emptyState = new Label("No files scanned yet.");
             emptyState.getStyleClass().add("scan-empty-state");
-            documentBoard = new VBox(emptyState);
-            documentBoard.getStyleClass().add("scan-empty-board");
+            VBox emptyBoard = new VBox(emptyState);
+            emptyBoard.getStyleClass().add("scan-empty-board");
+            workspaceContent = emptyBoard;
+        } else if (singlePageMode) {
+            workspaceContent = buildSinglePageScanViewer(
+                    scannedWorkspaceDocuments,
+                    activeScanningFile,
+                    onSelectScanFile,
+                    onScanningChanged
+            );
         } else {
             List<VBox> sections = new ArrayList<>();
             for (ScanningDocument scannedDocument : scannedWorkspaceDocuments) {
@@ -1289,24 +2093,349 @@ public class DashboardController {
                         fileCards
                 ));
             }
-            documentBoard = new VBox(10);
+            VBox documentBoard = new VBox(10);
             documentBoard.getChildren().addAll(sections);
+            ScrollPane documentScroll = new ScrollPane(documentBoard);
+            documentScroll.setFitToWidth(true);
+            documentScroll.getStyleClass().add("scan-document-scroll");
+            VBox.setVgrow(documentScroll, Priority.ALWAYS);
+            workspaceContent = documentScroll;
         }
 
-        ScrollPane documentScroll = new ScrollPane(documentBoard);
-        documentScroll.setFitToWidth(true);
-        documentScroll.getStyleClass().add("scan-document-scroll");
-        VBox.setVgrow(documentScroll, Priority.ALWAYS);
-
-        workspacePanel.getChildren().add(documentScroll);
-        center.getChildren().addAll(topPanel, workspacePanel);
+        workspacePanel.getChildren().add(workspaceContent);
+        if (singlePageMode) {
+            center.getChildren().add(workspacePanel);
+        } else {
+            center.getChildren().addAll(topPanel, workspacePanel);
+        }
         VBox.setVgrow(center, Priority.ALWAYS);
 
-        layout.getChildren().add(center);
+        layout.getChildren().addAll(scanFileSidebar, center);
         HBox.setHgrow(center, Priority.ALWAYS);
         headerRow.getStyleClass().add("scan-header-row");
-        body.getChildren().addAll(headerRow, layout);
+        if (singlePageMode) {
+            body.getStyleClass().add("scan-single-page-body");
+            body.getChildren().addAll(topPanel, layout);
+        } else {
+            body.getStyleClass().add("scan-multi-page-body");
+            body.getChildren().addAll(headerRow, layout);
+        }
         return body;
+    }
+
+    private VBox buildSinglePageScanViewer(List<ScanningDocument> scannedWorkspaceDocuments,
+                                           ScanningFile activeScanningFile,
+                                           Consumer<ScanningFile> onSelectScanFile,
+                                           Runnable onScanningChanged) {
+        ScanningFile selectedFile = selectedScannedFile(scannedWorkspaceDocuments, activeScanningFile);
+        VBox viewer = new VBox(14);
+        viewer.getStyleClass().add("scan-single-viewer");
+        VBox.setVgrow(viewer, Priority.ALWAYS);
+
+        if (selectedFile == null) {
+            Label emptyState = new Label("No page selected.");
+            emptyState.getStyleClass().add("scan-empty-state");
+            viewer.getChildren().add(emptyState);
+            return viewer;
+        }
+        List<ScanningFile> orderedFiles = flattenScannedFiles(scannedWorkspaceDocuments);
+        int selectedIndex = findFileIndex(orderedFiles, selectedFile);
+        ScanningDocument selectedDocument = findDocumentForFile(scannedWorkspaceDocuments, selectedFile);
+        String selectedDocumentTitle = selectedDocument == null ? "Document" : selectedDocument.title();
+        String selectedIncrementalId = selectedIndex >= 0 ? "File " + (selectedIndex + 1) : selectedFile.badge();
+        String selectedPageNumber = selectedIndex >= 0 ? "Page " + (selectedIndex + 1) : selectedFile.badge();
+
+        VBox mainPaper = buildSinglePageMainPaper(selectedDocumentTitle, selectedFile, selectedIncrementalId, selectedPageNumber);
+
+        StackPane stage = new StackPane(mainPaper);
+        stage.getStyleClass().add("scan-single-stage");
+        VBox.setVgrow(stage, Priority.ALWAYS);
+
+        Label selectedFileName = new Label(selectedFile.fileName());
+        selectedFileName.getStyleClass().add("scan-single-selected-file-name");
+        Label selectedFileRef = new Label("Ref: " + selectedFile.reference().replace("Ref: ", ""));
+        selectedFileRef.getStyleClass().add("scan-single-selected-file-ref");
+        VBox selectedFileHeader = new VBox(2, selectedFileName, selectedFileRef);
+        selectedFileHeader.getStyleClass().add("scan-single-selected-file-header");
+
+        HBox thumbnails = new HBox(8);
+        thumbnails.getStyleClass().add("scan-single-thumbnail-row");
+        thumbnails.setAlignment(Pos.CENTER_LEFT);
+        int displayIndex = 1;
+        Label stripTitle = new Label(selectedDocumentTitle.toUpperCase());
+        stripTitle.getStyleClass().add("scan-single-strip-title");
+        Label stripCount = new Label(String.valueOf(selectedDocument == null ? orderedFiles.size() : selectedDocument.files().size()));
+        stripCount.getStyleClass().add("qa-count-pill");
+        HBox stripHeader = new HBox(8, stripTitle, stripCount);
+        stripHeader.setAlignment(Pos.CENTER_LEFT);
+
+        int documentIndex = 0;
+        for (ScanningDocument document : scannedWorkspaceDocuments) {
+            thumbnails.getChildren().add(singlePageDocumentMarker(document, documentIndex > 0));
+            for (ScanningFile file : document.files()) {
+                boolean selected = selectedFile.reference().equals(file.reference());
+                thumbnails.getChildren().add(singlePageThumbnail(document, file, displayIndex, selected, onSelectScanFile, onScanningChanged));
+                displayIndex++;
+            }
+            documentIndex++;
+        }
+
+        ScrollPane thumbnailScroll = new ScrollPane(thumbnails);
+        thumbnailScroll.getStyleClass().add("scan-single-thumbnail-scroll");
+        thumbnailScroll.setFitToHeight(true);
+        thumbnailScroll.setFitToWidth(false);
+        thumbnailScroll.setPannable(true);
+        thumbnailScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        thumbnailScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        enableHorizontalThumbnailScroll(thumbnailScroll);
+        thumbnailScroll.setHvalue(clampScrollValue(singlePageThumbnailScrollValue));
+        thumbnailScroll.hvalueProperty().addListener((obs, oldValue, newValue) ->
+                singlePageThumbnailScrollValue = clampScrollValue(newValue.doubleValue()));
+
+        VBox thumbnailCarousel = new VBox(8, stripHeader, thumbnailScroll);
+        thumbnailCarousel.getStyleClass().add("scan-single-thumbnail-carousel");
+        VBox.setVgrow(thumbnailScroll, Priority.ALWAYS);
+
+        viewer.getChildren().addAll(selectedFileHeader, stage, thumbnailCarousel);
+        return viewer;
+    }
+
+    private VBox buildSinglePageMainPaper(String documentTitle,
+                                          ScanningFile file,
+                                          String incrementalId,
+                                          String pageNumber) {
+        Label document = new Label(documentTitle);
+        document.getStyleClass().add("scan-single-paper-document-pill");
+
+        HBox documentRow = new HBox(8, document);
+        documentRow.setAlignment(Pos.CENTER_LEFT);
+        if (file.barcode()) {
+            Label barcode = new Label("Barcode detected - new document");
+            barcode.getStyleClass().add("scan-single-paper-barcode-pill");
+            documentRow.getChildren().add(barcode);
+        }
+
+        Label titleLabel = new Label("Title");
+        titleLabel.getStyleClass().add("scan-single-paper-label");
+        Label titleValue = new Label(file.fileName());
+        titleValue.getStyleClass().add("scan-single-paper-title");
+        titleValue.setWrapText(true);
+        VBox titleBlock = new VBox(4, titleLabel, titleValue);
+        titleBlock.getStyleClass().add("scan-single-paper-title-block");
+
+        GridPane metadata = new GridPane();
+        metadata.getStyleClass().add("scan-single-paper-meta-grid");
+        metadata.add(singlePagePaperMetaItem("Incremental ID", incrementalId), 0, 0);
+        metadata.add(singlePagePaperMetaItem("Reference ID", file.reference().replace("Ref: ", "")), 1, 0);
+        metadata.add(singlePagePaperMetaItem("Page Number", pageNumber), 0, 1);
+        metadata.add(singlePagePaperMetaItem("File Pages", file.pages()), 1, 1);
+        metadata.getColumnConstraints().addAll(column(145), column(145));
+
+        VBox content = new VBox(8,
+                singlePagePaperLine(1.0),
+                singlePagePaperLine(0.84),
+                singlePagePaperLine(0.70)
+        );
+        content.getStyleClass().add("scan-single-paper-content");
+
+        VBox paper = new VBox(14, documentRow, titleBlock, metadata, content);
+        paper.getStyleClass().addAll("scan-large-paper-preview", "scan-single-main-paper");
+        return paper;
+    }
+
+    private VBox singlePagePaperMetaItem(String labelText, String valueText) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("scan-single-paper-label");
+
+        Label value = new Label(valueText);
+        value.getStyleClass().add("scan-single-paper-value");
+        value.setWrapText(true);
+
+        VBox item = new VBox(3, label, value);
+        item.getStyleClass().add("scan-single-paper-meta-item");
+        return item;
+    }
+
+    private Region singlePagePaperLine(double widthFactor) {
+        Region line = new Region();
+        line.getStyleClass().add("scan-single-paper-line");
+        line.setPrefWidth(280 * widthFactor);
+        line.setMaxWidth(280 * widthFactor);
+        return line;
+    }
+
+    private void configureSinglePageArrow(Label arrow, boolean enabled, Runnable action) {
+        if (enabled) {
+            arrow.setOnMouseClicked(event -> action.run());
+            return;
+        }
+        arrow.getStyleClass().add("scan-single-nav-arrow-disabled");
+        arrow.setMouseTransparent(true);
+    }
+
+    private void enableHorizontalThumbnailScroll(ScrollPane thumbnailScroll) {
+        thumbnailScroll.addEventFilter(ScrollEvent.SCROLL, event -> {
+            double delta = Math.abs(event.getDeltaX()) > 0 ? event.getDeltaX() : event.getDeltaY();
+            if (Math.abs(delta) <= 0) {
+                return;
+            }
+            thumbnailScroll.setHvalue(clampScrollValue(thumbnailScroll.getHvalue() - (delta / 600)));
+            event.consume();
+        });
+    }
+
+    private double clampScrollValue(double value) {
+        return Math.max(0, Math.min(1, value));
+    }
+
+    private VBox singlePageDocumentMarker(ScanningDocument document,
+                                          boolean newDocument) {
+        Label title = new Label(newDocument ? "NEW DOCUMENT" : "DOCUMENT");
+        title.getStyleClass().add(newDocument ? "scan-single-new-document-label" : "scan-single-document-label");
+
+        Label documentName = new Label(document.title());
+        documentName.getStyleClass().add("scan-single-document-name");
+
+        Label hint = new Label(document.files().isEmpty() ? "empty" : newDocument ? "barcode split" : "start");
+        hint.getStyleClass().add("scan-single-document-hint");
+
+        VBox marker = new VBox(5, title, documentName, hint);
+        marker.getStyleClass().add("scan-single-document-marker");
+        if (newDocument) {
+            marker.getStyleClass().add("scan-single-document-marker-new");
+        }
+        marker.setAlignment(Pos.CENTER);
+        marker.getProperties().put("scanningDocument", document);
+        marker.getProperties().put("documentDropTarget", true);
+        return marker;
+    }
+
+    private VBox singlePageThumbnail(ScanningDocument document,
+                                     ScanningFile file,
+                                     int displayIndex,
+                                     boolean selected,
+                                     Consumer<ScanningFile> onSelectScanFile,
+                                     Runnable onScanningChanged) {
+        VBox preview = buildPaperPreview();
+        preview.getStyleClass().add("scan-multi-thumbnail");
+        StackPane previewWrap = new StackPane(preview);
+        previewWrap.getStyleClass().add("scan-single-thumbnail-preview-wrap");
+        if (file.barcode()) {
+            Label barcode = new Label("Barcode");
+            barcode.getStyleClass().add("scan-single-barcode-pill");
+            StackPane.setAlignment(barcode, Pos.TOP_CENTER);
+            StackPane.setMargin(barcode, new Insets(5, 0, 0, 0));
+            previewWrap.getChildren().add(barcode);
+        }
+
+        Label label = new Label("F" + displayIndex);
+        label.getStyleClass().add("scan-multi-thumbnail-label");
+        Label pageCount = new Label(file.pages());
+        pageCount.getStyleClass().add("scan-single-thumbnail-pages");
+
+        VBox card = new VBox(4, previewWrap, label, pageCount);
+        card.getStyleClass().addAll("scan-file-card", "scan-single-thumbnail-card");
+        if (file.barcode()) {
+            card.getStyleClass().add("scan-single-thumbnail-barcode");
+        }
+        if (selected) {
+            card.getStyleClass().add("scan-multi-thumbnail-selected");
+        }
+        enableSmoothFileDrag(card, document, file, onSelectScanFile, onScanningChanged);
+        card.getProperties().put("referenceId", file.reference());
+        card.getProperties().put("scanningDocument", document);
+        return card;
+    }
+
+    private VBox buildScanFileSidebar(List<ScanningDocument> scanningDocuments,
+                                      List<ScanningDocument> scannedWorkspaceDocuments,
+                                      ScanningFile activeScanningFile,
+                                      Consumer<ScanningFile> onSelectScanFile,
+                                      Consumer<ScanningFile> onScanFile,
+                                      Runnable onScanAllDocuments) {
+        VBox sidebar = new VBox(10);
+        sidebar.getStyleClass().add("scan-file-sidebar-panel");
+        sidebar.setPrefWidth(230);
+        sidebar.setMinWidth(220);
+        sidebar.setMaxWidth(250);
+
+        Label title = new Label("Scanned Files");
+        title.getStyleClass().add("scan-file-sidebar-title");
+
+        ScanningFile firstPendingFile = firstUnscannedFile(scanningDocuments, scannedWorkspaceDocuments);
+        ScanningFile scanTarget = activeScanningFile != null && !containsScannedFile(scannedWorkspaceDocuments, activeScanningFile)
+                ? activeScanningFile
+                : firstPendingFile;
+
+        Button scanFileButton = new Button("Scan File");
+        scanFileButton.getStyleClass().addAll("scan-sidebar-action-button", "scan-sidebar-action-button-primary");
+        scanFileButton.setMaxWidth(Double.MAX_VALUE);
+        scanFileButton.setDisable(scanTarget == null);
+        scanFileButton.setOnAction(event -> {
+            if (scanTarget != null) {
+                onScanFile.accept(scanTarget);
+            }
+        });
+
+        Button scanAllButton = new Button("Scan All");
+        scanAllButton.getStyleClass().add("scan-sidebar-action-button");
+        scanAllButton.setMaxWidth(Double.MAX_VALUE);
+        scanAllButton.setDisable(firstPendingFile == null);
+        scanAllButton.setOnAction(event -> onScanAllDocuments.run());
+
+        VBox actionRow = new VBox(8, scanFileButton, scanAllButton);
+        actionRow.getStyleClass().add("scan-sidebar-action-row");
+
+        VBox fileList = new VBox(12);
+        fileList.setAlignment(Pos.TOP_CENTER);
+        int displayIndex = 1;
+        for (ScanningDocument document : scanningDocuments) {
+            for (ScanningFile file : document.files()) {
+                boolean scanned = containsScannedFile(scannedWorkspaceDocuments, file);
+                boolean selected = activeScanningFile != null && activeScanningFile.reference().equals(file.reference());
+                fileList.getChildren().add(scanFileSidebarThumbnail(displayIndex, file, scanned, selected, onSelectScanFile));
+                displayIndex++;
+            }
+        }
+
+        ScrollPane fileScroll = new ScrollPane(fileList);
+        fileScroll.setFitToWidth(true);
+        fileScroll.getStyleClass().add("scan-sidebar-file-scroll");
+        VBox.setVgrow(fileScroll, Priority.ALWAYS);
+
+        sidebar.getChildren().addAll(title, actionRow, fileScroll);
+        return sidebar;
+    }
+
+    private VBox scanFileSidebarThumbnail(int displayIndex,
+                                          ScanningFile file,
+                                          boolean scanned,
+                                          boolean selected,
+                                          Consumer<ScanningFile> onSelectScanFile) {
+        VBox preview = buildPaperPreview();
+        preview.getStyleClass().add("scan-sidebar-thumbnail-paper");
+
+        Label pageNumber = new Label("File " + displayIndex);
+        pageNumber.getStyleClass().add("scan-sidebar-thumbnail-number");
+
+        Label fileName = new Label(file.fileName());
+        fileName.getStyleClass().add("scan-sidebar-thumbnail-name");
+        fileName.setWrapText(true);
+
+        Label detail = new Label(file.pages() + (file.barcode() ? " / Barcode" : ""));
+        detail.getStyleClass().add(file.barcode() ? "scan-sidebar-thumbnail-barcode" : "scan-sidebar-thumbnail-detail");
+
+        VBox row = new VBox(8, preview, pageNumber, fileName, detail);
+        row.getStyleClass().add("scan-sidebar-thumbnail");
+        if (selected) {
+            row.getStyleClass().add("scan-sidebar-thumbnail-selected");
+        }
+        if (scanned) {
+            row.getStyleClass().add("scan-sidebar-thumbnail-scanned");
+        }
+        row.setAlignment(Pos.CENTER);
+        row.setOnMouseClicked(event -> onSelectScanFile.accept(file));
+        return row;
     }
 
     private VBox buildProfileCard(ScanProfile profile,
@@ -1322,6 +2451,34 @@ public class DashboardController {
         card.getStyleClass().add(selected ? "profile-select-card-active" : "profile-select-card");
         card.setOnMouseClicked(event -> onSelectProfile.accept(profile));
         return card;
+    }
+
+    private ListCell<ScanProfile> profileComboCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(ScanProfile profile, boolean empty) {
+                super.updateItem(profile, empty);
+                setText(empty || profile == null ? null : profile.title());
+            }
+        };
+    }
+
+    private ScanProfile findProfile(String value, List<ScanProfile> profiles) {
+        String search = normalizeSearch(value);
+        if (search.isBlank()) {
+            return null;
+        }
+        for (ScanProfile profile : profiles) {
+            if (normalizeSearch(profile.title()).equals(search)) {
+                return profile;
+            }
+        }
+        for (ScanProfile profile : profiles) {
+            if (matchesSearch(search, profile.title(), profile.description(), profile.settingsLine())) {
+                return profile;
+            }
+        }
+        return null;
     }
 
     private VBox buildPlaceholderPage(String titleText, String subtitleText) {
@@ -1368,9 +2525,13 @@ public class DashboardController {
                                      Consumer<String> onToggleTextHighlight,
                                      Runnable onApprove,
                                      Runnable onReject,
-                                     Consumer<String> onSelectTiffAction) {
+                                     Consumer<String> onSelectTiffAction,
+                                     Consumer<MetadataRow> onOpenMetadataForm) {
         BorderPane body = new BorderPane();
-        body.getStyleClass().add("dashboard-body");
+        body.getStyleClass().addAll("dashboard-body", "qa-review-page");
+        BorderPane qaMain = new BorderPane();
+        qaMain.getStyleClass().add("qa-main-content");
+        body.setCenter(qaMain);
 
         List<ScanningFile> qaFiles = flattenScannedFiles(scannedWorkspaceDocuments);
         ScanningFile selectedFile = activeScanningFile;
@@ -1389,17 +2550,17 @@ public class DashboardController {
         String profileName = selectedProfile == null ? "Profile" : selectedProfile.title().replace(" Profile", "");
         String documentName = selectedDocument == null ? "Document" : selectedDocument.title();
         String exportFileName = buildExportFileName(profileName, currentBoxId);
-        boolean exportReady = !selectedTiffAction.isBlank() && !qaFiles.isEmpty();
+        boolean exportReady = !qaFiles.isEmpty();
 
-        Label brandMark = new Label("P");
-        brandMark.getStyleClass().add("qa-brand-mark");
+        Label backArrow = new Label("<");
+        backArrow.getStyleClass().add("qa-back-link");
+        backArrow.setOnMouseClicked(event -> onBackToScanning.run());
+
         Label brandName = new Label("PrismScan");
         brandName.getStyleClass().add("qa-brand-name");
-        HBox brandBlock = new HBox(8, brandMark, brandName);
-        brandBlock.setAlignment(Pos.CENTER_LEFT);
 
         HBox breadcrumbs = new HBox(10,
-                new Label("Profiles"),
+                new Label("Start Scan"),
                 new Label(">"),
                 new Label(profileName),
                 new Label(">"),
@@ -1410,26 +2571,23 @@ public class DashboardController {
         breadcrumbs.getStyleClass().add("qa-breadcrumbs");
         breadcrumbs.setAlignment(Pos.CENTER_LEFT);
 
+        VBox titleBlock = new VBox(2, brandName, breadcrumbs);
+        titleBlock.getStyleClass().add("qa-title-block");
+
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox headerRow = new HBox(14, brandBlock, breadcrumbs, headerSpacer);
+        Label helpButton = new Label("?");
+        helpButton.getStyleClass().add("qa-help-button");
+        HBox headerRow = new HBox(14, backArrow, titleBlock, headerSpacer, helpButton);
         headerRow.getStyleClass().add("qa-app-header");
         headerRow.setAlignment(Pos.CENTER_LEFT);
-
-        Button backButton = new Button("Back To Scanning");
-        backButton.getStyleClass().add("page-window-cancel-button");
-        backButton.setOnAction(event -> onBackToScanning.run());
-
-        Button dashboardButton = new Button("Back To Dashboard");
-        dashboardButton.getStyleClass().add("page-window-cancel-button");
-        dashboardButton.setOnAction(event -> onDashboard.run());
 
         if (qaFiles.isEmpty() || selectedFile == null) {
             VBox emptyPanel = new VBox(new Label("No scanned files available for QA yet."));
             emptyPanel.getStyleClass().add("panel-card");
             emptyPanel.setPadding(new Insets(22));
-            body.setTop(headerRow);
-            body.setCenter(emptyPanel);
+            qaMain.setTop(headerRow);
+            qaMain.setCenter(emptyPanel);
             return body;
         }
 
@@ -1441,9 +2599,6 @@ public class DashboardController {
         documentsCount.getStyleClass().add("qa-count-pill");
         HBox documentsHeader = new HBox(8, documentsTitle, documentsCount);
         documentsHeader.setAlignment(Pos.CENTER_LEFT);
-        TextField documentSearch = new TextField();
-        documentSearch.setPromptText("Search documents");
-        documentSearch.getStyleClass().addAll("box-id-field", "qa-side-search");
         FlowPane documentRows = new FlowPane(12, 12);
         documentRows.setAlignment(Pos.TOP_LEFT);
         documentRows.setPrefWrapLength(188);
@@ -1465,7 +2620,7 @@ public class DashboardController {
         documentScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         documentScroll.getStyleClass().add("scan-document-scroll");
         VBox.setVgrow(documentScroll, Priority.ALWAYS);
-        documentsPanel.getChildren().addAll(documentsHeader, documentSearch, documentScroll);
+        documentsPanel.getChildren().addAll(documentsHeader, documentScroll);
 
         VBox filesPanel = new VBox(10);
         filesPanel.getStyleClass().addAll("qa-file-list-panel", "qa-files-panel");
@@ -1495,12 +2650,14 @@ public class DashboardController {
         fileScroll.getStyleClass().add("scan-document-scroll");
         VBox.setVgrow(fileScroll, Priority.ALWAYS);
         filesPanel.getChildren().addAll(filesHeader, fileScroll);
+        VBox.setVgrow(filesPanel, Priority.ALWAYS);
 
         VBox leftColumn = new VBox(10, documentsPanel, filesPanel);
         leftColumn.getStyleClass().add("qa-left-column");
         leftColumn.setPrefWidth(240);
         leftColumn.setMinWidth(240);
         leftColumn.setMaxWidth(240);
+        leftColumn.setMaxHeight(Double.MAX_VALUE);
 
         VBox previewPaper = buildQaPreviewPaper(qaCurrentPage[0], qaHighlight[0], qaHighlightedText, onToggleTextHighlight);
         previewPaper.setRotate(qaRotation[0]);
@@ -1516,6 +2673,7 @@ public class DashboardController {
         previewClip.widthProperty().bind(previewStage.widthProperty());
         previewClip.heightProperty().bind(previewStage.heightProperty());
         previewStage.setClip(previewClip);
+        VBox.setVgrow(previewStage, Priority.ALWAYS);
 
         Button highlightButton = qaToolbarButton("\u270E");
         highlightButton.getStyleClass().add("qa-highlight-button");
@@ -1546,6 +2704,8 @@ public class DashboardController {
         panDownButton.getStyleClass().add("qa-pan-button");
         panDownButton.setDisable(panDisabled);
         panDownButton.setOnAction(event -> onPanPage.accept(new double[]{0, -30}));
+        Button rotateButton = qaPagerButton("Rotate", onRotatePage);
+        rotateButton.getStyleClass().add("qa-preview-rotate-button");
 
         HBox toolbar = new HBox(8,
                 highlightButton,
@@ -1555,80 +2715,34 @@ public class DashboardController {
                 panLeftButton,
                 panRightButton,
                 panUpButton,
-                panDownButton
+                panDownButton,
+                rotateButton
         );
         toolbar.getStyleClass().add("qa-toolbar");
 
-        Button previousButton = qaPagerButton("<", () -> onStepPage.accept(-1));
-        Button nextButton = qaPagerButton(">", () -> onStepPage.accept(1));
-        Button rotateButton = qaPagerButton("Rotate", onRotatePage);
-        Label pageCounter = new Label(qaCurrentPage[0] + " / " + selectedFile.pageCount());
-        pageCounter.getStyleClass().add("qa-pager-label");
-        HBox pageControls = new HBox(10, previousButton, pageCounter, nextButton, rotateButton);
-        pageControls.getStyleClass().add("qa-page-controls");
-        pageControls.setAlignment(Pos.CENTER);
+        VBox bottomStrip = buildQaBottomFileStrip(documentName, documentFiles, selectedFile, onSelectQaFile);
 
-        VBox previewColumn = new VBox(10, toolbar, previewStage, pageControls);
+        VBox previewColumn = new VBox(0, toolbar, previewStage, bottomStrip);
         previewColumn.getStyleClass().add("qa-preview-column");
-        previewColumn.setMinHeight(570);
-        previewColumn.setPrefHeight(570);
-        previewColumn.setMaxHeight(570);
         HBox.setHgrow(previewColumn, Priority.ALWAYS);
 
         VBox selectionPanel = qaSidePanel("Current Selection",
-                qaMetaBlock("Profile", profileName),
-                qaMetaBlock("Box", currentBoxId),
+                qaMetaBlock(profileName, currentBoxId.isBlank() ? "Box" : currentBoxId),
+                qaMetaBlock("Date", "May 15, 2024 10:15 AM"),
                 qaMetaBlock("Document", selectedDocument == null ? "-" : selectedDocument.title()),
                 qaMetaBlock("File", selectedFile.badge()),
-                qaMetaBlock("File Reference ID", selectedFile.reference().replace("Ref: ", "")),
-                qaMetaBlock("File ID", selectedFile.badge().replace("File ", "")),
-                qaMetaBlock("Scanned At", "May 15, 2024 10:15 AM"),
-                qaMetaBlock("Scanned By", "John Doe")
+                qaMetaBlock("Reference ID", selectedFile.reference().replace("Ref: ", "")),
+                qaMetaBlock("Filename", selectedFile.fileName()),
+                qaMetaBlock("Pages", selectedFile.pages())
         );
 
-        Button rejectButton = qaActionButton("Reject, Send Back To Scanning", true, onReject);
+        Button rejectButton = qaActionButton("Reject, Send Back", true, onReject);
         VBox toolsPanel = qaUntitledSidePanel(rejectButton);
 
-        Button multiPageTiff = qaActionButton("Multi Page TIFF", false, () -> {
-            onSelectTiffAction.accept("Multi Page TIFF");
-            onApprove.run();
-        });
-        Button singlePageTiff = qaActionButton("Single Page TIFF", false, () -> {
-            onSelectTiffAction.accept("Single Page TIFF");
-            onApprove.run();
-        });
-        if ("Multi Page TIFF".equals(selectedTiffAction)) {
-            multiPageTiff.getStyleClass().add("qa-action-selected");
-        }
-        if ("Single Page TIFF".equals(selectedTiffAction)) {
-            singlePageTiff.getStyleClass().add("qa-action-selected");
-        }
         VBox exportFilenamePanel = qaExportFilenamePanel(exportFileName);
-        VBox actionsPanel = qaUntitledSidePanel(multiPageTiff, singlePageTiff, exportFilenamePanel);
+        VBox actionsPanel = qaUntitledSidePanel(exportFilenamePanel);
 
-        VBox rightColumn = new VBox(10, selectionPanel, toolsPanel, actionsPanel);
-        rightColumn.getStyleClass().add("qa-right-column");
-        rightColumn.setPrefWidth(190);
-        rightColumn.setMinWidth(190);
-        rightColumn.setMaxWidth(190);
-        rightColumn.setMinHeight(570);
-        rightColumn.setPrefHeight(570);
-        rightColumn.setMaxHeight(570);
-
-        HBox workspace = new HBox(10, leftColumn, previewColumn, rightColumn);
-        workspace.getStyleClass().add("qa-workspace");
-        workspace.setMinHeight(570);
-        workspace.setPrefHeight(570);
-        workspace.setMaxHeight(570);
-        HBox.setHgrow(previewColumn, Priority.ALWAYS);
-
-        ComboBox<String> rotationCombo = new ComboBox<>();
-        rotationCombo.getItems().addAll("0 deg (No rotation)", "90 deg", "180 deg", "270 deg");
-        rotationCombo.getSelectionModel().select(0);
-        rotationCombo.getStyleClass().add("qa-export-combo");
-        rotationCombo.setMaxWidth(Double.MAX_VALUE);
-
-        Button exportDocumentButton = new Button("Export Document");
+        Button exportDocumentButton = new Button("Report Document");
         SVGPath exportIcon = new SVGPath();
         exportIcon.setContent("M12 3V15 M7 10L12 15L17 10 M5 21H19");
         exportIcon.getStyleClass().add("qa-export-button-icon");
@@ -1636,25 +2750,104 @@ public class DashboardController {
         exportDocumentButton.setGraphicTextGap(8);
         exportDocumentButton.getStyleClass().addAll("approve-button", "qa-export-document-button");
         exportDocumentButton.setMaxWidth(Double.MAX_VALUE);
-        exportDocumentButton.setDisable(!exportReady || !qaApproved[0]);
-        exportDocumentButton.setOnAction(event -> onExport.run());
+        exportDocumentButton.setDisable(!exportReady);
+        exportDocumentButton.setOnAction(event -> {
+            onApprove.run();
+            onExport.run();
+        });
 
-        HBox footer = new HBox(12,
-                qaProgressStat("Scanning Progress", qaFiles.size() + " / 250 files"),
-                qaFooterControl("Profile Rotation", rotationCombo),
-                exportDocumentButton
+        ScanningDocument metadataDocument = selectedDocument;
+        ScanningFile metadataFile = selectedFile;
+        Button createMetadataButton = new Button("Create Metadata");
+        createMetadataButton.getStyleClass().addAll("qa-side-action-button", "qa-create-metadata-button");
+        createMetadataButton.setMaxWidth(Double.MAX_VALUE);
+        createMetadataButton.setDisable(metadataFile == null);
+        createMetadataButton.setOnAction(event -> onOpenMetadataForm.accept(new MetadataRow(
+                profileName,
+                currentBoxId.isBlank() ? "Box" : currentBoxId,
+                metadataFile.badge(),
+                metadataDocument == null ? "Document" : metadataDocument.title(),
+                false
+        )));
+
+        HBox sidePager = new HBox(10,
+                qaPagerButton("<", () -> onStepPage.accept(-1)),
+                new Label(qaCurrentPage[0] + " / " + selectedFile.pageCount()),
+                qaPagerButton(">", () -> onStepPage.accept(1))
         );
-        footer.getStyleClass().add("qa-footer-bar");
-        footer.setMinHeight(54);
-        footer.setPrefHeight(54);
-        footer.setMaxHeight(54);
-        HBox.setHgrow(footer.getChildren().get(0), Priority.ALWAYS);
-        HBox.setHgrow(footer.getChildren().get(1), Priority.ALWAYS);
+        sidePager.getStyleClass().add("qa-side-pager");
+        sidePager.setAlignment(Pos.CENTER);
 
-        body.setTop(headerRow);
-        body.setCenter(workspace);
-        body.setBottom(footer);
+        Region rightSpacer = new Region();
+        VBox.setVgrow(rightSpacer, Priority.ALWAYS);
+        VBox rightColumn = new VBox(10, selectionPanel, toolsPanel, actionsPanel, rightSpacer, sidePager, createMetadataButton, exportDocumentButton);
+        rightColumn.getStyleClass().add("qa-right-column");
+        rightColumn.setPrefWidth(230);
+        rightColumn.setMinWidth(230);
+        rightColumn.setMaxWidth(230);
+
+        HBox workspace = new HBox(0, leftColumn, previewColumn, rightColumn);
+        workspace.getStyleClass().add("qa-workspace");
+        workspace.setMinHeight(0);
+        workspace.setMaxHeight(Double.MAX_VALUE);
+        HBox.setHgrow(previewColumn, Priority.ALWAYS);
+
+        qaMain.setTop(headerRow);
+        qaMain.setCenter(workspace);
+        BorderPane.setAlignment(workspace, Pos.TOP_LEFT);
         return body;
+    }
+
+    private VBox buildQaBottomFileStrip(String documentName,
+                                        List<ScanningFile> documentFiles,
+                                        ScanningFile selectedFile,
+                                        Consumer<ScanningFile> onSelectQaFile) {
+        Label title = new Label("FILES IN " + documentName.toUpperCase());
+        title.getStyleClass().add("qa-bottom-title");
+        Label count = new Label(String.valueOf(documentFiles.size()));
+        count.getStyleClass().add("qa-count-pill");
+        HBox header = new HBox(8, title, count);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        HBox thumbnails = new HBox(10);
+        thumbnails.getStyleClass().add("qa-bottom-thumbnail-row");
+        for (ScanningFile file : documentFiles) {
+            boolean selected = selectedFile != null && file.reference().equals(selectedFile.reference());
+            thumbnails.getChildren().add(buildQaBottomFileCard(file, selected, () -> onSelectQaFile.accept(file)));
+        }
+
+        ScrollPane scroller = new ScrollPane(thumbnails);
+        scroller.setFitToHeight(true);
+        scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroller.getStyleClass().add("qa-bottom-file-scroll");
+
+        VBox strip = new VBox(8, header, scroller);
+        strip.getStyleClass().add("qa-bottom-file-strip");
+        return strip;
+    }
+
+    private VBox buildQaBottomFileCard(ScanningFile file, boolean selected, Runnable onSelect) {
+        VBox preview = buildPaperPreview();
+        preview.getStyleClass().add("qa-bottom-file-preview");
+        StackPane previewWrap = new StackPane(preview);
+        previewWrap.getStyleClass().add("qa-bottom-preview-wrap");
+        if (file.barcode()) {
+            Label barcode = new Label("BARCODE");
+            barcode.getStyleClass().add("qa-bottom-barcode");
+            StackPane.setAlignment(barcode, Pos.BOTTOM_CENTER);
+            previewWrap.getChildren().add(barcode);
+        }
+
+        Label name = new Label(ellipsize(file.fileName(), 16));
+        name.getStyleClass().add("qa-bottom-file-name");
+        Label pages = new Label(file.pages());
+        pages.getStyleClass().add("qa-bottom-file-pages");
+
+        VBox card = new VBox(6, previewWrap, name, pages);
+        card.getStyleClass().add(selected ? "qa-bottom-file-card-selected" : "qa-bottom-file-card");
+        card.setOnMouseClicked(event -> onSelect.run());
+        return card;
     }
 
     private VBox buildQaFileRow(ScanningFile file,
@@ -1689,6 +2882,13 @@ public class DashboardController {
         wrap.getStyleClass().add("qa-sidebar-file-wrap");
         wrap.setAlignment(Pos.TOP_CENTER);
         return wrap;
+    }
+
+    private String ellipsize(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value == null ? "" : value;
+        }
+        return value.substring(0, Math.max(0, maxLength - 3)) + "...";
     }
 
     private VBox qaMetaBlock(String labelText, String valueText) {
@@ -2070,7 +3270,7 @@ public class DashboardController {
                                int index,
                                Consumer<ScanningFile> onOpenScanningFile,
                                Runnable onScanningChanged) {
-        Label badge = new Label("File " + (index + 1));
+        Label badge = new Label(file.badge());
         badge.getStyleClass().add("file-badge");
         VBox preview = buildPaperPreview();
         Label name = new Label(file.fileName());
@@ -2211,6 +3411,7 @@ public class DashboardController {
         return switch (title) {
             case "Start Scan" -> "M7 3H5A2 2 0 0 0 3 5V7 M17 3H19A2 2 0 0 1 21 5V7 M21 17V19A2 2 0 0 1 19 21H17 M7 21H5A2 2 0 0 1 3 19V17 M8 12H16";
             case "My Scans" -> "M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2Z M14 2V8H20 M8 13H16 M8 17H14";
+            case "Metadata" -> "M4 5H20V19H4Z M8 9H16 M8 13H16 M8 17H13";
             case "Exports" -> "M21 8V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V8 M1 3H23V8H1Z M10 12H14";
             default -> "M12 5V19 M5 12H19";
         };
@@ -2219,6 +3420,7 @@ public class DashboardController {
     private PageState actionCardTarget(String title) {
         return switch (title) {
             case "Start Scan" -> PageState.PROFILES;
+            case "Metadata" -> PageState.METADATA;
             case "Exports" -> PageState.LOGS;
             case "My Scans" -> PageState.MY_SCANS;
             default -> PageState.DASHBOARD;
@@ -2233,7 +3435,7 @@ public class DashboardController {
         Label title = new Label("Recent Scans");
         title.getStyleClass().add("panel-title");
         VBox header = new VBox(title);
-        header.setPadding(new Insets(18, 22, 18, 22));
+        header.getStyleClass().add("dashboard-panel-header");
 
         GridPane table = new GridPane();
         table.getStyleClass().add("recent-table");
@@ -2348,6 +3550,81 @@ public class DashboardController {
         return label;
     }
 
+    private Label myScansHeaderCell(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("my-scans-table-header");
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setWrapText(true);
+        return label;
+    }
+
+    private Label myScansBodyCell(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("my-scans-table-cell");
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setWrapText(true);
+        return label;
+    }
+
+    private VBox myScansDateCell(String date, String time) {
+        Label dateLabel = new Label(date);
+        dateLabel.getStyleClass().add("my-scans-date-value");
+        Label timeLabel = new Label(time);
+        timeLabel.getStyleClass().add("my-scans-time-value");
+
+        VBox cell = new VBox(4, dateLabel, timeLabel);
+        cell.getStyleClass().add("my-scans-table-cell");
+        cell.setMaxWidth(Double.MAX_VALUE);
+        return cell;
+    }
+
+    private HBox myScansStatusCell(String status) {
+        Label pill = new Label(status);
+        pill.getStyleClass().addAll("my-scans-status-pill", myScansStatusClass(status));
+
+        HBox cell = new HBox(pill);
+        cell.getStyleClass().add("my-scans-table-cell");
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        return cell;
+    }
+
+    private HBox myScansActionsCell(MyScanRow scan, Consumer<MyScanRow> onOpenMyScanDetail) {
+        HBox cell = new HBox(8);
+        cell.getStyleClass().add("my-scans-actions-cell");
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+
+        for (String action : scan.actions()) {
+            boolean primary = "Export".equals(action) || "Fix Issues".equals(action) || "Continue".equals(action);
+            Button actionButton = myScansActionButton(action, primary);
+            if ("View Scan".equals(action)) {
+                actionButton.setOnAction(event -> onOpenMyScanDetail.accept(scan));
+            }
+            cell.getChildren().add(actionButton);
+        }
+
+        return cell;
+    }
+
+    private Button myScansActionButton(String text, boolean primary) {
+        Button button = new Button(text);
+        button.getStyleClass().add(primary ? "my-scans-primary-action" : "my-scans-secondary-action");
+        button.setFocusTraversable(false);
+        return button;
+    }
+
+    private String myScansStatusClass(String status) {
+        return switch (status) {
+            case "QA Completed" -> "my-scans-status-qa";
+            case "Metadata Required" -> "my-scans-status-fix";
+            case "In Progress" -> "my-scans-status-progress";
+            case "Waiting for QA" -> "my-scans-status-ready";
+            case "Exported" -> "my-scans-status-exported";
+            default -> "my-scans-status-progress";
+        };
+    }
+
     private HBox statusCell(String status) {
         Label pill = new Label(status);
         pill.getStyleClass().add("status-pill");
@@ -2405,7 +3682,8 @@ public class DashboardController {
         return switch (label) {
             case "Dashboard" -> PageState.DASHBOARD;
             case "Exports" -> PageState.LOGS;
-            case "Profiles" -> PageState.PROFILES;
+            case "Profiles", "Start Scan" -> PageState.PROFILES;
+            case "Metadata" -> PageState.METADATA;
             default -> PageState.MY_SCANS;
         };
     }
@@ -2415,18 +3693,136 @@ public class DashboardController {
         List<ScanningDocument> copies = new ArrayList<>();
         for (ScanningDocument document : scanningDocuments()) {
             List<ScanningFile> files = new ArrayList<>();
-            for (ScanningFile file : document.files()) {
-                files.add(mode == PageMode.SINGLE_PAGE
-                        ? new ScanningFile(file.badge(), file.fileName(), file.reference(), "1 page", 1, file.barcode())
-                        : file);
+            if (mode == PageMode.SINGLE_PAGE) {
+                int pageIndex = 1;
+                for (ScanningFile file : document.files()) {
+                    for (int pageNumber = 1; pageNumber <= file.pageCount(); pageNumber++) {
+                        files.add(new ScanningFile(
+                                "Page " + pageIndex,
+                                singlePageFileName(file.fileName(), pageNumber),
+                                singlePageReference(file.reference(), pageNumber),
+                                "1 page",
+                                1,
+                                file.barcode() && pageNumber == 1
+                        ));
+                        pageIndex++;
+                    }
+                }
+            } else {
+                for (ScanningFile file : document.files()) {
+                    files.add(new ScanningFile(
+                            file.badge(),
+                            multiPageFileName(file.fileName()),
+                            file.reference(),
+                            pageCountText(file.pageCount()),
+                            file.pageCount(),
+                            file.barcode()
+                    ));
+                }
             }
             copies.add(new ScanningDocument(
                     document.title(),
-                    document.fileCountText(),
+                    scannedFileCountText(files.size()),
                     files
             ));
         }
         return copies;
+    }
+
+    private String singlePageFileName(String fileName, int pageNumber) {
+        return fileBaseName(fileName) + "_page_" + String.format("%02d", pageNumber) + ".tiff";
+    }
+
+    private String singlePageReference(String reference, int pageNumber) {
+        return reference + "-P" + String.format("%02d", pageNumber);
+    }
+
+    private String multiPageFileName(String fileName) {
+        return fileBaseName(fileName) + "_multi_page.tiff";
+    }
+
+    private String fileBaseName(String value) {
+        String cleaned = value == null || value.isBlank() ? "scan" : value.trim();
+        int dotIndex = cleaned.lastIndexOf('.');
+        if (dotIndex > 0) {
+            cleaned = cleaned.substring(0, dotIndex);
+        }
+        cleaned = cleaned.replaceAll("[^A-Za-z0-9]+", "_").replaceAll("^_+|_+$", "");
+        return cleaned.isBlank() ? "scan" : cleaned;
+    }
+
+    private String pageCountText(int pageCount) {
+        return pageCount + (pageCount == 1 ? " page" : " pages");
+    }
+
+    private ScanningDocument scanFileIntoWorkspace(List<ScanningDocument> sourceDocuments,
+                                                   List<ScanningDocument> scannedDocuments,
+                                                   ScanningFile file) {
+        if (file == null) {
+            return null;
+        }
+
+        ScanningDocument existingDocument = findDocumentForFile(scannedDocuments, file);
+        if (existingDocument != null) {
+            return existingDocument;
+        }
+
+        ScanningDocument scannedDocument;
+        if (file.barcode() || scannedDocuments.isEmpty()) {
+            scannedDocument = new ScanningDocument(nextScannedDocumentTitle(scannedDocuments), scannedFileCountText(0), new ArrayList<>());
+            scannedDocuments.add(scannedDocument);
+        } else {
+            scannedDocument = scannedDocuments.get(scannedDocuments.size() - 1);
+        }
+
+        List<ScanningFile> files = scannedDocument.files();
+        files.add(file);
+
+        ScanningDocument updatedDocument = new ScanningDocument(scannedDocument.title(), scannedFileCountText(files.size()), files);
+        int index = scannedDocuments.indexOf(scannedDocument);
+        if (index >= 0) {
+            scannedDocuments.set(index, updatedDocument);
+        }
+        return updatedDocument;
+    }
+
+    private String nextScannedDocumentTitle(List<ScanningDocument> scannedDocuments) {
+        return "Document " + (scannedDocuments.size() + 1);
+    }
+
+    private ScanningFile firstUnscannedFile(List<ScanningDocument> sourceDocuments,
+                                            List<ScanningDocument> scannedDocuments) {
+        for (ScanningDocument document : sourceDocuments) {
+            for (ScanningFile file : document.files()) {
+                if (!containsScannedFile(scannedDocuments, file)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean containsScannedFile(List<ScanningDocument> documents, ScanningFile file) {
+        if (file == null) {
+            return false;
+        }
+        return findDocumentForFile(documents, file) != null;
+    }
+
+    private ScanningFile selectedScannedFile(List<ScanningDocument> scannedDocuments, ScanningFile activeFile) {
+        if (activeFile != null && containsScannedFile(scannedDocuments, activeFile)) {
+            return activeFile;
+        }
+        for (ScanningDocument document : scannedDocuments) {
+            if (!document.files().isEmpty()) {
+                return document.files().get(0);
+            }
+        }
+        return null;
+    }
+
+    private String scannedFileCountText(int count) {
+        return count + (count == 1 ? " file" : " files");
     }
 
     private ScanningDocument findScanningDocument(List<ScanningDocument> scanningDocuments, String title) {
@@ -2476,7 +3872,8 @@ public class DashboardController {
     private boolean moveOrReorderFile(ScanningDocument sourceDocument,
                                       ScanningDocument targetDocument,
                                       String sourceReference,
-                                      String targetReference) {
+                                      String targetReference,
+                                      boolean insertAfterTarget) {
         if (sourceDocument == null || targetDocument == null || sourceReference == null || targetReference == null || sourceReference.equals(targetReference)) {
             return false;
         }
@@ -2504,7 +3901,34 @@ public class DashboardController {
         if (sourceDocument == targetDocument && sourceIndex < targetIndex) {
             targetIndex--;
         }
+        if (insertAfterTarget) {
+            targetIndex++;
+        }
+        targetIndex = Math.max(0, Math.min(targetIndex, targetFiles.size()));
         targetFiles.add(targetIndex, movingFile);
+        return true;
+    }
+
+    private boolean moveFileToDocumentStart(ScanningDocument sourceDocument,
+                                            ScanningDocument targetDocument,
+                                            String sourceReference) {
+        if (sourceDocument == null || targetDocument == null || sourceReference == null) {
+            return false;
+        }
+        List<ScanningFile> sourceFiles = sourceDocument.files();
+        List<ScanningFile> targetFiles = targetDocument.files();
+        int sourceIndex = -1;
+        for (int i = 0; i < sourceFiles.size(); i++) {
+            if (sourceFiles.get(i).reference().equals(sourceReference)) {
+                sourceIndex = i;
+                break;
+            }
+        }
+        if (sourceIndex < 0 || sourceDocument == targetDocument && sourceIndex == 0) {
+            return false;
+        }
+        ScanningFile movingFile = sourceFiles.remove(sourceIndex);
+        targetFiles.add(0, movingFile);
         return true;
     }
 
@@ -2530,60 +3954,134 @@ public class DashboardController {
             originalPages.add(i);
         }
         List<Integer> workingPages = new ArrayList<>(originalPages);
+        int[] selectedPage = {workingPages.isEmpty() ? 1 : workingPages.get(0)};
 
-        VBox content = new VBox(12);
-        content.getStyleClass().add("dashboard-body");
+        VBox paper = buildPageWindowPaper();
+        StackPane previewStage = new StackPane(paper);
+        previewStage.getStyleClass().add("page-window-preview-stage");
+        BorderPane.setAlignment(previewStage, Pos.CENTER);
 
-        Label heading = new Label(file.fileName());
-        heading.getStyleClass().add("dashboard-heading");
-        Label subtitle = new Label(document.title() + " / " + file.reference().replace("Ref: ", "") + " / " + file.pages());
-        subtitle.getStyleClass().add("dashboard-subtitle");
-
-        FlowPane pages = new FlowPane(12, 12);
+        HBox pages = new HBox(12);
+        pages.getStyleClass().add("page-window-thumbnail-row");
+        pages.setAlignment(Pos.CENTER_LEFT);
         Runnable[] renderPages = new Runnable[1];
         renderPages[0] = () -> {
             pages.getChildren().clear();
             for (Integer pageNumber : workingPages) {
-                pages.getChildren().add(buildPagePreviewCard(pageNumber, workingPages, renderPages));
+                pages.getChildren().add(buildPageWindowThumbnailCard(
+                        pageNumber,
+                        pageNumber == selectedPage[0],
+                        workingPages,
+                        renderPages,
+                        () -> {
+                            selectedPage[0] = pageNumber;
+                            renderPages[0].run();
+                        }
+                ));
             }
         };
         renderPages[0].run();
 
-        Button cancelButton = new Button("Cancel");
-        cancelButton.getStyleClass().add("page-window-cancel-button");
-        Button saveButton = new Button("Save");
-        saveButton.getStyleClass().add("page-window-save-button");
+        Label stripTitle = new Label(document.title().toUpperCase());
+        stripTitle.getStyleClass().add("page-window-strip-title");
+        Label stripCount = new Label(String.valueOf(file.pageCount()));
+        stripCount.getStyleClass().add("qa-count-pill");
+        HBox stripHeader = new HBox(8, stripTitle, stripCount);
+        stripHeader.setAlignment(Pos.CENTER_LEFT);
 
-        HBox footer = new HBox(10, cancelButton, saveButton);
-        footer.getStyleClass().add("page-window-footer");
-        footer.setAlignment(Pos.CENTER_RIGHT);
+        ScrollPane thumbnailScroll = new ScrollPane(pages);
+        thumbnailScroll.getStyleClass().add("page-window-thumbnail-scroll");
+        thumbnailScroll.setFitToHeight(true);
+        thumbnailScroll.setFitToWidth(false);
+        thumbnailScroll.setPannable(true);
+        thumbnailScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        thumbnailScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        enableHorizontalThumbnailScroll(thumbnailScroll);
 
-        VBox panel = new VBox(14, heading, subtitle, pages);
-        panel.getStyleClass().add("scan-main-panel");
-        panel.setPadding(new Insets(14));
+        VBox bottomStrip = new VBox(8, stripHeader, thumbnailScroll);
+        bottomStrip.getStyleClass().add("page-window-bottom-strip");
 
         Stage stage = new Stage();
         stage.setTitle("File Pages - " + file.fileName());
         BorderPane windowRoot = new BorderPane();
-        windowRoot.getStyleClass().add("dashboard-shell");
-        windowRoot.setCenter(panel);
-        windowRoot.setBottom(footer);
-        BorderPane.setMargin(footer, new Insets(0, 14, 14, 14));
+        windowRoot.getStyleClass().add("page-window-root");
+        windowRoot.setCenter(previewStage);
+        windowRoot.setBottom(bottomStrip);
 
-        Scene windowScene = new Scene(windowRoot, 760, 560);
+        Scene windowScene = new Scene(windowRoot, 700, 620);
         windowScene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
         stage.setScene(windowScene);
         stage.setMinWidth(640);
-        stage.setMinHeight(480);
-
-        cancelButton.setOnAction(event -> {
-            workingPages.clear();
-            workingPages.addAll(originalPages);
-            stage.close();
-        });
-        saveButton.setOnAction(event -> stage.close());
+        stage.setMinHeight(560);
 
         stage.show();
+    }
+
+    private VBox buildPageWindowPaper() {
+        VBox lines = new VBox(10,
+                pageWindowLine(1.00),
+                pageWindowLine(0.92),
+                pageWindowLine(0.80),
+                spacer(18),
+                pageWindowLine(1.00),
+                pageWindowLine(1.00),
+                pageWindowLine(0.83),
+                spacer(16),
+                pageWindowLine(1.00),
+                pageWindowLine(0.92),
+                pageWindowLine(0.75),
+                spacer(16),
+                pageWindowLine(1.00),
+                pageWindowLine(1.00),
+                pageWindowLine(0.83),
+                pageWindowLine(0.66)
+        );
+        lines.getStyleClass().add("page-window-paper-lines");
+
+        VBox paper = new VBox(lines);
+        paper.getStyleClass().add("page-window-main-paper");
+        return paper;
+    }
+
+    private Region pageWindowLine(double widthFactor) {
+        Region line = new Region();
+        line.getStyleClass().add("page-window-paper-line");
+        line.setPrefWidth(300 * widthFactor);
+        line.setMaxWidth(300 * widthFactor);
+        return line;
+    }
+
+    private Region spacer(double height) {
+        Region spacer = new Region();
+        spacer.setMinHeight(height);
+        spacer.setPrefHeight(height);
+        spacer.setMaxHeight(height);
+        return spacer;
+    }
+
+    private VBox buildPageWindowThumbnailCard(int pageNumber,
+                                             boolean selected,
+                                             List<Integer> workingPages,
+                                             Runnable[] renderPages,
+                                             Runnable onSelectPage) {
+        VBox preview = buildPaperPreview();
+        preview.getStyleClass().add("page-window-thumbnail-preview");
+        Label title = new Label("F" + pageNumber);
+        title.getStyleClass().add("page-window-thumbnail-label");
+
+        VBox card = new VBox(5, preview, title);
+        card.getStyleClass().add("page-window-thumbnail-card");
+        if (selected) {
+            card.getStyleClass().add("page-window-thumbnail-selected");
+        }
+        enableSmoothPageDrag(card, pageNumber, workingPages, renderPages);
+        card.setOnMouseClicked(event -> {
+            if (event.isStillSincePress()) {
+                onSelectPage.run();
+            }
+        });
+        animateFileCard(card);
+        return card;
     }
 
     private void enableSmoothFileDrag(VBox card,
@@ -2594,11 +4092,13 @@ public class DashboardController {
         final double[] dragOffsetX = new double[1];
         final double[] dragOffsetY = new double[1];
         final boolean[] dragging = new boolean[1];
+        final Node[] activeDropTarget = new Node[1];
 
         card.setOnMousePressed(event -> {
             dragOffsetX[0] = event.getSceneX();
             dragOffsetY[0] = event.getSceneY();
             dragging[0] = false;
+            clearFileDropTarget(activeDropTarget);
         });
 
         card.setOnMouseDragged(event -> {
@@ -2616,6 +4116,7 @@ public class DashboardController {
             }
             card.setTranslateX(deltaX);
             card.setTranslateY(deltaY);
+            updateFileDropTarget(activeDropTarget, findClosestFileCard(card, event.getSceneX(), event.getSceneY()));
         });
 
         card.setOnMouseReleased(event -> {
@@ -2627,12 +4128,20 @@ public class DashboardController {
             card.setTranslateX(0);
             card.setTranslateY(0);
             card.getStyleClass().remove("scan-file-card-dragging");
+            clearFileDropTarget(activeDropTarget);
             dragging[0] = false;
 
             if (targetNode instanceof VBox targetCard) {
                 String targetReference = (String) targetCard.getProperties().get("referenceId");
                 ScanningDocument targetDocument = (ScanningDocument) targetCard.getProperties().get("scanningDocument");
-                if (targetReference != null && moveOrReorderFile(document, targetDocument, file.reference(), targetReference)) {
+                boolean moved = false;
+                if (targetReference != null) {
+                    boolean insertAfterTarget = isDropAfterTarget(targetCard, event.getSceneX(), event.getSceneY());
+                    moved = moveOrReorderFile(document, targetDocument, file.reference(), targetReference, insertAfterTarget);
+                } else if (Boolean.TRUE.equals(targetCard.getProperties().get("documentDropTarget"))) {
+                    moved = moveFileToDocumentStart(document, targetDocument, file.reference());
+                }
+                if (moved) {
                     onScanningChanged.run();
                 }
             }
@@ -2640,6 +4149,24 @@ public class DashboardController {
 
         card.getProperties().put("referenceId", file.reference());
         card.getProperties().put("scanningDocument", document);
+    }
+
+    private void updateFileDropTarget(Node[] activeDropTarget, Node targetNode) {
+        if (activeDropTarget[0] == targetNode) {
+            return;
+        }
+        clearFileDropTarget(activeDropTarget);
+        if (targetNode != null && !targetNode.getStyleClass().contains("scan-file-card-drop-target")) {
+            targetNode.getStyleClass().add("scan-file-card-drop-target");
+        }
+        activeDropTarget[0] = targetNode;
+    }
+
+    private void clearFileDropTarget(Node[] activeDropTarget) {
+        if (activeDropTarget[0] != null) {
+            activeDropTarget[0].getStyleClass().remove("scan-file-card-drop-target");
+            activeDropTarget[0] = null;
+        }
     }
 
     private void enableSmoothPageDrag(VBox card,
@@ -2724,13 +4251,17 @@ public class DashboardController {
             if (node == draggedCard) {
                 continue;
             }
-            if (!node.getProperties().containsKey("referenceId")) {
+            double distance = distanceToNodeCenter(node, sceneX, sceneY);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closest = node;
+            }
+        }
+        for (Node node : draggedCard.getScene().getRoot().lookupAll(".scan-single-document-marker")) {
+            if (!Boolean.TRUE.equals(node.getProperties().get("documentDropTarget"))) {
                 continue;
             }
-            var bounds = node.localToScene(node.getBoundsInLocal());
-            double centerX = (bounds.getMinX() + bounds.getMaxX()) / 2;
-            double centerY = (bounds.getMinY() + bounds.getMaxY()) / 2;
-            double distance = Math.hypot(sceneX - centerX, sceneY - centerY);
+            double distance = distanceToNodeCenter(node, sceneX, sceneY);
             if (distance < closestDistance) {
                 closestDistance = distance;
                 closest = node;
@@ -2740,14 +4271,32 @@ public class DashboardController {
         return closestDistance <= 140 ? closest : null;
     }
 
+    private double distanceToNodeCenter(Node node, double sceneX, double sceneY) {
+        var bounds = node.localToScene(node.getBoundsInLocal());
+        double centerX = (bounds.getMinX() + bounds.getMaxX()) / 2;
+        double centerY = (bounds.getMinY() + bounds.getMaxY()) / 2;
+        return Math.hypot(sceneX - centerX, sceneY - centerY);
+    }
+
+    private boolean isDropAfterTarget(Node targetNode, double sceneX, double sceneY) {
+        var bounds = targetNode.localToScene(targetNode.getBoundsInLocal());
+        double centerX = (bounds.getMinX() + bounds.getMaxX()) / 2;
+        double centerY = (bounds.getMinY() + bounds.getMaxY()) / 2;
+        double horizontalDistance = Math.abs(sceneX - centerX);
+        double verticalDistance = Math.abs(sceneY - centerY);
+        return horizontalDistance >= verticalDistance
+                ? sceneX > centerX
+                : sceneY > centerY;
+    }
+
     private Node findClosestPageCard(VBox draggedCard, double sceneX, double sceneY) {
-        if (!(draggedCard.getParent() instanceof FlowPane flowPane)) {
+        if (!(draggedCard.getParent() instanceof Pane pageContainer)) {
             return null;
         }
         Node closest = null;
         double closestDistance = Double.MAX_VALUE;
 
-        for (Node node : flowPane.getChildren()) {
+        for (Node node : pageContainer.getChildren()) {
             if (node == draggedCard) {
                 continue;
             }

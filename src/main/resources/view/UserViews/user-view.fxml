@@ -41,16 +41,16 @@
                                 <Label fx:id="dashboardNavText" text="Dashboard" styleClass="sidebar-nav-text-active"/>
                             </children>
                         </HBox>
-                        <HBox fx:id="exportsNav" spacing="10" alignment="CENTER_LEFT">
-                            <children>
-                                <Label fx:id="exportsNavIcon" text="-" styleClass="nav-icon"/>
-                                <Label fx:id="exportsNavText" text="Exports" styleClass="sidebar-nav-text"/>
-                            </children>
-                        </HBox>
                         <HBox fx:id="profilesNav" spacing="10" alignment="CENTER_LEFT">
                             <children>
                                 <Label fx:id="profilesNavIcon" text="-" styleClass="nav-icon"/>
-                                <Label fx:id="profilesNavText" text="Profiles" styleClass="sidebar-nav-text"/>
+                                <Label fx:id="profilesNavText" text="Start Scan" styleClass="sidebar-nav-text"/>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="metadataNav" spacing="10" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="metadataNavIcon" text="-" styleClass="nav-icon"/>
+                                <Label fx:id="metadataNavText" text="Metadata" styleClass="sidebar-nav-text"/>
                             </children>
                         </HBox>
                         <HBox fx:id="myScansNav" spacing="10" alignment="CENTER_LEFT">
