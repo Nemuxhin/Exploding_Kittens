@@ -1,5 +1,8 @@
 package easv.gui.controller.admin;
 
+import easv.be.ScanProfile;
+import easv.be.User;
+import easv.bll.AdminManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class AssignmentsController {
@@ -34,14 +38,16 @@ public class AssignmentsController {
 
     private AssignmentMode mode = AssignmentMode.BY_PROFILE;
 
-    private ProfileAccessModel selectedProfile;
-    private UserAccessModel selectedUser;
+    private ScanProfile selectedProfile;
+    private User selectedUser;
 
-    private final ObservableList<ProfileAccessModel> profiles = FXCollections.observableArrayList();
-    private final ObservableList<UserAccessModel> users = FXCollections.observableArrayList();
+    private final ObservableList<ScanProfile> profiles = FXCollections.observableArrayList();
+    private final ObservableList<User> users = FXCollections.observableArrayList();
 
     private final Map<Integer, Set<Integer>> savedAssignments = new HashMap<>();
     private final Map<Integer, Set<Integer>> workingAssignments = new HashMap<>();
+
+    private AdminManager adminManager = new AdminManager();
 
     @FXML private Button byProfileButton;
     @FXML private Button byUserButton;
@@ -68,21 +74,19 @@ public class AssignmentsController {
 
     @FXML private Label changesLabel;
 
+    void setAdminManager(AdminManager adminManager) {
+        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        loadDataFromManager();
+        configureFiltersForMode();
+        renderPage();
+    }
+
     @FXML
     private void initialize() {
-        loadSampleData();
-        resetWorkingAssignments();
-
-        if (!profiles.isEmpty()) {
-            selectedProfile = profiles.get(0);
-        }
-
-        if (!users.isEmpty()) {
-            selectedUser = users.get(0);
-        }
-
+        loadDataFromManager();
         configureListeners();
-        switchToMode(AssignmentMode.BY_PROFILE);
+        configureFiltersForMode();
+        renderPage();
     }
 
     @FXML
@@ -97,8 +101,9 @@ public class AssignmentsController {
 
     @FXML
     private void saveChanges() {
-        copyAssignments(workingAssignments, savedAssignments);
-        updateChangesLabel();
+        adminManager.saveProfileAssignments(workingAssignments);
+        loadDataFromManager();
+        renderPage();
     }
 
     @FXML
@@ -114,15 +119,7 @@ public class AssignmentsController {
         rightSearchField.clear();
 
         configureFiltersForMode();
-
-        if (mode == AssignmentMode.BY_PROFILE && selectedProfile == null && !profiles.isEmpty()) {
-            selectedProfile = profiles.get(0);
-        }
-
-        if (mode == AssignmentMode.BY_USER && selectedUser == null && !users.isEmpty()) {
-            selectedUser = users.get(0);
-        }
-
+        ensureSelectionExists();
         renderPage();
     }
 
@@ -146,6 +143,33 @@ public class AssignmentsController {
             renderAssignmentRows();
             resetRightScroll();
         });
+    }
+
+    private void loadDataFromManager() {
+        int selectedProfileId = selectedProfile == null ? -1 : selectedProfile.getId();
+        int selectedUserId = selectedUser == null ? -1 : selectedUser.getId();
+
+        profiles.setAll(adminManager.getProfiles());
+        users.setAll(adminManager.getUsers());
+
+        copyAssignments(adminManager.getProfileAssignments(), savedAssignments);
+        resetWorkingAssignments();
+
+        selectedProfile = findProfileById(selectedProfileId)
+                .orElseGet(() -> profiles.isEmpty() ? null : profiles.get(0));
+
+        selectedUser = findUserById(selectedUserId)
+                .orElseGet(() -> users.isEmpty() ? null : users.get(0));
+    }
+
+    private void ensureSelectionExists() {
+        if (selectedProfile == null && !profiles.isEmpty()) {
+            selectedProfile = profiles.get(0);
+        }
+
+        if (selectedUser == null && !users.isEmpty()) {
+            selectedUser = users.get(0);
+        }
     }
 
     private void configureFiltersForMode() {
@@ -218,7 +242,7 @@ public class AssignmentsController {
         leftListContainer.getChildren().setAll(
                 profiles.stream()
                         .filter(profile -> matchesProfileSearch(profile, searchText))
-                        .filter(profile -> matchesStatus(profile.status(), selectedStatus))
+                        .filter(profile -> matchesStatus(displayProfileStatus(profile), selectedStatus))
                         .map(this::buildProfileListItem)
                         .toList()
         );
@@ -231,26 +255,26 @@ public class AssignmentsController {
         leftListContainer.getChildren().setAll(
                 users.stream()
                         .filter(user -> matchesUserSearch(user, searchText))
-                        .filter(user -> matchesRole(user.role(), selectedRole))
+                        .filter(user -> matchesRole(user.getRole(), selectedRole))
                         .map(this::buildUserListItem)
                         .toList()
         );
     }
 
-    private HBox buildProfileListItem(ProfileAccessModel profile) {
-        HBox item = createListItem(profile.equals(selectedProfile));
+    private HBox buildProfileListItem(ScanProfile profile) {
+        HBox item = createListItem(isSelectedProfile(profile));
 
         VBox textBox = new VBox(6);
         textBox.getChildren().addAll(
-                createLabel(profile.name(), "assignment-list-title"),
-                createLabel(formatAssignedUsers(getAssignedUserIds(profile.id()).size()), "assignment-list-subtitle"),
-                createLabel("Export: " + profile.exportNaming(), "assignment-list-subtitle")
+                createLabel(profile.getName(), "assignment-list-title"),
+                createLabel(formatAssignedUsers(getAssignedUserIds(profile.getId()).size()), "assignment-list-subtitle"),
+                createLabel("Export: " + displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-list-subtitle")
         );
 
         item.getChildren().addAll(
                 textBox,
                 createSpacer(),
-                createStatusBadge(profile.status())
+                createStatusBadge(displayProfileStatus(profile))
         );
 
         Runnable selectProfile = () -> {
@@ -263,25 +287,25 @@ public class AssignmentsController {
         };
 
         item.setOnMouseClicked(event -> selectProfile.run());
-        AdminKeyboard.makeActivatable(item, "Select profile " + profile.name(), selectProfile);
+        AdminKeyboard.makeActivatable(item, "Select profile " + profile.getName(), selectProfile);
 
         return item;
     }
 
-    private HBox buildUserListItem(UserAccessModel user) {
-        HBox item = createListItem(user.equals(selectedUser));
+    private HBox buildUserListItem(User user) {
+        HBox item = createListItem(isSelectedUser(user));
 
         VBox textBox = new VBox(6);
         textBox.getChildren().addAll(
-                createLabel(user.name(), "assignment-list-title"),
-                createLabel(user.email(), "assignment-list-subtitle"),
-                createLabel(formatAssignedProfiles(getAssignedProfileIds(user.id()).size()), "assignment-list-subtitle")
+                createLabel(user.getName(), "assignment-list-title"),
+                createLabel(displayText(user.getEmail(), "No email"), "assignment-list-subtitle"),
+                createLabel(formatAssignedProfiles(getAssignedProfileIds(user.getId()).size()), "assignment-list-subtitle")
         );
 
         item.getChildren().addAll(
                 textBox,
                 createSpacer(),
-                createRoleBadge(user.role())
+                createRoleBadge(user.getRole())
         );
 
         Runnable selectUser = () -> {
@@ -294,7 +318,7 @@ public class AssignmentsController {
         };
 
         item.setOnMouseClicked(event -> selectUser.run());
-        AdminKeyboard.makeActivatable(item, "Select user " + user.name(), selectUser);
+        AdminKeyboard.makeActivatable(item, "Select user " + user.getName(), selectUser);
 
         return item;
     }
@@ -313,31 +337,38 @@ public class AssignmentsController {
 
     private void renderSelectedDetails() {
         if (mode == AssignmentMode.BY_PROFILE) {
-            if (selectedProfile == null) {
-                clearSelectedDetails();
-                return;
-            }
-
-            selectedTitleLabel.setText(selectedProfile.name());
-            selectedSubtitleLabel.setText(selectedProfile.description());
-            selectedCodeLabel.setText(selectedProfile.exportNaming());
-            updateSelectedStatus(selectedProfile.status());
-            return;
+            renderSelectedProfileDetails();
+        } else {
+            renderSelectedUserDetails();
         }
-
-        if (selectedUser == null) {
-            clearSelectedDetails();
-            return;
-        }
-
-        selectedTitleLabel.setText(selectedUser.name());
-        selectedSubtitleLabel.setText(selectedUser.email());
-        selectedCodeLabel.setText(selectedUser.role() + " account");
-        updateSelectedStatus(selectedUser.status());
     }
 
-    private void clearSelectedDetails() {
-        selectedTitleLabel.setText("");
+    private void renderSelectedProfileDetails() {
+        if (selectedProfile == null) {
+            clearSelectedDetails("No profile selected");
+            return;
+        }
+
+        selectedTitleLabel.setText(selectedProfile.getName());
+        selectedSubtitleLabel.setText(displayText(selectedProfile.getDescription(), "No description"));
+        selectedCodeLabel.setText(displayText(selectedProfile.getExportNaming(), "{profileCode}_{boxId}"));
+        updateSelectedStatus(displayProfileStatus(selectedProfile));
+    }
+
+    private void renderSelectedUserDetails() {
+        if (selectedUser == null) {
+            clearSelectedDetails("No user selected");
+            return;
+        }
+
+        selectedTitleLabel.setText(selectedUser.getName());
+        selectedSubtitleLabel.setText(displayText(selectedUser.getEmail(), "No email"));
+        selectedCodeLabel.setText(selectedUser.getRole() + " account");
+        updateSelectedStatus(selectedUser.getStatus());
+    }
+
+    private void clearSelectedDetails(String message) {
+        selectedTitleLabel.setText(message);
         selectedSubtitleLabel.setText("");
         selectedCodeLabel.setText("");
         selectedStatusBadge.setText("");
@@ -364,7 +395,7 @@ public class AssignmentsController {
         assignmentRowsContainer.getChildren().setAll(
                 users.stream()
                         .filter(user -> matchesUserSearch(user, searchText))
-                        .filter(user -> matchesRole(user.role(), selectedRole))
+                        .filter(user -> matchesRole(user.getRole(), selectedRole))
                         .map(this::buildUserAssignmentRow)
                         .toList()
         );
@@ -382,16 +413,16 @@ public class AssignmentsController {
         assignmentRowsContainer.getChildren().setAll(
                 profiles.stream()
                         .filter(profile -> matchesProfileSearch(profile, searchText))
-                        .filter(profile -> matchesStatus(profile.status(), selectedStatus))
+                        .filter(profile -> matchesStatus(displayProfileStatus(profile), selectedStatus))
                         .map(this::buildProfileAssignmentRow)
                         .toList()
         );
     }
 
-    private HBox buildUserAssignmentRow(UserAccessModel user) {
+    private HBox buildUserAssignmentRow(User user) {
         HBox row = createAssignmentRow();
 
-        CheckBox checkBox = createCheckBox(getAssignedUserIds(selectedProfile.id()).contains(user.id()));
+        CheckBox checkBox = createCheckBox(getAssignedUserIds(selectedProfile.getId()).contains(user.getId()));
 
         checkBox.setOnAction(event -> {
             setUserAssignment(user, checkBox.isSelected());
@@ -410,30 +441,31 @@ public class AssignmentsController {
 
             toggleUserAssignment.run();
         });
-        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + user.name(), toggleUserAssignment);
+
+        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + user.getName(), toggleUserAssignment);
 
         VBox textBox = new VBox(3);
         textBox.getChildren().addAll(
-                createLabel(user.name(), "assignment-row-title"),
-                createLabel(user.email(), "assignment-row-subtitle")
+                createLabel(user.getName(), "assignment-row-title"),
+                createLabel(displayText(user.getEmail(), "No email"), "assignment-row-subtitle")
         );
 
         row.getChildren().addAll(
                 checkBox,
-                createAvatar(initialsFor(user.name())),
+                createAvatar(initialsFor(user.getName())),
                 textBox,
                 createSpacer(),
-                createRoleBadge(user.role()),
-                createStatusBadge(user.status())
+                createRoleBadge(user.getRole()),
+                createStatusBadge(user.getStatus())
         );
 
         return row;
     }
 
-    private HBox buildProfileAssignmentRow(ProfileAccessModel profile) {
+    private HBox buildProfileAssignmentRow(ScanProfile profile) {
         HBox row = createAssignmentRow();
 
-        CheckBox checkBox = createCheckBox(getAssignedUserIds(profile.id()).contains(selectedUser.id()));
+        CheckBox checkBox = createCheckBox(getAssignedUserIds(profile.getId()).contains(selectedUser.getId()));
 
         checkBox.setOnAction(event -> {
             setProfileAssignment(profile, checkBox.isSelected());
@@ -452,20 +484,21 @@ public class AssignmentsController {
 
             toggleProfileAssignment.run();
         });
-        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + profile.name(), toggleProfileAssignment);
+
+        AdminKeyboard.makeActivatable(row, "Toggle assignment for " + profile.getName(), toggleProfileAssignment);
 
         VBox textBox = new VBox(3);
         textBox.getChildren().addAll(
-                createLabel(profile.name(), "assignment-row-title"),
-                createLabel(profile.exportNaming(), "assignment-row-subtitle")
+                createLabel(profile.getName(), "assignment-row-title"),
+                createLabel(displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-row-subtitle")
         );
 
         row.getChildren().addAll(
                 checkBox,
-                createAvatar(initialsFor(profile.name())),
+                createAvatar(initialsFor(profile.getName())),
                 textBox,
                 createSpacer(),
-                createStatusBadge(profile.status())
+                createStatusBadge(displayProfileStatus(profile))
         );
 
         return row;
@@ -493,14 +526,14 @@ public class AssignmentsController {
         return checkBox;
     }
 
-    private void setUserAssignment(UserAccessModel user, boolean assigned) {
-        updateAssignment(selectedProfile.id(), user.id(), assigned);
+    private void setUserAssignment(User user, boolean assigned) {
+        updateAssignment(selectedProfile.getId(), user.getId(), assigned);
         renderLeftList();
         updateChangesLabel();
     }
 
-    private void setProfileAssignment(ProfileAccessModel profile, boolean assigned) {
-        updateAssignment(profile.id(), selectedUser.id(), assigned);
+    private void setProfileAssignment(ScanProfile profile, boolean assigned) {
+        updateAssignment(profile.getId(), selectedUser.getId(), assigned);
         renderLeftList();
         updateChangesLabel();
     }
@@ -520,17 +553,21 @@ public class AssignmentsController {
     }
 
     private void updateAssignment(int profileId, int userId, boolean assigned) {
-        Set<Integer> assignedUsers = getAssignedUserIds(profileId);
+        Set<Integer> assignedUsers = workingAssignments.computeIfAbsent(profileId, ignored -> new HashSet<>());
 
         if (assigned) {
             assignedUsers.add(userId);
         } else {
             assignedUsers.remove(userId);
         }
+
+        if (assignedUsers.isEmpty()) {
+            workingAssignments.remove(profileId);
+        }
     }
 
     private Set<Integer> getAssignedUserIds(int profileId) {
-        return workingAssignments.computeIfAbsent(profileId, ignored -> new HashSet<>());
+        return workingAssignments.getOrDefault(profileId, Set.of());
     }
 
     private List<Integer> getAssignedProfileIds(int userId) {
@@ -593,9 +630,15 @@ public class AssignmentsController {
     private void copyAssignments(Map<Integer, Set<Integer>> source, Map<Integer, Set<Integer>> destination) {
         destination.clear();
 
-        source.forEach((profileId, userIds) ->
-                destination.put(profileId, new HashSet<>(userIds))
-        );
+        if (source == null) {
+            return;
+        }
+
+        source.forEach((profileId, userIds) -> {
+            if (userIds != null && !userIds.isEmpty()) {
+                destination.put(profileId, new HashSet<>(userIds));
+            }
+        });
     }
 
     private void resetScrollPositions() {
@@ -617,26 +660,26 @@ public class AssignmentsController {
         }
     }
 
-    private boolean matchesProfileSearch(ProfileAccessModel profile, String searchText) {
+    private boolean matchesProfileSearch(ScanProfile profile, String searchText) {
         if (searchText.isBlank()) {
             return true;
         }
 
-        return normalize(profile.name()).contains(searchText)
-                || normalize(profile.description()).contains(searchText)
-                || normalize(profile.exportNaming()).contains(searchText)
-                || normalize(profile.status()).contains(searchText);
+        return normalize(profile.getName()).contains(searchText)
+                || normalize(profile.getDescription()).contains(searchText)
+                || normalize(profile.getExportNaming()).contains(searchText)
+                || normalize(displayProfileStatus(profile)).contains(searchText);
     }
 
-    private boolean matchesUserSearch(UserAccessModel user, String searchText) {
+    private boolean matchesUserSearch(User user, String searchText) {
         if (searchText.isBlank()) {
             return true;
         }
 
-        return normalize(user.name()).contains(searchText)
-                || normalize(user.email()).contains(searchText)
-                || normalize(user.role()).contains(searchText)
-                || normalize(user.status()).contains(searchText);
+        return normalize(user.getName()).contains(searchText)
+                || normalize(user.getEmail()).contains(searchText)
+                || normalize(user.getRole()).contains(searchText)
+                || normalize(user.getStatus()).contains(searchText);
     }
 
     private boolean matchesStatus(String status, String selectedStatus) {
@@ -651,11 +694,15 @@ public class AssignmentsController {
                 || role.equalsIgnoreCase(selectedRole);
     }
 
+    private String displayProfileStatus(ScanProfile profile) {
+        return profile.isArchived() ? "Archived" : profile.getStatus();
+    }
+
     private String statusClassFor(String status) {
         return switch (normalize(status)) {
             case "active" -> "metadata-status-active";
             case "draft" -> "metadata-status-draft";
-            case "archived" -> "metadata-status-archived";
+            case "archived", "inactive" -> "metadata-status-archived";
             default -> "metadata-status-archived";
         };
     }
@@ -666,6 +713,31 @@ public class AssignmentsController {
 
     private String formatAssignedProfiles(int count) {
         return count == 1 ? "1 assigned profile" : count + " assigned profiles";
+    }
+
+    private boolean isSelectedProfile(ScanProfile profile) {
+        return selectedProfile != null && selectedProfile.getId() == profile.getId();
+    }
+
+    private boolean isSelectedUser(User user) {
+        return selectedUser != null && selectedUser.getId() == user.getId();
+    }
+
+    private Optional<ScanProfile> findProfileById(int profileId) {
+        return profiles.stream()
+                .filter(profile -> profile.getId() == profileId)
+                .findFirst();
+    }
+
+    private Optional<User> findUserById(int userId) {
+        return users.stream()
+                .filter(user -> user.getId() == userId)
+                .findFirst();
+    }
+
+    private String displayText(String value, String fallback) {
+        String cleanedValue = value == null ? "" : value.trim();
+        return cleanedValue.isBlank() ? fallback : cleanedValue;
     }
 
     private String initialsFor(String value) {
@@ -691,32 +763,80 @@ public class AssignmentsController {
                 : value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private void loadSampleData() {
-        profiles.setAll(AdminDemoData.assignmentProfiles());
-        users.setAll(AdminDemoData.assignmentUsers());
-        copyAssignments(AdminDemoData.profileAssignments(), savedAssignments);
-    }
-
     private enum AssignmentMode {
         BY_PROFILE,
         BY_USER
     }
 
-    record ProfileAccessModel(
-            int id,
-            String name,
-            String description,
-            String exportNaming,
-            String status
-    ) {
+    static final class ProfileAccessModel {
+        private final int id;
+        private final String name;
+        private final String description;
+        private final String exportNaming;
+        private final String status;
+
+        ProfileAccessModel(int id, String name, String description, String exportNaming, String status) {
+            this.id = id;
+            this.name = name;
+            this.description = description;
+            this.exportNaming = exportNaming;
+            this.status = status;
+        }
+
+        int id() {
+            return id;
+        }
+
+        String name() {
+            return name;
+        }
+
+        String description() {
+            return description;
+        }
+
+        String exportNaming() {
+            return exportNaming;
+        }
+
+        String status() {
+            return status;
+        }
     }
 
-    record UserAccessModel(
-            int id,
-            String name,
-            String email,
-            String role,
-            String status
-    ) {
+    static final class UserAccessModel {
+        private final int id;
+        private final String name;
+        private final String email;
+        private final String role;
+        private final String status;
+
+        UserAccessModel(int id, String name, String email, String role, String status) {
+            this.id = id;
+            this.name = name;
+            this.email = email;
+            this.role = role;
+            this.status = status;
+        }
+
+        int id() {
+            return id;
+        }
+
+        String name() {
+            return name;
+        }
+
+        String email() {
+            return email;
+        }
+
+        String role() {
+            return role;
+        }
+
+        String status() {
+            return status;
+        }
     }
 }

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -51,6 +52,8 @@ public class AdminManager {
         );
 
         users.add(user);
+        syncProfileAssignmentsForUser(user);
+
         addAuditLog("Users", "Admin", "Created user", user.getName(), "Success",
                 "A new user account was created.");
 
@@ -67,6 +70,8 @@ public class AdminManager {
         user.setRole(input.getRole());
         user.setStatus(input.getStatus());
         user.setAssignedProfiles(input.getAssignedProfiles());
+
+        syncProfileAssignmentsForUser(user);
 
         addAuditLog("Users", "Admin", "Updated user", user.getName(), "Success",
                 "User details were updated.");
@@ -140,6 +145,7 @@ public class AdminManager {
         );
 
         profiles.add(profile);
+
         addAuditLog("Profiles", "Admin", "Created profile", profile.getName(), "Success",
                 "A scan profile was created.");
 
@@ -149,6 +155,8 @@ public class AdminManager {
     public ScanProfile updateProfile(int profileId, ProfileInput input) {
         ScanProfile profile = findRequiredProfile(profileId);
         validateProfileInput(input, profileId);
+
+        String previousName = profile.getName();
 
         profile.setName(input.getName());
         profile.setCode(input.getCode());
@@ -167,6 +175,8 @@ public class AdminManager {
         profile.setDeskew(input.isDeskew());
         profile.setExportFormat(input.getExportFormat());
         profile.setMetadataRequiredBeforeExport(input.isMetadataRequiredBeforeExport());
+
+        renameAssignedProfile(previousName, profile.getName());
 
         addAuditLog("Profiles", "Admin", "Updated profile", profile.getName(), "Success",
                 "A scan profile was updated.");
@@ -228,6 +238,7 @@ public class AdminManager {
         );
 
         metadataTemplates.add(template);
+
         addAuditLog("Metadata", "Admin", "Created metadata template", template.getName(), "Success",
                 "A metadata template was created.");
 
@@ -302,6 +313,7 @@ public class AdminManager {
     public void saveProfileAssignments(Map<Integer, Set<Integer>> assignments) {
         profileAssignments.clear();
         profileAssignments.putAll(copyAssignments(assignments));
+        refreshUsersFromProfileAssignments();
 
         addAuditLog("Access", "Admin", "Updated profile access", "Assignments", "Success",
                 "Profile access assignments were saved.");
@@ -466,6 +478,66 @@ public class AdminManager {
         }
 
         return fieldsWithIds;
+    }
+
+    private void syncProfileAssignmentsForUser(User user) {
+        removeUserFromAssignments(user.getId());
+
+        for (String assignedProfileName : user.getAssignedProfiles()) {
+            findProfileByName(assignedProfileName).ifPresent(profile ->
+                    profileAssignments
+                            .computeIfAbsent(profile.getId(), profileId -> new HashSet<>())
+                            .add(user.getId())
+            );
+        }
+    }
+
+    private java.util.Optional<ScanProfile> findProfileByName(String profileName) {
+        String normalizedProfileName = normalize(profileName);
+
+        return profiles.stream()
+                .filter(profile -> normalize(profile.getName()).equals(normalizedProfileName))
+                .findFirst();
+    }
+
+    private void refreshUsersFromProfileAssignments() {
+        for (User user : users) {
+            user.setAssignedProfiles(getAssignedProfileNames(user.getId()));
+        }
+    }
+
+    private List<String> getAssignedProfileNames(int userId) {
+        List<String> assignedProfileNames = new ArrayList<>();
+
+        for (ScanProfile profile : getProfiles()) {
+            Set<Integer> assignedUserIds = profileAssignments.getOrDefault(profile.getId(), Set.of());
+
+            if (assignedUserIds.contains(userId)) {
+                assignedProfileNames.add(profile.getName());
+            }
+        }
+
+        return assignedProfileNames;
+    }
+
+    private void renameAssignedProfile(String previousName, String newName) {
+        if (normalize(previousName).equals(normalize(newName))) {
+            return;
+        }
+
+        for (User user : users) {
+            LinkedHashSet<String> updatedProfiles = new LinkedHashSet<>();
+
+            for (String assignedProfile : user.getAssignedProfiles()) {
+                if (normalize(assignedProfile).equals(normalize(previousName))) {
+                    updatedProfiles.add(newName);
+                } else {
+                    updatedProfiles.add(assignedProfile);
+                }
+            }
+
+            user.setAssignedProfiles(new ArrayList<>(updatedProfiles));
+        }
     }
 
     private void removeUserFromAssignments(int userId) {

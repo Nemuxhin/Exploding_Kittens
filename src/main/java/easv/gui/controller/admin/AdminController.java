@@ -1,5 +1,6 @@
 package easv.gui.controller.admin;
 
+import easv.bll.AdminManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -57,6 +58,8 @@ public class AdminController implements AdminNavigator {
     @FXML private Label themeModeLabel;
     @FXML private SVGPath themeModeIcon;
     @FXML private SVGPath darkModeToggleIcon;
+
+    private final AdminManager adminManager = new AdminManager();
 
     @FXML
     private void initialize() {
@@ -201,8 +204,13 @@ public class AdminController implements AdminNavigator {
     private void configureLoadedController(Object controller) {
         if (controller instanceof DashboardController dashboardController) {
             dashboardController.setNavigator(this);
+        } else if (controller instanceof ManageUsersController manageUsersController) {
+            manageUsersController.setAdminManager(adminManager);
         } else if (controller instanceof ProfilesController profilesController) {
             profilesController.setNavigator(this);
+            profilesController.setAdminManager(adminManager);
+        } else if (controller instanceof AssignmentsController assignmentsController) {
+            assignmentsController.setAdminManager(adminManager);
         }
     }
 

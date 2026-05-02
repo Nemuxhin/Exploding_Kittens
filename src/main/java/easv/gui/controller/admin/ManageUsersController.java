@@ -95,15 +95,22 @@ public class ManageUsersController {
     @FXML private Label noProfilesWarningLabel;
     @FXML private Label validationLabel;
 
-    private final AdminManager adminManager = new AdminManager();
     private final ObservableList<User> masterUsers = FXCollections.observableArrayList();
     private final List<ProfileAccessControl> profileControls = new ArrayList<>();
 
+    private AdminManager adminManager = new AdminManager();
     private FilteredList<User> filteredUsers;
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private User editingUser;
     private boolean adminProfileAccessExpanded;
+
+    void setAdminManager(AdminManager adminManager) {
+        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        refreshProfileAccessControls();
+        loadUsers();
+        applyFilters();
+    }
 
     @FXML
     private void initialize() {
@@ -183,16 +190,7 @@ public class ManageUsersController {
         userRoleComboBox.getItems().setAll(ROLE_USER, ROLE_ADMIN);
         userStatusComboBox.getItems().setAll(STATUS_ACTIVE, STATUS_INACTIVE);
 
-        profileControls.clear();
-        profileControls.addAll(loadProfileOptions().stream()
-                .map(this::createProfileAccessControl)
-                .toList());
-
-        profileListBox.getChildren().setAll(
-                profileControls.stream()
-                        .map(ProfileAccessControl::getRow)
-                        .toList()
-        );
+        refreshProfileAccessControls();
 
         userRoleComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (ROLE_ADMIN.equals(newValue) && !ROLE_ADMIN.equals(oldValue)) {
@@ -201,12 +199,6 @@ public class ManageUsersController {
 
             updateProfileAccessMode();
         });
-
-        for (ProfileAccessControl control : profileControls) {
-            control.getCheckBox().selectedProperty().addListener((observable, oldValue, newValue) ->
-                    updateNoProfilesWarning()
-            );
-        }
 
         profileSearchField.textProperty().addListener((observable, oldValue, newValue) ->
                 filterProfileAccessRows(newValue)
@@ -227,6 +219,29 @@ public class ManageUsersController {
 
             lastGeneratedUsername[0] = generatedUsername;
         });
+    }
+
+    private void refreshProfileAccessControls() {
+        profileControls.clear();
+
+        profileControls.addAll(loadProfileOptions().stream()
+                .map(this::createProfileAccessControl)
+                .toList());
+
+        profileListBox.getChildren().setAll(
+                profileControls.stream()
+                        .map(ProfileAccessControl::getRow)
+                        .toList()
+        );
+
+        for (ProfileAccessControl control : profileControls) {
+            control.getCheckBox().selectedProperty().addListener((observable, oldValue, newValue) ->
+                    updateNoProfilesWarning()
+            );
+        }
+
+        filterProfileAccessRows(profileSearchField == null ? "" : profileSearchField.getText());
+        updateNoProfilesWarning();
     }
 
     private void configureRowsPerPageSelector() {
@@ -729,7 +744,9 @@ public class ManageUsersController {
     }
 
     private List<ProfileOption> loadProfileOptions() {
-        return List.of();
+        return adminManager.getProfiles().stream()
+                .map(profile -> new ProfileOption(profile.getName(), profile.getStatus()))
+                .toList();
     }
 
     private String profileAccessSummary(User user) {
