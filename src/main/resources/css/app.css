@@ -6494,3 +6494,107 @@
 .app-shell.dark .qa-comment-textarea .content {
     -fx-background-color: -wl-input-bg;
 }
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+.login-page {
+    -wl-background: #F5F5F5;
+    -wl-surface: #FFFFFF;
+    -wl-card-content: #F9F9F9;
+    -wl-input-bg: #FFFFFF;
+    -wl-text: #2D3D4F;
+    -wl-text-muted: #64748B;
+    -wl-on-primary: #FFFFFF;
+    -wl-primary: #2D3D4F;
+    -wl-primary-hover: #1C252F;
+    -wl-secondary-nav-bg: #24C79F;
+    -wl-border: #E2E4E8;
+    -wl-placeholder: #BFBFBF;
+    -wl-success: #4CD07D;
+    -wl-error: #FF3D32;
+
+    -fx-background-color: -wl-background;
+}
+
+.login-window {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 12, 0, 0, 2);
+    -fx-max-width: 820;
+    -fx-max-height: 430;
+}
+
+.login-brand-panel {
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 10 0 0 10;
+    -fx-padding: 33;
+    -fx-pref-width: 390;
+    -fx-min-height: 430;
+}
+
+.login-form-panel {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 0 10 10 0;
+    -fx-padding: 42;
+    -fx-pref-width: 430;
+    -fx-min-height: 430;
+}
+
+.login-page .page-title {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.login-page .body-text {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 12px;
+}
+
+.login-page .card-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.login-page .field-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.login-page .text-field,
+.login-page .password-field {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-font-size: 12px;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+}
+
+.login-page .text-field:focused,
+.login-page .password-field:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.login-page .message-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-min-height: 30;
+}
+
+.login-page .message-error {
+    -fx-text-fill: -wl-error;
+}
+
+.login-page .message-success {
+    -fx-text-fill: -wl-success;
+}
