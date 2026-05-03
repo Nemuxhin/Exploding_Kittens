@@ -170,7 +170,7 @@
             </top>
 
             <bottom>
-                <VBox spacing="10" styleClass="sidebar-footer" BorderPane.alignment="BOTTOM_LEFT">
+                <VBox spacing="9" styleClass="sidebar-footer" BorderPane.alignment="BOTTOM_LEFT">
                     <Region styleClass="sidebar-divider"/>
 
                     <HBox alignment="CENTER_LEFT" styleClass="sidebar-utility-row">

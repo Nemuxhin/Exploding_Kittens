@@ -222,7 +222,7 @@
                         <VBox spacing="18"
                               styleClass="dashboard-workflow-body">
 
-                            <VBox spacing="8">
+                            <VBox spacing="9">
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text="In Progress" styleClass="dashboard-workflow-label"/>
                                     <Region HBox.hgrow="ALWAYS"/>
@@ -235,7 +235,7 @@
                                 </StackPane>
                             </VBox>
 
-                            <VBox spacing="8">
+                            <VBox spacing="9">
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text="Waiting for QA" styleClass="dashboard-workflow-label"/>
                                     <Region HBox.hgrow="ALWAYS"/>
@@ -248,7 +248,7 @@
                                 </StackPane>
                             </VBox>
 
-                            <VBox spacing="8">
+                            <VBox spacing="9">
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text="Exported" styleClass="dashboard-workflow-label"/>
                                     <Region HBox.hgrow="ALWAYS"/>
@@ -307,7 +307,7 @@
                         <VBox spacing="0" styleClass="dashboard-simple-list">
 
                             <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="usersNoProfilesCountLabel"
                                            text="3 users have no profiles"
                                            styleClass="dashboard-simple-title"/>
@@ -321,7 +321,7 @@
                             </HBox>
 
                             <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="failedExportsCountLabel"
                                            text="2 failed exports"
                                            styleClass="dashboard-simple-title"/>
@@ -335,7 +335,7 @@
                             </HBox>
 
                             <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="draftProfilesCountLabel"
                                            text="1 draft profile"
                                            styleClass="dashboard-simple-title"/>

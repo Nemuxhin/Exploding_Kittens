@@ -619,7 +619,7 @@
                               maxWidth="Infinity"
                               styleClass="profile-editor-scanner-preview-box">
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Selected Profile:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewProfileNameLabel"
@@ -627,7 +627,7 @@
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Box ID:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewBoxIdLabel"
@@ -635,7 +635,7 @@
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Export folder:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewExportFolderLabel"
@@ -643,7 +643,7 @@
                                        styleClass="profile-info-code"/>
                             </VBox>
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Barcode splitting:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewBarcodeLabel"
@@ -651,7 +651,7 @@
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Metadata template:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewMetadataTemplateLabel"
@@ -659,7 +659,7 @@
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Page correction:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewPageCorrectionLabel"
@@ -667,7 +667,7 @@
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 
-                            <VBox spacing="4">
+                            <VBox spacing="6">
                                 <Label text="Export format:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewExportFormatLabel"

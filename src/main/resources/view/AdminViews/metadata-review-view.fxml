@@ -768,7 +768,7 @@
 
                         <VBox spacing="12" styleClass="metadata-workspace-form">
 
-                            <VBox spacing="5">
+                            <VBox spacing="6">
                                 <Label text="Document Type *" styleClass="metadata-workspace-field-label"/>
                                 <ComboBox fx:id="documentTypeComboBox"
                                           maxWidth="Infinity"
@@ -778,14 +778,14 @@
                                        styleClass="metadata-workspace-field-error"/>
                             </VBox>
 
-                            <VBox spacing="5">
+                            <VBox spacing="6">
                                 <Label text="Case Number *" styleClass="metadata-workspace-field-label"/>
                                 <TextField fx:id="caseNumberField"
                                            text="2026-042"
                                            styleClass="metadata-workspace-input"/>
                             </VBox>
 
-                            <VBox spacing="5">
+                            <VBox spacing="6">
                                 <Label text="Registration Date" styleClass="metadata-workspace-field-label"/>
                                 <TextField fx:id="registrationDateField"
                                            text="Invalid date"
@@ -794,21 +794,21 @@
                                        styleClass="metadata-workspace-field-error"/>
                             </VBox>
 
-                            <VBox spacing="5">
+                            <VBox spacing="6">
                                 <Label text="Building Address *" styleClass="metadata-workspace-field-label"/>
                                 <TextField fx:id="buildingAddressField"
                                            text="Skagerrakvej 16"
                                            styleClass="metadata-workspace-input"/>
                             </VBox>
 
-                            <VBox spacing="5">
+                            <VBox spacing="6">
                                 <Label text="Department" styleClass="metadata-workspace-field-label"/>
                                 <ComboBox fx:id="departmentComboBox"
                                           maxWidth="Infinity"
                                           styleClass="metadata-workspace-input"/>
                             </VBox>
 
-                            <VBox spacing="5">
+                            <VBox spacing="6">
                                 <Label text="Notes" styleClass="metadata-workspace-field-label"/>
                                 <TextArea fx:id="notesTextArea"
                                           promptText="Optional notes..."
