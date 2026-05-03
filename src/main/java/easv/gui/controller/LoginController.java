@@ -28,6 +28,11 @@ public class LoginController {
     private final AuthManager authManager = new AuthManager();
     private MainApp mainApp;
 
+    @FXML
+    private void initialize() {
+        usernameField.requestFocus();
+    }
+
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
@@ -36,6 +41,7 @@ public class LoginController {
     private void handleLogin() throws IOException {
         AuthResult authResult = authManager.login(usernameField.getText(), passwordField.getText());
         messageLabel.setText(authResult.getMessage());
+        setMessageStyle(authResult.isSuccess());
 
         if (authResult.isSuccess()) {
             mainApp.showMainView();
@@ -44,5 +50,16 @@ public class LoginController {
 
         // We clear only the password so the user does not need to retype the username.
         passwordField.clear();
+    }
+
+    private void setMessageStyle(boolean success) {
+        messageLabel.getStyleClass().removeAll("message-error", "message-success");
+
+        // The color helps the user quickly understand if the login was accepted.
+        if (success) {
+            messageLabel.getStyleClass().add("message-success");
+        } else {
+            messageLabel.getStyleClass().add("message-error");
+        }
     }
 }

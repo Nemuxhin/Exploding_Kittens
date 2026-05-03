@@ -3,22 +3,34 @@
     -fx-background-color: #f5f5f5;
 }
 
-.login-shell {
+.login-page {
     -fx-background-color: #f5f5f5;
 }
 
-.brand-panel {
-    -fx-background-color: #2d3d4f;
-    -fx-background-radius: 24;
-    -fx-padding: 32;
-    -fx-pref-width: 420;
+.login-window {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e2e4e8;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(45, 61, 79, 0.12), 18, 0.18, 0, 6);
+    -fx-max-width: 820;
+    -fx-max-height: 430;
 }
 
-.login-card {
+.login-brand-panel {
+    -fx-background-color: #2d3d4f;
+    -fx-background-radius: 8 0 0 8;
+    -fx-padding: 34;
+    -fx-pref-width: 390;
+    -fx-min-height: 430;
+}
+
+.login-form-panel {
     -fx-background-color: white;
-    -fx-background-radius: 24;
-    -fx-padding: 32;
-    -fx-pref-width: 320;
+    -fx-background-radius: 0 8 8 0;
+    -fx-padding: 42;
+    -fx-pref-width: 430;
+    -fx-min-height: 430;
 }
 
 .main-panel {
@@ -39,7 +51,7 @@
 
 .card-title {
     -fx-text-fill: #2d3d4f;
-    -fx-font-size: 18px;
+    -fx-font-size: 21px;
     -fx-font-weight: 700;
 }
 
@@ -56,7 +68,7 @@
 
 .helper-text {
     -fx-text-fill: #64748b;
-    -fx-font-size: 11px;
+    -fx-font-size: 12px;
 }
 
 .field-label {
@@ -68,16 +80,22 @@
 .text-field,
 .password-field {
     -fx-background-color: #f9f9f9;
-    -fx-background-radius: 10;
+    -fx-background-radius: 6;
     -fx-border-color: #e2e4e8;
-    -fx-border-radius: 10;
+    -fx-border-radius: 6;
     -fx-pref-height: 30;
     -fx-text-fill: #2d3d4f;
 }
 
+.text-field:focused,
+.password-field:focused {
+    -fx-border-color: #24c79f;
+    -fx-background-color: white;
+}
+
 .primary-button {
     -fx-background-color: #2d3d4f;
-    -fx-background-radius: 10;
+    -fx-background-radius: 6;
     -fx-text-fill: white;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
@@ -91,4 +109,13 @@
 .message-label {
     -fx-text-fill: #2d3d4f;
     -fx-font-size: 12px;
+    -fx-min-height: 32;
+}
+
+.message-error {
+    -fx-text-fill: #ef4444;
+}
+
+.message-success {
+    -fx-text-fill: #24c79f;
 }
