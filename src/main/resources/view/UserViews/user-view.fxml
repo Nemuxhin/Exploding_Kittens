@@ -45,27 +45,22 @@
 
             <ToggleButton fx:id="scanNavItem"
                           text="New Scan"
-                          focusTraversable="false"
                           styleClass="top-nav-item-active"/>
 
             <ToggleButton fx:id="myScansNavItem"
                           text="My Scans"
-                          focusTraversable="false"
                           styleClass="top-nav-item"/>
 
             <ToggleButton fx:id="assignedQANavItem"
                           text="Assigned QA"
-                          focusTraversable="false"
                           styleClass="top-nav-item"/>
 
             <ToggleButton fx:id="exportsNavItem"
                           text="Exports"
-                          focusTraversable="false"
                           styleClass="top-nav-item"/>
 
             <ToggleButton fx:id="settingsNavItem"
                           text="Settings"
-                          focusTraversable="false"
                           styleClass="top-nav-item"/>
 
             <Region HBox.hgrow="ALWAYS"/>
@@ -75,7 +70,6 @@
             </StackPane>
 
             <ToggleButton fx:id="darkModeToggleButton"
-                          focusTraversable="false"
                           contentDisplay="GRAPHIC_ONLY"
                           styleClass="top-icon-toggle">
                 <graphic>

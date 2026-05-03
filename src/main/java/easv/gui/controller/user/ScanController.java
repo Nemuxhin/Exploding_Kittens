@@ -1152,7 +1152,7 @@ public class ScanController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label warning = new Label(document.hasPagesNeedingRescan() ? "⚠" : "");
+        Label warning = new Label(document.hasPagesNeedingRescan() ? "!" : "");
         warning.getStyleClass().add("document-tree-warning");
 
         Label pageCount = new Label(document.pages.size() + " pages");
@@ -1254,7 +1254,7 @@ public class ScanController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label warning = new Label(page.needsRescan ? "⚠" : "");
+        Label warning = new Label(page.needsRescan ? "!" : "");
         warning.getStyleClass().add("document-tree-warning");
 
         row.getChildren().addAll(drag, name, spacer, warning);
@@ -1495,7 +1495,7 @@ public class ScanController {
         bottomRow.getChildren().addAll(bottomSpacer, barcode);
 
         if (page.needsRescan) {
-            Label warning = new Label("⚠ Marked for rescan");
+            Label warning = new Label("Marked for rescan");
             warning.getStyleClass().add("preview-warning-banner");
             documentPage.getChildren().add(warning);
         }
@@ -1578,7 +1578,7 @@ public class ScanController {
             barcode.getStyleClass().add("page-tray-barcode-mark");
             thumbnail.getChildren().add(barcode);
         } else {
-            VBox lines = new VBox(4);
+            VBox lines = new VBox(3);
             lines.setAlignment(Pos.TOP_LEFT);
             lines.getChildren().addAll(
                     createLine("tray-line-dark", 27, 3),
@@ -1611,15 +1611,15 @@ public class ScanController {
 
     private String getTrayStatusText(ScannedPage page) {
         if (page.needsRescan) {
-            return "⚠";
+            return "!";
         }
 
         if (page.barcode) {
-            return "▥";
+            return "B";
         }
 
         if (page.splitReasonAfter != null && !"Finish batch".equals(page.splitReasonAfter)) {
-            return "↵";
+            return "S";
         }
 
         return "";
@@ -1847,7 +1847,7 @@ public class ScanController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            Label warning = new Label(document.hasPagesNeedingRescan() ? "⚠" : "");
+            Label warning = new Label(document.hasPagesNeedingRescan() ? "!" : "");
             warning.getStyleClass().add("review-document-warning");
 
             Label count = new Label(document.pages.size() + " pages");
@@ -1977,7 +1977,7 @@ public class ScanController {
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("review-page-tray-thumbnail");
 
-        VBox lines = new VBox(4);
+        VBox lines = new VBox(3);
         lines.setAlignment(Pos.TOP_LEFT);
         lines.getChildren().addAll(
                 createLine("tray-line-dark", 27, 3),
@@ -1988,7 +1988,7 @@ public class ScanController {
 
         thumbnail.getChildren().add(lines);
 
-        Label status = new Label(page.needsRescan ? "⚠" : "");
+        Label status = new Label(page.needsRescan ? "!" : "");
         status.getStyleClass().add("page-tray-status-badge");
         StackPane.setAlignment(status, Pos.TOP_RIGHT);
         thumbnail.getChildren().add(status);

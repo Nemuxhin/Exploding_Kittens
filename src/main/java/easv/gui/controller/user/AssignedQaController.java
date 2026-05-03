@@ -95,12 +95,6 @@ public class AssignedQaController {
 
     private boolean syncingQaControls = false;
 
-    private UserNavigator navigator = UserNavigator.none();
-
-    public void setNavigator(UserNavigator navigator) {
-        this.navigator = navigator == null ? UserNavigator.none() : navigator;
-    }
-
     @FXML
     private void initialize() {
         configureFilters();
@@ -758,10 +752,10 @@ public class AssignedQaController {
 
     private String getAssignmentStatusBadgeText(QaStatus status) {
         return switch (status) {
-            case WAITING_FOR_QA -> "○ Waiting for QA";
-            case IN_REVIEW -> "○ In Review";
-            case ISSUES_FOUND -> "△ Issues Found";
-            case QA_COMPLETED -> "✓ QA Completed";
+            case WAITING_FOR_QA -> "Waiting for QA";
+            case IN_REVIEW -> "In Review";
+            case ISSUES_FOUND -> "Issues Found";
+            case QA_COMPLETED -> "QA Completed";
         };
     }
 
@@ -1413,8 +1407,8 @@ public class AssignedQaController {
 
     private String getPageStatusGlyph(QaPageStatus status) {
         return switch (status) {
-            case NOT_REVIEWED -> "○";
-            case APPROVED -> "✓";
+            case NOT_REVIEWED -> "";
+            case APPROVED -> "\u2713";
             case NEEDS_FIX -> "!";
         };
     }

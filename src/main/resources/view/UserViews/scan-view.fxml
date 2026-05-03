@@ -347,7 +347,7 @@
                                        styleClass="selected-file-subtitle"/>
                             </VBox>
 
-                            <Button text="↻  Scan Next File"
+                            <Button text="Scan Next File"
                                     onAction="#onScanNextFile"
                                     minWidth="168"
                                     prefWidth="168"
@@ -507,27 +507,27 @@
                     <Label text="Page Tools"
                            styleClass="scan-tools-section-label"/>
 
-                    <Button text="↺  Rotate Left"
+                    <Button text="Rotate Left"
                             onAction="#onRotateLeft"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="↻  Rotate Right"
+                    <Button text="Rotate Right"
                             onAction="#onRotateRight"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="⌫  Delete Page"
+                    <Button text="Delete Page"
                             onAction="#onDeleteSelectedPage"
                             maxWidth="Infinity"
                             styleClass="scan-danger-button"/>
 
-                    <Button text="⚠  Mark for Rescan"
+                    <Button text="Mark for Rescan"
                             onAction="#onToggleRescanSelected"
                             maxWidth="Infinity"
                             styleClass="scan-warning-button"/>
 
-                    <Button text="⟳  Rescan Marked Pages"
+                    <Button text="Rescan Marked Pages"
                             onAction="#onRescanMarkedPages"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
@@ -539,7 +539,7 @@
                     <Label text="Document Tools"
                            styleClass="scan-tools-section-label"/>
 
-                    <Button text="✂  Split Here"
+                    <Button text="Split Here"
                             onAction="#onSplitHere"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
@@ -553,17 +553,17 @@
                            styleClass="scan-tools-section-label"/>
 
                     <Button fx:id="undoLastActionButton"
-                            text="↶  Undo Last Action"
+                            text="Undo Last Action"
                             onAction="#onUndoLastAction"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="▣  Save Progress"
+                    <Button text="Save Progress"
                             onAction="#onSaveProgress"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="⚑  Finish &amp; Review"
+                    <Button text="Finish &amp; Review"
                             onAction="#onFinishReview"
                             maxWidth="Infinity"
                             styleClass="scan-finish-button"/>
@@ -802,7 +802,7 @@
             <HBox spacing="12"
                   alignment="CENTER_LEFT">
                 <StackPane styleClass="finish-review-success-icon">
-                    <Label text="✓"
+                    <Label text="OK"
                            styleClass="finish-review-success-icon-text"/>
                 </StackPane>
 
@@ -882,7 +882,7 @@
             <HBox spacing="12"
                   alignment="CENTER_LEFT">
                 <StackPane styleClass="submit-confirmation-success-icon">
-                    <Label text="✓"
+                    <Label text="OK"
                            styleClass="submit-confirmation-success-icon-text"/>
                 </StackPane>
 
