@@ -228,43 +228,47 @@
                   maxWidth="Infinity"
                   styleClass="profile-editor-page">
 
-                <HBox alignment="CENTER_LEFT"
-                      maxWidth="Infinity"
-                      styleClass="profile-editor-header">
-
-                    <VBox spacing="6">
-                        <Button text="&lt; Back to Users"
+                <VBox spacing="15" maxWidth="Infinity">
+                    <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                        <Button text="Back"
                                 onAction="#showOverview"
                                 styleClass="profile-editor-back-button"
                                 focusTraversable="false"/>
-
-                        <Label fx:id="userEditorTitleLabel"
-                               text="Create User"
-                               styleClass="page-title"/>
-
-                        <Label fx:id="userEditorSubtitleLabel"
-                               text="Add a new user and choose what they can access."
-                               styleClass="page-subtitle"/>
-                    </VBox>
-
-                    <Region HBox.hgrow="ALWAYS"/>
-
-                    <HBox alignment="CENTER_RIGHT"
-                          spacing="12"
-                          styleClass="profile-editor-header-actions">
-
-                        <Button text="Cancel"
-                                onAction="#showOverview"
-                                styleClass="profile-editor-secondary-button"
-                                focusTraversable="false"/>
-
-                        <Button fx:id="saveUserButton"
-                                text="Create User"
-                                onAction="#saveUser"
-                                styleClass="profile-editor-primary-button"
-                                focusTraversable="false"/>
                     </HBox>
-                </HBox>
+
+                    <HBox alignment="CENTER_LEFT"
+                          maxWidth="Infinity"
+                          styleClass="profile-editor-header">
+
+                        <VBox spacing="3">
+                            <Label fx:id="userEditorTitleLabel"
+                                   text="Create User"
+                                   styleClass="page-title"/>
+
+                            <Label fx:id="userEditorSubtitleLabel"
+                                   text="Add a new user and choose what they can access."
+                                   styleClass="page-subtitle"/>
+                        </VBox>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <HBox alignment="CENTER_RIGHT"
+                              spacing="12"
+                              styleClass="profile-editor-header-actions">
+
+                            <Button text="Cancel"
+                                    onAction="#showOverview"
+                                    styleClass="profile-editor-secondary-button"
+                                    focusTraversable="false"/>
+
+                            <Button fx:id="saveUserButton"
+                                    text="Create User"
+                                    onAction="#saveUser"
+                                    styleClass="profile-editor-primary-button"
+                                    focusTraversable="false"/>
+                        </HBox>
+                    </HBox>
+                </VBox>
 
                 <VBox spacing="18"
                       maxWidth="Infinity"

@@ -132,23 +132,26 @@
         <top>
             <HBox alignment="CENTER_LEFT"
                   spacing="18"
-                  minHeight="90"
-                  prefHeight="90"
-                  maxHeight="90"
+                  minHeight="111"
+                  prefHeight="111"
+                  maxHeight="111"
                   styleClass="qa-review-header">
 
                 <padding>
                     <Insets top="12" right="21" bottom="12" left="21"/>
                 </padding>
 
-                <VBox spacing="9"
+                <VBox spacing="6"
                       HBox.hgrow="ALWAYS"
                       maxWidth="Infinity">
 
-                    <Button text="‹  QA Review"
+                    <Button text="Back"
                             onAction="#onBackToAssignedQaList"
                             focusTraversable="false"
-                            styleClass="qa-review-back-button"/>
+                            styleClass="back-button"/>
+
+                    <Label text="QA Review"
+                           styleClass="qa-review-title"/>
 
                     <HBox alignment="CENTER_LEFT"
                           spacing="18">

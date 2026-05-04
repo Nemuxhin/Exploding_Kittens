@@ -259,21 +259,35 @@
 
         <!-- Top session header -->
         <top>
-            <VBox minWidth="0"
+            <HBox spacing="18"
+                  alignment="CENTER_LEFT"
+                  minWidth="0"
                   maxWidth="Infinity"
                   styleClass="scan-session-header">
                 <padding>
                     <Insets top="15" right="18" bottom="15" left="18"/>
                 </padding>
 
-                <Label fx:id="workspaceSessionTitleLabel"
-                       text="Scanning Session"
-                       styleClass="workspace-title"/>
+                <VBox spacing="3"
+                      minWidth="0"
+                      HBox.hgrow="ALWAYS">
+                    <Label fx:id="workspaceSessionTitleLabel"
+                           text="Scanning Session"
+                           styleClass="workspace-title"/>
 
-                <Label fx:id="workspaceSessionSubtitleLabel"
-                       text="0 files scanned · 0 documents created · 0 pending pages"
-                       styleClass="workspace-subtitle"/>
-            </VBox>
+                    <Label fx:id="workspaceSessionSubtitleLabel"
+                           text="0 files scanned · 0 documents created · 0 pending pages"
+                           styleClass="workspace-subtitle"/>
+                </VBox>
+
+                <Button text="Scan Next File"
+                        onAction="#onScanNextFile"
+                        minWidth="168"
+                        prefWidth="168"
+                        maxWidth="168"
+                        prefHeight="33"
+                        styleClass="scan-primary-action-button"/>
+            </HBox>
         </top>
 
         <!-- Left document structure -->
@@ -347,13 +361,6 @@
                                        styleClass="selected-file-subtitle"/>
                             </VBox>
 
-                            <Button text="Scan Next File"
-                                    onAction="#onScanNextFile"
-                                    minWidth="168"
-                                    prefWidth="168"
-                                    maxWidth="168"
-                                    prefHeight="33"
-                                    styleClass="scan-primary-action-button"/>
                         </HBox>
 
                         <!-- View toolbar -->
@@ -586,12 +593,24 @@
                 styleClass="scan-review-workspace">
 
         <top>
-            <VBox minWidth="0"
+            <VBox spacing="6"
+                  alignment="CENTER_LEFT"
+                  minWidth="0"
+                  minHeight="111"
+                  prefHeight="111"
+                  maxHeight="111"
                   maxWidth="Infinity"
                   styleClass="review-summary-bar">
                 <padding>
                     <Insets top="12" right="18" bottom="12" left="18"/>
                 </padding>
+
+                <Button text="Back"
+                        onAction="#onBackToScanningFromReview"
+                        styleClass="back-button"/>
+
+                <Label text="Scan Review"
+                       styleClass="review-summary-title"/>
 
                 <HBox spacing="18"
                       alignment="CENTER_LEFT">
@@ -666,10 +685,6 @@
                         <padding>
                             <Insets top="0" right="18" bottom="0" left="18"/>
                         </padding>
-
-                        <Button text="‹ Back"
-                                onAction="#onBackToScanningFromReview"
-                                styleClass="finish-review-link-button"/>
 
                         <Label fx:id="reviewSelectedTitleLabel"
                                text="No page selected"
@@ -794,16 +809,16 @@
                maxHeight="Infinity"
                styleClass="finish-review-overlay">
 
-        <VBox spacing="18"
-              maxWidth="492"
-              prefWidth="492"
+        <VBox spacing="15"
+              maxWidth="432"
+              prefWidth="432"
+              maxHeight="-Infinity"
               styleClass="finish-review-modal">
 
             <HBox spacing="12"
                   alignment="CENTER_LEFT">
                 <StackPane styleClass="finish-review-success-icon">
-                    <Label text="OK"
-                           styleClass="finish-review-success-icon-text"/>
+                    <Region styleClass="finish-review-success-check"/>
                 </StackPane>
 
                 <Label text="Scanning Complete"
@@ -874,16 +889,16 @@
                maxHeight="Infinity"
                styleClass="submit-confirmation-overlay">
 
-        <VBox spacing="18"
-              maxWidth="492"
-              prefWidth="492"
+        <VBox spacing="15"
+              maxWidth="432"
+              prefWidth="432"
+              maxHeight="-Infinity"
               styleClass="submit-confirmation-modal">
 
             <HBox spacing="12"
                   alignment="CENTER_LEFT">
                 <StackPane styleClass="submit-confirmation-success-icon">
-                    <Label text="OK"
-                           styleClass="submit-confirmation-success-icon-text"/>
+                    <Region styleClass="submit-confirmation-success-check"/>
                 </StackPane>
 
                 <Label text="Submitted for QA"
