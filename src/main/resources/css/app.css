@@ -107,6 +107,22 @@
     -fx-opacity: 0.9;
 }
 
+.secondary-button {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-text-fill: #000000;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-pref-height: 44;
+}
+
+.secondary-button:hover {
+    -fx-border-color: #20b2aa;
+}
+
 .message-label {
     -fx-text-fill: #4b5563;
     -fx-font-size: 14px;

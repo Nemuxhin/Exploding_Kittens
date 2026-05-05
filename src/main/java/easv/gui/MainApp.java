@@ -1,11 +1,15 @@
 package easv.gui;
 
+import easv.bll.KeyboardShortcut;
+import easv.bll.ShortcutManager;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * This is the JavaFX entry point.
@@ -14,6 +18,7 @@ import java.io.IOException;
 public class MainApp extends Application {
 
     private Stage primaryStage;
+    private final ShortcutManager shortcutManager = new ShortcutManager();
 
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -37,11 +42,33 @@ public class MainApp extends Application {
     private void setScene(Parent root, String title) {
         Scene scene = new Scene(root, 900, 600);
         scene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
+        registerKeyboardShortcuts(scene);
 
         primaryStage.setTitle(title);
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
+    }
+
+    private void registerKeyboardShortcuts(Scene scene) {
+        List<KeyboardShortcut> shortcuts = shortcutManager.getShortcuts();
+
+        for (KeyboardShortcut shortcut : shortcuts) {
+            Runnable shortcutAction = createShortcutAction(shortcut);
+            scene.getAccelerators().put(KeyCombination.valueOf(shortcut.getKeyCombination()), shortcutAction);
+        }
+    }
+
+    private Runnable createShortcutAction(KeyboardShortcut shortcut) {
+        if ("Shortcut help".equals(shortcut.getActionName())) {
+            return () -> AlertHelper.showShortcutHelp(shortcutManager.getShortcuts());
+        }
+
+        // The real scan actions are not implemented yet, so the shortcut is ready for later connection.
+        return () -> AlertHelper.showInformation(
+                shortcut.getActionName(),
+                shortcut.getActionName() + " shortcut is registered, but this action is not connected yet."
+        );
     }
 
     public static void main(String[] args) {

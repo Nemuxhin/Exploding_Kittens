@@ -2,6 +2,7 @@ package easv.gui;
 
 import easv.be.User;
 import easv.bll.AuthManager;
+import easv.bll.ShortcutManager;
 import easv.bll.UserSession;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,6 +18,8 @@ import java.io.IOException;
  * Its main job is to prove that the system knows who is logged in.
  */
 public class MainView {
+
+    private final ShortcutManager shortcutManager = new ShortcutManager();
 
     public Parent createView(MainApp mainApp) {
         User currentUser = UserSession.getCurrentUser();
@@ -38,6 +41,10 @@ public class MainView {
         explanationLabel.setWrapText(true);
         explanationLabel.getStyleClass().add("helper-text");
 
+        Button shortcutsButton = new Button("Keyboard Shortcuts");
+        shortcutsButton.getStyleClass().add("secondary-button");
+        shortcutsButton.setOnAction(event -> AlertHelper.showShortcutHelp(shortcutManager.getShortcuts()));
+
         Button logoutButton = new Button("Log Out");
         logoutButton.getStyleClass().add("primary-button");
         logoutButton.setOnAction(event -> {
@@ -50,7 +57,7 @@ public class MainView {
             }
         });
 
-        VBox layout = new VBox(16, titleLabel, usernameLabel, roleLabel, statusLabel, explanationLabel, logoutButton);
+        VBox layout = new VBox(16, titleLabel, usernameLabel, roleLabel, statusLabel, explanationLabel, shortcutsButton, logoutButton);
         layout.setAlignment(Pos.CENTER_LEFT);
         layout.setPadding(new Insets(40));
         layout.getStyleClass().add("main-panel");
