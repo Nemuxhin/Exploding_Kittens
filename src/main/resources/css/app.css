@@ -139,6 +139,41 @@
     -wl-role-user-text: #168A72;
     -wl-role-user-border: #C8F0E4;
 
+    -wl-shadow-color: rgba(0, 0, 0, 0.10);
+    -wl-overlay-bg: rgba(0, 0, 0, 0.25);
+
+    -wl-preview-bg: #E5E7EB;
+    -wl-paper-bg: #FFFFFF;
+    -wl-paper-muted-bg: #F9F9F9;
+    -wl-paper-border: #E2E4E8;
+    -wl-paper-line-strong: #2D3D4F;
+    -wl-paper-line-medium: #94A3B8;
+    -wl-paper-line-light: #CBD5E1;
+    -wl-muted-control-bg: #F1F5F9;
+
+    -wl-status-info-bg: #EAF4FF;
+    -wl-status-info-border: #CFE8FF;
+    -wl-status-info-text: #0B6FAE;
+
+    -wl-status-warning-bg: #FFF7E6;
+    -wl-status-warning-border: #FACC15;
+    -wl-status-warning-text: #C96A00;
+
+    -wl-status-error-bg: #FFF1F1;
+    -wl-status-error-border: #FFB4B4;
+    -wl-status-error-text: #DC2626;
+    -wl-status-error-hover-bg: #FFE1E1;
+
+    -wl-status-success-bg: #E9FBF6;
+    -wl-status-success-border: #C8F0E4;
+    -wl-status-success-text: #168A72;
+    -wl-status-success-hover-bg: #DDF8EF;
+
+    -wl-progress-track: #E2E8F0;
+    -wl-progress-review: #1D7DBA;
+    -wl-progress-issues: #D92D20;
+    -wl-progress-complete: #1F9D75;
+
     -fx-background-color: -wl-background;
 }
 
@@ -261,6 +296,41 @@
     -wl-role-user-bg: #123E37;
     -wl-role-user-text: #4CD07D;
     -wl-role-user-border: #1B5A4E;
+
+    -wl-shadow-color: rgba(0, 0, 0, 0.10);
+    -wl-overlay-bg: rgba(0, 0, 0, 0.25);
+
+    -wl-preview-bg: #2D3D4F;
+    -wl-paper-bg: #FFFFFF;
+    -wl-paper-muted-bg: #F9F9F9;
+    -wl-paper-border: #CBD5E1;
+    -wl-paper-line-strong: #2D3D4F;
+    -wl-paper-line-medium: #94A3B8;
+    -wl-paper-line-light: #CBD5E1;
+    -wl-muted-control-bg: #2D3D4F;
+
+    -wl-status-info-bg: #0D4F73;
+    -wl-status-info-border: #176B94;
+    -wl-status-info-text: #7DD3FC;
+
+    -wl-status-warning-bg: #4A3512;
+    -wl-status-warning-border: #B7791F;
+    -wl-status-warning-text: #FACC15;
+
+    -wl-status-error-bg: #4A2512;
+    -wl-status-error-border: #9A1D1B;
+    -wl-status-error-text: #FDBA74;
+    -wl-status-error-hover-bg: #4A2512;
+
+    -wl-status-success-bg: #123E37;
+    -wl-status-success-border: #1B5A4E;
+    -wl-status-success-text: #4CD07D;
+    -wl-status-success-hover-bg: #123E37;
+
+    -wl-progress-track: #415060;
+    -wl-progress-review: #7DD3FC;
+    -wl-progress-issues: #FDBA74;
+    -wl-progress-complete: #4CD07D;
 
     -fx-background-color: -wl-background;
 }
@@ -582,18 +652,26 @@
 .profile-editor-back-button,
 .template-editor-back-button,
 .back-button {
-    -fx-min-height: 24;
-    -fx-pref-height: 24;
-    -fx-max-height: 24;
-    -fx-padding: 0;
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-background-radius: 0;
-    -fx-border-radius: 0;
-    -fx-text-fill: -wl-text-muted;
+    -fx-min-width: 63;
+    -fx-pref-width: 63;
+    -fx-max-width: 63;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 500;
     -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .metadata-back-button:hover,
@@ -604,10 +682,9 @@
 .profile-editor-back-button:focused,
 .template-editor-back-button:focused,
 .back-button:focused {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
     -fx-text-fill: -wl-text;
-    -fx-underline: true;
 }
 
 /* =========================================================
@@ -2760,12 +2837,6 @@
     -fx-alignment: center;
 }
 
-.metadata-review-page-host .metadata-back-button {
-    -fx-min-width: 72;
-    -fx-pref-width: 72;
-    -fx-max-width: 72;
-}
-
 .metadata-workspace-header .metadata-save-button,
 .metadata-workspace-header-grid .metadata-save-button,
 .metadata-workspace-header .metadata-complete-button,
@@ -3737,4 +3808,2689 @@
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+}
+
+/* =========================================================
+   16. USER PORTAL AND SCAN
+   ========================================================= */
+
+/* =========================================================
+   16A. USER SHELL / TOP NAVIGATION
+   ========================================================= */
+
+.user-page,
+.scan-page {
+    -fx-background-color: -wl-background;
+}
+
+.top-nav-bar {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.top-brand-row {
+    -fx-min-width: 150;
+    -fx-pref-width: 150;
+    -fx-max-width: 150;
+    -fx-alignment: center-left;
+}
+
+.user-brand-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.top-nav-item,
+.top-nav-item-active {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-border-width: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.top-nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.top-nav-item:hover,
+.top-nav-item:pressed,
+.top-nav-item:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.top-nav-item-active,
+.top-nav-item-active:hover,
+.top-nav-item-active:pressed,
+.top-nav-item-active:focused,
+.top-nav-item-active:selected {
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.top-help-icon,
+.avatar-initials {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-alignment: center;
+}
+
+.top-help-icon {
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+}
+
+.top-help-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.top-icon-toggle {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.top-icon-toggle:hover,
+.top-icon-toggle:selected,
+.top-icon-toggle:selected:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.top-icon-toggle > .graphic-container {
+    -fx-padding: 0;
+}
+
+.top-icon-toggle-svg {
+    -fx-fill: -wl-text;
+    -fx-scale-x: 0.58;
+    -fx-scale-y: 0.58;
+}
+
+.avatar-initials {
+    -fx-background-color: -wl-avatar-bg;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+}
+
+.avatar-initials-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.top-user-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.top-user-chevron {
+    -fx-fill: -wl-text-muted;
+}
+
+/* /* =========================================================
+   16B. SCAN SETUP PAGE
+   ========================================================= */
+
+.scan-setup-view {
+    -fx-background-color: -wl-background;
+    -fx-alignment: top-center;
+    -fx-padding: 42 24 24 24;
+}
+
+.scan-page .page-content {
+    -fx-background-color: -wl-background;
+}
+
+.scan-setup-content {
+    -fx-background-color: transparent;
+    -fx-alignment: top-left;
+}
+
+.scan-setup-main-row {
+    -fx-alignment: top-left;
+}
+
+.scan-card,
+.scan-setup-primary-card,
+.scan-setup-quick-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.app-shell.dark .scan-card,
+.app-shell.dark .scan-setup-primary-card,
+.app-shell.dark .scan-setup-quick-card {
+    -fx-effect: none;
+}
+
+.scan-setup-primary-card {
+    -fx-padding: 30;
+    -fx-spacing: 24;
+}
+
+.scan-setup-quick-card {
+    -fx-padding: 21;
+    -fx-spacing: 18;
+}
+
+.scan-setup-primary-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.scan-setup-primary-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.scan-setup-quick-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.scan-setup-quick-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.scan-setup-quick-item {
+    -fx-padding: 12;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.scan-setup-step-number {
+    -fx-min-width: 27;
+    -fx-pref-width: 27;
+    -fx-max-width: 27;
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-max-height: 27;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 999;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.scan-setup-step-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.scan-setup-step-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.scan-setup-meta-row {
+    -fx-padding: 3 0 0 0;
+}
+
+.scan-setup-meta-pill {
+    -fx-padding: 3 9 3 9;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.form-label,
+.summary-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.helper-text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.profile-info-link-button {
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-info-link-button:hover,
+.profile-info-link-button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-underline: true;
+}
+
+.profile-info-panel {
+    -fx-padding: 15;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.profile-info-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.profile-info-line {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.weblager-text-field,
+.weblager-combo-box {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 15 0 15;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.weblager-text-field:hover,
+.weblager-combo-box:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.weblager-text-field:focused,
+.weblager-combo-box:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.weblager-combo-box > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 15 0 9;
+}
+
+.weblager-combo-box > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.weblager-combo-box .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+.scan-setup-primary-card .primary-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-padding: 0 18 0 18;
+}
+
+.scan-setup-primary-card .tertiary-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-padding: 0 15 0 15;
+}
+
+/* =========================================================
+   16C. USER SCAN BUTTONS
+   ========================================================= */
+
+.primary-button,
+.secondary-button,
+.tertiary-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.primary-button:hover,
+.primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-button {
+    -fx-background-color: -wl-secondary;
+    -fx-border-color: -wl-secondary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.secondary-button:hover,
+.secondary-button:pressed {
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
+}
+
+.tertiary-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.tertiary-button:hover,
+.tertiary-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+/* =========================================================
+   16D. SCAN WORKSPACE SHELL
+   ========================================================= */
+
+.scan-workspace,
+.scan-workspace-scroll,
+.scan-workspace-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.scan-workspace-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.scan-session-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.workspace-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.workspace-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.scan-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.scan-current-file-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.selected-file-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.selected-file-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   16E. LEFT DOCUMENT STRUCTURE
+   ========================================================= */
+
+.scan-left-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.scan-panel-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.scan-panel-subtitle,
+.scan-tools-section-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.document-tree-scroll,
+.document-tree-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.document-tree-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.document-tree-container {
+    -fx-background-color: -wl-surface;
+    -fx-padding: 0;
+}
+
+.document-tree-empty-state {
+    -fx-padding: 15;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.document-tree-empty-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.document-tree-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.document-tree-document-block {
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.document-tree-document-header {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6 6 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.document-tree-document-header:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.document-tree-drop-target,
+.document-tree-drop-target:hover {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-text;
+    -fx-border-width: 1;
+}
+
+.document-tree-chevron,
+.document-tree-document-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.document-tree-count {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.document-tree-warning {
+    -fx-text-fill: -wl-error;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.document-tree-page-row {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 9 0 18;
+    -fx-background-color: -wl-surface;
+    -fx-cursor: hand;
+}
+
+.document-tree-page-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.document-tree-page-selected,
+.document-tree-page-selected:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent transparent transparent -wl-primary;
+    -fx-border-width: 0 0 0 3;
+}
+
+.document-tree-page-drag {
+    -fx-text-fill: -wl-placeholder;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+.document-tree-page-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.document-tree-barcode-split-row {
+    -fx-padding: 6 0 6 0;
+    -fx-alignment: center;
+}
+
+.document-tree-barcode-split-line {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-paper-line-light;
+}
+
+.document-tree-split-row {
+    -fx-padding: 0 9 0 9;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+    -fx-alignment: center;
+}
+
+/* =========================================================
+   16F. VIEW TOOLBAR
+   ========================================================= */
+
+.scan-view-toolbar {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.view-toolbar-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.view-toolbar-muted-label {
+    -fx-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.view-zoom-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.view-tool-button {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.view-tool-button:hover,
+.view-tool-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.view-reset-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.view-reset-button:hover,
+.view-reset-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.view-toolbar-divider {
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-background-color: -wl-border;
+}
+
+/* =========================================================
+   16G. PREVIEW STAGE
+   ========================================================= */
+
+.scan-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+    -fx-padding: 15 42 15 42;
+}
+
+.preview-host {
+    -fx-alignment: center;
+    -fx-cursor: open-hand;
+}
+
+.preview-host:pressed {
+    -fx-cursor: closed-hand;
+}
+
+.preview-arrow-button {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 400;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.preview-arrow-button:hover,
+.preview-arrow-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.scan-preview-empty {
+    -fx-padding: 36;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.scan-preview-empty-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.scan-preview-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+}
+
+/* =========================================================
+   16H. MOCK DOCUMENT PREVIEW
+   ========================================================= */
+
+.mock-document-page {
+    -fx-padding: 30;
+    -fx-background-color: -wl-paper-bg;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-paper-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.mock-line-dark,
+.mock-line-medium,
+.mock-line-light,
+.tray-line-dark,
+.tray-line-light {
+    -fx-background-radius: 3;
+}
+
+.mock-line-dark,
+.tray-line-dark {
+    -fx-background-color: -wl-paper-line-strong;
+}
+
+.mock-line-medium {
+    -fx-background-color: -wl-paper-line-medium;
+}
+
+.mock-line-light,
+.tray-line-light {
+    -fx-background-color: -wl-paper-line-light;
+}
+
+.mock-form-area {
+    -fx-padding: 15;
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-medium;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.mock-input {
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-light;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.mock-barcode-box {
+    -fx-padding: 6;
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-medium;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.mock-barcode-bars {
+    -fx-text-fill: -wl-paper-line-strong;
+    -fx-font-size: 21px;
+    -fx-font-weight: 900;
+}
+
+.preview-warning-banner {
+    -fx-padding: 9 12 9 12;
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+/* =========================================================
+   16I. BARCODE PREVIEW
+   ========================================================= */
+
+.barcode-preview-badge {
+    -fx-padding: 6 12 6 12;
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.barcode-preview-title {
+    -fx-text-fill: -wl-paper-line-strong;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.barcode-preview-bars {
+    -fx-text-fill: -wl-paper-line-strong;
+    -fx-font-size: 42px;
+    -fx-font-weight: 900;
+}
+
+.barcode-preview-copy {
+    -fx-text-fill: -wl-secondary;
+    -fx-font-size: 12px;
+    -fx-text-alignment: center;
+}
+
+/* =========================================================
+   16J. BOTTOM PAGE TRAY
+   ========================================================= */
+
+.page-tray-shell {
+    -fx-padding: 6 18 9 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-min-height: 111;
+    -fx-pref-height: 111;
+    -fx-max-height: 111;
+}
+
+.page-tray-title,
+.page-tray-count {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.page-tray-scroll,
+.page-tray-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.page-tray-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+    -fx-min-height: 81;
+    -fx-pref-height: 81;
+    -fx-max-height: 81;
+}
+
+.page-tray-container {
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+    -fx-min-height: 75;
+    -fx-alignment: center-left;
+}
+
+.page-tray-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-padding: 12 0 12 0;
+}
+
+.page-tray-item,
+.page-tray-barcode-split-card {
+    -fx-min-width: 66;
+    -fx-pref-width: 66;
+    -fx-max-width: 66;
+    -fx-min-height: 75;
+    -fx-pref-height: 75;
+    -fx-max-height: 75;
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.page-tray-item:hover,
+.page-tray-barcode-split-card:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.page-tray-item-selected,
+.page-tray-item-selected:hover {
+    -fx-background-color: -wl-paper-bg;
+    -fx-border-color: -wl-status-info-text;
+    -fx-border-width: 2;
+}
+
+.page-tray-item-warning {
+    -fx-border-color: -wl-status-warning-border;
+}
+
+.page-tray-barcode-split-card {
+    -fx-border-color: -wl-paper-line-light;
+}
+
+.page-tray-barcode-split-card-selected,
+.page-tray-barcode-split-card-selected:hover {
+    -fx-background-color: -wl-paper-bg;
+    -fx-border-color: -wl-status-info-text;
+    -fx-border-width: 2;
+}
+
+.page-tray-thumbnail {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-padding: 6;
+    -fx-background-color: -wl-paper-bg;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-paper-line-light;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+}
+
+.page-tray-number,
+.page-tray-barcode-split-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.page-tray-barcode-split-label {
+    -fx-font-weight: 600;
+}
+
+.page-tray-status-badge {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-background-color: -wl-paper-bg;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.page-tray-barcode-mark {
+    -fx-text-fill: -wl-paper-line-strong;
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+}
+
+.page-tray-document-split {
+    -fx-min-width: 9;
+    -fx-pref-width: 9;
+    -fx-max-width: 9;
+    -fx-min-height: 75;
+    -fx-pref-height: 75;
+    -fx-max-height: 75;
+    -fx-alignment: center;
+}
+
+.page-tray-document-split-line {
+    -fx-min-width: 3;
+    -fx-pref-width: 3;
+    -fx-max-width: 3;
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-background-color: -wl-status-info-text;
+    -fx-background-radius: 999;
+}
+
+.page-tray-item-dragging {
+    -fx-border-color: -wl-status-info-text;
+    -fx-border-width: 2;
+}
+
+.page-tray-drop-target {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-text;
+    -fx-border-width: 2;
+}
+
+/* =========================================================
+   16K. RIGHT TOOLS PANEL
+   ========================================================= */
+
+.scan-tools-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.scan-workflow-box {
+    -fx-padding: 15 0 0 0;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.scan-panel-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.scan-primary-action-button,
+.scan-tool-button,
+.scan-danger-button,
+.scan-warning-button,
+.scan-finish-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.scan-primary-action-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.scan-primary-action-button:hover,
+.scan-primary-action-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.scan-tool-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.scan-tool-button:hover,
+.scan-tool-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.scan-danger-button {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+}
+
+.scan-danger-button:hover,
+.scan-danger-button:pressed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-destructive-hover;
+    -fx-text-fill: -wl-destructive-hover;
+}
+
+.scan-warning-button {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.scan-warning-button:hover,
+.scan-warning-button:pressed {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+}
+
+.scan-finish-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 700;
+}
+
+.scan-finish-button:hover,
+.scan-finish-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+/* =========================================================
+   16L. FINISH REVIEW / SUBMIT CONFIRMATION MODALS
+   ========================================================= */
+
+.finish-review-overlay,
+.submit-confirmation-overlay {
+    -fx-background-color: -wl-overlay-bg;
+    -fx-alignment: center;
+    -fx-padding: 24;
+}
+
+.finish-review-modal,
+.submit-confirmation-modal {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.finish-review-success-icon,
+.submit-confirmation-success-icon {
+    -fx-min-width: 39;
+    -fx-pref-width: 39;
+    -fx-max-width: 39;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
+    -fx-background-color: -wl-status-success-bg;
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+}
+
+.finish-review-success-check,
+.submit-confirmation-success-check {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 12;
+    -fx-pref-height: 12;
+    -fx-max-height: 12;
+    -fx-background-color: -wl-status-success-text;
+    -fx-shape: "M5.3 10.6 L1.2 6.5 L0 7.7 L5.3 13 L14.5 3.8 L13.3 2.6 Z";
+}
+
+.finish-review-title,
+.submit-confirmation-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+}
+
+.finish-review-summary-card,
+.submit-confirmation-summary-card {
+    -fx-padding: 15;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.finish-review-box-id,
+.submit-confirmation-box-id {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.finish-review-summary-muted,
+.finish-review-copy,
+.submit-confirmation-summary-muted,
+.submit-confirmation-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.finish-review-secondary-button,
+.finish-review-primary-button,
+.finish-review-link-button,
+.submit-confirmation-secondary-button,
+.submit-confirmation-primary-button,
+.submit-confirmation-link-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.finish-review-secondary-button,
+.submit-confirmation-secondary-button {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.finish-review-secondary-button:hover,
+.finish-review-secondary-button:pressed,
+.submit-confirmation-secondary-button:hover,
+.submit-confirmation-secondary-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.finish-review-primary-button,
+.submit-confirmation-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 700;
+}
+
+.finish-review-primary-button:hover,
+.finish-review-primary-button:pressed,
+.submit-confirmation-primary-button:hover,
+.submit-confirmation-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.finish-review-link-button,
+.submit-confirmation-link-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.finish-review-link-button:hover,
+.finish-review-link-button:pressed,
+.submit-confirmation-link-button:hover,
+.submit-confirmation-link-button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-underline: true;
+}
+
+.finish-review-button-icon {
+    -fx-min-width: 12;
+    -fx-pref-width: 12;
+    -fx-max-width: 12;
+    -fx-min-height: 12;
+    -fx-pref-height: 12;
+    -fx-max-height: 12;
+    -fx-background-color: -wl-text;
+    -fx-shape: "M14 2 L20 8 L20 22 L4 22 L4 2 Z M13 4 L6 4 L6 20 L18 20 L18 9 L13 9 Z M14 4.8 L14 7 L16.2 7 Z M8 12 L16 12 L16 13.5 L8 13.5 Z M8 15 L16 15 L16 16.5 L8 16.5 Z";
+}
+
+.finish-review-button-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.finish-review-secondary-button:hover .finish-review-button-icon,
+.finish-review-secondary-button:pressed .finish-review-button-icon {
+    -fx-background-color: -wl-text;
+}
+
+.finish-review-secondary-button:hover .finish-review-button-label,
+.finish-review-secondary-button:pressed .finish-review-button-label {
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   16M. REVIEW WORKSPACE
+   ========================================================= */
+
+.scan-review-workspace {
+    -fx-background-color: -wl-background;
+}
+
+.review-summary-bar {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.review-summary-title,
+.qa-review-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.review-summary-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-summary-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-left-panel {
+    -fx-padding: 15 12 15 12;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.review-panel-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+}
+
+.review-document-scroll,
+.review-document-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.review-document-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.review-document-list {
+    -fx-background-color: -wl-surface;
+    -fx-padding: 0;
+}
+
+.review-document-card {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.review-document-card:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-document-card-selected,
+.review-document-card-selected:hover {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.review-document-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.review-document-count {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.review-document-card-selected .review-document-title,
+.review-document-card-selected .review-document-count {
+    -fx-text-fill: -wl-on-primary;
+}
+
+.review-document-warning {
+    -fx-text-fill: -wl-error;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.review-split-row {
+    -fx-padding: 3 12 3 12;
+    -fx-alignment: center;
+}
+
+.review-split-line {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-paper-line-light;
+}
+
+.review-split-label {
+    -fx-padding: 0 9 0 9;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.review-current-file-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.review-selected-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+}
+
+.review-view-icon {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+}
+
+.review-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+    -fx-padding: 30 42 30 42;
+}
+
+.review-preview-host {
+    -fx-alignment: center;
+}
+
+.review-preview-empty {
+    -fx-min-width: 690;
+    -fx-pref-width: 690;
+    -fx-max-width: 690;
+    -fx-min-height: 354;
+    -fx-pref-height: 354;
+    -fx-max-height: 354;
+    -fx-background-color: -wl-paper-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.review-preview-empty-icon {
+    -fx-min-width: 39;
+    -fx-pref-width: 39;
+    -fx-max-width: 39;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
+    -fx-background-color: -wl-paper-line-light;
+    -fx-shape: "M8 2 H16 V5 H19 V13 H16 V16 H8 V13 H5 V5 H8 Z M10 4 V7 H7 V11 H10 V14 H14 V11 H17 V7 H14 V4 Z";
+}
+
+.review-preview-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-page-tray-shell {
+    -fx-padding: 6 18 9 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.review-page-tray-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-page-tray-scroll,
+.review-page-tray-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.review-page-tray-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.review-page-tray-container {
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+    -fx-alignment: center-left;
+}
+
+.review-page-tray-item {
+    -fx-min-width: 66;
+    -fx-pref-width: 66;
+    -fx-max-width: 66;
+    -fx-min-height: 75;
+    -fx-pref-height: 75;
+    -fx-max-height: 75;
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.review-page-tray-item:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-page-tray-item-selected,
+.review-page-tray-item-selected:hover {
+    -fx-background-color: -wl-paper-bg;
+    -fx-border-color: -wl-success;
+    -fx-border-width: 2;
+}
+
+.review-page-tray-item-warning {
+    -fx-border-color: -wl-status-warning-border;
+}
+
+.review-page-tray-thumbnail {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-padding: 6;
+    -fx-background-color: -wl-paper-bg;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-paper-line-light;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+}
+
+.review-page-tray-number {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.review-next-step-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.review-submit-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.review-submit-button:hover,
+.review-submit-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.review-next-step-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.review-empty-state {
+    -fx-padding: 15;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.review-empty-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.review-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   16N. DARK MODE
+   ========================================================= */
+
+.app-shell.dark .top-nav-bar,
+.app-shell.dark .scan-session-header,
+.app-shell.dark .scan-current-file-header,
+.app-shell.dark .scan-view-toolbar,
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .page-tray-shell,
+.app-shell.dark .page-tray-scroll,
+.app-shell.dark .page-tray-scroll > .viewport,
+.app-shell.dark .page-tray-container,
+.app-shell.dark .document-tree-scroll,
+.app-shell.dark .document-tree-scroll > .viewport,
+.app-shell.dark .document-tree-container,
+.app-shell.dark .scan-workflow-box,
+.app-shell.dark .review-summary-bar,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .review-document-scroll,
+.app-shell.dark .review-document-scroll > .viewport,
+.app-shell.dark .review-document-list,
+.app-shell.dark .review-current-file-header,
+.app-shell.dark .review-page-tray-shell,
+.app-shell.dark .review-page-tray-scroll,
+.app-shell.dark .review-page-tray-scroll > .viewport,
+.app-shell.dark .review-page-tray-container,
+.app-shell.dark .review-next-step-panel {
+    -fx-background-color: -wl-surface;
+}
+
+.app-shell.dark .avatar-initials {
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+}
+
+.app-shell.dark .scan-preview-stage,
+.app-shell.dark .review-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+}
+
+.app-shell.dark .mock-document-page,
+.app-shell.dark .page-tray-thumbnail,
+.app-shell.dark .page-tray-status-badge,
+.app-shell.dark .review-page-tray-thumbnail,
+.app-shell.dark .review-page-tray-item-selected,
+.app-shell.dark .review-page-tray-item-selected:hover {
+    -fx-background-color: -wl-paper-bg;
+    -fx-border-color: -wl-paper-line-light;
+}
+
+.app-shell.dark .mock-form-area,
+.app-shell.dark .mock-input,
+.app-shell.dark .mock-barcode-box {
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-border-color: -wl-paper-line-light;
+}
+
+.app-shell.dark .barcode-preview-title,
+.app-shell.dark .barcode-preview-bars,
+.app-shell.dark .mock-barcode-bars,
+.app-shell.dark .page-tray-barcode-mark {
+    -fx-text-fill: -wl-paper-line-strong;
+}
+
+.app-shell.dark .barcode-preview-copy {
+    -fx-text-fill: -wl-secondary;
+}
+
+.app-shell.dark .page-tray-item,
+.app-shell.dark .page-tray-barcode-split-card {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+}
+
+.app-shell.dark .page-tray-item:hover,
+.app-shell.dark .page-tray-barcode-split-card:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.app-shell.dark .page-tray-item-selected,
+.app-shell.dark .page-tray-item-selected:hover,
+.app-shell.dark .page-tray-barcode-split-card-selected,
+.app-shell.dark .page-tray-barcode-split-card-selected:hover {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-primary;
+}
+
+.app-shell.dark .page-tray-drop-target,
+.app-shell.dark .document-tree-drop-target,
+.app-shell.dark .document-tree-drop-target:hover {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-primary;
+}
+
+.app-shell.dark .scan-danger-button:hover,
+.app-shell.dark .scan-danger-button:pressed {
+    -fx-background-color: -wl-status-error-bg;
+}
+
+.app-shell.dark .scan-warning-button:hover,
+.app-shell.dark .scan-warning-button:pressed,
+.app-shell.dark .preview-warning-banner,
+.app-shell.dark .barcode-preview-badge {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.app-shell.dark .finish-review-modal,
+.app-shell.dark .submit-confirmation-modal {
+    -fx-effect: none;
+}
+
+.app-shell.dark .finish-review-success-icon,
+.app-shell.dark .submit-confirmation-success-icon {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.app-shell.dark .finish-review-success-check,
+.app-shell.dark .submit-confirmation-success-check {
+    -fx-background-color: -wl-status-success-text;
+}
+
+.app-shell.dark .scan-review-workspace {
+    -fx-background-color: -wl-background;
+}
+
+.app-shell.dark .review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.app-shell.dark .review-document-card-selected,
+.app-shell.dark .review-document-card-selected:hover {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.app-shell.dark .review-preview-empty {
+    -fx-background-color: -wl-paper-bg;
+    -fx-effect: none;
+}
+
+/* =========================================================
+   17. ASSIGNED QA LIST + QA REVIEW WORKSPACE
+   ========================================================= */
+
+/* =========================================================
+   17.1 ASSIGNED QA PAGE SHELL
+   ========================================================= */
+
+.assigned-qa-page,
+.assigned-qa-scroll,
+.assigned-qa-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.assigned-qa-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.assigned-qa-content {
+    -fx-background-color: -wl-background;
+    -fx-alignment: top-center;
+}
+
+.assigned-qa-header,
+.assigned-qa-toolbar,
+.assigned-qa-card-list {
+    -fx-pref-width: 1080;
+    -fx-max-width: 1080;
+}
+
+/* =========================================================
+   17.2 ASSIGNED QA HEADER
+   ========================================================= */
+
+.assigned-qa-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.assigned-qa-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   17.3 ASSIGNED QA FILTER BAR
+   ========================================================= */
+
+.assigned-qa-toolbar {
+    -fx-alignment: center-left;
+}
+
+.assigned-qa-search-field,
+.assigned-qa-filter-combo {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.assigned-qa-search-field:hover,
+.assigned-qa-filter-combo:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.assigned-qa-search-field:focused,
+.assigned-qa-filter-combo:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.assigned-qa-filter-combo > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;
+}
+
+.assigned-qa-filter-combo > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.assigned-qa-filter-combo .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+/* =========================================================
+   17.4 ASSIGNED QA CARD LIST
+   ========================================================= */
+
+.assigned-qa-card-list {
+    -fx-spacing: 15;
+}
+
+.assigned-qa-card {
+    -fx-padding: 24;
+    -fx-spacing: 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.assigned-qa-card-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.assigned-qa-card-meta,
+.assigned-qa-card-detail {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.assigned-qa-card-meta-separator {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.assigned-qa-card-issues {
+    -fx-text-fill: -wl-status-error-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   17.5 ASSIGNED QA STATUS BADGES
+   ========================================================= */
+
+.assigned-qa-status-badge,
+.qa-review-status-badge {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-max-height: 27;
+    -fx-padding: 3 9 3 9;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: center;
+}
+
+.assigned-qa-status-waiting,
+.qa-review-status-waiting {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.assigned-qa-status-review,
+.qa-review-status-review {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.assigned-qa-status-issues,
+.qa-review-status-issues {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.assigned-qa-status-complete,
+.qa-review-status-complete {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+/* =========================================================
+   17.6 ASSIGNED QA PROGRESS BARS
+   ========================================================= */
+
+.assigned-qa-progress-track {
+    -fx-background-color: -wl-progress-track;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 0;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+}
+
+.assigned-qa-progress-fill {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 0;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+}
+
+.assigned-qa-progress-none {
+    -fx-background-color: transparent;
+}
+
+.assigned-qa-progress-review {
+    -fx-background-color: -wl-progress-review;
+}
+
+.assigned-qa-progress-issues {
+    -fx-background-color: -wl-progress-issues;
+}
+
+.assigned-qa-progress-complete {
+    -fx-background-color: -wl-progress-complete;
+}
+
+/* =========================================================
+   17.7 ASSIGNED QA ACTION BUTTONS
+   ========================================================= */
+
+.assigned-qa-primary-button,
+.assigned-qa-secondary-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.assigned-qa-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-primary-button:hover,
+.assigned-qa-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.assigned-qa-secondary-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-secondary-button:hover,
+.assigned-qa-secondary-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+/* =========================================================
+   17.8 ASSIGNED QA EMPTY STATE
+   ========================================================= */
+
+.assigned-qa-empty-state {
+    -fx-padding: 36;
+    -fx-spacing: 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.assigned-qa-empty-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.assigned-qa-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   17.9 QA REVIEW WORKSPACE SHELL
+   ========================================================= */
+
+.qa-review-workspace {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-meta-strong,
+.qa-review-meta {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.qa-review-meta-strong {
+    -fx-font-weight: 600;
+}
+
+.qa-review-meta-separator {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.qa-review-left-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.qa-review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-current-file-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-panel-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+/* =========================================================
+   17.10 QA REVIEW PREVIEW / VIEW TOOLS
+   ========================================================= */
+
+.qa-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+    -fx-padding: 15 24 15 24;
+}
+
+.qa-view-toolbar {
+    -fx-alignment: center-right;
+}
+
+.qa-view-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.qa-zoom-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.qa-view-icon-button {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.qa-view-icon-button:hover,
+.qa-view-icon-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-view-reset-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.qa-view-reset-button:hover,
+.qa-view-reset-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+/* =========================================================
+   17.11 QA RIGHT TOOLS PANEL
+   ========================================================= */
+
+.qa-tools-panel {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.qa-tools-scroll,
+.qa-tools-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.qa-tools-content {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-section-box {
+    -fx-background-color: transparent;
+}
+
+.qa-tools-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+/* =========================================================
+   17.12 QA CURRENT STATUS
+   ========================================================= */
+
+.qa-current-status-chip {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-alignment: center-left;
+}
+
+.qa-current-status-pending {
+    -fx-background-color: -wl-muted-control-bg;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.qa-current-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-current-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-tree-page-status,
+.qa-tray-status-mark {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.qa-status-pending {
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+}
+
+.qa-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-success;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-error;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+/* =========================================================
+   17.13 QA CHECKLIST + COMMENT
+   ========================================================= */
+
+.qa-checklist-check-box {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-checklist-check-box > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.qa-checklist-check-box:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.qa-checklist-check-box:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.qa-comment-textarea {
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-max-height: 84;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 9;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-comment-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+}
+
+.qa-comment-textarea:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-comment-textarea:focused {
+    -fx-border-color: -wl-primary;
+}
+
+/* =========================================================
+   17.14 QA BUTTONS
+   ========================================================= */
+
+.qa-approve-button,
+.qa-fix-button,
+.qa-neutral-button,
+.qa-complete-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.qa-approve-button {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-success;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-approve-button:hover,
+.qa-approve-button:pressed {
+    -fx-background-color: -wl-status-success-hover-bg;
+    -fx-border-color: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-fix-button {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-error;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-fix-button:hover,
+.qa-fix-button:pressed {
+    -fx-background-color: -wl-status-error-hover-bg;
+    -fx-border-color: -wl-status-error-text;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-neutral-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.qa-neutral-button:hover,
+.qa-neutral-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-complete-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 700;
+}
+
+.qa-complete-button:hover,
+.qa-complete-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+/* =========================================================
+   17A. ASSIGNED QA + QA REVIEW DARK MODE
+   ========================================================= */
+
+.app-shell.dark .assigned-qa-card,
+.app-shell.dark .assigned-qa-empty-state {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+}
+
+.app-shell.dark .assigned-qa-progress-track {
+    -fx-background-color: -wl-progress-track;
+}
+
+.app-shell.dark .assigned-qa-progress-none {
+    -fx-background-color: transparent;
+}
+
+.app-shell.dark .assigned-qa-status-waiting,
+.app-shell.dark .qa-review-status-waiting {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.app-shell.dark .assigned-qa-status-review,
+.app-shell.dark .qa-review-status-review {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.app-shell.dark .assigned-qa-status-issues,
+.app-shell.dark .qa-review-status-issues {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.app-shell.dark .assigned-qa-status-complete,
+.app-shell.dark .qa-review-status-complete {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.app-shell.dark .qa-review-header,
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .qa-review-current-file-header,
+.app-shell.dark .qa-tools-panel,
+.app-shell.dark .qa-tools-scroll,
+.app-shell.dark .qa-tools-scroll > .viewport,
+.app-shell.dark .qa-tools-content {
+    -fx-background-color: -wl-surface;
+}
+
+.app-shell.dark .qa-review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.app-shell.dark .qa-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+}
+
+.app-shell.dark .qa-current-status-pending {
+    -fx-background-color: -wl-muted-control-bg;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.app-shell.dark .qa-current-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.app-shell.dark .qa-current-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.app-shell.dark .qa-approve-button {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.app-shell.dark .qa-fix-button {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.app-shell.dark .qa-comment-textarea,
+.app-shell.dark .qa-comment-textarea .content {
+    -fx-background-color: -wl-input-bg;
 }

@@ -203,7 +203,7 @@
                 <VBox spacing="15" maxWidth="Infinity">
                     <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
                         <Button fx:id="cancelEditorButton"
-                                text="← Back to Templates"
+                                text="Back"
                                 onAction="#showOverview"
                                 focusTraversable="false"
                                 styleClass="metadata-back-button"/>

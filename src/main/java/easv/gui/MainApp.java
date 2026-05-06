@@ -17,7 +17,7 @@ public class MainApp extends Application {
     private static final String APP_TITLE = "WebLager";
 
     private static final String START_VIEW =
-            "/view/AdminViews/admin-view.fxml";
+            "/view/UserViews/user-view.fxml";
 
     private static final String WINDOW_ICON =
             "/images/weblager/styleguide/Main Blue/LogoBlue_Logoicon.png";

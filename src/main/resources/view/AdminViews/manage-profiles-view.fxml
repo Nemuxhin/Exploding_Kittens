@@ -155,7 +155,7 @@
 
                 <VBox spacing="15" maxWidth="Infinity">
                     <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
-                        <Button text="← Back"
+                        <Button text="Back"
                                 onAction="#showOverview"
                                 focusTraversable="false"
                                 styleClass="metadata-back-button"/>
