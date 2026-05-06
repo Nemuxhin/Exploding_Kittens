@@ -1,252 +1,24 @@
 package easv.dal;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DatabaseConnection {
-    private static final String DEFAULT_JDBC_URL = "jdbc:h2:file:./data/exploding-kittens;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE";
+    private static final String DEFAULT_JDBC_URL = "";
     private static final String DATABASE_PROPERTIES_FILE = "database.properties";
     private static final Pattern SQL_SERVER_DATABASE_PATTERN =
             Pattern.compile("(?i)(?:^|;)databaseName=([^;]+)");
     private static final Properties FILE_PROPERTIES = loadFileProperties();
-
-    private static final List<String> H2_SCHEMA_STATEMENTS = List.of(
-            """
-            CREATE TABLE IF NOT EXISTS clients (
-                id VARCHAR(36) PRIMARY KEY,
-                client_number VARCHAR(100) NOT NULL UNIQUE,
-                name VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS archives (
-                id VARCHAR(36) PRIMARY KEY,
-                client_id VARCHAR(36) NOT NULL,
-                archive_code VARCHAR(100) NOT NULL UNIQUE,
-                name VARCHAR(255) NOT NULL,
-                description VARCHAR(1000),
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (client_id) REFERENCES clients(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS boxes (
-                id VARCHAR(36) PRIMARY KEY,
-                archive_id VARCHAR(36),
-                box_id VARCHAR(100) NOT NULL UNIQUE,
-                description VARCHAR(255) NOT NULL,
-                location VARCHAR(255),
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (archive_id) REFERENCES archives(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS case_files (
-                id VARCHAR(36) PRIMARY KEY,
-                case_reference VARCHAR(100) NOT NULL UNIQUE,
-                client_id VARCHAR(36) NOT NULL,
-                box_id VARCHAR(36) NOT NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (client_id) REFERENCES clients(id),
-                FOREIGN KEY (box_id) REFERENCES boxes(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS documents (
-                id VARCHAR(36) PRIMARY KEY,
-                source_item_id VARCHAR(100) NOT NULL UNIQUE,
-                case_file_id VARCHAR(36) NOT NULL,
-                title VARCHAR(255),
-                status VARCHAR(50) NOT NULL DEFAULT 'IMPORTED',
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (case_file_id) REFERENCES case_files(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS document_pages (
-                id VARCHAR(36) PRIMARY KEY,
-                document_id VARCHAR(36) NOT NULL,
-                page_number INT NOT NULL,
-                page_type VARCHAR(20) NOT NULL,
-                source_reference VARCHAR(255) NOT NULL,
-                rotation_degrees INT NOT NULL DEFAULT 0,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE (document_id, page_number),
-                FOREIGN KEY (document_id) REFERENCES documents(id),
-                CHECK (page_type IN ('TIFF', 'BARCODE')),
-                CHECK (rotation_degrees IN (0, 90, 180, 270))
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS scan_sessions (
-                id VARCHAR(36) PRIMARY KEY,
-                started_at TIMESTAMP NOT NULL,
-                box_id VARCHAR(36) NOT NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (box_id) REFERENCES boxes(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS scan_session_documents (
-                session_id VARCHAR(36) NOT NULL,
-                document_id VARCHAR(36) NOT NULL,
-                PRIMARY KEY (session_id, document_id),
-                FOREIGN KEY (session_id) REFERENCES scan_sessions(id),
-                FOREIGN KEY (document_id) REFERENCES documents(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS session_failures (
-                id VARCHAR(36) PRIMARY KEY,
-                session_id VARCHAR(36) NOT NULL,
-                message VARCHAR(500) NOT NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (session_id) REFERENCES scan_sessions(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS roles (
-                id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-                name VARCHAR(50) NOT NULL UNIQUE,
-                description VARCHAR(255),
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                username VARCHAR(100) NOT NULL UNIQUE,
-                email VARCHAR(255) NOT NULL UNIQUE,
-                password_hash VARCHAR(255),
-                role_id INT NOT NULL,
-                status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
-                is_current_user BOOLEAN NOT NULL DEFAULT FALSE,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (role_id) REFERENCES roles(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS scan_profiles (
-                id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                code VARCHAR(100) NOT NULL UNIQUE,
-                description VARCHAR(1000),
-                status VARCHAR(50) NOT NULL DEFAULT 'Active',
-                metadata_template_name VARCHAR(255),
-                export_naming VARCHAR(255),
-                last_updated VARCHAR(255),
-                archived BOOLEAN NOT NULL DEFAULT FALSE,
-                barcode_splitting BOOLEAN NOT NULL DEFAULT FALSE,
-                barcode_detected_behavior VARCHAR(100),
-                barcode_page_behavior VARCHAR(100),
-                default_rotation VARCHAR(50),
-                brightness VARCHAR(50),
-                contrast VARCHAR(50),
-                deskew BOOLEAN NOT NULL DEFAULT FALSE,
-                export_format VARCHAR(50),
-                metadata_required_before_export BOOLEAN NOT NULL DEFAULT FALSE,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS metadata_templates (
-                id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-                name VARCHAR(255) NOT NULL UNIQUE,
-                description VARCHAR(1000),
-                status VARCHAR(50) NOT NULL DEFAULT 'Active',
-                last_updated VARCHAR(255),
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS metadata_fields (
-                id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-                template_id INT NOT NULL,
-                name VARCHAR(100) NOT NULL,
-                type VARCHAR(50) NOT NULL,
-                required BOOLEAN NOT NULL DEFAULT FALSE,
-                placeholder VARCHAR(255),
-                sort_order INT NOT NULL DEFAULT 0,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE (template_id, name),
-                FOREIGN KEY (template_id) REFERENCES metadata_templates(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS metadata_template_profile_assignments (
-                metadata_template_id INT NOT NULL,
-                scan_profile_id INT NOT NULL,
-                PRIMARY KEY (metadata_template_id, scan_profile_id),
-                FOREIGN KEY (metadata_template_id) REFERENCES metadata_templates(id),
-                FOREIGN KEY (scan_profile_id) REFERENCES scan_profiles(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS user_profile_assignments (
-                user_id INT NOT NULL,
-                scan_profile_id INT NOT NULL,
-                PRIMARY KEY (user_id, scan_profile_id),
-                FOREIGN KEY (user_id) REFERENCES users(id),
-                FOREIGN KEY (scan_profile_id) REFERENCES scan_profiles(id)
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS metadata_review_records (
-                id VARCHAR(100) PRIMARY KEY,
-                identity_value VARCHAR(255) NOT NULL,
-                client_name VARCHAR(255),
-                archive_name VARCHAR(255),
-                profile_name VARCHAR(255),
-                metadata_template_name VARCHAR(255),
-                metadata_status VARCHAR(100),
-                qa_status VARCHAR(100),
-                pages INT NOT NULL DEFAULT 0,
-                last_updated VARCHAR(255),
-                assigned_to VARCHAR(255),
-                scanned_by VARCHAR(255),
-                date_group VARCHAR(100),
-                warning BOOLEAN NOT NULL DEFAULT FALSE,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS audit_logs (
-                id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-                timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                type VARCHAR(100) NOT NULL,
-                actor VARCHAR(255) NOT NULL,
-                action VARCHAR(255) NOT NULL,
-                target VARCHAR(255) NOT NULL,
-                status VARCHAR(100) NOT NULL,
-                description VARCHAR(1000)
-            )
-            """
-    );
 
     private static final List<String> SQL_SERVER_SCHEMA_STATEMENTS = List.of(
             """
@@ -534,31 +306,35 @@ public class DatabaseConnection {
 
     public DatabaseConnection() {
         this(
-                readConfiguredValue("EXPLODING_KITTENS_DB_URL", "exploding-kittens.db.url",
-                        DEFAULT_JDBC_URL),
-                readConfiguredValue("EXPLODING_KITTENS_DB_USER", "exploding-kittens.db.user", "sa"),
+                readConfiguredValue("EXPLODING_KITTENS_DB_URL", "exploding-kittens.db.url", DEFAULT_JDBC_URL),
+                readConfiguredValue("EXPLODING_KITTENS_DB_USER", "exploding-kittens.db.user", ""),
                 readConfiguredValue("EXPLODING_KITTENS_DB_PASSWORD", "exploding-kittens.db.password", "")
         );
     }
 
     public DatabaseConnection(String jdbcUrl, String username, String password) {
-        this.jdbcUrl = jdbcUrl;
-        this.username = username;
-        this.password = password;
+        this.jdbcUrl = clean(jdbcUrl);
+        this.username = clean(username);
+        this.password = password == null ? "" : password;
         initializeSchema();
     }
 
     public Connection getConnection() throws SQLException {
+        if (jdbcUrl.isBlank()) {
+            throw new DataAccessException("""
+                    SQL Server connection URL is missing.
+                    Set `exploding-kittens.db.url` in `database.properties` or `EXPLODING_KITTENS_DB_URL`.
+                    """.stripIndent().trim());
+        }
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
 
     public void initializeSchema() {
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement()) {
-            DatabaseDialect dialect = detectDialect(jdbcUrl, connection.getMetaData());
-            validateDatabaseTarget(dialect, connection.getCatalog(), jdbcUrl);
+            validateDatabaseTarget(connection.getCatalog(), jdbcUrl);
 
-            for (String ddl : schemaStatementsFor(dialect)) {
+            for (String ddl : SQL_SERVER_SCHEMA_STATEMENTS) {
                 statement.executeUpdate(ddl);
             }
         } catch (SQLException e) {
@@ -566,15 +342,7 @@ public class DatabaseConnection {
         }
     }
 
-    static DatabaseDialect detectDialect(String jdbcUrl, DatabaseMetaData metaData) throws SQLException {
-        return DatabaseDialect.detect(jdbcUrl, metaData.getDatabaseProductName());
-    }
-
-    static void validateDatabaseTarget(DatabaseDialect dialect, String catalog, String jdbcUrl) {
-        if (dialect != DatabaseDialect.SQL_SERVER) {
-            return;
-        }
-
+    static void validateDatabaseTarget(String catalog, String jdbcUrl) {
         String effectiveDatabase = firstNonBlank(catalog, extractSqlServerDatabaseName(jdbcUrl));
         if (effectiveDatabase == null) {
             throw new DataAccessException("""
@@ -591,20 +359,13 @@ public class DatabaseConnection {
     }
 
     static String extractSqlServerDatabaseName(String jdbcUrl) {
-        Matcher matcher = SQL_SERVER_DATABASE_PATTERN.matcher(jdbcUrl);
+        Matcher matcher = SQL_SERVER_DATABASE_PATTERN.matcher(clean(jdbcUrl));
         if (!matcher.find()) {
             return null;
         }
 
         String databaseName = matcher.group(1).trim();
         return databaseName.isEmpty() ? null : databaseName;
-    }
-
-    static List<String> schemaStatementsFor(DatabaseDialect dialect) {
-        return switch (dialect) {
-            case SQL_SERVER -> SQL_SERVER_SCHEMA_STATEMENTS;
-            case H2 -> H2_SCHEMA_STATEMENTS;
-        };
     }
 
     private static String readConfiguredValue(String envName, String propertyName, String fallback) {
@@ -622,6 +383,7 @@ public class DatabaseConnection {
         if (env != null && !env.isBlank()) {
             return env;
         }
+
         return fallback;
     }
 
@@ -671,23 +433,7 @@ public class DatabaseConnection {
         return null;
     }
 
-    enum DatabaseDialect {
-        H2,
-        SQL_SERVER;
-
-        static DatabaseDialect detect(String jdbcUrl, String databaseProductName) {
-            String normalizedProductName = databaseProductName == null
-                    ? ""
-                    : databaseProductName.toLowerCase(Locale.ROOT);
-            if (normalizedProductName.contains("microsoft sql server")) {
-                return SQL_SERVER;
-            }
-
-            String normalizedUrl = jdbcUrl == null ? "" : jdbcUrl.toLowerCase(Locale.ROOT);
-            if (normalizedUrl.startsWith("jdbc:sqlserver:")) {
-                return SQL_SERVER;
-            }
-            return H2;
-        }
+    private static String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 }
