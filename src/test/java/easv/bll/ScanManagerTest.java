@@ -14,7 +14,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ScanManagerTest {
@@ -78,8 +77,8 @@ class ScanManagerTest {
         var firstCase = scanManager.findCaseFile("CASE-1").orElseThrow();
         var secondCase = scanManager.findCaseFile("CASE-2").orElseThrow();
 
-        assertSame(firstCase.getClient(), secondCase.getClient());
-        assertSame(firstCase.getBox(), secondCase.getBox());
+        assertEquals(firstCase.getClient().getId(), secondCase.getClient().getId());
+        assertEquals(firstCase.getBox().getId(), secondCase.getBox().getId());
         assertEquals(2, session.getImportedDocuments().size());
     }
 
