@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="easv.gui.controller.admin.DashboardController"
+            fitToWidth="true"
+            fitToHeight="false"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            minWidth="0"
+            minHeight="0"
+            maxWidth="Infinity"
+            maxHeight="Infinity"
+            styleClass="admin-page-scroll">
+
+    <content>
+        <VBox spacing="28"
+              fillWidth="true"
+              minWidth="0"
+              minHeight="0"
+              maxWidth="Infinity">
+
+            <styleClass>
+                <String fx:value="admin-page"/>
+                <String fx:value="main-content"/>
+                <String fx:value="dashboard-page"/>
+            </styleClass>
+
+            <padding>
+                <Insets top="24" right="30" bottom="34" left="30"/>
+            </padding>
+
+            <VBox spacing="10" styleClass="page-heading-copy">
+                <Label text="Dashboard" styleClass="page-title"/>
+                <Label text="Monitor scanning operations, access coverage, and metadata review."
+                       wrapText="true"
+                       styleClass="page-subtitle"/>
+            </VBox>
+
+            <GridPane hgap="20"
+                      vgap="20"
+                      maxWidth="Infinity"
+                      styleClass="admin-metric-grid">
+
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <VBox spacing="12"
+                      minWidth="0"
+                      maxWidth="Infinity"
+                      styleClass="admin-metric-card"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.columnIndex="0"
+                      GridPane.rowIndex="0">
+
+                    <HBox alignment="TOP_LEFT">
+                        <StackPane styleClass="dashboard-summary-icon-teal">
+                            <SVGPath content="M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z"
+                                     styleClass="dashboard-summary-icon-teal-path"/>
+                        </StackPane>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Label fx:id="totalUsersValueLabel"
+                               text="0"
+                               styleClass="dashboard-summary-value"/>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Total Users" styleClass="dashboard-summary-title"/>
+                        <Label text="Admin and operator accounts with portal access"
+                               wrapText="true"
+                               styleClass="dashboard-summary-subtitle"/>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="12"
+                      minWidth="0"
+                      maxWidth="Infinity"
+                      styleClass="admin-metric-card"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.columnIndex="1"
+                      GridPane.rowIndex="0">
+
+                    <HBox alignment="TOP_LEFT">
+                        <StackPane styleClass="dashboard-summary-icon-blue">
+                            <SVGPath content="M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2zm0 2v13h14v-13H5zm2.5 3h4.2a2.4 2.4 0 0 1 4.6 0h1.2v2h-1.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm6.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6zm-6.5 4.2h1.2a2.4 2.4 0 0 1 4.6 0h4.2v2h-4.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm3.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6z"
+                                     styleClass="dashboard-summary-icon-blue-path"/>
+                        </StackPane>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Label fx:id="activeProfilesValueLabel"
+                               text="0"
+                               styleClass="dashboard-summary-value"/>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Active Profiles" styleClass="dashboard-summary-title"/>
+                        <Label text="Profiles currently ready to route incoming scans"
+                               wrapText="true"
+                               styleClass="dashboard-summary-subtitle"/>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="12"
+                      minWidth="0"
+                      maxWidth="Infinity"
+                      styleClass="admin-metric-card"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.columnIndex="2"
+                      GridPane.rowIndex="0">
+
+                    <HBox alignment="TOP_LEFT">
+                        <StackPane styleClass="dashboard-summary-icon-green">
+                            <SVGPath content="M3 17.5 9.2 11.3l3.3 3.3L20 7.1V12h2V3.5h-8.5v2H18l-5.5 5.5-3.3-3.3L1.5 15.4 3 17.5z"
+                                     styleClass="dashboard-summary-icon-green-path"/>
+                        </StackPane>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Label fx:id="scansTodayValueLabel"
+                               text="0"
+                               styleClass="dashboard-summary-value"/>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Scans Today" styleClass="dashboard-summary-title"/>
+                        <Label text="Completed scan activity recorded in the last 24 hours"
+                               wrapText="true"
+                               styleClass="dashboard-summary-subtitle"/>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="12"
+                      minWidth="0"
+                      maxWidth="Infinity"
+                      styleClass="admin-metric-card"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.columnIndex="3"
+                      GridPane.rowIndex="0">
+
+                    <HBox alignment="TOP_LEFT">
+                        <StackPane styleClass="dashboard-summary-icon-amber">
+                            <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
+                                     styleClass="dashboard-summary-icon-amber-path"/>
+                        </StackPane>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Label fx:id="waitingForQaValueLabel"
+                               text="0"
+                               styleClass="dashboard-summary-value"/>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Waiting for QA" styleClass="dashboard-summary-title"/>
+                        <Label text="Documents queued for validation and approval"
+                               wrapText="true"
+                               styleClass="dashboard-summary-subtitle"/>
+                    </VBox>
+                </VBox>
+            </GridPane>
+
+            <GridPane hgap="20"
+                      vgap="20"
+                      maxWidth="Infinity"
+                      styleClass="admin-action-grid">
+
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Button focusTraversable="false"
+                        contentDisplay="GRAPHIC_ONLY"
+                        minHeight="144"
+                        prefHeight="144"
+                        maxHeight="144"
+                        maxWidth="Infinity"
+                        GridPane.hgrow="ALWAYS"
+                        onAction="#createUser">
+                    <styleClass>
+                        <String fx:value="admin-action-tile"/>
+                        <String fx:value="admin-action-tile-primary"/>
+                    </styleClass>
+                    <GridPane.columnIndex>0</GridPane.columnIndex>
+                    <GridPane.rowIndex>0</GridPane.rowIndex>
+                    <graphic>
+                        <VBox spacing="12" styleClass="admin-action-body">
+                            <SVGPath content="M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z"
+                                     styleClass="admin-action-icon-inverse"/>
+                            <Label text="Create User" styleClass="admin-action-title"/>
+                            <Label text="Open user management and provision a new account."
+                                   wrapText="true"
+                                   styleClass="admin-action-text"/>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button focusTraversable="false"
+                        contentDisplay="GRAPHIC_ONLY"
+                        minHeight="144"
+                        prefHeight="144"
+                        maxHeight="144"
+                        maxWidth="Infinity"
+                        GridPane.hgrow="ALWAYS"
+                        onAction="#createProfile">
+                    <styleClass>
+                        <String fx:value="admin-action-tile"/>
+                        <String fx:value="admin-action-tile-secondary"/>
+                    </styleClass>
+                    <GridPane.columnIndex>1</GridPane.columnIndex>
+                    <GridPane.rowIndex>0</GridPane.rowIndex>
+                    <graphic>
+                        <VBox spacing="12" styleClass="admin-action-body">
+                            <SVGPath content="M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2zm0 2v13h14v-13H5zm2.5 3h4.2a2.4 2.4 0 0 1 4.6 0h1.2v2h-1.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm6.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6zm-6.5 4.2h1.2a2.4 2.4 0 0 1 4.6 0h4.2v2h-4.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm3.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6z"
+                                     styleClass="admin-action-icon"/>
+                            <Label text="Create Profile" styleClass="admin-action-title"/>
+                            <Label text="Define routing and handling rules for new scan batches."
+                                   wrapText="true"
+                                   styleClass="admin-action-text"/>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button focusTraversable="false"
+                        contentDisplay="GRAPHIC_ONLY"
+                        minHeight="144"
+                        prefHeight="144"
+                        maxHeight="144"
+                        maxWidth="Infinity"
+                        GridPane.hgrow="ALWAYS"
+                        onAction="#createMetadataTemplate">
+                    <styleClass>
+                        <String fx:value="admin-action-tile"/>
+                        <String fx:value="admin-action-tile-secondary"/>
+                    </styleClass>
+                    <GridPane.columnIndex>0</GridPane.columnIndex>
+                    <GridPane.rowIndex>1</GridPane.rowIndex>
+                    <graphic>
+                        <VBox spacing="12" styleClass="admin-action-body">
+                            <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
+                                     styleClass="admin-action-icon"/>
+                            <Label text="Metadata" styleClass="admin-action-title"/>
+                            <Label text="Update required fields, mappings, and export rules."
+                                   wrapText="true"
+                                   styleClass="admin-action-text"/>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button focusTraversable="false"
+                        contentDisplay="GRAPHIC_ONLY"
+                        minHeight="144"
+                        prefHeight="144"
+                        maxHeight="144"
+                        maxWidth="Infinity"
+                        GridPane.hgrow="ALWAYS"
+                        onAction="#manageAccess">
+                    <styleClass>
+                        <String fx:value="admin-action-tile"/>
+                        <String fx:value="admin-action-tile-secondary"/>
+                    </styleClass>
+                    <GridPane.columnIndex>1</GridPane.columnIndex>
+                    <GridPane.rowIndex>1</GridPane.rowIndex>
+                    <graphic>
+                        <VBox spacing="12" styleClass="admin-action-body">
+                            <SVGPath content="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.31 0-6 1.79-6 4v2h8.1a6.48 6.48 0 0 1-.1-1.1c0-1.9.82-3.61 2.13-4.8A10.6 10.6 0 0 0 8 13zm8.5 0a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm-.5 6.7-2.1-2.1 1.06-1.06L16 17.59l2.54-2.55 1.06 1.06-3.6 3.6z"
+                                     styleClass="admin-action-icon"/>
+                            <Label text="Manage Access" styleClass="admin-action-title"/>
+                            <Label text="Review profile assignments across the scanning team."
+                                   wrapText="true"
+                                   styleClass="admin-action-text"/>
+                        </VBox>
+                    </graphic>
+                </Button>
+            </GridPane>
+
+            <HBox spacing="20"
+                  alignment="TOP_LEFT"
+                  maxWidth="Infinity"
+                  styleClass="admin-dashboard-layout">
+
+                <VBox spacing="24"
+                      minWidth="0"
+                      maxWidth="Infinity"
+                      styleClass="admin-dashboard-main"
+                      HBox.hgrow="ALWAYS">
+
+                    <VBox spacing="0"
+                          maxWidth="Infinity"
+                          styleClass="admin-panel-card">
+
+                        <HBox alignment="CENTER_LEFT" styleClass="admin-panel-header">
+                            <VBox spacing="3">
+                                <Label text="Recent Activity" styleClass="dashboard-section-title"/>
+                                <Label text="Latest changes across scans, access, and review queues"
+                                       wrapText="true"
+                                       styleClass="dashboard-section-subtitle"/>
+                            </VBox>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <Button text="View All ->"
+                                    onAction="#viewActivity"
+                                    focusTraversable="false"
+                                    styleClass="admin-link-button"/>
+                        </HBox>
+
+                        <VBox fx:id="recentActivityList"
+                              spacing="0"
+                              styleClass="dashboard-activity-list"/>
+                    </VBox>
+
+                    <VBox spacing="18"
+                          maxWidth="Infinity"
+                          styleClass="admin-panel-card">
+
+                        <HBox alignment="CENTER_LEFT" styleClass="admin-panel-header">
+                            <VBox spacing="3">
+                                <Label text="Workflow Status" styleClass="dashboard-section-title"/>
+                                <Label text="Live view of the current document throughput"
+                                       wrapText="true"
+                                       styleClass="dashboard-section-subtitle"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="18" styleClass="dashboard-workflow-body">
+                            <VBox spacing="10">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="In Progress" styleClass="dashboard-workflow-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="inProgressValueLabel"
+                                           text="0"
+                                           styleClass="dashboard-workflow-value"/>
+                                </HBox>
+                                <StackPane alignment="CENTER_LEFT" styleClass="dashboard-progress-track">
+                                    <Region fx:id="inProgressBar"
+                                            prefWidth="0"
+                                            styleClass="dashboard-progress-fill-blue"/>
+                                </StackPane>
+                            </VBox>
+
+                            <VBox spacing="10">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="Waiting for QA" styleClass="dashboard-workflow-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="workflowWaitingQaValueLabel"
+                                           text="0"
+                                           styleClass="dashboard-workflow-value"/>
+                                </HBox>
+                                <StackPane alignment="CENTER_LEFT" styleClass="dashboard-progress-track">
+                                    <Region fx:id="waitingQaBar"
+                                            prefWidth="0"
+                                            styleClass="dashboard-progress-fill-amber"/>
+                                </StackPane>
+                            </VBox>
+
+                            <VBox spacing="10">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="Exported" styleClass="dashboard-workflow-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="exportedValueLabel"
+                                           text="0"
+                                           styleClass="dashboard-workflow-value"/>
+                                </HBox>
+                                <StackPane alignment="CENTER_LEFT" styleClass="dashboard-progress-track">
+                                    <Region fx:id="exportedBar"
+                                            prefWidth="0"
+                                            styleClass="dashboard-progress-fill-green"/>
+                                </StackPane>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </VBox>
+
+                <VBox spacing="24"
+                      prefWidth="390"
+                      minWidth="340"
+                      maxWidth="420"
+                      styleClass="admin-dashboard-side">
+
+                    <VBox spacing="0"
+                          maxWidth="Infinity"
+                          styleClass="admin-panel-card">
+
+                        <HBox alignment="CENTER_LEFT" styleClass="admin-panel-header">
+                            <StackPane styleClass="dashboard-summary-icon-red">
+                                <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v6h-2V7h2zm-2 8h2v2h-2v-2z"
+                                         styleClass="dashboard-summary-icon-red-path"/>
+                            </StackPane>
+
+                            <VBox spacing="3">
+                                <Label text="Needs Attention" styleClass="dashboard-section-title"/>
+                                <Label text="Queues or settings that still need follow-up"
+                                       wrapText="true"
+                                       styleClass="dashboard-section-subtitle"/>
+                            </VBox>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <VBox alignment="CENTER_RIGHT"
+                                  spacing="2"
+                                  minWidth="92"
+                                  prefWidth="92">
+                                <Label fx:id="needsAttentionValueLabel"
+                                       text="0"
+                                       styleClass="dashboard-summary-value"/>
+                                <Label text="Open items"
+                                       styleClass="dashboard-section-subtitle"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="0" styleClass="dashboard-simple-list">
+                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="usersNoProfilesCountLabel"
+                                           text="0 users have no profiles"
+                                           wrapText="true"
+                                           styleClass="dashboard-simple-title"/>
+                                    <Label text="Review role coverage before the next scan handoff."
+                                           wrapText="true"
+                                           styleClass="dashboard-simple-detail"/>
+                                </VBox>
+                                <Button text="Review"
+                                        onAction="#manageAccess"
+                                        focusTraversable="false"
+                                        styleClass="admin-row-button"/>
+                            </HBox>
+
+                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="failedExportsCountLabel"
+                                           text="0 failed exports"
+                                           wrapText="true"
+                                           styleClass="dashboard-simple-title"/>
+                                    <Label text="Investigate metadata issues before re-exporting."
+                                           wrapText="true"
+                                           styleClass="dashboard-simple-detail"/>
+                                </VBox>
+                                <Button text="Review"
+                                        onAction="#reviewFailedExports"
+                                        focusTraversable="false"
+                                        styleClass="admin-row-button"/>
+                            </HBox>
+
+                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="draftProfilesCountLabel"
+                                           text="0 draft profiles"
+                                           wrapText="true"
+                                           styleClass="dashboard-simple-title"/>
+                                    <Label text="Finish setup and publish before assigning operators."
+                                           wrapText="true"
+                                           styleClass="dashboard-simple-detail"/>
+                                </VBox>
+                                <Button text="Open"
+                                        onAction="#createProfile"
+                                        focusTraversable="false"
+                                        styleClass="admin-row-button"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <VBox spacing="18"
+                          maxWidth="Infinity"
+                          styleClass="admin-panel-card">
+
+                        <HBox alignment="CENTER_LEFT" styleClass="admin-panel-header">
+                            <VBox spacing="3">
+                                <Label text="Admin Shortcuts" styleClass="dashboard-section-title"/>
+                                <Label text="Fast access to the core maintenance workflows"
+                                       wrapText="true"
+                                       styleClass="dashboard-section-subtitle"/>
+                            </VBox>
+                        </HBox>
+
+                        <GridPane hgap="12" vgap="12" styleClass="dashboard-actions-grid">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Button text="Create User"
+                                    onAction="#createUser"
+                                    focusTraversable="false"
+                                    maxWidth="Infinity"
+                                    styleClass="admin-primary-button"
+                                    GridPane.columnIndex="0"
+                                    GridPane.rowIndex="0"/>
+
+                            <Button text="Create Profile"
+                                    onAction="#createProfile"
+                                    focusTraversable="false"
+                                    maxWidth="Infinity"
+                                    styleClass="admin-primary-button"
+                                    GridPane.columnIndex="1"
+                                    GridPane.rowIndex="0"/>
+
+                            <Button text="Metadata"
+                                    onAction="#createMetadataTemplate"
+                                    focusTraversable="false"
+                                    maxWidth="Infinity"
+                                    styleClass="admin-secondary-button"
+                                    GridPane.columnIndex="0"
+                                    GridPane.rowIndex="1"/>
+
+                            <Button text="Access"
+                                    onAction="#manageAccess"
+                                    focusTraversable="false"
+                                    maxWidth="Infinity"
+                                    styleClass="admin-secondary-button"
+                                    GridPane.columnIndex="1"
+                                    GridPane.rowIndex="1"/>
+                        </GridPane>
+                    </VBox>
+                </VBox>
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>

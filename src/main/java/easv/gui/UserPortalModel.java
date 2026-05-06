@@ -4,6 +4,16 @@ import java.util.List;
 
 public class UserPortalModel {
     private static final String BOX_ID_PATTERN = "^BOX-\\d{4}-\\d{3}$";
+    private AccountProfile accountProfile = new AccountProfile("John Doe", "john.doe@company.com", "Archives");
+
+    public record DashboardMetric(String label, String value) {
+    }
+
+    public record AccountProfile(String fullName, String email, String department) {
+    }
+
+    public record ScanProfileInfo(String metadataRequired, String qaRequired, String splittingMethod) {
+    }
 
     public record BoxItem(String id, String description) {
         @Override
@@ -31,33 +41,32 @@ public class UserPortalModel {
     public record ExportItem(String fileName, String boxId, String profileName, String createdAt, String size, String status) {
     }
 
-    public record ProgressStep(String label, String marker, String stateStyle) {
-    }
-
-    public record ScanProgress(String profileName, String boxId, String startedAt, String startedBy, int progressPercent,
-                               int pagesScanned, int totalPages, List<ProgressStep> steps) {
-    }
-
-    public record ScanSummary(String profileName, String boxId, String startedAt, String completedAt, int totalPages, String status) {
-    }
-
     public record PortalSession(ProfileItem profile, BoxItem box) {
         public String exportName() {
             return profile.name() + "_" + box.id();
         }
     }
 
+    public List<DashboardMetric> fetchDashboardMetrics() {
+        return List.of(
+                new DashboardMetric("Total Scans", "247"),
+                new DashboardMetric("This Month", "23"),
+                new DashboardMetric("Pages Scanned", "18.4K"),
+                new DashboardMetric("Completed", "94.7%")
+        );
+    }
+
     public List<ProfileItem> fetchProfilesForUser() {
         return List.of(
-                new ProfileItem(1, "Finance Standard", "Optimized for financial documents and reports.", true, List.of(
-                        new BoxItem("BOX-2026-001", "Primary finance intake"),
-                        new BoxItem("BOX-2026-014", "Monthly reconciliation batch")
+                new ProfileItem(1, "Standard Scan", "Balanced settings for everyday document intake and general office work.", true, List.of(
+                        new BoxItem("BOX-2026-042", "Primary intake"),
+                        new BoxItem("BOX-2026-041", "Overflow intake")
                 )),
-                new ProfileItem(2, "Legal Standard", "Configured for legal matter packets and supporting paperwork.", false, List.of(
-                        new BoxItem("BOX-2026-002", "Assigned legal queue")
+                new ProfileItem(2, "High Quality", "Higher resolution profile for detailed pages and image-heavy packets.", false, List.of(
+                        new BoxItem("BOX-2026-040", "Detailed review queue")
                 )),
-                new ProfileItem(3, "HR Standard", "Balanced settings for onboarding files and employee records.", false, List.of(
-                        new BoxItem("BOX-2026-003", "HR intake box")
+                new ProfileItem(3, "Archive", "Optimized for long-term archival exports and retention workflows.", false, List.of(
+                        new BoxItem("BOX-2026-039", "Archive staging")
                 ))
         );
     }
@@ -71,28 +80,29 @@ public class UserPortalModel {
 
     public List<RecentScanItem> fetchRecentScans() {
         return List.of(
-                new RecentScanItem("BOX-2026-001", "Finance Standard", "Completed", "Apr 24, 2024 10:30 AM", 245),
-                new RecentScanItem("BOX-2026-002", "Legal Standard", "In Progress", "Apr 24, 2024 9:45 AM", 125),
-                new RecentScanItem("BOX-2026-003", "HR Standard", "Failed", "Apr 23, 2024 4:05 PM", 45)
+                new RecentScanItem("BOX-2026-042", "Standard Scan", "Completed", "2026-04-24 14:45", 125),
+                new RecentScanItem("BOX-2026-041", "High Quality", "Processing", "2026-04-24 13:15", 89),
+                new RecentScanItem("BOX-2026-040", "Standard Scan", "Completed", "2026-04-23 16:38", 203),
+                new RecentScanItem("BOX-2026-039", "Archive", "Failed", "2026-04-23 10:05", 0)
         );
     }
 
     public List<HistoryItem> fetchScanHistory() {
         return List.of(
-                new HistoryItem("BOX-2026-001", "Finance Standard", "Completed", "Apr 24, 2024 10:30 AM", "Apr 24, 2024 11:05 AM", 245),
-                new HistoryItem("BOX-2026-002", "Legal Standard", "In Progress", "Apr 24, 2024 9:45 AM", "-", 125),
-                new HistoryItem("BOX-2026-003", "HR Standard", "Failed", "Apr 23, 2024 4:05 PM", "Apr 23, 2024 4:50 PM", 45),
-                new HistoryItem("BOX-2026-004", "Finance Standard", "Completed", "Apr 23, 2024 12:15 PM", "Apr 23, 2024 2:45 PM", 310),
-                new HistoryItem("BOX-2026-005", "Legal Standard", "Completed", "Apr 22, 2024 11:30 AM", "Apr 22, 2024 11:50 AM", 198)
+                new HistoryItem("BOX-2026-042", "Standard Scan", "Completed", "2026-04-24 14:45", "2026-04-24 15:02", 125),
+                new HistoryItem("BOX-2026-041", "High Quality", "Processing", "2026-04-24 13:15", "-", 89),
+                new HistoryItem("BOX-2026-040", "Standard Scan", "Completed", "2026-04-23 16:38", "2026-04-23 17:11", 203),
+                new HistoryItem("BOX-2026-039", "Archive", "Failed", "2026-04-23 10:05", "2026-04-23 10:22", 0),
+                new HistoryItem("BOX-2026-038", "High Quality", "Completed", "2026-04-22 09:40", "2026-04-22 10:18", 176)
         );
     }
 
     public List<ExportItem> fetchExports() {
         return List.of(
-                new ExportItem("Finance Standard_BOX-2026-001.pdf", "BOX-2026-001", "Finance Standard", "Apr 24, 2024 11:05 AM", "102.7 MB", "Ready"),
-                new ExportItem("Legal Standard_BOX-2026-002.pdf", "BOX-2026-002", "Legal Standard", "Apr 24, 2024 9:45 AM", "96.3 MB", "Ready"),
-                new ExportItem("HR Standard_BOX-2026-003.pdf", "BOX-2026-003", "HR Standard", "Apr 23, 2024 5:00 PM", "22.1 MB", "Failed"),
-                new ExportItem("Finance Standard_BOX-2026-004.pdf", "BOX-2026-004", "Finance Standard", "Apr 23, 2024 2:15 PM", "-", "Processing")
+                new ExportItem("standard_scan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan", "2026-04-24 15:02", "102.7 MB", "Ready"),
+                new ExportItem("high_quality_BOX-2026-041.pdf", "BOX-2026-041", "High Quality", "2026-04-24 13:15", "96.3 MB", "Ready"),
+                new ExportItem("archive_BOX-2026-039.pdf", "BOX-2026-039", "Archive", "2026-04-23 10:22", "-", "Failed"),
+                new ExportItem("standard_scan_BOX-2026-040.pdf", "BOX-2026-040", "Standard Scan", "2026-04-23 17:11", "145.0 MB", "Processing")
         );
     }
 
@@ -101,38 +111,52 @@ public class UserPortalModel {
             return List.of();
         }
         return switch (profile.name()) {
-            case "Legal Standard" -> List.of(
-                    new ProfileSetting("Auto-rotate", "3 deg"),
-                    new ProfileSetting("Brightness", "+8%"),
-                    new ProfileSetting("Remove blank pages", "On"),
-                    new ProfileSetting("Output format", "PDF")
+            case "High Quality" -> List.of(
+                    new ProfileSetting("Resolution", "600 DPI"),
+                    new ProfileSetting("Denoise", "On"),
+                    new ProfileSetting("Deskew", "On"),
+                    new ProfileSetting("Output format", "PDF/A")
             );
-            case "HR Standard" -> List.of(
-                    new ProfileSetting("Auto-rotate", "2 deg"),
-                    new ProfileSetting("Brightness", "+6%"),
-                    new ProfileSetting("Remove blank pages", "On"),
-                    new ProfileSetting("Output format", "PDF")
+            case "Archive" -> List.of(
+                    new ProfileSetting("Resolution", "400 DPI"),
+                    new ProfileSetting("Blank page removal", "On"),
+                    new ProfileSetting("Retention tag", "Archive"),
+                    new ProfileSetting("Output format", "TIFF + PDF")
             );
             default -> List.of(
-                    new ProfileSetting("Auto-rotate", "5 deg"),
-                    new ProfileSetting("Brightness", "+10%"),
-                    new ProfileSetting("Remove blank pages", "On"),
+                    new ProfileSetting("Resolution", "300 DPI"),
+                    new ProfileSetting("Auto crop", "On"),
+                    new ProfileSetting("Blank page removal", "On"),
                     new ProfileSetting("Output format", "PDF")
             );
         };
     }
 
-    public List<String> fetchHelpTopics() {
-        return List.of(
-                "How to start a new scan",
-                "Understanding profiles",
-                "Review and export scans",
-                "Where are my exports?"
+    public ScanProfileInfo fetchScanProfileInfo(ProfileItem profile) {
+        if (profile == null) {
+            return new ScanProfileInfo("—", "—", "—");
+        }
+        return switch (profile.name()) {
+            case "High Quality" -> new ScanProfileInfo("Yes", "No", "Single document");
+            case "Archive" -> new ScanProfileInfo("Yes", "Yes", "Manual or barcode");
+            default -> new ScanProfileInfo("No", "No", "Manual");
+        };
+    }
+
+    public AccountProfile fetchAccountProfile() {
+        return accountProfile;
+    }
+
+    public void updateAccountProfile(String fullName, String email, String department) {
+        accountProfile = new AccountProfile(
+                normalizedValue(fullName, accountProfile.fullName()),
+                normalizedValue(email, accountProfile.email()),
+                normalizedValue(department, accountProfile.department())
         );
     }
 
     public String formatExportName(String profileName, String boxId) {
-        return profileName + "_" + boxId;
+        return profileName.toLowerCase().replace(' ', '_') + "_" + boxId;
     }
 
     public boolean isValidBoxId(String boxId) {
@@ -140,7 +164,7 @@ public class UserPortalModel {
     }
 
     public PortalSession startSession(ProfileItem profile, String boxId) {
-        String normalizedBoxId = boxId == null || boxId.isBlank() ? "BOX-2026-001" : boxId.trim();
+        String normalizedBoxId = boxId == null || boxId.isBlank() ? "BOX-2026-042" : boxId.trim();
         return new PortalSession(profile, new BoxItem(normalizedBoxId, "Manual scan started from dashboard"));
     }
 
@@ -160,29 +184,10 @@ public class UserPortalModel {
         return new PortalSession(profile, new BoxItem(boxId, "Resumed from history"));
     }
 
-    public ScanProgress fetchScanProgress(PortalSession session) {
-        String boxId = session == null ? "BOX-2026-001" : session.box().id();
-        String profileName = session == null ? getDefaultProfileForUser().name() : session.profile().name();
-        return new ScanProgress(
-                profileName,
-                boxId,
-                "Apr 24, 2024 10:30 AM",
-                "Jane Doe",
-                65,
-                163,
-                250,
-                List.of(
-                        new ProgressStep("Capturing pages", "OK", "progress-marker-complete"),
-                        new ProgressStep("Applying profile settings", "OK", "progress-marker-complete"),
-                        new ProgressStep("Analyzing pages", "...", "progress-marker-active"),
-                        new ProgressStep("Finalizing", "O", "progress-marker-pending")
-                )
-        );
-    }
-
-    public ScanSummary fetchCompletedSummary(PortalSession session) {
-        String boxId = session == null ? "BOX-2026-001" : session.box().id();
-        String profileName = session == null ? getDefaultProfileForUser().name() : session.profile().name();
-        return new ScanSummary(profileName, boxId, "Apr 24, 2024 10:30 AM", "Apr 24, 2024 11:05 AM", 245, "Completed");
+    private String normalizedValue(String value, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value.trim();
     }
 }

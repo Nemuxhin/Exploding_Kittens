@@ -1,0 +1,933 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="easv.gui.controller.user.NewScanController"
+           minWidth="0"
+           minHeight="0"
+           maxWidth="Infinity"
+           maxHeight="Infinity"
+           styleClass="scan-page">
+    <!-- =========================================================
+         SETUP VIEW
+         ========================================================= -->
+
+    <VBox fx:id="scanSetupView"
+          alignment="TOP_CENTER"
+          fillWidth="true"
+          minWidth="0"
+          minHeight="0"
+          maxWidth="Infinity"
+          maxHeight="Infinity"
+          styleClass="scan-setup-view">
+
+        <VBox spacing="18"
+              alignment="TOP_LEFT"
+              fillWidth="true"
+              prefWidth="1110"
+              maxWidth="1110"
+              styleClass="scan-setup-content">
+
+            <!-- Header -->
+            <VBox spacing="6"
+                  alignment="CENTER_LEFT">
+                <Label text="New Scan"
+                       styleClass="page-title"/>
+
+                <Label text="Choose a profile and box before scanning."
+                       styleClass="page-subtitle"/>
+            </VBox>
+
+            <!-- Main layout -->
+            <HBox spacing="18"
+                  alignment="TOP_LEFT"
+                  fillHeight="false"
+                  maxWidth="Infinity"
+                  styleClass="scan-setup-main-row">
+
+                <!-- Quick helper card -->
+                <VBox spacing="18"
+                      alignment="TOP_LEFT"
+                      minWidth="270"
+                      prefWidth="270"
+                      maxWidth="270"
+                      styleClass="scan-setup-quick-card">
+
+                    <VBox spacing="6">
+                        <Label text="Quick start"
+                               styleClass="scan-setup-quick-title"/>
+
+                        <Label text="Set the profile, enter the box ID, then start scanning."
+                               wrapText="true"
+                               styleClass="scan-setup-quick-copy"/>
+                    </VBox>
+
+                    <VBox spacing="9">
+                        <HBox spacing="12"
+                              alignment="TOP_LEFT"
+                              styleClass="scan-setup-quick-item">
+                            <Label text="1"
+                                   styleClass="scan-setup-step-number"/>
+
+                            <VBox spacing="3">
+                                <Label text="Select profile"
+                                       styleClass="scan-setup-step-title"/>
+
+                                <Label text="Uses your assigned scan rules."
+                                       wrapText="true"
+                                       styleClass="scan-setup-step-copy"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12"
+                              alignment="TOP_LEFT"
+                              styleClass="scan-setup-quick-item">
+                            <Label text="2"
+                                   styleClass="scan-setup-step-number"/>
+
+                            <VBox spacing="3">
+                                <Label text="Enter box ID"
+                                       styleClass="scan-setup-step-title"/>
+
+                                <Label text="Use the archive box identifier."
+                                       wrapText="true"
+                                       styleClass="scan-setup-step-copy"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12"
+                              alignment="TOP_LEFT"
+                              styleClass="scan-setup-quick-item">
+                            <Label text="3"
+                                   styleClass="scan-setup-step-number"/>
+
+                            <VBox spacing="3">
+                                <Label text="Start scanning"
+                                       styleClass="scan-setup-step-title"/>
+
+                                <Label text="Review, split, reorder, and submit after scan."
+                                       wrapText="true"
+                                       styleClass="scan-setup-step-copy"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- Main scan setup card -->
+                <VBox spacing="24"
+                      alignment="TOP_LEFT"
+                      HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity"
+                      styleClass="scan-setup-primary-card">
+
+                    <VBox spacing="3">
+                        <Label text="Scan setup"
+                               styleClass="scan-setup-primary-title"/>
+
+                        <Label text="Complete the required fields below to begin the scanning session."
+                               wrapText="true"
+                               styleClass="scan-setup-primary-copy"/>
+                    </VBox>
+
+                    <VBox spacing="18"
+                          maxWidth="Infinity">
+
+                        <!-- Profile -->
+                        <VBox spacing="6"
+                              maxWidth="Infinity">
+                            <HBox alignment="CENTER_LEFT"
+                                  maxWidth="Infinity">
+                                <Label text="Profile"
+                                       styleClass="form-label"/>
+
+                                <Region HBox.hgrow="ALWAYS"/>
+
+                                <Button fx:id="profileInfoButton"
+                                        text="ⓘ Profile info"
+                                        focusTraversable="false"
+                                        styleClass="profile-info-link-button"/>
+                            </HBox>
+
+                            <ComboBox fx:id="profileComboBox"
+                                      promptText="Select profile"
+                                      maxWidth="Infinity"
+                                      styleClass="weblager-combo-box"/>
+
+                            <Label text="Only profiles assigned to you are shown."
+                                   styleClass="helper-text"/>
+                        </VBox>
+
+                        <!-- Profile info panel -->
+                        <VBox fx:id="profileInfoPanel"
+                              spacing="9"
+                              visible="false"
+                              managed="false"
+                              maxWidth="Infinity"
+                              styleClass="profile-info-panel">
+
+                            <Label fx:id="profileInfoTitleLabel"
+                                   text="No profile selected"
+                                   styleClass="profile-info-title"/>
+
+                            <Label fx:id="profileInfoMetadataLabel"
+                                   text="Metadata required: —"
+                                   styleClass="profile-info-line"/>
+
+                            <Label fx:id="profileInfoQaLabel"
+                                   text="QA required: —"
+                                   styleClass="profile-info-line"/>
+
+                            <Label fx:id="profileInfoSplittingLabel"
+                                   text="Splitting method: —"
+                                   styleClass="profile-info-line"/>
+                        </VBox>
+
+                        <!-- Box ID -->
+                        <VBox spacing="6"
+                              maxWidth="Infinity">
+                            <Label text="Box ID"
+                                   styleClass="form-label"/>
+
+                            <TextField fx:id="boxIdTextField"
+                                       promptText="Enter box ID"
+                                       maxWidth="Infinity"
+                                       styleClass="weblager-text-field"/>
+                        </VBox>
+
+                        <!-- Actions -->
+                        <HBox spacing="15"
+                              alignment="CENTER_LEFT"
+                              maxWidth="Infinity">
+                            <Button fx:id="startScanningButton"
+                                    text="Start Scanning"
+                                    onAction="#onStartScanning"
+                                    maxWidth="Infinity"
+                                    HBox.hgrow="ALWAYS"
+                                    styleClass="primary-button"/>
+
+                            <Button fx:id="viewMyScansButton"
+                                    text="View My Scans"
+                                    onAction="#onViewMyScans"
+                                    minWidth="180"
+                                    prefWidth="180"
+                                    maxWidth="180"
+                                    styleClass="tertiary-button"/>
+                        </HBox>
+
+                        <!-- Calm utility line -->
+                        <HBox spacing="9"
+                              alignment="CENTER_LEFT"
+                              maxWidth="Infinity"
+                              styleClass="scan-setup-meta-row">
+                            <Label text="Assigned profiles only"
+                                   styleClass="scan-setup-meta-pill"/>
+
+                            <Label text="Review and submit after scanning"
+                                   styleClass="scan-setup-meta-pill"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <!-- =========================================================
+         SCAN WORKSPACE VIEW
+         ========================================================= -->
+
+    <BorderPane fx:id="scanWorkspaceView"
+                visible="false"
+                managed="false"
+                minWidth="0"
+                minHeight="0"
+                maxWidth="Infinity"
+                maxHeight="Infinity"
+                styleClass="scan-workspace">
+
+        <!-- Top session header -->
+        <top>
+            <HBox spacing="18"
+                  alignment="CENTER_LEFT"
+                  minWidth="0"
+                  maxWidth="Infinity"
+                  styleClass="scan-session-header">
+                <padding>
+                    <Insets top="15" right="18" bottom="15" left="18"/>
+                </padding>
+
+                <VBox spacing="3"
+                      minWidth="0"
+                      HBox.hgrow="ALWAYS">
+                    <Label fx:id="workspaceSessionTitleLabel"
+                           text="Scanning Session"
+                           styleClass="workspace-title"/>
+
+                    <Label fx:id="workspaceSessionSubtitleLabel"
+                           text="0 files scanned · 0 documents created · 0 pending pages"
+                           styleClass="workspace-subtitle"/>
+                </VBox>
+
+                <Button text="Scan Next File"
+                        onAction="#onScanNextFile"
+                        minWidth="168"
+                        prefWidth="168"
+                        maxWidth="168"
+                        prefHeight="33"
+                        styleClass="scan-primary-action-button"/>
+            </HBox>
+        </top>
+
+        <!-- Left document structure -->
+        <left>
+            <VBox spacing="15"
+                  minWidth="300"
+                  prefWidth="300"
+                  maxWidth="300"
+                  minHeight="0"
+                  maxHeight="Infinity"
+                  styleClass="scan-left-panel">
+
+                <VBox spacing="3">
+                    <Label text="Box Structure"
+                           styleClass="scan-panel-title"/>
+
+                    <Label fx:id="boxStructureSubtitleLabel"
+                           text="No profile · No box ID"
+                           styleClass="scan-panel-subtitle"/>
+                </VBox>
+
+                <ScrollPane fitToWidth="true"
+                            fitToHeight="true"
+                            hbarPolicy="NEVER"
+                            vbarPolicy="AS_NEEDED"
+                            minHeight="0"
+                            maxHeight="Infinity"
+                            VBox.vgrow="ALWAYS"
+                            styleClass="document-tree-scroll">
+                    <VBox fx:id="documentTreeContainer"
+                          spacing="9"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          styleClass="document-tree-container"/>
+                </ScrollPane>
+            </VBox>
+        </left>
+
+        <!-- Center scan workspace -->
+        <center>
+            <BorderPane minWidth="0"
+                        minHeight="0"
+                        maxWidth="Infinity"
+                        maxHeight="Infinity"
+                        styleClass="scan-center-panel">
+
+                <!-- Selected file header -->
+                <top>
+                    <VBox minWidth="0"
+                          maxWidth="Infinity">
+
+                        <HBox spacing="12"
+                              alignment="CENTER_LEFT"
+                              minHeight="66"
+                              prefHeight="66"
+                              maxHeight="66"
+                              styleClass="scan-current-file-header">
+                            <padding>
+                                <Insets top="0" right="18" bottom="0" left="18"/>
+                            </padding>
+
+                            <VBox spacing="3"
+                                  minWidth="0"
+                                  HBox.hgrow="ALWAYS">
+                                <Label fx:id="selectedFileTitleLabel"
+                                       text="No file selected"
+                                       styleClass="selected-file-title"/>
+
+                                <Label fx:id="selectedFileRefLabel"
+                                       text="Scan a file to begin."
+                                       styleClass="selected-file-subtitle"/>
+                            </VBox>
+
+                        </HBox>
+
+                        <!-- View toolbar -->
+                        <HBox spacing="12"
+                              alignment="CENTER_LEFT"
+                              minHeight="51"
+                              prefHeight="51"
+                              maxHeight="51"
+                              styleClass="scan-view-toolbar">
+                            <padding>
+                                <Insets top="0" right="18" bottom="0" left="18"/>
+                            </padding>
+
+                            <Label text="View"
+                                   styleClass="view-toolbar-label"/>
+
+                            <Button text="−"
+                                    onAction="#onZoomOut"
+                                    styleClass="view-tool-button"/>
+
+                            <Label fx:id="previewZoomLabel"
+                                   text="100%"
+                                   minWidth="54"
+                                   alignment="CENTER"
+                                   styleClass="view-zoom-label"/>
+
+                            <Button text="+"
+                                    onAction="#onZoomIn"
+                                    styleClass="view-tool-button"/>
+
+                            <Region styleClass="view-toolbar-divider"/>
+
+                            <Button text="↑"
+                                    onAction="#onNudgePreviewUp"
+                                    styleClass="view-tool-button"/>
+
+                            <Button text="←"
+                                    onAction="#onNudgePreviewLeft"
+                                    styleClass="view-tool-button"/>
+
+                            <Label text="Move"
+                                   styleClass="view-toolbar-muted-label"/>
+
+                            <Button text="→"
+                                    onAction="#onNudgePreviewRight"
+                                    styleClass="view-tool-button"/>
+
+                            <Button text="↓"
+                                    onAction="#onNudgePreviewDown"
+                                    styleClass="view-tool-button"/>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <Button text="Reset View"
+                                    onAction="#onResetPreviewView"
+                                    styleClass="view-reset-button"/>
+                        </HBox>
+                    </VBox>
+                </top>
+
+                <!-- Preview stage -->
+                <center>
+                    <StackPane minWidth="0"
+                               minHeight="0"
+                               maxWidth="Infinity"
+                               maxHeight="Infinity"
+                               styleClass="scan-preview-stage">
+
+                        <HBox spacing="18"
+                              alignment="CENTER"
+                              minWidth="0"
+                              minHeight="0"
+                              maxWidth="Infinity"
+                              maxHeight="Infinity">
+
+                            <Button text="‹"
+                                    onAction="#onPreviousFile"
+                                    styleClass="preview-arrow-button"/>
+
+                            <StackPane fx:id="previewHost"
+                                       minWidth="0"
+                                       minHeight="0"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"
+                                       HBox.hgrow="ALWAYS"
+                                       styleClass="preview-host"/>
+
+                            <Button text="›"
+                                    onAction="#onNextFile"
+                                    styleClass="preview-arrow-button"/>
+                        </HBox>
+                    </StackPane>
+                </center>
+
+                <!-- Page tray -->
+                <bottom>
+                    <VBox spacing="6"
+                          minHeight="111"
+                          prefHeight="111"
+                          maxHeight="111"
+                          styleClass="page-tray-shell">
+
+                        <HBox alignment="CENTER_LEFT"
+                              minHeight="18"
+                              prefHeight="18"
+                              maxHeight="18">
+                            <Label fx:id="pageTrayTitleLabel"
+                                   text="Scanned Files"
+                                   styleClass="page-tray-title"/>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <Label fx:id="totalFilesLabel"
+                                   text="0 files"
+                                   styleClass="page-tray-count"/>
+                        </HBox>
+
+                        <ScrollPane fitToHeight="true"
+                                    fitToWidth="false"
+                                    hbarPolicy="AS_NEEDED"
+                                    vbarPolicy="NEVER"
+                                    minHeight="81"
+                                    prefHeight="81"
+                                    maxHeight="81"
+                                    styleClass="page-tray-scroll">
+                            <HBox fx:id="pageTrayContainer"
+                                  spacing="9"
+                                  minHeight="75"
+                                  maxHeight="75"
+                                  styleClass="page-tray-container"/>
+                        </ScrollPane>
+                    </VBox>
+                </bottom>
+            </BorderPane>
+        </center>
+
+        <!-- Right tools -->
+        <right>
+            <VBox spacing="15"
+                  minWidth="285"
+                  prefWidth="285"
+                  maxWidth="285"
+                  minHeight="0"
+                  maxHeight="Infinity"
+                  styleClass="scan-tools-panel">
+
+                <Label text="Tools"
+                       styleClass="scan-panel-title"/>
+
+                <VBox spacing="9">
+                    <Label text="Page Tools"
+                           styleClass="scan-tools-section-label"/>
+
+                    <Button text="Rotate Left"
+                            onAction="#onRotateLeft"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
+                    <Button text="Rotate Right"
+                            onAction="#onRotateRight"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
+                    <Button text="Delete Page"
+                            onAction="#onDeleteSelectedPage"
+                            maxWidth="Infinity"
+                            styleClass="scan-danger-button"/>
+
+                    <Button text="Mark for Rescan"
+                            onAction="#onToggleRescanSelected"
+                            maxWidth="Infinity"
+                            styleClass="scan-warning-button"/>
+
+                    <Button text="Rescan Marked Pages"
+                            onAction="#onRescanMarkedPages"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+                </VBox>
+
+                <Region styleClass="scan-panel-divider"/>
+
+                <VBox spacing="9">
+                    <Label text="Document Tools"
+                           styleClass="scan-tools-section-label"/>
+
+                    <Button text="Split Here"
+                            onAction="#onSplitHere"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <VBox spacing="9"
+                      styleClass="scan-workflow-box">
+                    <Label text="Workflow"
+                           styleClass="scan-tools-section-label"/>
+
+                    <Button fx:id="undoLastActionButton"
+                            text="Undo Last Action"
+                            onAction="#onUndoLastAction"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
+                    <Button text="Save Progress"
+                            onAction="#onSaveProgress"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
+                    <Button text="Finish &amp; Review"
+                            onAction="#onFinishReview"
+                            maxWidth="Infinity"
+                            styleClass="scan-finish-button"/>
+                </VBox>
+            </VBox>
+        </right>
+    </BorderPane>
+
+    <!-- =========================================================
+         REVIEW WORKSPACE VIEW
+         ========================================================= -->
+
+    <BorderPane fx:id="reviewWorkspaceView"
+                visible="false"
+                managed="false"
+                minWidth="0"
+                minHeight="0"
+                maxWidth="Infinity"
+                maxHeight="Infinity"
+                styleClass="scan-review-workspace">
+
+        <top>
+            <VBox spacing="6"
+                  alignment="CENTER_LEFT"
+                  minWidth="0"
+                  minHeight="111"
+                  prefHeight="111"
+                  maxHeight="111"
+                  maxWidth="Infinity"
+                  styleClass="review-summary-bar">
+                <padding>
+                    <Insets top="12" right="18" bottom="12" left="18"/>
+                </padding>
+
+                <Button text="Back"
+                        onAction="#onBackToScanningFromReview"
+                        styleClass="back-button"/>
+
+                <Label text="Scan Review"
+                       styleClass="review-summary-title"/>
+
+                <HBox spacing="18"
+                      alignment="CENTER_LEFT">
+                    <Label text="Box"
+                           styleClass="review-summary-label"/>
+
+                    <Label fx:id="reviewBoxValueLabel"
+                           text="—"
+                           styleClass="review-summary-value"/>
+
+                    <Label text="Profile"
+                           styleClass="review-summary-label"/>
+
+                    <Label fx:id="reviewProfileValueLabel"
+                           text="—"
+                           styleClass="review-summary-value"/>
+
+                    <Label text="Documents"
+                           styleClass="review-summary-label"/>
+
+                    <Label fx:id="reviewDocumentsValueLabel"
+                           text="—"
+                           styleClass="review-summary-value"/>
+                </HBox>
+            </VBox>
+        </top>
+
+        <left>
+            <VBox spacing="15"
+                  minWidth="255"
+                  prefWidth="255"
+                  maxWidth="255"
+                  minHeight="0"
+                  maxHeight="Infinity"
+                  styleClass="review-left-panel">
+
+                <Label text="Documents"
+                       styleClass="review-panel-title"/>
+
+                <ScrollPane fitToWidth="true"
+                            fitToHeight="true"
+                            hbarPolicy="NEVER"
+                            vbarPolicy="AS_NEEDED"
+                            minHeight="0"
+                            maxHeight="Infinity"
+                            VBox.vgrow="ALWAYS"
+                            styleClass="review-document-scroll">
+
+                    <VBox fx:id="reviewDocumentListContainer"
+                          spacing="9"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          styleClass="review-document-list"/>
+                </ScrollPane>
+            </VBox>
+        </left>
+
+        <center>
+            <BorderPane minWidth="0"
+                        minHeight="0"
+                        maxWidth="Infinity"
+                        maxHeight="Infinity"
+                        styleClass="review-center-panel">
+
+                <top>
+                    <HBox spacing="12"
+                          alignment="CENTER_LEFT"
+                          minHeight="60"
+                          prefHeight="60"
+                          maxHeight="60"
+                          styleClass="review-current-file-header">
+                        <padding>
+                            <Insets top="0" right="18" bottom="0" left="18"/>
+                        </padding>
+
+                        <Label fx:id="reviewSelectedTitleLabel"
+                               text="No page selected"
+                               styleClass="review-selected-title"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Label text="↗"
+                               styleClass="review-view-icon"/>
+
+                        <Label text="⊖"
+                               styleClass="review-view-icon"/>
+
+                        <Label text="⊕"
+                               styleClass="review-view-icon"/>
+                    </HBox>
+                </top>
+
+                <center>
+                    <StackPane minWidth="0"
+                               minHeight="0"
+                               maxWidth="Infinity"
+                               maxHeight="Infinity"
+                               styleClass="review-preview-stage">
+
+                        <HBox spacing="18"
+                              alignment="CENTER"
+                              minWidth="0"
+                              minHeight="0"
+                              maxWidth="Infinity"
+                              maxHeight="Infinity">
+
+                            <Button text="‹"
+                                    onAction="#onPreviousReviewPage"
+                                    styleClass="preview-arrow-button"/>
+
+                            <StackPane fx:id="reviewPreviewHost"
+                                       minWidth="0"
+                                       minHeight="0"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"
+                                       HBox.hgrow="ALWAYS"
+                                       styleClass="review-preview-host"/>
+
+                            <Button text="›"
+                                    onAction="#onNextReviewPage"
+                                    styleClass="preview-arrow-button"/>
+                        </HBox>
+                    </StackPane>
+                </center>
+
+                <bottom>
+                    <VBox spacing="6"
+                          minHeight="111"
+                          prefHeight="111"
+                          maxHeight="111"
+                          styleClass="review-page-tray-shell">
+
+                        <HBox alignment="CENTER_LEFT"
+                              minHeight="18"
+                              prefHeight="18"
+                              maxHeight="18">
+                            <Label text="Page Tray"
+                                   styleClass="review-page-tray-title"/>
+                        </HBox>
+
+                        <ScrollPane fitToHeight="true"
+                                    fitToWidth="false"
+                                    hbarPolicy="AS_NEEDED"
+                                    vbarPolicy="NEVER"
+                                    minHeight="81"
+                                    prefHeight="81"
+                                    maxHeight="81"
+                                    styleClass="review-page-tray-scroll">
+                            <HBox fx:id="reviewPageTrayContainer"
+                                  spacing="9"
+                                  minHeight="75"
+                                  maxHeight="75"
+                                  styleClass="review-page-tray-container"/>
+                        </ScrollPane>
+                    </VBox>
+                </bottom>
+            </BorderPane>
+        </center>
+
+        <right>
+            <VBox spacing="15"
+                  minWidth="255"
+                  prefWidth="255"
+                  maxWidth="255"
+                  minHeight="0"
+                  maxHeight="Infinity"
+                  styleClass="review-next-step-panel">
+
+                <Label text="Next Step"
+                       styleClass="review-panel-title"/>
+
+                <Button text="Submit for QA"
+                        onAction="#onSubmitForQaFromReview"
+                        maxWidth="Infinity"
+                        styleClass="review-submit-button"/>
+
+                <Label text="Once submitted, this scan will be assigned to another user for QA."
+                       wrapText="true"
+                       styleClass="review-next-step-copy"/>
+
+                <Region VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </right>
+    </BorderPane>
+
+    <!-- =========================================================
+         FINISH REVIEW MODAL
+         ========================================================= -->
+
+    <StackPane fx:id="finishReviewOverlay"
+               visible="false"
+               managed="false"
+               minWidth="0"
+               minHeight="0"
+               maxWidth="Infinity"
+               maxHeight="Infinity"
+               styleClass="finish-review-overlay">
+
+        <VBox spacing="15"
+              maxWidth="432"
+              prefWidth="432"
+              maxHeight="-Infinity"
+              styleClass="finish-review-modal">
+
+            <HBox spacing="12"
+                  alignment="CENTER_LEFT">
+                <StackPane styleClass="finish-review-success-icon">
+                    <Region styleClass="finish-review-success-check"/>
+                </StackPane>
+
+                <Label text="Scanning Complete"
+                       styleClass="finish-review-title"/>
+            </HBox>
+
+            <VBox spacing="9"
+                  styleClass="finish-review-summary-card">
+                <Label fx:id="finishReviewBoxIdLabel"
+                       text="Box ID"
+                       styleClass="finish-review-box-id"/>
+
+                <Label fx:id="finishReviewProfileLabel"
+                       text="Profile"
+                       styleClass="finish-review-summary-muted"/>
+
+                <HBox spacing="24"
+                      alignment="CENTER_LEFT">
+                    <Label fx:id="finishReviewDocumentsLabel"
+                           text="0 documents created"
+                           styleClass="finish-review-summary-muted"/>
+
+                    <Label fx:id="finishReviewPagesLabel"
+                           text="0 pages scanned"
+                           styleClass="finish-review-summary-muted"/>
+                </HBox>
+            </VBox>
+
+            <Label text="Review your scanned pages before submitting them for QA."
+                   wrapText="true"
+                   styleClass="finish-review-copy"/>
+
+            <Button onAction="#onReviewScanFromFinishModal"
+                    maxWidth="Infinity"
+                    styleClass="finish-review-secondary-button">
+                <graphic>
+                    <HBox spacing="9"
+                          alignment="CENTER">
+                        <Region styleClass="finish-review-button-icon"/>
+                        <Label text="Review Scan"
+                               styleClass="finish-review-button-label"/>
+                    </HBox>
+                </graphic>
+            </Button>
+
+            <Button text="Submit for QA"
+                    onAction="#onSubmitForQaFromFinishModal"
+                    maxWidth="Infinity"
+                    styleClass="finish-review-primary-button"/>
+
+            <Button text="Back to Scanning"
+                    onAction="#onBackToScanningFromFinishModal"
+                    maxWidth="Infinity"
+                    styleClass="finish-review-link-button"/>
+        </VBox>
+    </StackPane>
+
+    <!-- =========================================================
+         SUBMIT CONFIRMATION MODAL
+         ========================================================= -->
+
+    <StackPane fx:id="submitConfirmationOverlay"
+               visible="false"
+               managed="false"
+               minWidth="0"
+               minHeight="0"
+               maxWidth="Infinity"
+               maxHeight="Infinity"
+               styleClass="submit-confirmation-overlay">
+
+        <VBox spacing="15"
+              maxWidth="432"
+              prefWidth="432"
+              maxHeight="-Infinity"
+              styleClass="submit-confirmation-modal">
+
+            <HBox spacing="12"
+                  alignment="CENTER_LEFT">
+                <StackPane styleClass="submit-confirmation-success-icon">
+                    <Region styleClass="submit-confirmation-success-check"/>
+                </StackPane>
+
+                <Label text="Submitted for QA"
+                       styleClass="submit-confirmation-title"/>
+            </HBox>
+
+            <VBox spacing="9"
+                  styleClass="submit-confirmation-summary-card">
+                <Label fx:id="submitConfirmationBoxIdLabel"
+                       text="Box ID"
+                       styleClass="submit-confirmation-box-id"/>
+
+                <Label fx:id="submitConfirmationProfileLabel"
+                       text="Profile"
+                       styleClass="submit-confirmation-summary-muted"/>
+
+                <Label fx:id="submitConfirmationSummaryLabel"
+                       text="0 documents · 0 pages submitted for QA"
+                       styleClass="submit-confirmation-summary-muted"/>
+            </VBox>
+
+            <Label text="This scan has been sent to the QA queue. You can start another scan now."
+                   wrapText="true"
+                   styleClass="submit-confirmation-copy"/>
+
+            <Button text="Start Next Scan"
+                    onAction="#onStartNextScanAfterSubmit"
+                    maxWidth="Infinity"
+                    styleClass="submit-confirmation-primary-button"/>
+        </VBox>
+    </StackPane>
+</StackPane>

@@ -1,0 +1,128 @@
+package easv.be;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ScanProfile {
+    private final int id;
+    private String name;
+    private String code;
+    private String description;
+    private String status;
+    private String metadataTemplateName;
+    private String exportNaming;
+    private String lastUpdated;
+
+    private boolean archived;
+    private boolean barcodeSplitting;
+    private String barcodeDetectedBehavior;
+    private String barcodePageBehavior;
+    private String defaultRotation;
+    private String brightness;
+    private String contrast;
+    private boolean deskew;
+    private String exportFormat;
+    private boolean metadataRequiredBeforeExport;
+
+    public ScanProfile(
+            int id,
+            String name,
+            String code,
+            String description,
+            String status,
+            String metadataTemplateName,
+            String exportNaming,
+            String lastUpdated,
+            boolean archived,
+            boolean barcodeSplitting,
+            String barcodeDetectedBehavior,
+            String barcodePageBehavior,
+            String defaultRotation,
+            String brightness,
+            String contrast,
+            boolean deskew,
+            String exportFormat,
+            boolean metadataRequiredBeforeExport
+    ) {
+        this.id = id;
+        this.name = clean(name);
+        this.code = clean(code);
+        this.description = clean(description);
+        this.status = clean(status);
+        this.metadataTemplateName = clean(metadataTemplateName);
+        this.exportNaming = clean(exportNaming);
+        this.lastUpdated = clean(lastUpdated);
+        this.archived = archived;
+        this.barcodeSplitting = barcodeSplitting;
+        this.barcodeDetectedBehavior = clean(barcodeDetectedBehavior);
+        this.barcodePageBehavior = clean(barcodePageBehavior);
+        this.defaultRotation = clean(defaultRotation);
+        this.brightness = clean(brightness);
+        this.contrast = clean(contrast);
+        this.deskew = deskew;
+        this.exportFormat = clean(exportFormat);
+        this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getCode() { return code; }
+    public String getDescription() { return description; }
+    public String getStatus() { return status; }
+    public String getMetadataTemplateName() { return metadataTemplateName; }
+    public String getExportNaming() { return exportNaming; }
+    public String getLastUpdated() { return lastUpdated; }
+
+    public boolean isArchived() { return archived; }
+    public boolean isBarcodeSplitting() { return barcodeSplitting; }
+    public String getBarcodeDetectedBehavior() { return barcodeDetectedBehavior; }
+    public String getBarcodePageBehavior() { return barcodePageBehavior; }
+    public String getDefaultRotation() { return defaultRotation; }
+    public String getBrightness() { return brightness; }
+    public String getContrast() { return contrast; }
+    public boolean isDeskew() { return deskew; }
+    public String getExportFormat() { return exportFormat; }
+    public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+
+    public void setName(String name) { this.name = clean(name); }
+    public void setCode(String code) { this.code = clean(code); }
+    public void setDescription(String description) { this.description = clean(description); }
+    public void setStatus(String status) { this.status = clean(status); }
+    public void setMetadataTemplateName(String metadataTemplateName) { this.metadataTemplateName = clean(metadataTemplateName); }
+    public void setExportNaming(String exportNaming) { this.exportNaming = clean(exportNaming); }
+    public void setLastUpdated(String lastUpdated) { this.lastUpdated = clean(lastUpdated); }
+
+    public void setArchived(boolean archived) { this.archived = archived; }
+    public void setBarcodeSplitting(boolean barcodeSplitting) { this.barcodeSplitting = barcodeSplitting; }
+    public void setBarcodeDetectedBehavior(String barcodeDetectedBehavior) { this.barcodeDetectedBehavior = clean(barcodeDetectedBehavior); }
+    public void setBarcodePageBehavior(String barcodePageBehavior) { this.barcodePageBehavior = clean(barcodePageBehavior); }
+    public void setDefaultRotation(String defaultRotation) { this.defaultRotation = clean(defaultRotation); }
+    public void setBrightness(String brightness) { this.brightness = clean(brightness); }
+    public void setContrast(String contrast) { this.contrast = clean(contrast); }
+    public void setDeskew(boolean deskew) { this.deskew = deskew; }
+    public void setExportFormat(String exportFormat) { this.exportFormat = clean(exportFormat); }
+    public void setMetadataRequiredBeforeExport(boolean metadataRequiredBeforeExport) {
+        this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+    }
+
+    public List<String> getConfigChipLabels() {
+        List<String> chips = new ArrayList<>();
+
+        chips.add(barcodeSplitting ? "Barcode Split On" : "Barcode Split Off");
+        chips.add(deskew ? "Deskew" : "Deskew Off");
+
+        if (name.toLowerCase().contains("drawing")) {
+            chips.add("OCR Enabled");
+        }
+
+        if (!brightness.equalsIgnoreCase("Normal")) {
+            chips.add("Brightness Correction");
+        }
+
+        return chips;
+    }
+
+    private static String clean(String value) {
+        return value == null ? "" : value.trim();
+    }
+}
