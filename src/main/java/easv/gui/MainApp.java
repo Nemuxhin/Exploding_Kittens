@@ -1,5 +1,6 @@
 package easv.gui;
 
+import easv.be.User;
 import easv.gui.controller.LoginController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +18,7 @@ public class MainApp extends Application {
 
     private static final String APP_TITLE = "WebLager";
     private static final String LOGIN_VIEW = "/view/LoginViews/login-view.fxml";
+    private static final String ADMIN_VIEW = "/view/AdminViews/admin-view.fxml";
     private static final String USER_VIEW = "/view/UserViews/user-view.fxml";
     private static final String STYLESHEET = "/css/app.css";
 
@@ -54,8 +56,13 @@ public class MainApp extends Application {
         showView(root, "WebLager Login");
     }
 
-    public void showMainView() throws IOException {
-        showView(loadView(USER_VIEW), APP_TITLE);
+    public void showMainView(User user) throws IOException {
+        String view = isAdmin(user) ? ADMIN_VIEW : USER_VIEW;
+        showView(loadView(view), APP_TITLE);
+    }
+
+    private boolean isAdmin(User user) {
+        return user != null && "ADMIN".equalsIgnoreCase(user.getRole());
     }
 
     private Parent loadView(String fxmlPath) throws IOException {
