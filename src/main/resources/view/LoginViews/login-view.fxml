@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 
 <StackPane xmlns="http://javafx.com/javafx"
@@ -21,8 +22,11 @@
                 <VBox alignment="CENTER_LEFT" spacing="18.0" styleClass="login-brand-panel">
                     <children>
                         <ImageView fitWidth="190.0"
-                                   preserveRatio="true"
-                                   source="@../../images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png" />
+                                   preserveRatio="true">
+                            <image>
+                                <Image url="@../../images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png" />
+                            </image>
+                        </ImageView>
                         <Region VBox.vgrow="ALWAYS" />
                         <Label styleClass="page-title" text="Scanning workspace" />
                         <Label styleClass="body-text"
