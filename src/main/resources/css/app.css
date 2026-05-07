@@ -33,12 +33,18 @@
 
     -wl-primary: #2D3D4F;
     -wl-primary-hover: #1C252F;
+    -wl-primary-nav-bg: #2D3D4F;
+    -wl-primary-nav-button: #415060;
     -wl-primary-selected: #415060;
 
     -wl-secondary: #64748B;
-    -wl-secondary-hover: #4B5563;
+    -wl-secondary-action: #64748B;
+    -wl-secondary-hover: #354556;
+    -wl-secondary-nav-bg: #24C79F;
+    -wl-secondary-nav-button: #2D3D4F;
 
     -wl-tertiary: #F9F9F9;
+    -wl-tertiary-button: #FFFFFF;
     -wl-tertiary-hover: #F1F5F9;
 
     -wl-border: #E2E4E8;
@@ -191,12 +197,18 @@
 
     -wl-primary: #008FF7;
     -wl-primary-hover: #33A9EE;
-    -wl-primary-selected: #0094EA;
+    -wl-primary-nav-bg: #0094EA;
+    -wl-primary-nav-button: #33A9EE;
+    -wl-primary-selected: #33A9EE;
 
     -wl-secondary: #697489;
+    -wl-secondary-action: #697489;
     -wl-secondary-hover: #2B3B4C;
+    -wl-secondary-nav-bg: #2D3D4F;
+    -wl-secondary-nav-button: #008FF7;
 
     -wl-tertiary: #4B5563;
+    -wl-tertiary-button: #4B5563;
     -wl-tertiary-hover: #2B3B4C;
 
     -wl-border: #2B3B4C;
@@ -211,11 +223,11 @@
     -wl-sidebar-bg: #2D3D4F;
     -wl-sidebar-text: #FFFFFF;
     -wl-sidebar-icon: #FFFFFF;
-    -wl-sidebar-hover-bg: #0094EA;
+    -wl-sidebar-hover-bg: #008FF7;
     -wl-sidebar-hover-text: #FFFFFF;
-    -wl-sidebar-active-bg: #415060;
+    -wl-sidebar-active-bg: #008FF7;
     -wl-sidebar-active-text: #FFFFFF;
-    -wl-sidebar-divider: #415060;
+    -wl-sidebar-divider: #2B3B4C;
 
     -wl-logout-bg: #008FF7;
     -wl-logout-hover-bg: #33A9EE;
@@ -788,7 +800,7 @@
 }
 
 .activity-log-date-disabled {
-    -fx-opacity: 0.35;
+    -fx-opacity: 0.6;
 }
 
 .activity-log-date-range-start:hover,
@@ -2679,7 +2691,7 @@
     -fx-border-insets: 0;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 9, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-alignment: center-left;
     -fx-cursor: hand;
 }
@@ -6514,6 +6526,7 @@
     -wl-placeholder: #BFBFBF;
     -wl-success: #4CD07D;
     -wl-error: #FF3D32;
+    -wl-shadow-color: rgba(0, 0, 0, 0.10);
 
     -fx-background-color: -wl-background;
 }
@@ -6523,7 +6536,7 @@
     -fx-background-radius: 10;
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-max-width: 820;
     -fx-max-height: 430;
 }
@@ -6862,7 +6875,11 @@
     -fx-border-color: -wl-border;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
+    -fx-min-height: 144;
+    -fx-pref-height: 144;
+    -fx-max-height: 144;
     -fx-padding: 18;
+    -fx-alignment: top-left;
     -fx-cursor: hand;
 }
 

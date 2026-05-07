@@ -11,6 +11,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -30,6 +31,12 @@ public class UserController implements UserNavigator {
     private static final String PREFERENCES_NODE = "easv.gui.portal";
     private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
 
+    private static final String LIGHT_MODE_LOGO =
+            "/images/weblager/styleguide/Main Blue/LogoBlueH.png";
+
+    private static final String DARK_MODE_LOGO =
+            "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
+
     private static final String MOON_ICON_PATH =
             "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
 
@@ -39,9 +46,9 @@ public class UserController implements UserNavigator {
     @FXML private BorderPane appRoot;
     @FXML private StackPane contentHost;
 
+    @FXML private StackPane brandMark;
     @FXML private Label brandLogoFallbackLabel;
     @FXML private ImageView brandLogoImageView;
-    @FXML private Label breadcrumbLabel;
     @FXML private Label accountNameLabel;
     @FXML private Label accountRoleLabel;
     @FXML private Label avatarInitialsLabel;
@@ -68,11 +75,6 @@ public class UserController implements UserNavigator {
     }
 
     private void configureShell() {
-        if (brandLogoImageView != null) {
-            brandLogoImageView.setVisible(false);
-            brandLogoImageView.setManaged(false);
-        }
-
         UserPortalModel.AccountProfile fallbackProfile = portalModel.fetchAccountProfile();
         User currentUser = UserSession.getCurrentUser();
 
@@ -113,6 +115,7 @@ public class UserController implements UserNavigator {
 
     private void updateTheme(boolean isDark) {
         updateDarkModeClass(isDark);
+        updateBrandLogo(isDark);
         preferences.putBoolean(DARK_MODE_PREFERENCE_KEY, isDark);
         updateThemeControls(isDark);
     }
@@ -122,6 +125,32 @@ public class UserController implements UserNavigator {
 
         if (isDark) {
             appRoot.getStyleClass().add(DARK_MODE_CLASS);
+        }
+    }
+
+    private void updateBrandLogo(boolean isDark) {
+        if (brandLogoImageView == null || brandLogoFallbackLabel == null) {
+            return;
+        }
+
+        String logoPath = isDark ? DARK_MODE_LOGO : LIGHT_MODE_LOGO;
+        URL logoUrl = getClass().getResource(logoPath);
+
+        boolean logoExists = logoUrl != null;
+
+        brandLogoImageView.setVisible(logoExists);
+        brandLogoImageView.setManaged(logoExists);
+
+        brandLogoFallbackLabel.setVisible(!logoExists);
+        brandLogoFallbackLabel.setManaged(!logoExists);
+
+        if (brandMark != null) {
+            brandMark.setVisible(!logoExists);
+            brandMark.setManaged(!logoExists);
+        }
+
+        if (logoExists) {
+            brandLogoImageView.setImage(new Image(logoUrl.toExternalForm(), true));
         }
     }
 
@@ -149,7 +178,6 @@ public class UserController implements UserNavigator {
     public void showPage(UserPage page) {
         loadPage(page);
         setActiveNavItem(getNavItem(page));
-        updateBreadcrumb(page);
     }
 
     @Override
@@ -255,12 +283,6 @@ public class UserController implements UserNavigator {
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
-        }
-    }
-
-    private void updateBreadcrumb(UserPage page) {
-        if (breadcrumbLabel != null) {
-            breadcrumbLabel.setText("User / " + page.title());
         }
     }
 

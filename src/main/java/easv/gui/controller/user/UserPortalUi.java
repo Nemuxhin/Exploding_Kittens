@@ -25,10 +25,10 @@ final class UserPortalUi {
 
     private static String iconPath(String key) {
         return switch (key) {
-            case "dashboard" -> "M10 2L2 8h2v8h4v-5h4v5h4V8h2L10 2z";
-            case "scan" -> "M3 3h14v14H3z M9 6h2v3h3v2h-3v3H9v-3H6V9h3z";
-            case "scans" -> "M5 2h7l5 5v11H5z M11 2v5h5";
-            case "exports" -> "M3 5h14v4h-2V7H5v2H3z M5 11h10v5H5z M9 2h2v5h3l-4 4-4-4h3z";
+            case "dashboard" -> "M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h8v8h-8v-8zm2 2v4h4v-4h-4z";
+            case "scan" -> "M4 4h5v2H6v3H4V4zm11 0h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 0h2v5h-5v-2h3v-3zM11 8h2v3h3v2h-3v3h-2v-3H8v-2h3V8z";
+            case "scans" -> "M6 2h10l4 4v12H6V2zm2 2v12h10V7h-3V4H8zM4 6h2v14h12v2H4V6zm6 4h6v2h-6v-2zm0 4h5v2h-5v-2z";
+            case "exports" -> "M11 3h2v8h3l-4 4-4-4h3V3zM5 14h2v4h10v-4h2v6H5v-6z";
             case "settings" -> "M9 2h2l.5 2.1 1.9.8 1.8-1 1.4 1.4-1 1.8.8 1.9L18 9v2l-2.1.5-.8 1.9 1 1.8-1.4 1.4-1.8-1-.9 1.9L11 18H9l-.5-2.1-1.9-.8-1.8 1L3.4 14.7l1-1.8L3.6 11 2 10V8l2.1-.5.8-1.9-1-1.8L5.3 2.4l1.8 1 .9-1.9z M10 7a3 3 0 100 6 3 3 0 000-6z";
             case "help" -> "M10 2a8 8 0 100 16 8 8 0 000-16zm0 12h1v1H9v-1h1zm2.1-6.8c0 1.8-2.1 2.1-2.1 3.8H8.5c0-2.4 1.9-2.5 1.9-3.8 0-.7-.6-1.2-1.4-1.2-.8 0-1.4.4-1.8 1.2L6 6.6C6.6 5.3 7.8 4.5 9.4 4.5c1.7 0 2.7 1 2.7 2.7z";
             case "clock" -> "M10 2a8 8 0 100 16 8 8 0 000-16zm1 4H9v5l4 2 1-1-3-1.5V6z";

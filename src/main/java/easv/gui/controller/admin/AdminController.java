@@ -39,6 +39,7 @@ public class AdminController implements AdminNavigator {
     @FXML private BorderPane appRoot;
     @FXML private StackPane contentHost;
 
+    @FXML private StackPane brandMark;
     @FXML private Label brandLogoFallbackLabel;
     @FXML private ImageView brandLogoImageView;
 
@@ -51,7 +52,6 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton activityNavItem;
 
     @FXML private ToggleButton darkModeToggleButton;
-    @FXML private Label breadcrumbLabel;
     @FXML private Label themeModeLabel;
     @FXML private SVGPath themeModeIcon;
     @FXML private SVGPath darkModeToggleIcon;
@@ -114,6 +114,11 @@ public class AdminController implements AdminNavigator {
         brandLogoFallbackLabel.setVisible(!logoExists);
         brandLogoFallbackLabel.setManaged(!logoExists);
 
+        if (brandMark != null) {
+            brandMark.setVisible(!logoExists);
+            brandMark.setManaged(!logoExists);
+        }
+
         if (logoExists) {
             brandLogoImageView.setImage(new Image(logoUrl.toExternalForm(), true));
         }
@@ -151,13 +156,6 @@ public class AdminController implements AdminNavigator {
     public void showPage(AdminPage page) {
         loadPage(page);
         setActiveNavItem(getNavItem(page));
-        updateBreadcrumb(page);
-    }
-
-    private void updateBreadcrumb(AdminPage page) {
-        if (breadcrumbLabel != null) {
-            breadcrumbLabel.setText("Admin / " + page.title());
-        }
     }
 
     private void loadPage(AdminPage page) {

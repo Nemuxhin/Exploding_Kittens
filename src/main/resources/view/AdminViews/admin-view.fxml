@@ -3,8 +3,8 @@
 <?import java.lang.String?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -29,13 +29,26 @@
                 <HBox alignment="CENTER_LEFT"
                       spacing="12"
                       styleClass="admin-brand">
-                    <StackPane styleClass="admin-brand-mark">
+                    <StackPane fx:id="brandMark" styleClass="admin-brand-mark">
                         <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
                                  styleClass="admin-brand-icon"/>
                     </StackPane>
 
                     <VBox spacing="2">
-                        <Label text="Document Scanning" styleClass="admin-brand-title"/>
+                        <StackPane alignment="CENTER_LEFT">
+                            <Label fx:id="brandLogoFallbackLabel"
+                                   text="WebLager"
+                                   styleClass="admin-brand-title"/>
+
+                            <ImageView fx:id="brandLogoImageView"
+                                       fitWidth="150"
+                                       fitHeight="30"
+                                       preserveRatio="true"
+                                       smooth="true"
+                                       visible="false"
+                                       managed="false"/>
+                        </StackPane>
+
                         <Label text="Admin Portal" styleClass="admin-brand-subtitle"/>
                     </VBox>
                 </HBox>
@@ -193,23 +206,6 @@
                 </HBox>
             </HBox>
 
-            <FlowPane hgap="10"
-                      vgap="8"
-                      prefWrapLength="1180"
-                      alignment="CENTER_LEFT"
-                      styleClass="admin-status-bar">
-                <Label text="Active Areas" styleClass="admin-status-label"/>
-                <Label text="Users" styleClass="admin-status-chip"/>
-                <Label text="Profiles" styleClass="admin-status-chip"/>
-                <Label text="Metadata" styleClass="admin-status-chip"/>
-                <Label text="QA Review" styleClass="admin-status-chip"/>
-            </FlowPane>
-
-            <HBox alignment="CENTER_LEFT" styleClass="admin-breadcrumb-bar">
-                <Label fx:id="breadcrumbLabel"
-                       text="Admin / Dashboard"
-                       styleClass="admin-breadcrumb"/>
-            </HBox>
         </VBox>
     </top>
 
