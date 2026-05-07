@@ -31,8 +31,32 @@ class AuthManagerTest {
 
         assertTrue(authResult.isSuccess());
         assertNotNull(authResult.getUser());
+        assertNotNull(authResult.getToken());
         assertEquals("admin", authResult.getUser().getUsername());
         assertTrue(UserSession.hasCurrentUser());
+    }
+
+    @Test
+    void createUserHashesPasswordAndSavesAccount() throws Exception {
+        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        AuthManager authManager = new AuthManager(userDAO);
+
+        AuthResult result = authManager.createUser("newuser", "secret123", "USER", true);
+
+        assertTrue(result.isSuccess());
+        assertNotNull(userDAO.findByUsername("newuser"));
+        assertFalse(userDAO.findByUsername("newuser").getPasswordHash().equals("secret123"));
+    }
+
+    @Test
+    void updatePasswordHashesNewPassword() throws Exception {
+        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        AuthManager authManager = new AuthManager(userDAO);
+
+        AuthResult result = authManager.updateUserPassword("scanner", "new-secret");
+
+        assertTrue(result.isSuccess());
+        assertTrue(authManager.login("scanner", "new-secret").isSuccess());
     }
 
     @Test

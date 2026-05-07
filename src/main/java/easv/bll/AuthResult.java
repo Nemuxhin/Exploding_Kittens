@@ -11,19 +11,29 @@ public class AuthResult {
     private final boolean success;
     private final String message;
     private final User user;
+    private final String token;
 
-    private AuthResult(boolean success, String message, User user) {
+    private AuthResult(boolean success, String message, User user, String token) {
         this.success = success;
         this.message = message;
         this.user = user;
+        this.token = token;
     }
 
     public static AuthResult success(User user) {
-        return new AuthResult(true, "Login successful.", user);
+        return new AuthResult(true, "Login successful.", user, null);
+    }
+
+    public static AuthResult success(User user, String token) {
+        return new AuthResult(true, "Login successful.", user, token);
+    }
+
+    public static AuthResult successMessage(String message, User user) {
+        return new AuthResult(true, message, user, null);
     }
 
     public static AuthResult failure(String message) {
-        return new AuthResult(false, message, null);
+        return new AuthResult(false, message, null, null);
     }
 
     public boolean isSuccess() {
@@ -36,5 +46,9 @@ public class AuthResult {
 
     public User getUser() {
         return user;
+    }
+
+    public String getToken() {
+        return token;
     }
 }

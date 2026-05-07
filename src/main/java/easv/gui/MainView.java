@@ -45,6 +45,10 @@ public class MainView {
         shortcutsButton.getStyleClass().add("secondary-button");
         shortcutsButton.setOnAction(event -> AlertHelper.showShortcutHelp(shortcutManager.getShortcuts()));
 
+        Button scanWorkspaceButton = new Button("Open Scan Workspace");
+        scanWorkspaceButton.getStyleClass().add("primary-button");
+        scanWorkspaceButton.setOnAction(event -> mainApp.showScanWorkspaceView());
+
         Button logoutButton = new Button("Log Out");
         logoutButton.getStyleClass().add("primary-button");
         logoutButton.setOnAction(event -> {
@@ -57,7 +61,8 @@ public class MainView {
             }
         });
 
-        VBox layout = new VBox(16, titleLabel, usernameLabel, roleLabel, statusLabel, explanationLabel, shortcutsButton, logoutButton);
+        VBox layout = new VBox(16, titleLabel, usernameLabel, roleLabel, statusLabel,
+                explanationLabel, scanWorkspaceButton, shortcutsButton, logoutButton);
         layout.setAlignment(Pos.CENTER_LEFT);
         layout.setPadding(new Insets(40));
         layout.getStyleClass().add("main-panel");

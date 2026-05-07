@@ -71,6 +71,30 @@ public class UserDAO {
         return users;
     }
 
+    public void saveUser(User user) throws IOException {
+        List<User> users = getAllUsers();
+        users.add(user);
+        writeUsers(users);
+    }
+
+    public User updatePasswordHash(String username, String newPasswordHash) throws IOException {
+        List<User> users = getAllUsers();
+        List<User> updatedUsers = new ArrayList<>();
+        User updatedUser = null;
+
+        for (User user : users) {
+            if (user.getUsername().equalsIgnoreCase(username)) {
+                updatedUser = new User(user.getUsername(), newPasswordHash, user.getRole(), user.isActive());
+                updatedUsers.add(updatedUser);
+            } else {
+                updatedUsers.add(user);
+            }
+        }
+
+        writeUsers(updatedUsers);
+        return updatedUser;
+    }
+
     private void ensureStorageExists() throws IOException {
         Path parentFolder = usersFilePath.getParent();
         if (parentFolder != null) {
@@ -90,6 +114,16 @@ public class UserDAO {
         );
 
         Files.write(usersFilePath, defaultUsers, StandardCharsets.UTF_8);
+    }
+
+    private void writeUsers(List<User> users) throws IOException {
+        List<String> lines = new ArrayList<>();
+
+        for (User user : users) {
+            lines.add(user.getUsername() + ";" + user.getPasswordHash() + ";" + user.getRole() + ";" + user.isActive());
+        }
+
+        Files.write(usersFilePath, lines, StandardCharsets.UTF_8);
     }
 
     private String buildUserLine(String username, String plainTextPassword, String role, boolean active) {

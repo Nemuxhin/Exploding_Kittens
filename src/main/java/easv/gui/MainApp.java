@@ -39,6 +39,12 @@ public class MainApp extends Application {
         setScene(mainRoot, "WebLager Dashboard");
     }
 
+    public void showScanWorkspaceView() {
+        ScanWorkspaceView scanWorkspaceView = new ScanWorkspaceView();
+        Parent scanRoot = scanWorkspaceView.createView(this);
+        setScene(scanRoot, "WebLager Scan Workspace");
+    }
+
     private void setScene(Parent root, String title) {
         Scene scene = new Scene(root, 900, 600);
         scene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
