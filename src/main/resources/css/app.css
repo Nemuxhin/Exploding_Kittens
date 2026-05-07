@@ -6598,3 +6598,536 @@
 .login-page .message-success {
     -fx-text-fill: -wl-success;
 }
+
+/* =========================================================
+   MERGED ADMIN TOP BAR + USER PORTAL PAGES
+   ========================================================= */
+
+.admin-shell-head,
+.admin-top-bar,
+.admin-status-bar,
+.admin-breadcrumb-bar {
+    -fx-background-color: -wl-surface;
+}
+
+.admin-shell-head {
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.admin-top-bar {
+    -fx-padding: 12 18;
+}
+
+.admin-brand-mark,
+.admin-avatar-shell {
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-min-width: 33;
+    -fx-min-height: 33;
+    -fx-max-width: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center;
+}
+
+.admin-brand-icon,
+.admin-toolbar-icon,
+.admin-top-nav-icon {
+    -fx-fill: -wl-text;
+}
+
+.admin-brand-mark .admin-brand-icon,
+.admin-avatar-label {
+    -fx-fill: -wl-on-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.admin-brand-title,
+.admin-top-nav-label,
+.admin-account-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.admin-brand-subtitle,
+.admin-account-role,
+.admin-status-label,
+.admin-breadcrumb {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+}
+
+.admin-top-nav-button,
+.admin-toolbar-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 12;
+    -fx-cursor: hand;
+}
+
+.admin-toolbar-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-padding: 0;
+}
+
+.admin-top-nav-button:hover,
+.admin-toolbar-button:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.admin-top-nav-button.active,
+.admin-top-nav-button:selected {
+    -fx-background-color: -wl-primary;
+}
+
+.admin-top-nav-button.active .admin-top-nav-label,
+.admin-top-nav-button:selected .admin-top-nav-label {
+    -fx-text-fill: -wl-on-primary;
+}
+
+.admin-top-nav-button.active .admin-top-nav-icon,
+.admin-top-nav-button:selected .admin-top-nav-icon {
+    -fx-fill: -wl-on-primary;
+}
+
+.admin-status-bar {
+    -fx-padding: 0 18 9 18;
+}
+
+.admin-status-chip {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-padding: 3 9;
+    -fx-text-fill: -wl-status-info-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.admin-breadcrumb-bar {
+    -fx-padding: 0 18 12 18;
+}
+
+.portal-page-scroll,
+.portal-page-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.portal-page-scroll {
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.portal-page {
+    -fx-background-color: -wl-background;
+    -fx-padding: 24;
+    -fx-fill-width: true;
+}
+
+.dashboard-page {
+    -fx-padding: 24;
+}
+
+.portal-page-intro,
+.page-heading-copy {
+    -fx-alignment: top-left;
+}
+
+.admin-dashboard-layout {
+    -fx-alignment: top-left;
+}
+
+.admin-dashboard-main,
+.admin-dashboard-side {
+    -fx-fill-width: true;
+}
+
+.admin-panel-card,
+.admin-metric-card,
+.portal-card,
+.exports-metric-card,
+.exports-filter-panel,
+.exports-table-panel {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.admin-panel-card {
+    -fx-padding: 18;
+}
+
+.admin-panel-header,
+.portal-card-header {
+    -fx-padding: 0 0 15 0;
+}
+
+.admin-metric-card {
+    -fx-padding: 18;
+    -fx-min-height: 126;
+}
+
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-blue,
+.dashboard-summary-icon-green,
+.dashboard-summary-icon-amber {
+    -fx-background-radius: 6;
+    -fx-min-width: 33;
+    -fx-min-height: 33;
+    -fx-max-width: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center;
+}
+
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-green {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.dashboard-summary-icon-blue {
+    -fx-background-color: -wl-status-info-bg;
+}
+
+.dashboard-summary-icon-amber {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.dashboard-summary-icon-teal-path,
+.dashboard-summary-icon-green-path {
+    -fx-fill: -wl-status-success-text;
+}
+
+.dashboard-summary-icon-blue-path {
+    -fx-fill: -wl-status-info-text;
+}
+
+.dashboard-summary-icon-amber-path {
+    -fx-fill: -wl-status-warning-text;
+}
+
+.dashboard-summary-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-summary-title,
+.dashboard-section-title,
+.dashboard-simple-title,
+.admin-action-title,
+.portal-card-title,
+.settings-section-heading,
+.portal-section-title,
+.exports-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-weight: 700;
+}
+
+.dashboard-summary-title,
+.dashboard-section-title,
+.portal-card-title,
+.settings-section-heading,
+.exports-title {
+    -fx-font-size: 18px;
+}
+
+.dashboard-simple-title,
+.admin-action-title,
+.portal-section-title {
+    -fx-font-size: 15px;
+}
+
+.dashboard-summary-subtitle,
+.dashboard-section-subtitle,
+.dashboard-simple-detail,
+.admin-action-text,
+.portal-muted,
+.portal-inline-message,
+.exports-subtitle,
+.exports-footer-text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+}
+
+.admin-action-tile {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 18;
+    -fx-cursor: hand;
+}
+
+.admin-action-tile:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.admin-action-tile-primary {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.admin-action-tile-primary .admin-action-title,
+.admin-action-tile-primary .admin-action-text {
+    -fx-text-fill: -wl-on-primary;
+}
+
+.admin-action-body {
+    -fx-alignment: top-left;
+}
+
+.admin-action-icon,
+.admin-action-icon-inverse,
+.portal-button-icon,
+.settings-nav-icon {
+    -fx-fill: -wl-text;
+}
+
+.admin-action-icon-inverse {
+    -fx-fill: -wl-on-primary;
+}
+
+.admin-primary-button,
+.admin-secondary-button,
+.portal-primary-button,
+.portal-secondary-button,
+.portal-row-button {
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.admin-primary-button,
+.portal-primary-button,
+.portal-row-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.admin-primary-button:hover,
+.portal-primary-button:hover,
+.portal-row-button:hover {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.admin-secondary-button,
+.portal-secondary-button {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.admin-secondary-button:hover,
+.portal-secondary-button:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.portal-table {
+    -fx-background-color: -wl-surface;
+}
+
+.portal-table-head,
+.portal-table-row,
+.exports-table-header-row,
+.exports-table-row {
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.portal-table-head,
+.exports-table-header-row {
+    -fx-background-color: -wl-card-content;
+}
+
+.portal-table-cell-head,
+.portal-table-cell,
+.exports-table-header,
+.exports-table-cell,
+.exports-table-cell-primary {
+    -fx-padding: 12;
+    -fx-font-size: 12px;
+}
+
+.portal-table-cell-head,
+.exports-table-header {
+    -fx-text-fill: -wl-table-header-text;
+    -fx-font-weight: 600;
+}
+
+.portal-table-cell,
+.exports-table-cell {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.exports-table-cell-primary {
+    -fx-text-fill: -wl-text;
+    -fx-font-weight: 600;
+}
+
+.portal-table-link {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary;
+    -fx-padding: 12;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.exports-table-cell-wrap {
+    -fx-padding: 9 12;
+    -fx-alignment: center-left;
+}
+
+.status-chip {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-padding: 3 9;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.status-completed,
+.status-ready {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.status-processing {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.status-failed,
+.status-unknown {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.exports-summary-row,
+.exports-filter-panel {
+    -fx-alignment: center-left;
+}
+
+.exports-metric-card {
+    -fx-padding: 18;
+}
+
+.exports-metric-label,
+.exports-filter-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+}
+
+.exports-metric-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.exports-filter-panel {
+    -fx-padding: 18;
+}
+
+.exports-filter-wrap {
+    -fx-fill-width: true;
+}
+
+.exports-filter-input,
+.exports-status-filter,
+.portal-text-field {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+}
+
+.exports-status-filter > .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-padding: 0 9;
+}
+
+.exports-table-panel {
+    -fx-padding: 0;
+}
+
+.exports-empty-row {
+    -fx-padding: 18;
+}
+
+.settings-layout {
+    -fx-alignment: top-left;
+}
+
+.settings-nav {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+}
+
+.settings-nav-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 12;
+    -fx-min-height: 42;
+    -fx-cursor: hand;
+}
+
+.settings-nav-button:hover,
+.settings-nav-button.active {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.settings-nav-label,
+.form-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.settings-nav-row {
+    -fx-alignment: center-left;
+}
+
+.settings-panel,
+.settings-form {
+    -fx-padding: 18;
+}
+
+.portal-divider {
+    -fx-background-color: -wl-border;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+}
+
+.portal-inline-message.success {
+    -fx-text-fill: -wl-status-success-text;
+}

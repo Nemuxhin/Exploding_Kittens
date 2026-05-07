@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import java.lang.String?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.SVGPath?>
 
 <BorderPane fx:id="appRoot"
@@ -15,81 +17,196 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="easv.gui.controller.user.UserController"
             stylesheets="@/css/app.css"
-            styleClass="app-shell"
             maxWidth="Infinity"
             maxHeight="Infinity">
 
+    <styleClass>
+        <String fx:value="app-shell"/>
+        <String fx:value="user-portal-shell"/>
+    </styleClass>
+
     <top>
-        <HBox alignment="CENTER_LEFT"
-              spacing="18"
-              styleClass="top-nav-bar"
-              maxWidth="Infinity">
+        <VBox styleClass="admin-shell-head">
+            <HBox alignment="CENTER_LEFT"
+                  spacing="18"
+                  styleClass="admin-top-bar">
 
-            <padding>
-                <Insets top="9" right="18" bottom="9" left="18"/>
-            </padding>
-
-            <StackPane alignment="CENTER_LEFT" styleClass="top-brand-row">
-                <Label fx:id="brandLogoFallbackLabel"
-                        text="WebLager"
-                        styleClass="user-brand-title"/>
-
-                <ImageView fx:id="brandLogoImageView"
-                           fitWidth="150"
-                           fitHeight="30"
-                           preserveRatio="true"
-                           smooth="true"
-                           visible="false"
-                           managed="false"/>
-            </StackPane>
-
-            <ToggleButton fx:id="scanNavItem"
-                          text="New Scan"
-                          styleClass="top-nav-item-active"/>
-
-            <ToggleButton fx:id="myScansNavItem"
-                          text="My Scans"
-                          styleClass="top-nav-item"/>
-
-            <ToggleButton fx:id="assignedQANavItem"
-                          text="Assigned QA"
-                          styleClass="top-nav-item"/>
-
-            <ToggleButton fx:id="exportsNavItem"
-                          text="Exports"
-                          styleClass="top-nav-item"/>
-
-            <ToggleButton fx:id="settingsNavItem"
-                          text="Settings"
-                          styleClass="top-nav-item"/>
-
-            <Region HBox.hgrow="ALWAYS"/>
-
-            <StackPane styleClass="top-help-icon">
-                <Label text="?" styleClass="top-help-label"/>
-            </StackPane>
-
-            <ToggleButton fx:id="darkModeToggleButton"
-                          contentDisplay="GRAPHIC_ONLY"
-                          styleClass="top-icon-toggle">
-                <graphic>
-                    <StackPane>
-                        <SVGPath fx:id="darkModeToggleIcon"
-                                 content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
-                                 styleClass="top-icon-toggle-svg"/>
+                <HBox alignment="CENTER_LEFT"
+                      spacing="12"
+                      styleClass="admin-brand">
+                    <StackPane styleClass="admin-brand-mark">
+                        <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
+                                 styleClass="admin-brand-icon"/>
                     </StackPane>
-                </graphic>
-            </ToggleButton>
 
-            <StackPane styleClass="avatar-initials">
-                <Label text="JD" styleClass="avatar-initials-text"/>
-            </StackPane>
+                    <VBox spacing="2">
+                        <Label fx:id="brandLogoFallbackLabel"
+                               text="Document Scanning"
+                               styleClass="admin-brand-title"/>
+                        <Label text="User Portal"
+                               styleClass="admin-brand-subtitle"/>
+                    </VBox>
 
-            <Label text="John Doe" styleClass="top-user-name"/>
+                    <ImageView fx:id="brandLogoImageView"
+                               fitWidth="150"
+                               fitHeight="30"
+                               preserveRatio="true"
+                               smooth="true"
+                               visible="false"
+                               managed="false"/>
+                </HBox>
 
-            <SVGPath content="M7 10l5 5 5-5z"
-                     styleClass="top-user-chevron"/>
-        </HBox>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox alignment="CENTER"
+                      spacing="8"
+                      styleClass="admin-nav-bar">
+                    <ToggleButton fx:id="dashboardNavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M3 10.25 12 3l9 7.25V21h-6.25v-6.25h-5.5V21H3V10.25zm2 1V19h2.25v-6.25h9.5V19H19v-7.75L12 5.6 5 11.25z"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="Dashboard" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+
+                    <ToggleButton fx:id="scanNavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M3 3h14v14H3z M9 6h2v3h3v2h-3v3H9v-3H6V9h3z"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="New Scan" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+
+                    <ToggleButton fx:id="myScansNavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M5 2h7l5 5v11H5z M11 2v5h5"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="My Scans" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+
+                    <ToggleButton fx:id="assignedQANavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M5 3.5h11.5L20 7v13.5H5V3.5zm2 2v13h11V8h-3V5.5H7zm2 4h7v1.75H9V9.5zm0 3.25h5v1.75H9v-1.75zm7.1 1.25 1.1 1.1-3.4 3.4-2.1-2.1 1.1-1.1 1 1 2.3-2.3z"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="Assigned QA" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+
+                    <ToggleButton fx:id="exportsNavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M3 5h14v4h-2V7H5v2H3z M5 11h10v5H5z M9 2h2v5h3l-4 4-4-4h3z"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="Exports" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+
+                    <ToggleButton fx:id="settingsNavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M9 2h2l.5 2.1 1.9.8 1.8-1 1.4 1.4-1 1.8.8 1.9L18 9v2l-2.1.5-.8 1.9 1 1.8-1.4 1.4-1.8-1-.9 1.9L11 18H9l-.5-2.1-1.9-.8-1.8 1L3.4 14.7l1-1.8L3.6 11 2 10V8l2.1-.5.8-1.9-1-1.8L5.3 2.4l1.8 1 .9-1.9z M10 7a3 3 0 100 6 3 3 0 000-6z"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="Settings" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox alignment="CENTER_RIGHT"
+                      spacing="12"
+                      styleClass="admin-account">
+                    <ToggleButton fx:id="darkModeToggleButton"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-toolbar-button"/>
+                        </styleClass>
+                        <graphic>
+                            <SVGPath fx:id="darkModeToggleIcon"
+                                     content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
+                                     styleClass="admin-toolbar-icon"/>
+                        </graphic>
+                    </ToggleButton>
+
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label fx:id="accountNameLabel"
+                               text="John Doe"
+                               styleClass="admin-account-name"/>
+                        <Label fx:id="accountRoleLabel"
+                               text="User Portal"
+                               visible="false"
+                               managed="false"
+                               styleClass="admin-account-role"/>
+                    </VBox>
+
+                    <StackPane styleClass="admin-avatar-shell">
+                        <Label fx:id="avatarInitialsLabel"
+                               text="JD"
+                               styleClass="admin-avatar-label"/>
+                    </StackPane>
+                </HBox>
+            </HBox>
+
+            <FlowPane hgap="10"
+                      vgap="8"
+                      prefWrapLength="1180"
+                      alignment="CENTER_LEFT"
+                      styleClass="admin-status-bar">
+                <Label text="Active Areas" styleClass="admin-status-label"/>
+                <Label text="Scanning" styleClass="admin-status-chip"/>
+                <Label text="My Scans" styleClass="admin-status-chip"/>
+                <Label text="Assigned QA" styleClass="admin-status-chip"/>
+                <Label text="Exports" styleClass="admin-status-chip"/>
+            </FlowPane>
+
+            <HBox alignment="CENTER_LEFT" styleClass="admin-breadcrumb-bar">
+                <Label fx:id="breadcrumbLabel"
+                       text="User / Dashboard"
+                       styleClass="admin-breadcrumb"/>
+            </HBox>
+        </VBox>
     </top>
 
     <center>

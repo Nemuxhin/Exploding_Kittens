@@ -1,12 +1,16 @@
 package easv.gui.controller.user;
 
+import easv.be.User;
+import easv.bll.UserSession;
+import easv.gui.UserPortalModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -17,18 +21,14 @@ import javafx.scene.shape.SVGPath;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 public class UserController implements UserNavigator {
 
-    private static final String LIGHT_MODE_LOGO =
-            "/images/weblager/styleguide/Main Blue/LogoBlueH.png";
-
-    private static final String DARK_MODE_LOGO =
-            "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
-
-    private static final String ACTIVE_NAV_CLASS = "top-nav-item-active";
-    private static final String INACTIVE_NAV_CLASS = "top-nav-item";
+    private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
+    private static final String PREFERENCES_NODE = "easv.gui.portal";
+    private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
 
     private static final String MOON_ICON_PATH =
             "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
@@ -41,7 +41,12 @@ public class UserController implements UserNavigator {
 
     @FXML private Label brandLogoFallbackLabel;
     @FXML private ImageView brandLogoImageView;
+    @FXML private Label breadcrumbLabel;
+    @FXML private Label accountNameLabel;
+    @FXML private Label accountRoleLabel;
+    @FXML private Label avatarInitialsLabel;
 
+    @FXML private ToggleButton dashboardNavItem;
     @FXML private ToggleButton scanNavItem;
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
@@ -51,16 +56,45 @@ public class UserController implements UserNavigator {
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private SVGPath darkModeToggleIcon;
 
+    private final UserPortalModel portalModel = new UserPortalModel();
+    private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
+
     @FXML
     private void initialize() {
-        configureBrandLogo();
+        configureShell();
         configureThemeToggle();
         configureNavigation();
-        showPage(UserPage.SCAN);
+        showPage(UserPage.DASHBOARD);
     }
 
-    private void configureBrandLogo() {
-        updateBrandLogo(isDarkModeEnabled());
+    private void configureShell() {
+        if (brandLogoImageView != null) {
+            brandLogoImageView.setVisible(false);
+            brandLogoImageView.setManaged(false);
+        }
+
+        UserPortalModel.AccountProfile fallbackProfile = portalModel.fetchAccountProfile();
+        User currentUser = UserSession.getCurrentUser();
+
+        String accountName = currentUser == null || currentUser.getName().isBlank()
+                ? fallbackProfile.fullName()
+                : currentUser.getName();
+
+        String accountRole = currentUser == null || currentUser.getRole().isBlank()
+                ? "User Portal"
+                : currentUser.getRole();
+
+        if (accountNameLabel != null) {
+            accountNameLabel.setText(accountName);
+        }
+
+        if (accountRoleLabel != null) {
+            accountRoleLabel.setText(accountRole);
+        }
+
+        if (avatarInitialsLabel != null) {
+            avatarInitialsLabel.setText(initialsFor(accountName));
+        }
     }
 
     private void configureThemeToggle() {
@@ -74,12 +108,12 @@ public class UserController implements UserNavigator {
     }
 
     private boolean isDarkModeEnabled() {
-        return darkModeToggleButton != null && darkModeToggleButton.isSelected();
+        return preferences.getBoolean(DARK_MODE_PREFERENCE_KEY, false);
     }
 
     private void updateTheme(boolean isDark) {
         updateDarkModeClass(isDark);
-        updateBrandLogo(isDark);
+        preferences.putBoolean(DARK_MODE_PREFERENCE_KEY, isDark);
         updateThemeControls(isDark);
     }
 
@@ -91,24 +125,11 @@ public class UserController implements UserNavigator {
         }
     }
 
-    private void updateBrandLogo(boolean isDark) {
-        String logoPath = isDark ? DARK_MODE_LOGO : LIGHT_MODE_LOGO;
-        URL logoUrl = getClass().getResource(logoPath);
-
-        boolean logoExists = logoUrl != null;
-
-        brandLogoImageView.setVisible(logoExists);
-        brandLogoImageView.setManaged(logoExists);
-
-        brandLogoFallbackLabel.setVisible(!logoExists);
-        brandLogoFallbackLabel.setManaged(!logoExists);
-
-        if (logoExists) {
-            brandLogoImageView.setImage(new Image(logoUrl.toExternalForm(), true));
-        }
-    }
-
     private void updateThemeControls(boolean isDark) {
+        if (darkModeToggleButton != null && darkModeToggleButton.isSelected() != isDark) {
+            darkModeToggleButton.setSelected(isDark);
+        }
+
         if (darkModeToggleIcon != null) {
             darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
         }
@@ -128,9 +149,25 @@ public class UserController implements UserNavigator {
     public void showPage(UserPage page) {
         loadPage(page);
         setActiveNavItem(getNavItem(page));
+        updateBreadcrumb(page);
+    }
+
+    @Override
+    public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
+        showPage(UserPage.SCAN);
+    }
+
+    @Override
+    public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
+        showPage(UserPage.SCAN);
     }
 
     private void loadPage(UserPage page) {
+        if (!page.hasFxml()) {
+            contentHost.getChildren().setAll(wrapScrollable(createProgrammaticPage(page)));
+            return;
+        }
+
         URL pageUrl = getClass().getResource(page.fxmlPath());
 
         if (pageUrl == null) {
@@ -149,6 +186,26 @@ public class UserController implements UserNavigator {
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load page: " + page.fxmlPath(), exception);
         }
+    }
+
+    private Node createProgrammaticPage(UserPage page) {
+        return switch (page) {
+            case DASHBOARD -> new DashboardController(portalModel, this).create();
+            case MY_SCANS -> new MyScansController(portalModel, this).create();
+            case EXPORTS -> new ExportsController(portalModel).create();
+            case SETTINGS -> new SettingsController(portalModel).create();
+            default -> createMissingPagePlaceholder(page.title());
+        };
+    }
+
+    private ScrollPane wrapScrollable(Node page) {
+        ScrollPane scrollPane = new ScrollPane(page);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false);
+        scrollPane.getStyleClass().add("portal-page-scroll");
+        scrollPane.setMaxWidth(Double.MAX_VALUE);
+        scrollPane.setMaxHeight(Double.MAX_VALUE);
+        return scrollPane;
     }
 
     private void configureLoadedController(Object controller) {
@@ -194,15 +251,36 @@ public class UserController implements UserNavigator {
 
     private void setNavItemActive(ToggleButton navItem, boolean active) {
         navItem.setSelected(active);
-
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
-        navItem.getStyleClass().remove(INACTIVE_NAV_CLASS);
 
-        navItem.getStyleClass().add(active ? ACTIVE_NAV_CLASS : INACTIVE_NAV_CLASS);
+        if (active) {
+            navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
+        }
+    }
+
+    private void updateBreadcrumb(UserPage page) {
+        if (breadcrumbLabel != null) {
+            breadcrumbLabel.setText("User / " + page.title());
+        }
+    }
+
+    private String initialsFor(String name) {
+        if (name == null || name.isBlank()) {
+            return "U";
+        }
+
+        String[] parts = name.trim().split("\\s+");
+
+        if (parts.length == 1) {
+            return parts[0].substring(0, 1).toUpperCase();
+        }
+
+        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
     }
 
     private List<ToggleButton> getNavigationItems() {
         return List.of(
+                dashboardNavItem,
                 scanNavItem,
                 myScansNavItem,
                 assignedQANavItem,
@@ -213,6 +291,7 @@ public class UserController implements UserNavigator {
 
     private ToggleButton getNavItem(UserPage page) {
         return switch (page) {
+            case DASHBOARD -> dashboardNavItem;
             case SCAN -> scanNavItem;
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;

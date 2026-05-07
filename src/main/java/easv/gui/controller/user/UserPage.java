@@ -1,11 +1,12 @@
 package easv.gui.controller.user;
 
 enum UserPage {
+    DASHBOARD(null, "Dashboard"),
     SCAN("/view/UserViews/scan-view.fxml", "New Scan"),
-    MY_SCANS("/view/UserViews/my-scans-view.fxml", "My Scans"),
+    MY_SCANS(null, "My Scans"),
     ASSIGNED_QA("/view/UserViews/assigned-qa-view.fxml", "Assigned QA"),
-    EXPORTS("/view/UserViews/exports-view.fxml", "Exports"),
-    SETTINGS("/view/UserViews/settings-view.fxml", "Settings");
+    EXPORTS(null, "Exports"),
+    SETTINGS(null, "Settings");
 
     private final String fxmlPath;
     private final String title;
@@ -17,6 +18,10 @@ enum UserPage {
 
     String fxmlPath() {
         return fxmlPath;
+    }
+
+    boolean hasFxml() {
+        return fxmlPath != null && !fxmlPath.isBlank();
     }
 
     String title() {

@@ -27,8 +27,7 @@ public class AdminController implements AdminNavigator {
     private static final String DARK_MODE_LOGO =
             "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
 
-    private static final String ACTIVE_NAV_CLASS = "sidebar-nav-item-active";
-    private static final String INACTIVE_NAV_CLASS = "sidebar-nav-item";
+    private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
 
     private static final String MOON_ICON_PATH =
@@ -52,6 +51,7 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton activityNavItem;
 
     @FXML private ToggleButton darkModeToggleButton;
+    @FXML private Label breadcrumbLabel;
     @FXML private Label themeModeLabel;
     @FXML private SVGPath themeModeIcon;
     @FXML private SVGPath darkModeToggleIcon;
@@ -73,9 +73,11 @@ public class AdminController implements AdminNavigator {
     private void configureThemeToggle() {
         updateTheme(isDarkModeEnabled());
 
-        darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
-                updateTheme(isDark)
-        );
+        if (darkModeToggleButton != null) {
+            darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
+                    updateTheme(isDark)
+            );
+        }
     }
 
     private boolean isDarkModeEnabled() {
@@ -97,6 +99,10 @@ public class AdminController implements AdminNavigator {
     }
 
     private void updateBrandLogo(boolean isDark) {
+        if (brandLogoImageView == null || brandLogoFallbackLabel == null) {
+            return;
+        }
+
         String logoPath = isDark ? DARK_MODE_LOGO : LIGHT_MODE_LOGO;
         URL logoUrl = getClass().getResource(logoPath);
 
@@ -145,6 +151,13 @@ public class AdminController implements AdminNavigator {
     public void showPage(AdminPage page) {
         loadPage(page);
         setActiveNavItem(getNavItem(page));
+        updateBreadcrumb(page);
+    }
+
+    private void updateBreadcrumb(AdminPage page) {
+        if (breadcrumbLabel != null) {
+            breadcrumbLabel.setText("Admin / " + page.title());
+        }
     }
 
     private void loadPage(AdminPage page) {
@@ -226,9 +239,10 @@ public class AdminController implements AdminNavigator {
     private void setNavItemActive(ToggleButton navItem, boolean active) {
         navItem.setSelected(active);
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
-        navItem.getStyleClass().remove(INACTIVE_NAV_CLASS);
 
-        navItem.getStyleClass().add(active ? ACTIVE_NAV_CLASS : INACTIVE_NAV_CLASS);
+        if (active) {
+            navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
+        }
     }
 
     private List<ToggleButton> getNavigationItems() {
