@@ -12,6 +12,11 @@ import java.util.List;
 public class AuditLogDAO {
 
     private final List<AuditLog> auditLogs = new ArrayList<>();
+    private int nextId = 1;
+
+    public int nextId() {
+        return nextId++;
+    }
 
     public void save(AuditLog auditLog) {
         auditLogs.add(auditLog);

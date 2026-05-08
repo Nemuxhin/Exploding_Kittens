@@ -1,82 +1,65 @@
 package easv.be;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-/**
- * One audit log row.
- * It tells us who did something, when it happened, and what it was connected to.
- */
 public class AuditLog {
-
+    private final int id;
     private final LocalDateTime timestamp;
-    private final String username;
-    private final boolean systemAction;
+    private final String type;
+    private final String actor;
     private final String action;
-    private final String caseId;
-    private final String documentId;
-    private final String fileId;
-    private final Integer pageNumber;
-    private final String profileName;
-    private final String boxId;
-    private final String details;
+    private final String target;
+    private final String status;
+    private final String description;
+    private final List<AuditLogDetail> details;
 
-    public AuditLog(LocalDateTime timestamp, String username, boolean systemAction, String action,
-                    String caseId, String documentId, String fileId, Integer pageNumber,
-                    String profileName, String boxId, String details) {
+    public AuditLog(
+            int id,
+            LocalDateTime timestamp,
+            String type,
+            String actor,
+            String action,
+            String target,
+            String status,
+            String description,
+            List<AuditLogDetail> details
+    ) {
+        this.id = id;
         this.timestamp = timestamp;
-        this.username = username;
-        this.systemAction = systemAction;
-        this.action = action;
-        this.caseId = caseId;
-        this.documentId = documentId;
-        this.fileId = fileId;
-        this.pageNumber = pageNumber;
-        this.profileName = profileName;
-        this.boxId = boxId;
-        this.details = details;
+        this.type = clean(type);
+        this.actor = clean(actor);
+        this.action = clean(action);
+        this.target = clean(target);
+        this.status = clean(status);
+        this.description = clean(description);
+        this.details = details == null ? List.of() : List.copyOf(details);
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public int getId() { return id; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public String getType() { return type; }
+    public String getActor() { return actor; }
+    public String getAction() { return action; }
+    public String getTarget() { return target; }
+    public String getStatus() { return status; }
+    public String getDescription() { return description; }
+    public List<AuditLogDetail> getDetails() { return details; }
+
+    private static String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 
-    public String getUsername() {
-        return username;
-    }
+    public static class AuditLogDetail {
+        private final String label;
+        private final String value;
 
-    public boolean isSystemAction() {
-        return systemAction;
-    }
+        public AuditLogDetail(String label, String value) {
+            this.label = clean(label);
+            this.value = clean(value);
+        }
 
-    public String getAction() {
-        return action;
-    }
-
-    public String getCaseId() {
-        return caseId;
-    }
-
-    public String getDocumentId() {
-        return documentId;
-    }
-
-    public String getFileId() {
-        return fileId;
-    }
-
-    public Integer getPageNumber() {
-        return pageNumber;
-    }
-
-    public String getProfileName() {
-        return profileName;
-    }
-
-    public String getBoxId() {
-        return boxId;
-    }
-
-    public String getDetails() {
-        return details;
+        public String getLabel() { return label; }
+        public String getValue() { return value; }
     }
 }

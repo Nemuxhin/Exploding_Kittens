@@ -49,7 +49,7 @@ class AuthManagerTest {
     }
 
     @Test
-    void updatePasswordHashesNewPassword() throws Exception {
+    void updatePasswordHashesNewPassword() {
         UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
         AuthManager authManager = new AuthManager(userDAO);
 

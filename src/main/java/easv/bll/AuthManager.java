@@ -57,8 +57,7 @@ public class AuthManager {
 
             // After a successful login, we keep the user in memory for later actions.
             UserSession.setCurrentUser(storedUser);
-            String token = authTokenManager.createToken(storedUser);
-            return AuthResult.success(storedUser, token);
+            return AuthResult.success(storedUser, authTokenManager.createToken(storedUser));
         } catch (IOException exception) {
             UserSession.clearCurrentUser();
             return AuthResult.failure("The system could not read the stored accounts.");
@@ -80,8 +79,7 @@ public class AuthManager {
                 return AuthResult.failure("This username already exists.");
             }
 
-            String passwordHash = PasswordHasher.hash(safePassword);
-            User savedUser = new User(safeUsername, passwordHash, safeRole, active);
+            User savedUser = new User(safeUsername, PasswordHasher.hash(safePassword), safeRole, active);
             userDAO.saveUser(savedUser);
 
             return AuthResult.successMessage("User account saved.", savedUser);
@@ -95,7 +93,7 @@ public class AuthManager {
             String safeUsername = username == null ? "" : username.trim();
             String safePassword = newPassword == null ? "" : newPassword;
 
-            // Password updates are optional in edit screens, but if sent they must be valid.
+            // If a password is included in an edit form, we hash and save it.
             if (safeUsername.isBlank() || safePassword.isBlank()) {
                 return AuthResult.failure("Username and new password are required.");
             }
@@ -106,9 +104,7 @@ public class AuthManager {
                 return AuthResult.failure("User account was not found.");
             }
 
-            String passwordHash = PasswordHasher.hash(safePassword);
-            User updatedUser = userDAO.updatePasswordHash(safeUsername, passwordHash);
-
+            User updatedUser = userDAO.updatePasswordHash(safeUsername, PasswordHasher.hash(safePassword));
             return AuthResult.successMessage("Password updated.", updatedUser);
         } catch (IOException exception) {
             return AuthResult.failure("The system could not update the password.");

@@ -16,9 +16,9 @@ public class ShortcutManager {
                 new KeyboardShortcut("Delete", "DELETE", "Delete", "Delete the selected page."),
                 new KeyboardShortcut("Ctrl + Z", "CTRL+Z", "Undo", "Undo the last supported action."),
                 new KeyboardShortcut("Ctrl + S", "CTRL+S", "Save", "Save the current work."),
-                new KeyboardShortcut("Ctrl + F", "CTRL+F", "Search / jump", "Search or jump to a page or case."),
-                new KeyboardShortcut("F1", "F1", "Shortcut help", "Open the keyboard shortcuts help dialog."),
-                new KeyboardShortcut("?", "SHIFT+SLASH", "Shortcut help", "Open the keyboard shortcuts help dialog.")
+                new KeyboardShortcut("Ctrl + F", "CTRL+F", "Search / jump", "Jump to a scanned page by reference number."),
+                new KeyboardShortcut("F1", "F1", "Shortcut help", "Open the keyboard shortcuts help page."),
+                new KeyboardShortcut("?", "SHIFT+SLASH", "Shortcut help", "Open the keyboard shortcuts help page.")
         );
     }
 }

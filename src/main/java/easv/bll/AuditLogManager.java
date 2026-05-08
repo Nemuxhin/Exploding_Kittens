@@ -1,11 +1,10 @@
 package easv.bll;
 
 import easv.be.AuditLog;
-import easv.be.PageImage;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,11 +22,13 @@ public class AuditLogManager {
     public static final String PAGE_DELETED = "PAGE_DELETED";
     public static final String METADATA_SAVED = "METADATA_SAVED";
     public static final String EXPORT_PREVIEW_CREATED = "EXPORT_PREVIEW_CREATED";
+    public static final String BARCODE_DETECTED = "BARCODE_DETECTED";
 
+    private static final AuditLogDAO SHARED_AUDIT_LOG_DAO = new AuditLogDAO();
     private final AuditLogDAO auditLogDAO;
 
     public AuditLogManager() {
-        this(new AuditLogDAO());
+        this(SHARED_AUDIT_LOG_DAO);
     }
 
     public AuditLogManager(AuditLogDAO auditLogDAO) {
@@ -48,14 +49,16 @@ public class AuditLogManager {
         return saveLog("SYSTEM", true, action, caseId, documentId, fileId, pageNumber, profileName, boxId, details);
     }
 
-    public AuditLog logPageCreated(PageImage page, String profileName, String boxId) {
-        return logUserAction(PAGE_CREATED, page.getCaseId(), page.getDocumentId(), page.getFileId(),
-                page.getPageNumber(), profileName, boxId, "A scanned page was created.");
+    public AuditLog logPageCreated(String caseId, String documentId, String fileId, Integer pageNumber,
+                                   String profileName, String boxId) {
+        return logUserAction(PAGE_CREATED, caseId, documentId, fileId,
+                pageNumber, profileName, boxId, "A scanned page was created.");
     }
 
-    public AuditLog logPageDeleted(PageImage page, String profileName, String boxId) {
-        return logUserAction(PAGE_DELETED, page.getCaseId(), page.getDocumentId(), page.getFileId(),
-                page.getPageNumber(), profileName, boxId, "A scanned page was deleted.");
+    public AuditLog logPageDeleted(String caseId, String documentId, String fileId, Integer pageNumber,
+                                   String profileName, String boxId) {
+        return logUserAction(PAGE_DELETED, caseId, documentId, fileId,
+                pageNumber, profileName, boxId, "A scanned page was deleted.");
     }
 
     public List<AuditLog> getLogs() {
@@ -64,10 +67,83 @@ public class AuditLogManager {
 
     private AuditLog saveLog(String username, boolean systemAction, String action, String caseId, String documentId,
                              String fileId, Integer pageNumber, String profileName, String boxId, String details) {
-        AuditLog auditLog = new AuditLog(LocalDateTime.now(), username, systemAction, action,
-                caseId, documentId, fileId, pageNumber, profileName, boxId, details);
+        AuditLog auditLog = new AuditLog(
+                auditLogDAO.nextId(),
+                java.time.LocalDateTime.now(),
+                systemAction ? "System" : typeFor(action),
+                systemAction ? "SYSTEM" : username,
+                action,
+                targetFor(caseId, documentId, fileId, pageNumber),
+                statusFor(action),
+                details,
+                detailsFor(caseId, documentId, fileId, pageNumber, profileName, boxId)
+        );
 
         auditLogDAO.save(auditLog);
         return auditLog;
+    }
+
+    private String typeFor(String action) {
+        if (action == null) {
+            return "System";
+        }
+
+        if (action.contains("SCAN") || action.contains("TIFF") || action.contains("BARCODE")) {
+            return "Scans";
+        }
+
+        if (action.contains("METADATA")) {
+            return "Metadata";
+        }
+
+        if (action.contains("EXPORT")) {
+            return "Exports";
+        }
+
+        return "Documents";
+    }
+
+    private String statusFor(String action) {
+        return SCAN_FAILED.equals(action) ? "Failed" : "Success";
+    }
+
+    private String targetFor(String caseId, String documentId, String fileId, Integer pageNumber) {
+        List<String> parts = new ArrayList<>();
+
+        addPart(parts, "case", caseId);
+        addPart(parts, "document", documentId);
+        addPart(parts, "file", fileId);
+
+        if (pageNumber != null) {
+            parts.add("page " + pageNumber);
+        }
+
+        return parts.isEmpty() ? "System" : String.join(" / ", parts);
+    }
+
+    private List<AuditLog.AuditLogDetail> detailsFor(String caseId, String documentId, String fileId,
+                                                     Integer pageNumber, String profileName, String boxId) {
+        List<AuditLog.AuditLogDetail> details = new ArrayList<>();
+
+        addDetail(details, "Case", caseId);
+        addDetail(details, "Document", documentId);
+        addDetail(details, "File", fileId);
+        addDetail(details, "Page", pageNumber == null ? "" : String.valueOf(pageNumber));
+        addDetail(details, "Profile", profileName);
+        addDetail(details, "Box", boxId);
+
+        return details;
+    }
+
+    private void addDetail(List<AuditLog.AuditLogDetail> details, String label, String value) {
+        if (value != null && !value.isBlank()) {
+            details.add(new AuditLog.AuditLogDetail(label, value));
+        }
+    }
+
+    private void addPart(List<String> parts, String label, String value) {
+        if (value != null && !value.isBlank()) {
+            parts.add(label + " " + value);
+        }
     }
 }

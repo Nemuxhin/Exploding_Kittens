@@ -1,1 +1,10 @@
 target/
+data/
+*.class
+
+.idea/
+*.iml
+
+tmp_inspect/
+screenshots/
+*.log

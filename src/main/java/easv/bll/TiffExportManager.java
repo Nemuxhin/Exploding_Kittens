@@ -18,9 +18,10 @@ public class TiffExportManager {
     public TiffExportPlan createSinglePagePlan(String profileName, String boxId, List<PageImage> pages) {
         List<TiffExportItem> items = new ArrayList<>();
 
-        for (PageImage page : activePagesOnly(pages)) {
-            String fileName = buildFileName(profileName, boxId, page.getDocumentId(), "page-" + page.getPageNumber());
-            items.add(new TiffExportItem(page.getDocumentId(), fileName, List.of(page)));
+        for (PageImage page : safePages(pages)) {
+            String documentId = page.getSourceReference();
+            String fileName = buildFileName(profileName, boxId, documentId, "page-" + page.getPageNumber());
+            items.add(new TiffExportItem(documentId, fileName, List.of(page)));
         }
 
         return new TiffExportPlan("SINGLE_PAGE_TIFFS", items, buildWarnings(profileName, boxId));
@@ -29,8 +30,8 @@ public class TiffExportManager {
     public TiffExportPlan createMultiPagePlan(String profileName, String boxId, List<PageImage> pages) {
         Map<String, List<PageImage>> pagesByDocument = new LinkedHashMap<>();
 
-        for (PageImage page : activePagesOnly(pages)) {
-            pagesByDocument.computeIfAbsent(page.getDocumentId(), key -> new ArrayList<>()).add(page);
+        for (PageImage page : safePages(pages)) {
+            pagesByDocument.computeIfAbsent(page.getSourceReference(), key -> new ArrayList<>()).add(page);
         }
 
         List<TiffExportItem> items = new ArrayList<>();
@@ -43,20 +44,12 @@ public class TiffExportManager {
         return new TiffExportPlan("MULTI_PAGE_TIFF_PER_DOCUMENT", items, buildWarnings(profileName, boxId));
     }
 
-    private List<PageImage> activePagesOnly(List<PageImage> pages) {
-        List<PageImage> activePages = new ArrayList<>();
-
+    private List<PageImage> safePages(List<PageImage> pages) {
         if (pages == null) {
-            return activePages;
+            return new ArrayList<>();
         }
 
-        for (PageImage page : pages) {
-            if (page.isActive()) {
-                activePages.add(page);
-            }
-        }
-
-        return activePages;
+        return new ArrayList<>(pages);
     }
 
     private List<String> buildWarnings(String profileName, String boxId) {

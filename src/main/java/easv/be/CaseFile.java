@@ -1,42 +1,61 @@
 package easv.be;
 
-/**
- * A simple case in the archive.
- * The completed/approved flags tell metadata if editing is still allowed.
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
 public class CaseFile {
+    private final UUID id;
+    private final String caseReference;
+    private final Client client;
+    private final Box box;
+    private final List<Document> documents = new ArrayList<>();
 
-    private final String caseId;
-    private final String profileName;
-    private final String boxId;
-    private final boolean completed;
-    private final boolean approved;
-
-    public CaseFile(String caseId, String profileName, String boxId, boolean completed, boolean approved) {
-        this.caseId = caseId;
-        this.profileName = profileName;
-        this.boxId = boxId;
-        this.completed = completed;
-        this.approved = approved;
+    public CaseFile(String caseReference, Client client, Box box) {
+        this(UUID.randomUUID(), caseReference, client, box);
     }
 
-    public String getCaseId() {
-        return caseId;
+    public CaseFile(UUID id, String caseReference, Client client, Box box) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.caseReference = requireText(caseReference, "caseReference");
+        this.client = Objects.requireNonNull(client, "client");
+        this.box = Objects.requireNonNull(box, "box");
     }
 
-    public String getProfileName() {
-        return profileName;
+    public UUID getId() {
+        return id;
     }
 
-    public String getBoxId() {
-        return boxId;
+    public String getCaseReference() {
+        return caseReference;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public Client getClient() {
+        return client;
     }
 
-    public boolean isApproved() {
-        return approved;
+    public Box getBox() {
+        return box;
+    }
+
+    public List<Document> getDocuments() {
+        return List.copyOf(documents);
+    }
+
+    public void addDocument(Document document) {
+        Objects.requireNonNull(document, "document");
+        boolean exists = documents.stream()
+                .anyMatch(existing -> existing.getSourceItemId().equals(document.getSourceItemId()));
+        if (!exists) {
+            documents.add(document);
+        }
+    }
+
+    private static String requireText(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+        return value;
     }
 }

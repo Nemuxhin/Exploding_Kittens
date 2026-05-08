@@ -1,80 +1,131 @@
 package easv.gui;
 
-import easv.bll.KeyboardShortcut;
-import easv.bll.ShortcutManager;
+import easv.be.User;
+import easv.gui.controller.LoginController;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCombination;
+import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.List;
+import java.net.URL;
 
-/**
- * This is the JavaFX entry point.
- * We start with the login screen and switch scenes after a successful login.
- */
 public class MainApp extends Application {
 
-    private Stage primaryStage;
-    private final ShortcutManager shortcutManager = new ShortcutManager();
+    private static final String APP_TITLE = "WebLager";
+    private static final String LOGIN_VIEW = "/view/LoginViews/login-view.fxml";
+    private static final String ADMIN_VIEW = "/view/AdminViews/admin-view.fxml";
+    private static final String USER_VIEW = "/view/UserViews/user-view.fxml";
+    private static final String STYLESHEET = "/css/app.css";
+
+    private static final String WINDOW_ICON =
+            "/images/weblager/styleguide/Main Blue/LogoBlue_Logoicon.png";
+
+    private static final double PREFERRED_WIDTH = 1360;
+    private static final double PREFERRED_HEIGHT = 820;
+
+    private static final double MIN_WIDTH = 1100;
+    private static final double MIN_HEIGHT = 680;
+
+    private static final double SCREEN_MARGIN = 0.95;
+
+    private Stage stage;
+    private Rectangle2D screen;
 
     @Override
-    public void start(Stage primaryStage) throws IOException {
-        this.primaryStage = primaryStage;
+    public void start(Stage stage) throws IOException {
+        this.stage = stage;
+        this.screen = Screen.getPrimary().getVisualBounds();
+
+        configureStage();
         showLoginView();
-        primaryStage.show();
+        stage.show();
     }
 
     public void showLoginView() throws IOException {
-        LoginView loginView = new LoginView();
-        Parent loginRoot = loginView.load(this);
-        setScene(loginRoot, "WebLager Login");
+        FXMLLoader loader = new FXMLLoader(getRequiredResource(LOGIN_VIEW));
+        Parent root = loader.load();
+
+        LoginController controller = loader.getController();
+        controller.setMainApp(this);
+
+        showView(root, "WebLager Login");
     }
 
-    public void showMainView() {
-        MainView mainView = new MainView();
-        Parent mainRoot = mainView.createView(this);
-        setScene(mainRoot, "WebLager Dashboard");
+    public void showMainView(User user) throws IOException {
+        String view = isAdmin(user) ? ADMIN_VIEW : USER_VIEW;
+        showView(loadView(view), APP_TITLE);
     }
 
-    public void showScanWorkspaceView() {
-        ScanWorkspaceView scanWorkspaceView = new ScanWorkspaceView();
-        Parent scanRoot = scanWorkspaceView.createView(this);
-        setScene(scanRoot, "WebLager Scan Workspace");
+    private boolean isAdmin(User user) {
+        return user != null && "ADMIN".equalsIgnoreCase(user.getRole());
     }
 
-    private void setScene(Parent root, String title) {
-        Scene scene = new Scene(root, 900, 600);
-        scene.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
-        registerKeyboardShortcuts(scene);
-
-        primaryStage.setTitle(title);
-        primaryStage.setScene(scene);
-        primaryStage.setMinWidth(900);
-        primaryStage.setMinHeight(600);
+    private Parent loadView(String fxmlPath) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getRequiredResource(fxmlPath));
+        return loader.load();
     }
 
-    private void registerKeyboardShortcuts(Scene scene) {
-        List<KeyboardShortcut> shortcuts = shortcutManager.getShortcuts();
+    private void configureStage() {
+        stage.setTitle(APP_TITLE);
+        stage.setResizable(true);
+        stage.setMinWidth(fitToScreen(MIN_WIDTH, screen.getWidth()));
+        stage.setMinHeight(fitToScreen(MIN_HEIGHT, screen.getHeight()));
+        setWindowIcon();
+    }
 
-        for (KeyboardShortcut shortcut : shortcuts) {
-            Runnable shortcutAction = createShortcutAction(shortcut);
-            scene.getAccelerators().put(KeyCombination.valueOf(shortcut.getKeyCombination()), shortcutAction);
+    private void showView(Parent root, String title) {
+        double width = fitToScreen(PREFERRED_WIDTH, screen.getWidth());
+        double height = fitToScreen(PREFERRED_HEIGHT, screen.getHeight());
+
+        Scene scene = new Scene(root, width, height);
+        addStylesheet(scene);
+
+        stage.setTitle(title);
+        stage.setScene(scene);
+        centerStage(width, height);
+    }
+
+    private void addStylesheet(Scene scene) {
+        URL stylesheetUrl = getClass().getResource(STYLESHEET);
+
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().setAll(stylesheetUrl.toExternalForm());
         }
     }
 
-    private Runnable createShortcutAction(KeyboardShortcut shortcut) {
-        if ("Shortcut help".equals(shortcut.getActionName())) {
-            return () -> AlertHelper.showShortcutHelp(shortcutManager.getShortcuts());
+    private void setWindowIcon() {
+        URL iconUrl = getClass().getResource(WINDOW_ICON);
+
+        if (iconUrl != null) {
+            stage.getIcons().setAll(new Image(iconUrl.toExternalForm()));
+        }
+    }
+
+    private void centerStage(double width, double height) {
+        stage.setWidth(width);
+        stage.setHeight(height);
+
+        stage.setX(screen.getMinX() + (screen.getWidth() - width) / 2);
+        stage.setY(screen.getMinY() + (screen.getHeight() - height) / 2);
+    }
+
+    private double fitToScreen(double preferredSize, double availableSize) {
+        return Math.min(preferredSize, availableSize * SCREEN_MARGIN);
+    }
+
+    private URL getRequiredResource(String path) {
+        URL resource = getClass().getResource(path);
+
+        if (resource == null) {
+            throw new IllegalStateException("Could not find resource: " + path);
         }
 
-        // The real scan actions are not implemented yet, so the shortcut is ready for later connection.
-        return () -> AlertHelper.showInformation(
-                shortcut.getActionName(),
-                shortcut.getActionName() + " shortcut is registered, but this action is not connected yet."
-        );
+        return resource;
     }
 
     public static void main(String[] args) {

@@ -2,42 +2,43 @@ package easv.be;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
-/**
- * A document belongs to one case and contains scanned pages.
- */
 public class Document {
+    private final UUID id;
+    private final String sourceItemId;
+    private final List<PageImage> pages;
 
-    private final String documentId;
-    private final String caseId;
-    private final List<PageImage> pages = new ArrayList<>();
-
-    public Document(String documentId, String caseId) {
-        this.documentId = documentId;
-        this.caseId = caseId;
+    public Document(String sourceItemId, List<PageImage> pages) {
+        this(UUID.randomUUID(), sourceItemId, pages);
     }
 
-    public void addPage(PageImage page) {
-        pages.add(page);
-    }
-
-    public List<PageImage> getActivePages() {
-        List<PageImage> activePages = new ArrayList<>();
-
-        for (PageImage page : pages) {
-            if (page.isActive()) {
-                activePages.add(page);
-            }
+    public Document(UUID id, String sourceItemId, List<PageImage> pages) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.sourceItemId = requireText(sourceItemId, "sourceItemId");
+        this.pages = List.copyOf(new ArrayList<>(Objects.requireNonNull(pages, "pages")));
+        if (this.pages.isEmpty()) {
+            throw new IllegalArgumentException("pages must not be empty");
         }
-
-        return activePages;
     }
 
-    public String getDocumentId() {
-        return documentId;
+    public UUID getId() {
+        return id;
     }
 
-    public String getCaseId() {
-        return caseId;
+    public String getSourceItemId() {
+        return sourceItemId;
+    }
+
+    public List<PageImage> getPages() {
+        return pages;
+    }
+
+    private static String requireText(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+        return value;
     }
 }

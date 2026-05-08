@@ -1,52 +1,53 @@
 package easv.be;
 
-/**
- * One scanned TIFF page.
- * Active pages can be exported; deleted pages stay known but inactive.
- */
+import java.util.Objects;
+import java.util.UUID;
+
 public class PageImage {
+    public enum PageType {
+        TIFF,
+        BARCODE
+    }
 
-    private final String caseId;
-    private final String documentId;
-    private final String fileId;
+    private final UUID id;
     private final int pageNumber;
-    private final String tiffFileName;
-    private boolean active;
+    private final PageType pageType;
+    private final String sourceReference;
 
-    public PageImage(String caseId, String documentId, String fileId, int pageNumber, String tiffFileName) {
-        this.caseId = caseId;
-        this.documentId = documentId;
-        this.fileId = fileId;
+    public PageImage(int pageNumber, PageType pageType, String sourceReference) {
+        this(UUID.randomUUID(), pageNumber, pageType, sourceReference);
+    }
+
+    public PageImage(UUID id, int pageNumber, PageType pageType, String sourceReference) {
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException("pageNumber must be positive");
+        }
+        this.id = Objects.requireNonNull(id, "id");
         this.pageNumber = pageNumber;
-        this.tiffFileName = tiffFileName;
-        this.active = true;
+        this.pageType = Objects.requireNonNull(pageType, "pageType");
+        this.sourceReference = requireText(sourceReference, "sourceReference");
     }
 
-    public void markDeleted() {
-        active = false;
-    }
-
-    public String getCaseId() {
-        return caseId;
-    }
-
-    public String getDocumentId() {
-        return documentId;
-    }
-
-    public String getFileId() {
-        return fileId;
+    public UUID getId() {
+        return id;
     }
 
     public int getPageNumber() {
         return pageNumber;
     }
 
-    public String getTiffFileName() {
-        return tiffFileName;
+    public PageType getPageType() {
+        return pageType;
     }
 
-    public boolean isActive() {
-        return active;
+    public String getSourceReference() {
+        return sourceReference;
+    }
+
+    private static String requireText(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+        return value;
     }
 }

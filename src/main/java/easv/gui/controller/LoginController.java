@@ -44,7 +44,7 @@ public class LoginController {
         setMessageStyle(authResult.isSuccess());
 
         if (authResult.isSuccess()) {
-            mainApp.showMainView();
+            mainApp.showMainView(authResult.getUser());
             return;
         }
 
