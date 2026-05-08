@@ -12,11 +12,18 @@ import java.util.Map;
  */
 public class MetadataManager {
 
+    private static final MetadataDAO SHARED_METADATA_DAO = new MetadataDAO();
+    private static final AuditLogManager SHARED_AUDIT_LOG_MANAGER = new AuditLogManager();
+
     private final MetadataDAO metadataDAO;
     private final AuditLogManager auditLogManager;
 
     public MetadataManager() {
-        this(new MetadataDAO(), new AuditLogManager());
+        this(SHARED_METADATA_DAO, SHARED_AUDIT_LOG_MANAGER);
+    }
+
+    public static MetadataManager shared() {
+        return new MetadataManager(SHARED_METADATA_DAO, SHARED_AUDIT_LOG_MANAGER);
     }
 
     public MetadataManager(MetadataDAO metadataDAO, AuditLogManager auditLogManager) {

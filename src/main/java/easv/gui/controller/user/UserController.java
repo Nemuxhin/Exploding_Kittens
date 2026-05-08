@@ -1,19 +1,26 @@
 package easv.gui.controller.user;
 
 import easv.be.User;
+import easv.bll.KeyboardShortcut;
+import easv.bll.ShortcutManager;
 import easv.bll.UserSession;
 import easv.gui.UserPortalModel;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -58,12 +65,14 @@ public class UserController implements UserNavigator {
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
     @FXML private ToggleButton exportsNavItem;
+    @FXML private ToggleButton helpNavItem;
     @FXML private ToggleButton settingsNavItem;
 
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private SVGPath darkModeToggleIcon;
 
     private final UserPortalModel portalModel = new UserPortalModel();
+    private final ShortcutManager shortcutManager = new ShortcutManager();
     private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
 
     @FXML
@@ -71,6 +80,7 @@ public class UserController implements UserNavigator {
         configureShell();
         configureThemeToggle();
         configureNavigation();
+        configureGlobalHelpShortcuts();
         showPage(UserPage.DASHBOARD);
     }
 
@@ -174,6 +184,24 @@ public class UserController implements UserNavigator {
         }
     }
 
+    private void configureGlobalHelpShortcuts() {
+        Platform.runLater(() -> {
+            Scene scene = appRoot.getScene();
+
+            if (scene == null) {
+                return;
+            }
+
+            // Scene accelerators work even when focus is inside a child page.
+            scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showHelpPage);
+            scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showHelpPage);
+        });
+    }
+
+    private void showHelpPage() {
+        showPage(UserPage.HELP);
+    }
+
     @Override
     public void showPage(UserPage page) {
         loadPage(page);
@@ -221,9 +249,52 @@ public class UserController implements UserNavigator {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> new ExportsController(portalModel).create();
+            case HELP -> createHelpPage();
             case SETTINGS -> new SettingsController(portalModel).create();
             default -> createMissingPagePlaceholder(page.title());
         };
+    }
+
+    private VBox createHelpPage() {
+        VBox page = new VBox(18);
+        page.getStyleClass().add("page-content");
+        page.setMaxWidth(Double.MAX_VALUE);
+
+        Label title = new Label("Help");
+        title.getStyleClass().add("page-title");
+
+        Label subtitle = new Label("Keyboard shortcuts are available from any user screen with F1 or ?.");
+        subtitle.getStyleClass().add("page-subtitle");
+        subtitle.setWrapText(true);
+
+        VBox shortcutList = new VBox(9);
+        shortcutList.getStyleClass().add("settings-card");
+
+        Label sectionTitle = new Label("Keyboard Shortcuts");
+        sectionTitle.getStyleClass().add("settings-section-heading");
+        shortcutList.getChildren().add(sectionTitle);
+
+        for (KeyboardShortcut shortcut : shortcutManager.getShortcuts()) {
+            shortcutList.getChildren().add(createShortcutRow(shortcut));
+        }
+
+        page.getChildren().addAll(title, subtitle, shortcutList);
+        return page;
+    }
+
+    private HBox createShortcutRow(KeyboardShortcut shortcut) {
+        Label keys = new Label(shortcut.getDisplayKeys());
+        keys.getStyleClass().add("settings-shortcut-key");
+
+        Label action = new Label(shortcut.getActionName() + " - " + shortcut.getDescription());
+        action.getStyleClass().add("settings-shortcut-copy");
+        action.setWrapText(true);
+        HBox.setHgrow(action, Priority.ALWAYS);
+
+        HBox row = new HBox(12, keys, action);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("settings-shortcut-row");
+        return row;
     }
 
     private ScrollPane wrapScrollable(Node page) {
@@ -307,6 +378,7 @@ public class UserController implements UserNavigator {
                 myScansNavItem,
                 assignedQANavItem,
                 exportsNavItem,
+                helpNavItem,
                 settingsNavItem
         );
     }
@@ -318,6 +390,7 @@ public class UserController implements UserNavigator {
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
             case EXPORTS -> exportsNavItem;
+            case HELP -> helpNavItem;
             case SETTINGS -> settingsNavItem;
         };
     }

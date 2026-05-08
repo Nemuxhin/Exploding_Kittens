@@ -28,7 +28,7 @@ class AuditMetadataExportTest {
     @Test
     void auditLogUsesCurrentUserTimestampAndCaseDetails() {
         UserSession.setCurrentUser(new User("scanner", "hash", "USER", true));
-        AuditLogManager auditLogManager = new AuditLogManager(new AuditLogDAO());
+        AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
 
         AuditLog log = auditLogManager.logPageCreated(
                 "CASE-1",
@@ -49,7 +49,7 @@ class AuditMetadataExportTest {
 
     @Test
     void systemActionIsMarkedAsSystem() {
-        AuditLogManager auditLogManager = new AuditLogManager(new AuditLogDAO());
+        AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
 
         AuditLog log = auditLogManager.logSystemAction(
                 AuditLogManager.SCAN_FAILED,
@@ -69,7 +69,7 @@ class AuditMetadataExportTest {
 
     @Test
     void metadataCanBeSavedLoadedAndLocked() {
-        MetadataManager metadataManager = new MetadataManager(new MetadataDAO(), new AuditLogManager(new AuditLogDAO()));
+        MetadataManager metadataManager = new MetadataManager(new MetadataDAO(), new AuditLogManager(AuditLogDAO.inMemory()));
 
         boolean saved = metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Ready"));
         CaseMetadata loaded = metadataManager.loadMetadataForm("CASE-1");
@@ -81,6 +81,41 @@ class AuditMetadataExportTest {
         metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Completed"), true, false);
 
         assertFalse(metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Changed")));
+    }
+
+    @Test
+    void sharedMetadataManagerKeepsMetadataAcrossControllers() {
+        MetadataManager firstControllerManager = MetadataManager.shared();
+        MetadataManager secondControllerManager = MetadataManager.shared();
+
+        firstControllerManager.saveMetadata("CASE-SHARED", "Building Archive", "BOX-2", Map.of("Notes", "Shared"));
+
+        CaseMetadata loaded = secondControllerManager.loadMetadataForm("CASE-SHARED");
+
+        assertNotNull(loaded);
+        assertEquals("Shared", loaded.getValues().get("Notes"));
+    }
+
+    @Test
+    void adminUserActionsUseLoggedInAdminName() {
+        UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
+        AdminManager adminManager = new AdminManager();
+
+        adminManager.createUser(new AdminManager.UserInput(
+                "New Scanner",
+                "new.scanner",
+                "scanner@example.com",
+                "User",
+                "Active",
+                List.of()
+        ));
+
+        AuditLog log = adminManager.getAuditLogs().stream()
+                .filter(item -> "Created user".equals(item.getAction()))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals("jenny-admin", log.getActor());
     }
 
     @Test

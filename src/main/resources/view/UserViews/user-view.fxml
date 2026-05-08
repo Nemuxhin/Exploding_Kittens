@@ -136,6 +136,21 @@
                         </graphic>
                     </ToggleButton>
 
+                    <ToggleButton fx:id="helpNavItem"
+                                  focusTraversable="false"
+                                  contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="admin-top-nav-button"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <SVGPath content="M10 2a8 8 0 100 16 8 8 0 000-16zm0 12h1v1H9v-1h1zm2.1-6.8c0 1.8-2.1 2.1-2.1 3.8H8.5c0-2.4 1.9-2.5 1.9-3.8 0-.7-.6-1.2-1.4-1.2-.8 0-1.4.4-1.8 1.2L6 6.6C6.6 5.3 7.8 4.5 9.4 4.5c1.7 0 2.7 1 2.7 2.7z"
+                                         styleClass="admin-top-nav-icon"/>
+                                <Label text="Help" styleClass="admin-top-nav-label"/>
+                            </HBox>
+                        </graphic>
+                    </ToggleButton>
+
                     <ToggleButton fx:id="settingsNavItem"
                                   focusTraversable="false"
                                   contentDisplay="GRAPHIC_ONLY">

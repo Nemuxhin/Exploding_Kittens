@@ -24,11 +24,10 @@ public class AuditLogManager {
     public static final String EXPORT_PREVIEW_CREATED = "EXPORT_PREVIEW_CREATED";
     public static final String BARCODE_DETECTED = "BARCODE_DETECTED";
 
-    private static final AuditLogDAO SHARED_AUDIT_LOG_DAO = new AuditLogDAO();
     private final AuditLogDAO auditLogDAO;
 
     public AuditLogManager() {
-        this(SHARED_AUDIT_LOG_DAO);
+        this(new AuditLogDAO());
     }
 
     public AuditLogManager(AuditLogDAO auditLogDAO) {

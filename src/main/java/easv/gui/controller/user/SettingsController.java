@@ -1,7 +1,5 @@
 package easv.gui.controller.user;
 
-import easv.bll.KeyboardShortcut;
-import easv.bll.ShortcutManager;
 import easv.gui.UserPortalModel;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -21,7 +19,6 @@ public class SettingsController {
     private static final String[] SECTIONS = {
             "Account",
             "Dashboard",
-            "Keyboard Shortcuts",
             "Notifications",
             "Scanning",
             "Exports",
@@ -29,27 +26,16 @@ public class SettingsController {
     };
 
     private final UserPortalModel portalModel;
-    private final ShortcutManager shortcutManager = new ShortcutManager();
     private final Map<String, Button> sectionButtons = new LinkedHashMap<>();
     private VBox detailsPanel;
     private String selectedSection = "Account";
-    private static boolean openKeyboardShortcutsNextTime;
 
     public SettingsController(UserPortalModel portalModel) {
         this.portalModel = portalModel;
     }
 
-    static void openKeyboardShortcutsNextTime() {
-        openKeyboardShortcutsNextTime = true;
-    }
-
     public Node create() {
         sectionButtons.clear();
-
-        if (openKeyboardShortcutsNextTime) {
-            selectedSection = "Keyboard Shortcuts";
-            openKeyboardShortcutsNextTime = false;
-        }
 
         VBox page = new VBox(28);
         page.getStyleClass().add("portal-page");
@@ -125,38 +111,9 @@ public class SettingsController {
         detailsPanel.getChildren().setAll(
                 switch (selectedSection) {
                     case "Account" -> buildAccountSection();
-                    case "Keyboard Shortcuts" -> buildKeyboardShortcutsSection();
                     default -> buildPlaceholderSection(selectedSection);
                 }
         );
-    }
-
-    private Node buildKeyboardShortcutsSection() {
-        Label heading = new Label("Keyboard Shortcuts");
-        heading.getStyleClass().add("settings-section-heading");
-
-        Label body = new Label("These shortcuts work inside the scan workspace. F1 or ? brings you back to this help page.");
-        body.getStyleClass().add("portal-muted");
-        body.setWrapText(true);
-
-        VBox shortcutList = new VBox(10);
-
-        for (KeyboardShortcut shortcut : shortcutManager.getShortcuts()) {
-            Label keys = new Label(shortcut.getDisplayKeys());
-            keys.getStyleClass().add("portal-section-title");
-
-            Label action = new Label(shortcut.getActionName() + " - " + shortcut.getDescription());
-            action.getStyleClass().add("portal-muted");
-            action.setWrapText(true);
-
-            VBox row = new VBox(4, keys, action);
-            row.getStyleClass().add("portal-card");
-            shortcutList.getChildren().add(row);
-        }
-
-        VBox content = new VBox(16, heading, body, shortcutList);
-        content.getStyleClass().add("settings-form");
-        return content;
     }
 
     private Node buildAccountSection() {
@@ -254,7 +211,6 @@ public class SettingsController {
         return switch (section) {
             case "Account" -> "account";
             case "Dashboard" -> "dashboard";
-            case "Keyboard Shortcuts" -> "shortcuts";
             case "Notifications" -> "notifications";
             case "Scanning" -> "scanning";
             case "Exports" -> "exports";

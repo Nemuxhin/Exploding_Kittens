@@ -130,7 +130,7 @@ public class ScanController {
 
     private UserNavigator navigator = UserNavigator.none();
     private final AuditLogManager auditLogManager = new AuditLogManager();
-    private final MetadataManager metadataManager = new MetadataManager();
+    private final MetadataManager metadataManager = MetadataManager.shared();
 
     public void setNavigator(UserNavigator navigator) {
         this.navigator = navigator == null ? UserNavigator.none() : navigator;
@@ -189,10 +189,6 @@ public class ScanController {
             event.consume();
         } else if (event.getCode() == KeyCode.R) {
             onRotateRight();
-            event.consume();
-        } else if (event.getCode() == KeyCode.F1 || (event.isShiftDown() && event.getCode() == KeyCode.SLASH)) {
-            SettingsController.openKeyboardShortcutsNextTime();
-            navigator.showPage(UserPage.SETTINGS);
             event.consume();
         }
     }

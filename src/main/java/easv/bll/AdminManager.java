@@ -56,7 +56,7 @@ public class AdminManager {
         users.add(user);
         syncProfileAssignmentsForUser(user);
 
-        addAuditLog("Users", "Admin", "Created user", user.getName(), "Success",
+        addAuditLog("Users", currentActor(), "Created user", user.getName(), "Success",
                 "A new user account was created.");
 
         return user;
@@ -75,7 +75,7 @@ public class AdminManager {
 
         syncProfileAssignmentsForUser(user);
 
-        addAuditLog("Users", "Admin", "Updated user", user.getName(), "Success",
+        addAuditLog("Users", currentActor(), "Updated user", user.getName(), "Success",
                 "User details were updated.");
 
         return user;
@@ -91,7 +91,7 @@ public class AdminManager {
         users.remove(user);
         removeUserFromAssignments(userId);
 
-        addAuditLog("Users", "Admin", "Deleted user", user.getName(), "Success",
+        addAuditLog("Users", currentActor(), "Deleted user", user.getName(), "Success",
                 "A user account was deleted.");
     }
 
@@ -368,7 +368,7 @@ public class AdminManager {
                 nextAuditLogId++,
                 LocalDateTime.now(),
                 type,
-                actor,
+                resolveActor(actor),
                 action,
                 target,
                 status,
@@ -378,6 +378,27 @@ public class AdminManager {
 
         auditLogs.add(log);
         return log;
+    }
+
+    private String resolveActor(String actor) {
+        String cleanedActor = clean(actor);
+
+        if (cleanedActor.isBlank() || "Admin".equalsIgnoreCase(cleanedActor)) {
+            return currentActor();
+        }
+
+        return cleanedActor;
+    }
+
+    private String currentActor() {
+        User currentUser = UserSession.getCurrentUser();
+
+        // Admin actions should show the real logged-in admin when we have one.
+        if (currentUser != null && !clean(currentUser.getUsername()).isBlank()) {
+            return currentUser.getUsername();
+        }
+
+        return "SYSTEM";
     }
 
     public DashboardSummary getDashboardSummary() {
