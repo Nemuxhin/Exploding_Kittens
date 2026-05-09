@@ -38,7 +38,8 @@ public class UserPortalModel {
     public record HistoryItem(String boxId, String profileName, String status, String startedAt, String completedAt, int pages) {
     }
 
-    public record ExportItem(String fileName, String boxId, String profileName, String createdAt, String size, String status) {
+    public record ExportItem(String fileName, String boxId, String profileName, String createdAt, String size,
+                             String status, List<String> documentIds, int pageCount) {
     }
 
     public record PortalSession(ProfileItem profile, BoxItem box) {
@@ -99,10 +100,14 @@ public class UserPortalModel {
 
     public List<ExportItem> fetchExports() {
         return List.of(
-                new ExportItem("standard_scan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan", "2026-04-24 15:02", "102.7 MB", "Ready"),
-                new ExportItem("high_quality_BOX-2026-041.pdf", "BOX-2026-041", "High Quality", "2026-04-24 13:15", "96.3 MB", "Ready"),
-                new ExportItem("archive_BOX-2026-039.pdf", "BOX-2026-039", "Archive", "2026-04-23 10:22", "-", "Failed"),
-                new ExportItem("standard_scan_BOX-2026-040.pdf", "BOX-2026-040", "Standard Scan", "2026-04-23 17:11", "145.0 MB", "Processing")
+                new ExportItem("standard_scan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan",
+                        "2026-04-24 15:02", "102.7 MB", "Ready", List.of("DOC-042-A", "DOC-042-B"), 8),
+                new ExportItem("high_quality_BOX-2026-041.pdf", "BOX-2026-041", "High Quality",
+                        "2026-04-24 13:15", "96.3 MB", "Ready", List.of("DOC-041-A"), 5),
+                new ExportItem("archive_BOX-2026-039.pdf", "BOX-2026-039", "Archive",
+                        "2026-04-23 10:22", "-", "Failed", List.of("DOC-039-A", "DOC-039-B"), 0),
+                new ExportItem("standard_scan_BOX-2026-040.pdf", "BOX-2026-040", "Standard Scan",
+                        "2026-04-23 17:11", "145.0 MB", "Processing", List.of("DOC-040-A", "DOC-040-B"), 12)
         );
     }
 

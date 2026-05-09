@@ -1,12 +1,18 @@
 package easv.gui.controller.user;
 
+import easv.be.PageImage;
+import easv.be.TiffExportItem;
+import easv.be.TiffExportPlan;
+import easv.bll.TiffExportManager;
 import easv.gui.UserPortalModel;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -19,24 +25,33 @@ import java.util.Locale;
 
 public class ExportsController {
     private static final String ALL_STATUSES = "All Statuses";
+    private static final String SINGLE_PAGE_EXPORT = "Single-page TIFFs";
+    private static final String MULTI_PAGE_EXPORT = "Multi-page TIFF per document";
 
     private final UserPortalModel portalModel;
+    private final TiffExportManager tiffExportManager = new TiffExportManager();
+    private final VBox page = new VBox(24);
     private final VBox table = new VBox();
     private final TextField searchField = new TextField();
     private final ComboBox<String> statusFilter = new ComboBox<>();
+    private boolean filtersConfigured;
 
     public ExportsController(UserPortalModel portalModel) {
         this.portalModel = portalModel;
     }
 
     public Node create() {
-        VBox page = new VBox(24);
         page.getStyleClass().addAll("portal-page", "exports-page");
+        showExportListPage();
+        return page;
+    }
 
+    private void showExportListPage() {
+        page.getChildren().clear();
         Label title = new Label("Exports");
         title.getStyleClass().add("exports-title");
 
-        Label subtitle = new Label("Download completed exports and track files that are still being generated.");
+        Label subtitle = new Label("Choose completed files and prepare single-page or multi-page TIFF exports.");
         subtitle.getStyleClass().add("exports-subtitle");
 
         configureFilters();
@@ -54,10 +69,13 @@ public class ExportsController {
                 buildFilterPanel(),
                 tablePanel
         );
-        return page;
     }
 
     private void configureFilters() {
+        if (filtersConfigured) {
+            return;
+        }
+
         searchField.setPromptText("Search by file, box, or profile");
         searchField.getStyleClass().add("exports-filter-input");
         searchField.textProperty().addListener((observable, oldValue, newValue) -> refreshTable());
@@ -66,6 +84,7 @@ public class ExportsController {
         statusFilter.setValue(ALL_STATUSES);
         statusFilter.getStyleClass().add("exports-status-filter");
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> refreshTable());
+        filtersConfigured = true;
     }
 
     private HBox buildSummaryRow() {
@@ -164,10 +183,11 @@ public class ExportsController {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("exports-table-row");
 
-        Button action = new Button("Download");
+        Button action = new Button("Export");
         action.getStyleClass().add("portal-row-button");
         action.setGraphic(UserPortalUi.buildIcon("download", "portal-button-icon"));
         action.setDisable(!"Ready".equalsIgnoreCase(item.status()));
+        action.setOnAction(event -> showExportSetupPage(item));
 
         row.add(primaryCell(item.fileName()), 0, 0);
         row.add(dataCell(item.boxId()), 1, 0);
@@ -177,6 +197,159 @@ public class ExportsController {
         row.add(statusCell(item.status()), 5, 0);
         row.add(action, 6, 0);
 
+        return row;
+    }
+
+    private void showExportSetupPage(UserPortalModel.ExportItem item) {
+        page.getChildren().clear();
+
+        Label title = new Label("Export Setup");
+        title.getStyleClass().add("exports-title");
+
+        Label subtitle = new Label("Choose the export type and review the files before exporting.");
+        subtitle.getStyleClass().add("exports-subtitle");
+
+        RadioButton singlePageOption = new RadioButton(SINGLE_PAGE_EXPORT);
+        RadioButton multiPageOption = new RadioButton(MULTI_PAGE_EXPORT);
+        ToggleGroup exportTypeGroup = new ToggleGroup();
+        singlePageOption.setToggleGroup(exportTypeGroup);
+        multiPageOption.setToggleGroup(exportTypeGroup);
+        singlePageOption.setSelected(true);
+
+        VBox previewBox = new VBox(12);
+        previewBox.getStyleClass().add("exports-table-panel");
+
+        Runnable refreshPreview = () -> {
+            boolean singlePage = singlePageOption.isSelected();
+            TiffExportPlan plan = createPlan(item, singlePage);
+            previewBox.getChildren().setAll(buildPlanPreview(item, plan));
+        };
+
+        singlePageOption.setOnAction(event -> refreshPreview.run());
+        multiPageOption.setOnAction(event -> refreshPreview.run());
+        refreshPreview.run();
+
+        HBox optionRow = new HBox(18, singlePageOption, multiPageOption);
+        optionRow.setAlignment(Pos.CENTER_LEFT);
+        optionRow.getStyleClass().add("exports-filter-panel");
+
+        Button backButton = new Button("Back to exports");
+        backButton.getStyleClass().add("portal-secondary-button");
+        backButton.setOnAction(event -> showExportListPage());
+
+        Button exportButton = new Button("Confirm Export");
+        exportButton.getStyleClass().add("portal-primary-button");
+        exportButton.setGraphic(UserPortalUi.buildIcon("download", "portal-button-icon"));
+        exportButton.setOnAction(event -> {
+            TiffExportPlan plan = createPlan(item, singlePageOption.isSelected());
+            previewBox.getChildren().setAll(buildPlanPreview(item, plan), successMessage(plan));
+        });
+
+        page.getChildren().addAll(
+                new VBox(6, title, subtitle),
+                buildExportInfoCard(item),
+                optionRow,
+                previewBox,
+                new HBox(12, backButton, exportButton)
+        );
+    }
+
+    private VBox buildExportInfoCard(UserPortalModel.ExportItem item) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("exports-table-panel");
+
+        card.getChildren().addAll(
+                sectionTitle("Selected file"),
+                infoLine("Current file", item.fileName()),
+                infoLine("Box ID", item.boxId()),
+                infoLine("Profile", item.profileName()),
+                infoLine("Created", item.createdAt()),
+                infoLine("Size", item.size()),
+                infoLine("Documents", String.join(", ", item.documentIds())),
+                infoLine("Pages", String.valueOf(item.pageCount()))
+        );
+
+        return card;
+    }
+
+    private VBox buildPlanPreview(UserPortalModel.ExportItem item, TiffExportPlan plan) {
+        VBox content = new VBox(9);
+        content.getChildren().addAll(
+                sectionTitle("Export preview"),
+                infoLine("Export type", plan.getExportType()),
+                infoLine("Files to export", String.valueOf(plan.getFileCount())),
+                infoLine("Pages to export", String.valueOf(plan.getPageCount())),
+                infoLine("Export label", item.profileName() + " / " + item.boxId())
+        );
+
+        if (!plan.getWarnings().isEmpty()) {
+            content.getChildren().add(sectionTitle("Warnings"));
+            for (String warning : plan.getWarnings()) {
+                content.getChildren().add(infoLine("Warning", warning));
+            }
+        }
+
+        content.getChildren().add(sectionTitle("Files that will be created"));
+        for (TiffExportItem exportItem : plan.getItems()) {
+            content.getChildren().add(infoLine(
+                    exportItem.getDocumentId(),
+                    exportItem.getFileName() + " (" + exportItem.getPages().size() + " page(s))"
+            ));
+        }
+
+        return content;
+    }
+
+    private Label successMessage(TiffExportPlan plan) {
+        Label message = new Label("Export prepared: " + plan.getFileCount() + " file(s), " + plan.getPageCount() + " page(s).");
+        message.getStyleClass().add("portal-inline-message");
+        message.getStyleClass().add("success");
+        return message;
+    }
+
+    private TiffExportPlan createPlan(UserPortalModel.ExportItem item, boolean singlePage) {
+        List<PageImage> pages = createPagesForExport(item);
+
+        if (singlePage) {
+            return tiffExportManager.createSinglePagePlan(item.profileName(), item.boxId(), pages);
+        }
+
+        return tiffExportManager.createMultiPagePlan(item.profileName(), item.boxId(), pages);
+    }
+
+    private List<PageImage> createPagesForExport(UserPortalModel.ExportItem item) {
+        List<PageImage> pages = new java.util.ArrayList<>();
+        List<String> documentIds = item.documentIds().isEmpty()
+                ? List.of(item.fileName().replace(".pdf", ""))
+                : item.documentIds();
+
+        int pageCount = Math.max(1, item.pageCount());
+
+        for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+            String documentId = documentIds.get((pageNumber - 1) % documentIds.size());
+            pages.add(new PageImage(pageNumber, PageImage.PageType.TIFF, documentId));
+        }
+
+        return pages;
+    }
+
+    private Label sectionTitle(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("portal-section-title");
+        return label;
+    }
+
+    private HBox infoLine(String labelText, String valueText) {
+        Label label = new Label(labelText + ":");
+        label.getStyleClass().add("exports-table-cell-primary");
+
+        Label value = new Label(valueText == null || valueText.isBlank() ? "-" : valueText);
+        value.getStyleClass().add("exports-table-cell");
+        value.setWrapText(true);
+        HBox.setHgrow(value, Priority.ALWAYS);
+
+        HBox row = new HBox(9, label, value);
+        row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
 
