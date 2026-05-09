@@ -4456,7 +4456,7 @@
 
 .workspace-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
+    -fx-font-size: 18px;
     -fx-font-weight: 700;
 }
 
@@ -4605,8 +4605,8 @@
 }
 
 .document-tree-document-header {
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
     -fx-padding: 0 9 0 9;
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 6 6 0 0;
@@ -4646,8 +4646,8 @@
 }
 
 .document-tree-page-row {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
     -fx-padding: 0 9 0 18;
     -fx-background-color: -wl-surface;
     -fx-cursor: hand;
@@ -4666,8 +4666,8 @@
 
 .document-tree-page-drag {
     -fx-text-fill: -wl-placeholder;
-    -fx-font-size: 10px;
-    -fx-font-weight: 700;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
 }
 
 .document-tree-page-title {
@@ -5139,43 +5139,30 @@
 }
 
 .page-tray-document-split {
-    -fx-min-width: 126;
-    -fx-pref-width: 126;
-    -fx-max-width: 126;
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
     -fx-min-height: 111;
     -fx-pref-height: 111;
     -fx-max-height: 111;
-    -fx-padding: 10 12 10 12;
-    -fx-background-color: #FFF8D8;
-    -fx-background-radius: 15;
-    -fx-border-color: #E4B63E;
-    -fx-border-radius: 15;
-    -fx-border-width: 2;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: transparent;
     -fx-alignment: center;
 }
 
-.page-tray-document-split-badge {
-    -fx-min-height: 22;
-    -fx-pref-height: 22;
-    -fx-padding: 0 12 0 12;
-    -fx-background-color: #EAF2FF;
+.page-tray-document-split-line {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 105;
+    -fx-pref-height: 105;
+    -fx-max-height: 105;
+    -fx-background-color: #F0BF2F;
     -fx-background-radius: 999;
-    -fx-text-fill: #526C93;
-    -fx-font-size: 11px;
-    -fx-font-weight: 700;
-    -fx-alignment: center;
-}
-
-.page-tray-document-split-title {
-    -fx-text-fill: #21354D;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
-
-.page-tray-document-split-copy {
-    -fx-text-fill: #B57C00;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-border-color: #D29B00;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(210, 155, 0, 0.22), 6, 0, 0, 0);
 }
 
 .page-tray-item-dragging {
@@ -5494,7 +5481,7 @@
 .qa-review-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
 }
 
 .review-summary-label {
@@ -5619,18 +5606,19 @@
 }
 
 .review-view-icon {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-max-width: 30;
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
     -fx-alignment: center;
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 18px;
     -fx-font-weight: 500;
+    -fx-opacity: 0;
 }
 
 .review-preview-stage {
     -fx-background-color: -wl-preview-bg;
-    -fx-padding: 30 42 30 42;
+    -fx-padding: 0 42 15 42;
 }
 
 .review-preview-host {
@@ -5788,7 +5776,7 @@
 }
 
 .review-next-step-panel {
-    -fx-padding: 15;
+    -fx-padding: 12;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent transparent -wl-border;
     -fx-border-width: 0 0 0 1;
@@ -5823,6 +5811,41 @@
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 18px;
     -fx-font-weight: 400;
+    -fx-wrap-text: true;
+}
+
+.review-current-selection-card {
+    -fx-padding: 10 10 10 10;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.review-current-selection-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-padding: 0 0 3 0;
+}
+
+.review-current-selection-divider {
+    -fx-background-color: -wl-border;
+    -fx-opacity: 0.95;
+}
+
+.review-current-selection-label {
+    -fx-text-fill: #24364F;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-padding: 3 0 0 0;
+}
+
+.review-current-selection-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
 }
 
 .review-empty-state {
@@ -6898,11 +6921,44 @@
 }
 
 .admin-top-bar {
-    -fx-padding: 12 18;
+    -fx-padding: 14 18;
+}
+
+.user-portal-shell .admin-top-bar {
+    -fx-min-height: 68;
+    -fx-pref-height: 68;
+}
+
+.admin-portal-shell .admin-top-bar {
+    -fx-min-height: 68;
+    -fx-pref-height: 68;
+    -fx-padding: 14 12;
+}
+
+.admin-portal-shell .admin-nav-bar {
+    -fx-spacing: 4;
+}
+
+.admin-portal-shell .admin-account {
+    -fx-spacing: 6;
+}
+
+.admin-portal-shell .admin-top-nav-button {
+    -fx-padding: 0 6;
+}
+
+.admin-portal-shell .account-theme-toggle {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-padding: 0 8;
+}
+
+.admin-portal-shell .account-menu-trigger {
+    -fx-padding: 6 6;
 }
 
 .admin-nav-row {
-    -fx-padding: 0 18 12 18;
+    -fx-padding: 0 18 9 18;
 }
 
 .admin-brand-mark,
@@ -6965,6 +7021,127 @@
 .admin-top-nav-button:hover,
 .admin-toolbar-button:hover {
     -fx-background-color: -wl-surface-hover;
+}
+
+.account-menu-trigger {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 6 9;
+    -fx-cursor: hand;
+}
+
+.account-menu-trigger:hover,
+.account-menu-trigger:pressed,
+.account-menu-trigger:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
+.account-theme-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+}
+
+.account-theme-toggle {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-padding: 0 11;
+}
+
+.account-menu-caret {
+    -fx-fill: -wl-text-muted;
+}
+
+.account-dropdown-menu {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-min-width: 252;
+    -fx-padding: 9;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 3);
+}
+
+.account-dropdown-menu .separator:horizontal .line {
+    -fx-border-color: -wl-border transparent transparent transparent;
+}
+
+.account-dropdown-header-item,
+.account-dropdown-item {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.account-dropdown-header {
+    -fx-alignment: center-left;
+    -fx-padding: 6 6 12 6;
+}
+
+.account-dropdown-avatar {
+    -fx-background-color: -wl-avatar-bg;
+    -fx-background-radius: 999;
+    -fx-min-width: 39;
+    -fx-min-height: 39;
+    -fx-max-width: 39;
+    -fx-max-height: 39;
+    -fx-alignment: center;
+}
+
+.account-dropdown-avatar-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.account-dropdown-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.account-dropdown-detail {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 15px;
+}
+
+.account-dropdown-item-row {
+    -fx-alignment: center-left;
+    -fx-padding: 9 6;
+    -fx-background-radius: 8;
+}
+
+.account-dropdown-item:focused .account-dropdown-item-row,
+.account-dropdown-item:hover .account-dropdown-item-row {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.account-dropdown-item-icon-shell {
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 999;
+    -fx-min-width: 30;
+    -fx-min-height: 30;
+    -fx-max-width: 30;
+    -fx-max-height: 30;
+    -fx-alignment: center;
+}
+
+.account-dropdown-item-icon {
+    -fx-fill: -wl-text;
+}
+
+.account-dropdown-item-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+}
+
+.account-dropdown-item-arrow {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 21px;
+    -fx-font-weight: 400;
 }
 
 .admin-logout-button {

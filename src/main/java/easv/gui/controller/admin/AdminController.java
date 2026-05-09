@@ -3,20 +3,31 @@ package easv.gui.controller.admin;
 import easv.bll.AdminManager;
 import easv.bll.AuthManager;
 import easv.gui.MainApp;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Side;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
@@ -56,18 +67,24 @@ public class AdminController implements AdminNavigator {
     @FXML private Button logoutNavButton;
 
     @FXML private ToggleButton darkModeToggleButton;
+    @FXML private Label accountNameLabel;
+    @FXML private Label accountRoleLabel;
+    @FXML private Label avatarInitialsLabel;
+    @FXML private Button accountMenuButton;
     @FXML private Label themeModeLabel;
     @FXML private SVGPath themeModeIcon;
     @FXML private SVGPath darkModeToggleIcon;
 
     private final AdminManager adminManager = new AdminManager();
     private final AuthManager authManager = new AuthManager();
+    private final ContextMenu accountMenu = new ContextMenu();
     private MainApp mainApp;
 
     @FXML
     private void initialize() {
         configureBrandLogo();
         configureThemeToggle();
+        configureAccountShell();
         configureNavigation();
         showPage(AdminPage.DASHBOARD);
     }
@@ -158,6 +175,241 @@ public class AdminController implements AdminNavigator {
         }
     }
 
+    private void configureAccountShell() {
+        if (accountNameLabel != null && (accountNameLabel.getText() == null || accountNameLabel.getText().isBlank())) {
+            accountNameLabel.setText("Admin System");
+        }
+
+        if (accountRoleLabel != null && (accountRoleLabel.getText() == null || accountRoleLabel.getText().isBlank())) {
+            accountRoleLabel.setText("Admin Portal");
+        }
+
+        if (avatarInitialsLabel != null) {
+            avatarInitialsLabel.setText(initialsFor(accountNameLabel == null ? "Admin System" : accountNameLabel.getText()));
+        }
+
+        if (accountMenuButton != null) {
+            accountMenuButton.setOnAction(event -> toggleAccountMenu());
+        }
+
+        configureAccountMenu();
+    }
+
+    private void configureAccountMenu() {
+        String name = accountNameLabel == null ? "Admin System" : accountNameLabel.getText();
+        String detail = accountRoleLabel == null ? "Admin Portal" : accountRoleLabel.getText();
+
+        HBox headerRow = new HBox(12,
+                buildMenuAvatar(initialsFor(name)),
+                buildMenuHeaderText(name, detail)
+        );
+        headerRow.getStyleClass().add("account-dropdown-header");
+
+        CustomMenuItem headerItem = new CustomMenuItem(headerRow, false);
+        headerItem.getStyleClass().add("account-dropdown-header-item");
+        headerItem.setHideOnClick(false);
+
+        MenuItem editProfileItem = createAccountMenuItem("Edit Admin Profile", "user", () -> showPage(AdminPage.EDIT_PROFILE));
+        MenuItem logoutItem = createAccountMenuItem("Log Out", "download", this::handleLogout);
+
+        accountMenu.getItems().setAll(
+                headerItem,
+                new SeparatorMenuItem(),
+                editProfileItem,
+                logoutItem
+        );
+        if (!accountMenu.getStyleClass().contains("account-dropdown-menu")) {
+            accountMenu.getStyleClass().add("account-dropdown-menu");
+        }
+    }
+
+    private void toggleAccountMenu() {
+        if (accountMenuButton == null) {
+            return;
+        }
+
+        if (accountMenu.isShowing()) {
+            accountMenu.hide();
+            return;
+        }
+
+        configureAccountMenu();
+        accountMenu.show(accountMenuButton, Side.BOTTOM, 0, 9);
+        keepAccountMenuInsideWindow();
+    }
+
+    private void keepAccountMenuInsideWindow() {
+        if (accountMenuButton == null || accountMenu.getScene() == null || accountMenu.getSkin() == null) {
+            return;
+        }
+
+        Bounds buttonBounds = accountMenuButton.localToScreen(accountMenuButton.getBoundsInLocal());
+        Window window = accountMenuButton.getScene().getWindow();
+
+        if (buttonBounds == null || window == null) {
+            return;
+        }
+
+        double menuWidth = accountMenu.getSkin().getNode().prefWidth(-1);
+        double inset = 24;
+        double minX = window.getX() + inset;
+        double maxX = window.getX() + window.getWidth() - menuWidth - inset;
+        double preferredX = buttonBounds.getMaxX() - menuWidth - 12;
+        double anchorX = Math.min(Math.max(preferredX, minX), maxX);
+
+        accountMenu.setAnchorX(anchorX);
+        accountMenu.setAnchorY(buttonBounds.getMaxY() + 9);
+    }
+
+    private MenuItem createAccountMenuItem(String text, String iconKey, Runnable action) {
+        HBox row = new HBox(12,
+                wrapMenuIcon(iconKey),
+                buildMenuItemLabel(text),
+                buildMenuItemArrow()
+        );
+        row.getStyleClass().add("account-dropdown-item-row");
+        HBox.setMargin(row.getChildren().get(2), new Insets(0, 0, 0, 6));
+
+        CustomMenuItem item = new CustomMenuItem(row, true);
+        item.getStyleClass().add("account-dropdown-item");
+        item.setOnAction(event -> action.run());
+        return item;
+    }
+
+    private StackPane buildMenuAvatar(String initials) {
+        Label label = new Label(initials);
+        label.getStyleClass().add("account-dropdown-avatar-label");
+
+        StackPane avatar = new StackPane(label);
+        avatar.getStyleClass().add("account-dropdown-avatar");
+        return avatar;
+    }
+
+    private VBox buildMenuHeaderText(String name, String detail) {
+        Label nameLabel = new Label(name == null || name.isBlank() ? "Admin System" : name);
+        nameLabel.getStyleClass().add("account-dropdown-name");
+
+        Label detailLabel = new Label(detail == null || detail.isBlank() ? "Admin Portal" : detail);
+        detailLabel.getStyleClass().add("account-dropdown-detail");
+
+        VBox textWrap = new VBox(3, nameLabel, detailLabel);
+        textWrap.setAlignment(Pos.CENTER_LEFT);
+        return textWrap;
+    }
+
+    private StackPane wrapMenuIcon(String iconKey) {
+        SVGPath icon = new SVGPath();
+        icon.setContent(iconPath(iconKey));
+        icon.getStyleClass().add("account-dropdown-item-icon");
+
+        StackPane shell = new StackPane(icon);
+        shell.getStyleClass().add("account-dropdown-item-icon-shell");
+        return shell;
+    }
+
+    private String iconPath(String iconKey) {
+        return switch (iconKey) {
+            case "user" -> "M10 2a3 3 0 110 6 3 3 0 010-6zm0 8c3 0 5 1.5 5 4v2H5v-2c0-2.5 2-4 5-4z";
+            case "download" -> "M9 2h2v7h3l-4 4-4-4h3z M4 14h12v2H4z";
+            default -> "M4 4h12v12H4z";
+        };
+    }
+
+    private Label buildMenuItemLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("account-dropdown-item-label");
+        HBox.setHgrow(label, Priority.ALWAYS);
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
+
+    private Label buildMenuItemArrow() {
+        Label arrow = new Label("\u203A");
+        arrow.getStyleClass().add("account-dropdown-item-arrow");
+        return arrow;
+    }
+
+    private Parent createProgrammaticPage(AdminPage page) {
+        if (page == AdminPage.EDIT_PROFILE) {
+            return createEditProfilePage();
+        }
+
+        return createMissingPagePlaceholder(page.title());
+    }
+
+    private VBox createEditProfilePage() {
+        String currentName = accountNameLabel == null || accountNameLabel.getText() == null || accountNameLabel.getText().isBlank()
+                ? "Admin System"
+                : accountNameLabel.getText();
+        String currentRole = accountRoleLabel == null || accountRoleLabel.getText() == null || accountRoleLabel.getText().isBlank()
+                ? "Admin Portal"
+                : accountRoleLabel.getText();
+
+        Label titleLabel = new Label("Edit Admin Profile");
+        titleLabel.getStyleClass().add("exports-title");
+
+        Label subtitleLabel = new Label("Update the account details shown in the admin portal header and personal menu.");
+        subtitleLabel.getStyleClass().add("exports-subtitle");
+
+        Label nameLabel = new Label("Full Name");
+        nameLabel.getStyleClass().add("field-label");
+        TextField nameField = new TextField(currentName);
+        nameField.getStyleClass().add("weblager-text-field");
+
+        Label roleLabel = new Label("Role");
+        roleLabel.getStyleClass().add("field-label");
+        TextField roleField = new TextField(currentRole);
+        roleField.getStyleClass().add("weblager-text-field");
+
+        VBox form = new VBox(12,
+                nameLabel, nameField,
+                roleLabel, roleField
+        );
+        form.getStyleClass().add("profile-info-panel");
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().add("portal-secondary-button");
+        cancelButton.setOnAction(event -> showPage(AdminPage.DASHBOARD));
+
+        Button saveButton = new Button("Save Profile");
+        saveButton.getStyleClass().add("portal-primary-button");
+        saveButton.setOnAction(event -> {
+            if (accountNameLabel != null) {
+                accountNameLabel.setText(nameField.getText());
+            }
+            if (accountRoleLabel != null) {
+                accountRoleLabel.setText(roleField.getText());
+            }
+            if (avatarInitialsLabel != null) {
+                avatarInitialsLabel.setText(initialsFor(nameField.getText()));
+            }
+            configureAccountMenu();
+            showPage(AdminPage.DASHBOARD);
+        });
+
+        HBox actions = new HBox(9, cancelButton, saveButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox page = new VBox(24, new VBox(6, titleLabel, subtitleLabel), form, actions);
+        page.getStyleClass().addAll("portal-page", "exports-page");
+        page.setMaxWidth(Double.MAX_VALUE);
+        return page;
+    }
+
+    private String initialsFor(String name) {
+        if (name == null || name.isBlank()) {
+            return "A";
+        }
+
+        String[] parts = name.trim().split("\\s+");
+
+        if (parts.length == 1) {
+            return parts[0].substring(0, 1).toUpperCase();
+        }
+
+        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+    }
+
     private void setNavigationAction(ToggleButton navItem, Runnable action) {
         if (navItem == null) {
             return;
@@ -173,6 +425,13 @@ public class AdminController implements AdminNavigator {
     }
 
     private void loadPage(AdminPage page) {
+        if (page.fxmlPath() == null) {
+            Parent programmaticPage = createProgrammaticPage(page);
+            configureLoadedPageSize(programmaticPage);
+            contentHost.getChildren().setAll(programmaticPage);
+            return;
+        }
+
         URL pageUrl = getClass().getResource(page.fxmlPath());
 
         if (pageUrl == null) {
@@ -278,6 +537,7 @@ public class AdminController implements AdminNavigator {
             case METADATA_TEMPLATES -> metadataNavItem;
             case METADATA_REVIEW -> metadataReviewNavItem;
             case ACTIVITY -> activityNavItem;
+            case EDIT_PROFILE -> null;
         };
     }
 
