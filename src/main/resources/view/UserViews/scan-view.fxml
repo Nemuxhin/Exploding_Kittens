@@ -9,6 +9,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -156,7 +157,7 @@
                                 <Region HBox.hgrow="ALWAYS"/>
 
                                 <Button fx:id="profileInfoButton"
-                                        text="ⓘ Profile info"
+                                        text="Profile Info"
                                         focusTraversable="false"
                                         styleClass="profile-info-link-button"/>
                             </HBox>
@@ -259,35 +260,67 @@
 
         <!-- Top session header -->
         <top>
-            <HBox spacing="18"
-                  alignment="CENTER_LEFT"
-                  minWidth="0"
-                  maxWidth="Infinity"
-                  styleClass="scan-session-header">
+            <BorderPane minWidth="0"
+                        maxWidth="Infinity"
+                        styleClass="scan-session-header">
                 <padding>
-                    <Insets top="15" right="18" bottom="15" left="18"/>
+                    <Insets top="12" right="18" bottom="12" left="18"/>
                 </padding>
-
-                <VBox spacing="3"
-                      minWidth="0"
-                      HBox.hgrow="ALWAYS">
-                    <Label fx:id="workspaceSessionTitleLabel"
-                           text="Scanning Session"
-                           styleClass="workspace-title"/>
-
+                <left>
+                    <VBox spacing="9"
+                          alignment="CENTER_LEFT"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          style="-fx-padding: 0 15 0 15;">
+                        <Label fx:id="workspaceSessionTitleLabel"
+                               text="Scanning Session"
+                               styleClass="workspace-title"/>
                     <Label fx:id="workspaceSessionSubtitleLabel"
+                           visible="false"
+                           managed="false"
                            text="0 files scanned · 0 documents created · 0 pending pages"
                            styleClass="workspace-subtitle"/>
-                </VBox>
-
-                <Button text="Scan Next File"
-                        onAction="#onScanNextFile"
-                        minWidth="168"
-                        prefWidth="168"
-                        maxWidth="168"
-                        prefHeight="33"
-                        styleClass="scan-primary-action-button"/>
-            </HBox>
+                        <Button text="Back"
+                                onAction="#onBackToScanSetup"
+                                styleClass="scan-back-button"/>
+                    </VBox>
+                </left>
+                <center>
+                    <HBox spacing="9"
+                          alignment="CENTER"
+                          BorderPane.alignment="CENTER">
+                    <Label fx:id="headerReferenceInfoLabel"
+                           text="Ref: —"
+                           styleClass="scan-session-info-chip"/>
+                    <Label fx:id="headerFilesInfoLabel"
+                           text="Scanned Files: 0"
+                           styleClass="scan-session-info-chip"/>
+                    <Label fx:id="headerDocumentsInfoLabel"
+                           text="Documents: 0"
+                           styleClass="scan-session-info-chip"/>
+                </HBox>
+                </center>
+                <right>
+                    <VBox alignment="TOP_LEFT"
+                          spacing="9"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          translateX="18"
+                          style="-fx-padding: 0 15 0 15;"
+                          BorderPane.alignment="TOP_RIGHT">
+                        <Region minHeight="22"
+                                prefHeight="22"
+                                maxHeight="22"/>
+                        <Button text="Scan Next File"
+                                onAction="#onScanNextFile"
+                                maxWidth="Infinity"
+                                prefHeight="33"
+                                styleClass="scan-primary-action-button"/>
+                    </VBox>
+                </right>
+            </BorderPane>
         </top>
 
         <!-- Left document structure -->
@@ -339,29 +372,20 @@
                     <VBox minWidth="0"
                           maxWidth="Infinity">
 
-                        <HBox spacing="12"
-                              alignment="CENTER_LEFT"
-                              minHeight="66"
-                              prefHeight="66"
-                              maxHeight="66"
-                              styleClass="scan-current-file-header">
-                            <padding>
-                                <Insets top="0" right="18" bottom="0" left="18"/>
-                            </padding>
-
-                            <VBox spacing="3"
-                                  minWidth="0"
-                                  HBox.hgrow="ALWAYS">
+                        <Pane visible="false"
+                              managed="false"
+                              minHeight="0"
+                              prefHeight="0"
+                              maxHeight="0">
+                            <children>
                                 <Label fx:id="selectedFileTitleLabel"
                                        text="No file selected"
                                        styleClass="selected-file-title"/>
-
                                 <Label fx:id="selectedFileRefLabel"
                                        text="Scan a file to begin."
                                        styleClass="selected-file-subtitle"/>
-                            </VBox>
-
-                        </HBox>
+                            </children>
+                        </Pane>
 
                         <!-- View toolbar -->
                         <HBox spacing="12"
@@ -457,19 +481,21 @@
 
                 <!-- Page tray -->
                 <bottom>
-                    <VBox spacing="6"
-                          minHeight="111"
-                          prefHeight="111"
-                          maxHeight="111"
+                    <VBox spacing="0"
+                          minHeight="144"
+                          prefHeight="144"
+                          maxHeight="144"
                           styleClass="page-tray-shell">
 
-                        <HBox alignment="CENTER_LEFT"
-                              minHeight="18"
-                              prefHeight="18"
-                              maxHeight="18">
+                        <HBox visible="false"
+                              managed="false"
+                              alignment="CENTER_LEFT"
+                              minHeight="0"
+                              prefHeight="0"
+                              maxHeight="0">
                             <Label fx:id="pageTrayTitleLabel"
-                                   text="Scanned Files"
-                                   styleClass="page-tray-title"/>
+                                    text="Scanned Files"
+                                    styleClass="page-tray-title"/>
 
                             <Region HBox.hgrow="ALWAYS"/>
 
@@ -482,14 +508,14 @@
                                     fitToWidth="false"
                                     hbarPolicy="AS_NEEDED"
                                     vbarPolicy="NEVER"
-                                    minHeight="81"
-                                    prefHeight="81"
-                                    maxHeight="81"
+                                    minHeight="144"
+                                    prefHeight="144"
+                                    maxHeight="144"
                                     styleClass="page-tray-scroll">
                             <HBox fx:id="pageTrayContainer"
                                   spacing="9"
-                                  minHeight="75"
-                                  maxHeight="75"
+                                  minHeight="111"
+                                  maxHeight="111"
                                   styleClass="page-tray-container"/>
                         </ScrollPane>
                     </VBox>
@@ -552,8 +578,6 @@
                             styleClass="scan-tool-button"/>
                 </VBox>
 
-                <Region VBox.vgrow="ALWAYS"/>
-
                 <VBox spacing="9"
                       styleClass="scan-workflow-box">
                     <Label text="Workflow"
@@ -605,12 +629,12 @@
                     <Insets top="12" right="18" bottom="12" left="18"/>
                 </padding>
 
-                <Button text="Back"
-                        onAction="#onBackToScanningFromReview"
-                        styleClass="back-button"/>
-
                 <Label text="Scan Review"
                        styleClass="review-summary-title"/>
+
+                <Button text="Back"
+                        onAction="#onBackToScanningFromReview"
+                        styleClass="scan-back-button"/>
 
                 <HBox spacing="18"
                       alignment="CENTER_LEFT">
@@ -737,16 +761,18 @@
                 </center>
 
                 <bottom>
-                    <VBox spacing="6"
-                          minHeight="111"
-                          prefHeight="111"
-                          maxHeight="111"
+                    <VBox spacing="0"
+                          minHeight="144"
+                          prefHeight="144"
+                          maxHeight="144"
                           styleClass="review-page-tray-shell">
 
-                        <HBox alignment="CENTER_LEFT"
-                              minHeight="18"
-                              prefHeight="18"
-                              maxHeight="18">
+                        <HBox visible="false"
+                              managed="false"
+                              alignment="CENTER_LEFT"
+                              minHeight="0"
+                              prefHeight="0"
+                              maxHeight="0">
                             <Label text="Page Tray"
                                    styleClass="review-page-tray-title"/>
                         </HBox>
@@ -755,14 +781,14 @@
                                     fitToWidth="false"
                                     hbarPolicy="AS_NEEDED"
                                     vbarPolicy="NEVER"
-                                    minHeight="81"
-                                    prefHeight="81"
-                                    maxHeight="81"
+                                    minHeight="144"
+                                    prefHeight="144"
+                                    maxHeight="144"
                                     styleClass="review-page-tray-scroll">
                             <HBox fx:id="reviewPageTrayContainer"
                                   spacing="9"
-                                  minHeight="75"
-                                  maxHeight="75"
+                                  minHeight="111"
+                                  maxHeight="111"
                                   styleClass="review-page-tray-container"/>
                         </ScrollPane>
                     </VBox>
@@ -931,3 +957,5 @@
         </VBox>
     </StackPane>
 </StackPane>
+
+

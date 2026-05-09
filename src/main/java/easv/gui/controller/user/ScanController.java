@@ -68,6 +68,11 @@ public class ScanController {
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
+    @FXML private Label workspaceSessionInlineSubtitleLabel;
+    @FXML private Label headerReferenceInfoLabel;
+    @FXML private Label headerFilesInfoLabel;
+    @FXML private Label headerDocumentsInfoLabel;
+
     @FXML private Label boxStructureSubtitleLabel;
     @FXML private Label selectedFileTitleLabel;
     @FXML private Label selectedFileRefLabel;
@@ -184,29 +189,29 @@ public class ScanController {
 
         switch (selectedProfile) {
             case "Building Archive" -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: Yes");
-                profileInfoSplittingLabel.setText("Splitting method: Manual or barcode");
+                profileInfoMetadataLabel.setText("Metadata required: —");
+                profileInfoQaLabel.setText("QA required: —");
+                profileInfoSplittingLabel.setText("Splitting method: —");
             }
             case "Technical Drawings" -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: No");
-                profileInfoSplittingLabel.setText("Splitting method: Single document");
+                profileInfoMetadataLabel.setText("Metadata required: —");
+                profileInfoQaLabel.setText("QA required: —");
+                profileInfoSplittingLabel.setText("Splitting method: —");
             }
             case "Court Records" -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: Yes");
-                profileInfoSplittingLabel.setText("Splitting method: Barcode");
+                profileInfoMetadataLabel.setText("Metadata required: —");
+                profileInfoQaLabel.setText("QA required: —");
+                profileInfoSplittingLabel.setText("Splitting method: —");
             }
             case "Standard Scan" -> {
-                profileInfoMetadataLabel.setText("Metadata required: No");
-                profileInfoQaLabel.setText("QA required: No");
-                profileInfoSplittingLabel.setText("Splitting method: Manual");
+                profileInfoMetadataLabel.setText("Metadata required: —");
+                profileInfoQaLabel.setText("QA required: —");
+                profileInfoSplittingLabel.setText("Splitting method: —");
             }
             default -> {
-                profileInfoMetadataLabel.setText("Metadata required: Unknown");
-                profileInfoQaLabel.setText("QA required: Unknown");
-                profileInfoSplittingLabel.setText("Splitting method: Unknown");
+                profileInfoMetadataLabel.setText("Metadata required: —");
+                profileInfoQaLabel.setText("QA required: —");
+                profileInfoSplittingLabel.setText("Splitting method: —");
             }
         }
     }
@@ -923,14 +928,14 @@ public class ScanController {
     private void markScanSubmittedForQa() {
         hideFinishReviewModal();
 
-        workspaceSessionSubtitleLabel.setText(
+        setWorkspaceSessionSubtitle(
                 allPages.size() + " files scanned · "
-                        + documents.size() + " documents created · submitted for QA"
+                        + documents.size() + " documents created Ãƒâ€šÃ‚Â· submitted for QA"
         );
 
         if (reviewDocumentsValueLabel != null) {
             reviewDocumentsValueLabel.setText(
-                    documents.size() + " · "
+                    documents.size() + " Ãƒâ€šÃ‚Â· "
                             + getNormalPageCount()
                             + " pages · submitted for QA"
             );
@@ -981,6 +986,11 @@ public class ScanController {
         navigator.showMyScans();
     }
 
+    @FXML
+    private void onBackToScanSetup() {
+        showSetupView();
+    }
+
     private void showSetupView() {
         scanSetupView.setVisible(true);
         scanSetupView.setManaged(true);
@@ -1016,10 +1026,25 @@ public class ScanController {
 
     private void refreshWorkspace() {
         updateWorkspaceHeader();
+        refreshHeaderInfoChips();
         renderDocumentTree();
         renderPreview();
         renderPageTray();
         updateUndoButtonState();
+    }
+
+    private void refreshHeaderInfoChips() {
+        if (headerFilesInfoLabel != null) {
+            headerFilesInfoLabel.setText("Scanned Files: " + allPages.size());
+        }
+        if (headerDocumentsInfoLabel != null) {
+            headerDocumentsInfoLabel.setText("Documents: " + documents.size());
+        }
+        if (headerReferenceInfoLabel != null) {
+            headerReferenceInfoLabel.setText(
+                    selectedPage == null ? "Ref: —" : "Ref: " + selectedPage.referenceIdLabel()
+            );
+        }
     }
 
     private void updateWorkspaceHeader() {
@@ -1027,9 +1052,9 @@ public class ScanController {
         String profile = getSelectedProfile();
 
         workspaceSessionTitleLabel.setText("Scanning Session · " + boxId);
-        workspaceSessionSubtitleLabel.setText(
+        setWorkspaceSessionSubtitle(
                 allPages.size() + " files scanned · "
-                        + documents.size() + " documents created · "
+                        + documents.size() + " documents · "
                         + pendingPages.size() + " pending pages"
         );
 
@@ -1070,8 +1095,14 @@ public class ScanController {
         }
 
         selectedFileRefLabel.setText(selectedInfo);
+    }    private void setWorkspaceSessionSubtitle(String text) {
+        if (workspaceSessionSubtitleLabel != null) {
+            workspaceSessionSubtitleLabel.setText(text);
+        }
+        if (workspaceSessionInlineSubtitleLabel != null) {
+            workspaceSessionInlineSubtitleLabel.setText(text);
+        }
     }
-
     private int getPageNumberInDocument(ScannedPage page) {
         for (DocumentGroup document : documents) {
             int pageIndex = document.pages.indexOf(page);
@@ -1626,13 +1657,20 @@ public class ScanController {
     }
 
     private Node createTraySplitMarker() {
-        StackPane splitMarker = new StackPane();
+        VBox splitMarker = new VBox(6);
         splitMarker.getStyleClass().add("page-tray-document-split");
+        splitMarker.setAlignment(Pos.CENTER);
 
-        Region line = new Region();
-        line.getStyleClass().add("page-tray-document-split-line");
+        Label badge = new Label("DOCUMENT");
+        badge.getStyleClass().add("page-tray-document-split-badge");
 
-        splitMarker.getChildren().add(line);
+        Label title = new Label("Document");
+        title.getStyleClass().add("page-tray-document-split-title");
+
+        Label copy = new Label("start");
+        copy.getStyleClass().add("page-tray-document-split-copy");
+
+        splitMarker.getChildren().addAll(badge, title, copy);
 
         return splitMarker;
     }
@@ -2134,3 +2172,5 @@ public class ScanController {
         }
     }
 }
+
+

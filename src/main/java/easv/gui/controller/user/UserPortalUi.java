@@ -1,9 +1,17 @@
 package easv.gui.controller.user;
 
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.shape.SVGPath;
+import javafx.util.StringConverter;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 final class UserPortalUi {
+    private static final DateTimeFormatter FILTER_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private UserPortalUi() {
     }
 
@@ -23,6 +31,38 @@ final class UserPortalUi {
         return label;
     }
 
+    static void configureDateFilterPicker(DatePicker picker) {
+        picker.setPromptText("dd/mm/yyyy");
+        picker.setEditable(true);
+        picker.getStyleClass().add("exports-date-picker");
+        picker.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate value) {
+                return value == null ? "" : FILTER_DATE.format(value);
+            }
+
+            @Override
+            public LocalDate fromString(String value) {
+                if (value == null || value.isBlank()) {
+                    return null;
+                }
+
+                try {
+                    return LocalDate.parse(value.trim(), FILTER_DATE);
+                } catch (DateTimeParseException ignored) {
+                    return null;
+                }
+            }
+        });
+        picker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                picker.getEditor().clear();
+            } else {
+                picker.getEditor().setText(FILTER_DATE.format(newValue));
+            }
+        });
+    }
+
     private static String iconPath(String key) {
         return switch (key) {
             case "dashboard" -> "M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h8v8h-8v-8zm2 2v4h4v-4h-4z";
@@ -40,6 +80,7 @@ final class UserPortalUi {
             case "privacy" -> "M4 3h12v4H4z M4 9h12v4H4z M4 15h12v2H4z";
             case "save" -> "M4 2h10l2 2v12H4z M7 2v4h6V2z M7 11h6v3H7z";
             case "download" -> "M9 2h2v7h3l-4 4-4-4h3z M4 14h12v2H4z";
+            case "trash" -> "M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H10V18H8V9M11,9H13V18H11V9M14,9H16V18H14V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z";
             case "logo" -> "M4 2h3v2H4v3H2V4c0-1.1.9-2 2-2zm9 0h3c1.1 0 2 .9 2 2v3h-2V4h-3V2zM2 13h2v3h3v2H4c-1.1 0-2-.9-2-2v-3zm14 0h2v3c0 1.1-.9 2-2 2h-3v-2h3v-3z";
             default -> "M4 4h12v12H4z";
         };

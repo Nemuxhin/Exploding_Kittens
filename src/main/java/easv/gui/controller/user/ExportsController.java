@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
@@ -14,16 +15,29 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class ExportsController {
     private static final String ALL_STATUSES = "All Statuses";
+    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter FILTER_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final UserPortalModel portalModel;
     private final VBox table = new VBox();
     private final TextField searchField = new TextField();
     private final ComboBox<String> statusFilter = new ComboBox<>();
+    private final DatePicker fromDateField = new DatePicker();
+    private final DatePicker toDateField = new DatePicker();
+    private final Label paginationSummaryLabel = new Label();
+    private final HBox paginationButtonsBox = new HBox();
+    private final ComboBox<Integer> rowsPerPageFilter = new ComboBox<>();
+    private int currentPage = 1;
 
     public ExportsController(UserPortalModel portalModel) {
         this.portalModel = portalModel;
@@ -44,7 +58,7 @@ public class ExportsController {
         VBox tablePanel = new VBox();
         tablePanel.getStyleClass().add("exports-table-panel");
         table.getStyleClass().add("exports-table");
-        tablePanel.getChildren().add(table);
+        tablePanel.getChildren().addAll(table, buildPaginationBar());
 
         refreshTable();
 
@@ -62,16 +76,33 @@ public class ExportsController {
         searchField.getStyleClass().add("exports-filter-input");
         searchField.textProperty().addListener((observable, oldValue, newValue) -> refreshTable());
 
-        statusFilter.getItems().setAll(ALL_STATUSES, "Ready", "Processing", "Failed");
+        statusFilter.getItems().setAll(ALL_STATUSES, "Completed", "Processing", "Failed");
         statusFilter.setValue(ALL_STATUSES);
         statusFilter.getStyleClass().add("exports-status-filter");
+        statusFilter.setMinWidth(0);
+        statusFilter.setPrefWidth(240);
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> refreshTable());
+
+        UserPortalUi.configureDateFilterPicker(fromDateField);
+        fromDateField.valueProperty().addListener((observable, oldValue, newValue) -> refreshTable());
+
+        UserPortalUi.configureDateFilterPicker(toDateField);
+        toDateField.valueProperty().addListener((observable, oldValue, newValue) -> refreshTable());
+
+        rowsPerPageFilter.getItems().setAll(10, 25, 50);
+        rowsPerPageFilter.setValue(10);
+        rowsPerPageFilter.getStyleClass().add("exports-status-filter");
+        rowsPerPageFilter.getStyleClass().add("pagination-rows-filter");
+        rowsPerPageFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
+            currentPage = 1;
+            refreshTable();
+        });
     }
 
     private HBox buildSummaryRow() {
         HBox row = new HBox(18,
                 metricCard("Total Files", String.valueOf(portalModel.fetchExports().size())),
-                metricCard("Ready to Download", String.valueOf(countReadyExports())),
+                metricCard("Completed Exports", String.valueOf(countReadyExports())),
                 metricCard("Total Size", totalExportSizeText())
         );
         row.getStyleClass().add("exports-summary-row");
@@ -94,7 +125,9 @@ public class ExportsController {
     private HBox buildFilterPanel() {
         HBox filterRow = new HBox(18,
                 buildFilter("Search", searchField),
-                buildFilter("Status", statusFilter)
+                buildFilter("Status", statusFilter),
+                buildFilter("From Date", fromDateField),
+                buildFilter("To Date", toDateField)
         );
         filterRow.getStyleClass().add("exports-filter-panel");
         filterRow.setAlignment(Pos.CENTER_LEFT);
@@ -123,14 +156,25 @@ public class ExportsController {
                 .filter(this::matchesFilters)
                 .toList();
 
+        int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
+        int totalItems = visibleItems.size();
+        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) rowsPerPage));
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
+
         if (visibleItems.isEmpty()) {
             table.getChildren().add(emptyRow("No matching exports"));
+            updatePagination(totalItems, totalPages);
             return;
         }
 
-        for (UserPortalModel.ExportItem item : visibleItems) {
+        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalItems);
+        int toIndex = Math.min(fromIndex + rowsPerPage, totalItems);
+
+        for (UserPortalModel.ExportItem item : visibleItems.subList(fromIndex, toIndex)) {
             table.getChildren().add(createDataRow(item));
         }
+
+        updatePagination(totalItems, totalPages);
     }
 
     private boolean matchesFilters(UserPortalModel.ExportItem item) {
@@ -146,7 +190,14 @@ public class ExportsController {
                 || item.profileName().toLowerCase().contains(query)
                 || item.status().toLowerCase().contains(query);
 
-        return statusMatches && searchMatches;
+        LocalDate itemDate = parseItemDate(item.createdAt());
+        LocalDate fromDate = fromDateField.getValue();
+        LocalDate toDate = toDateField.getValue();
+
+        boolean fromMatches = fromDate == null || (itemDate != null && !itemDate.isBefore(fromDate));
+        boolean toMatches = toDate == null || (itemDate != null && !itemDate.isAfter(toDate));
+
+        return statusMatches && searchMatches && fromMatches && toMatches;
     }
 
     private GridPane createHeaderRow(String... values) {
@@ -164,10 +215,19 @@ public class ExportsController {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("exports-table-row");
 
-        Button action = new Button("Download");
-        action.getStyleClass().add("portal-row-button");
-        action.setGraphic(UserPortalUi.buildIcon("download", "portal-button-icon"));
-        action.setDisable(!"Ready".equalsIgnoreCase(item.status()));
+        Button action = new Button("Export");
+        action.getStyleClass().addAll("portal-row-button", "exports-export-button");
+        action.setGraphic(UserPortalUi.buildIcon("download", "portal-button-icon-inverse"));
+        action.setDisable(!"Completed".equalsIgnoreCase(item.status()));
+        action.setOnAction(event -> action.requestFocus());
+
+        Button deleteButton = new Button();
+        deleteButton.getStyleClass().add("exports-delete-button");
+        deleteButton.setGraphic(UserPortalUi.buildIcon("trash", "exports-delete-icon"));
+        deleteButton.setDisable(!"Completed".equalsIgnoreCase(item.status()));
+
+        HBox actionBox = new HBox(9, action, deleteButton);
+        actionBox.getStyleClass().add("exports-action-box");
 
         row.add(primaryCell(item.fileName()), 0, 0);
         row.add(dataCell(item.boxId()), 1, 0);
@@ -175,7 +235,7 @@ public class ExportsController {
         row.add(dataCell(item.createdAt()), 3, 0);
         row.add(dataCell(item.size()), 4, 0);
         row.add(statusCell(item.status()), 5, 0);
-        row.add(action, 6, 0);
+        row.add(actionBox, 6, 0);
 
         return row;
     }
@@ -215,7 +275,7 @@ public class ExportsController {
 
     private int countReadyExports() {
         return (int) portalModel.fetchExports().stream()
-                .filter(item -> "Ready".equalsIgnoreCase(item.status()))
+                .filter(item -> "Completed".equalsIgnoreCase(item.status()))
                 .count();
     }
 
@@ -243,15 +303,108 @@ public class ExportsController {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMaxWidth(Double.MAX_VALUE);
         row.getColumnConstraints().setAll(
-                percentColumn(24),
+                percentColumn(22),
                 percentColumn(12),
                 percentColumn(15),
                 percentColumn(18),
                 percentColumn(9),
-                percentColumn(12),
-                percentColumn(10)
+                percentColumn(11),
+                percentColumn(13)
         );
         return row;
+    }
+
+    private HBox buildPaginationBar() {
+        paginationSummaryLabel.getStyleClass().add("pagination-summary-label");
+        paginationButtonsBox.getStyleClass().add("pagination-buttons-box");
+
+        Label rowsPerPageLabel = new Label("Results per page");
+        rowsPerPageLabel.getStyleClass().add("rows-per-page-label");
+
+        HBox rowsPerPageBox = new HBox(9, rowsPerPageLabel, rowsPerPageFilter);
+        rowsPerPageBox.getStyleClass().add("rows-per-page-box");
+        HBox.setHgrow(rowsPerPageBox, Priority.ALWAYS);
+
+        HBox summaryBox = new HBox(paginationSummaryLabel);
+        summaryBox.getStyleClass().add("pagination-summary-box");
+        HBox.setHgrow(summaryBox, Priority.ALWAYS);
+
+        HBox centerBox = new HBox(paginationButtonsBox);
+        centerBox.getStyleClass().add("pagination-center-box");
+        HBox.setHgrow(centerBox, Priority.ALWAYS);
+
+        HBox bar = new HBox(18, summaryBox, centerBox, rowsPerPageBox);
+        bar.getStyleClass().add("pagination-bar");
+        return bar;
+    }
+
+    private void updatePagination(int totalItems, int totalPages) {
+        int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
+        int start = totalItems == 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
+        int end = totalItems == 0 ? 0 : Math.min(currentPage * rowsPerPage, totalItems);
+        paginationSummaryLabel.setText("Showing " + start + "-" + end + " of " + totalItems + " exports");
+        paginationButtonsBox.getChildren().setAll(buildPaginationButtons(totalPages));
+    }
+
+    private List<Node> buildPaginationButtons(int totalPages) {
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(paginationButton("«", 1, currentPage == 1, false));
+        nodes.add(paginationButton("‹", currentPage - 1, currentPage == 1, false));
+
+        for (int page : visiblePages(totalPages)) {
+            if (page < 0) {
+                Label ellipsis = new Label("...");
+                ellipsis.getStyleClass().add("pagination-ellipsis");
+                nodes.add(ellipsis);
+            } else {
+                nodes.add(paginationButton(String.valueOf(page), page, false, page == currentPage));
+            }
+        }
+
+        nodes.add(paginationButton("›", currentPage + 1, currentPage == totalPages, false));
+        nodes.add(paginationButton("»", totalPages, currentPage == totalPages, false));
+        return nodes;
+    }
+
+    private List<Integer> visiblePages(int totalPages) {
+        List<Integer> pages = new ArrayList<>();
+        if (totalPages <= 5) {
+            for (int page = 1; page <= totalPages; page++) {
+                pages.add(page);
+            }
+            return pages;
+        }
+
+        pages.add(1);
+        if (currentPage > 3) {
+            pages.add(-1);
+        }
+
+        int start = Math.max(2, currentPage - 1);
+        int end = Math.min(totalPages - 1, currentPage + 1);
+        for (int page = start; page <= end; page++) {
+            pages.add(page);
+        }
+
+        if (currentPage < totalPages - 2) {
+            pages.add(-1);
+        }
+        pages.add(totalPages);
+        return pages;
+    }
+
+    private Button paginationButton(String text, int targetPage, boolean disabled, boolean active) {
+        Button button = new Button(text);
+        button.getStyleClass().add("pagination-button");
+        if (active) {
+            button.getStyleClass().add("pagination-button-active");
+        }
+        button.setDisable(disabled);
+        button.setOnAction(event -> {
+            currentPage = targetPage;
+            refreshTable();
+        });
+        return button;
     }
 
     private ColumnConstraints percentColumn(double width) {
@@ -259,5 +412,17 @@ public class ExportsController {
         constraints.setPercentWidth(width);
         constraints.setHgrow(Priority.ALWAYS);
         return constraints;
+    }
+
+    private LocalDate parseItemDate(String value) {
+        if (value == null || value.isBlank() || "-".equals(value.trim())) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.trim(), ITEM_DATE_TIME).toLocalDate();
+        } catch (DateTimeParseException ignored) {
+            return null;
+        }
     }
 }

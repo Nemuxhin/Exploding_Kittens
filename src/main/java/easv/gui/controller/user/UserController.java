@@ -1,13 +1,16 @@
 package easv.gui.controller.user;
 
 import easv.be.User;
+import easv.bll.AuthManager;
 import easv.bll.UserSession;
+import easv.gui.MainApp;
 import easv.gui.UserPortalModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
@@ -59,12 +62,15 @@ public class UserController implements UserNavigator {
     @FXML private ToggleButton assignedQANavItem;
     @FXML private ToggleButton exportsNavItem;
     @FXML private ToggleButton settingsNavItem;
+    @FXML private Button logoutNavButton;
 
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private SVGPath darkModeToggleIcon;
 
     private final UserPortalModel portalModel = new UserPortalModel();
+    private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
+    private MainApp mainApp;
 
     @FXML
     private void initialize() {
@@ -72,6 +78,10 @@ public class UserController implements UserNavigator {
         configureThemeToggle();
         configureNavigation();
         showPage(UserPage.DASHBOARD);
+    }
+
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
     }
 
     private void configureShell() {
@@ -171,6 +181,10 @@ public class UserController implements UserNavigator {
             if (navItem != null) {
                 navItem.setOnAction(event -> showPage(page));
             }
+        }
+
+        if (logoutNavButton != null) {
+            logoutNavButton.setOnAction(event -> handleLogout());
         }
     }
 
@@ -320,5 +334,19 @@ public class UserController implements UserNavigator {
             case EXPORTS -> exportsNavItem;
             case SETTINGS -> settingsNavItem;
         };
+    }
+
+    private void handleLogout() {
+        authManager.logout();
+
+        if (mainApp == null) {
+            throw new IllegalStateException("MainApp is not available for logout navigation.");
+        }
+
+        try {
+            mainApp.showLoginView();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not return to the login view.", exception);
+        }
     }
 }

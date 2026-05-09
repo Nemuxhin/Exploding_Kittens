@@ -2,6 +2,8 @@ package easv.gui;
 
 import easv.be.User;
 import easv.gui.controller.LoginController;
+import easv.gui.controller.admin.AdminController;
+import easv.gui.controller.user.UserController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -67,7 +69,17 @@ public class MainApp extends Application {
 
     private Parent loadView(String fxmlPath) throws IOException {
         FXMLLoader loader = new FXMLLoader(getRequiredResource(fxmlPath));
-        return loader.load();
+        Parent root = loader.load();
+
+        Object controller = loader.getController();
+
+        if (controller instanceof AdminController adminController) {
+            adminController.setMainApp(this);
+        } else if (controller instanceof UserController userController) {
+            userController.setMainApp(this);
+        }
+
+        return root;
     }
 
     private void configureStage() {
