@@ -1,99 +1,468 @@
 package easv.dal;
 
 import easv.be.User;
-import easv.bll.PasswordHasher;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * This class is responsible for reading and writing stored accounts.
- * The storage format is intentionally simple so it is easy to study.
- *
- * Each line in the file looks like this:
- * username;passwordHash;role;active
+ * Reads and writes users through the existing database user tables.
  */
 public class UserDAO {
 
-    private final Path usersFilePath;
+    private final DatabaseConnection databaseConnection;
 
     public UserDAO() {
-        this(Path.of("data", "users.txt"));
+        this(new DatabaseConnection());
     }
 
-    public UserDAO(Path usersFilePath) {
-        this.usersFilePath = usersFilePath;
+    public UserDAO(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
     }
 
-    public User findByUsername(String username) throws IOException {
-        for (User user : getAllUsers()) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
-                return user;
+    public User findByUsername(String username) {
+        String cleanedUsername = clean(username);
+
+        if (cleanedUsername.isBlank()) {
+            return null;
+        }
+
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT u.id,
+                            u.name,
+                            u.username,
+                            u.email,
+                            u.password_hash,
+                            COALESCE(r.name, '') AS role,
+                            u.status,
+                            u.is_current_user
+                     FROM users u
+                     LEFT JOIN roles r ON r.id = u.role_id
+                     WHERE LOWER(u.username) = LOWER(?)
+                     """)) {
+            statement.setString(1, cleanedUsername);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                int userId = resultSet.getInt("id");
+                return readUser(resultSet, loadAssignedProfileNames(connection, userId));
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to find user " + cleanedUsername, exception);
+        }
+    }
+
+    public int nextUserId() {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COALESCE(MAX(id), 0) + 1 FROM users");
+             ResultSet resultSet = statement.executeQuery()) {
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to calculate next user id.", exception);
+        }
+    }
+
+    public User saveUser(User user) {
+        return saveUser(user, List.of());
+    }
+
+    public User saveUser(User user, List<Integer> assignedProfileIds) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try {
+                User savedUser = insertUser(connection, user);
+                replaceProfileAssignmentsForUser(connection, savedUser.getId(), assignedProfileIds);
+                connection.commit();
+                return savedUser;
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to save user " + user.getUsername(), exception);
+        }
+    }
+
+    public User updateUser(User user) {
+        return updateUser(user, List.of());
+    }
+
+    public User updateUser(User user, List<Integer> assignedProfileIds) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try {
+                updateUserRow(connection, user);
+                replaceProfileAssignmentsForUser(connection, user.getId(), assignedProfileIds);
+                connection.commit();
+                return new User(
+                        user.getId(),
+                        user.getName(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getPasswordHash(),
+                        displayRole(user.getRole()),
+                        displayStatus(user.getStatus()),
+                        user.getAssignedProfiles(),
+                        user.isCurrentUser()
+                );
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to update user " + user.getUsername(), exception);
+        }
+    }
+
+    public void deleteUser(int userId) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement deleteAssignments = connection.prepareStatement("""
+                         DELETE FROM user_profile_assignments
+                         WHERE user_id = ?
+                         """);
+                 PreparedStatement deleteUser = connection.prepareStatement("""
+                         DELETE FROM users
+                         WHERE id = ?
+                         """)) {
+                deleteAssignments.setInt(1, userId);
+                deleteAssignments.executeUpdate();
+
+                deleteUser.setInt(1, userId);
+                deleteUser.executeUpdate();
+
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to delete user " + userId, exception);
+        }
+    }
+
+    public List<User> getAllUsers() {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT u.id,
+                            u.name,
+                            u.username,
+                            u.email,
+                            u.password_hash,
+                            COALESCE(r.name, '') AS role,
+                            u.status,
+                            u.is_current_user
+                     FROM users u
+                     LEFT JOIN roles r ON r.id = u.role_id
+                     ORDER BY u.id
+                     """);
+             ResultSet resultSet = statement.executeQuery()) {
+            Map<Integer, List<String>> assignedProfilesByUser = loadAssignedProfileNamesByUser(connection);
+            List<User> users = new ArrayList<>();
+
+            while (resultSet.next()) {
+                int userId = resultSet.getInt("id");
+                users.add(readUser(resultSet, assignedProfilesByUser.getOrDefault(userId, List.of())));
+            }
+
+            return users;
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to read users.", exception);
+        }
+    }
+
+    public Map<Integer, Set<Integer>> getProfileAssignments() {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT scan_profile_id, user_id
+                     FROM user_profile_assignments
+                     ORDER BY scan_profile_id, user_id
+                     """);
+             ResultSet resultSet = statement.executeQuery()) {
+            Map<Integer, Set<Integer>> assignments = new HashMap<>();
+
+            while (resultSet.next()) {
+                assignments
+                        .computeIfAbsent(resultSet.getInt("scan_profile_id"), ignored -> new HashSet<>())
+                        .add(resultSet.getInt("user_id"));
+            }
+
+            return assignments;
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to read profile assignments.", exception);
+        }
+    }
+
+    public void replaceProfileAssignments(Map<Integer, Set<Integer>> assignments) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement deleteStatement = connection.prepareStatement("DELETE FROM user_profile_assignments")) {
+                deleteStatement.executeUpdate();
+                insertProfileAssignments(connection, assignments);
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to save profile assignments.", exception);
+        }
+    }
+
+    private User insertUser(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                INSERT INTO users
+                (name, username, email, password_hash, role_id, status, is_current_user, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getUsername());
+            statement.setString(3, user.getEmail());
+            statement.setString(4, user.getPasswordHash());
+            statement.setInt(5, findRoleId(connection, user.getRole()));
+            statement.setString(6, user.getStatus());
+            statement.setBoolean(7, user.isCurrentUser());
+            statement.executeUpdate();
+
+            return new User(
+                    readGeneratedIntId(statement),
+                    user.getName(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getPasswordHash(),
+                    displayRole(user.getRole()),
+                    displayStatus(user.getStatus()),
+                    user.getAssignedProfiles(),
+                    user.isCurrentUser()
+            );
+        }
+    }
+
+    private void updateUserRow(Connection connection, User user) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                UPDATE users
+                SET name = ?,
+                    username = ?,
+                    email = ?,
+                    password_hash = ?,
+                    role_id = ?,
+                    status = ?,
+                    is_current_user = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """)) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getUsername());
+            statement.setString(3, user.getEmail());
+            statement.setString(4, user.getPasswordHash());
+            statement.setInt(5, findRoleId(connection, user.getRole()));
+            statement.setString(6, user.getStatus());
+            statement.setBoolean(7, user.isCurrentUser());
+            statement.setInt(8, user.getId());
+            int updatedRows = statement.executeUpdate();
+
+            if (updatedRows == 0) {
+                throw new SQLException("No user row was updated for id " + user.getId() + ".");
+            }
+        }
+    }
+
+    private int findRoleId(Connection connection, String roleName) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT id
+                FROM roles
+                WHERE LOWER(name) = LOWER(?)
+                """)) {
+            statement.setString(1, clean(roleName));
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("id");
+                }
             }
         }
 
-        return null;
+        throw new DataAccessException("Role does not exist in the database: " + clean(roleName), null);
     }
 
-    public List<User> getAllUsers() throws IOException {
-        ensureStorageExists();
+    private void replaceProfileAssignmentsForUser(Connection connection, int userId, List<Integer> profileIds)
+            throws SQLException {
+        try (PreparedStatement deleteStatement = connection.prepareStatement("""
+                     DELETE FROM user_profile_assignments
+                     WHERE user_id = ?
+                     """)) {
+            deleteStatement.setInt(1, userId);
+            deleteStatement.executeUpdate();
+        }
 
-        List<String> lines = Files.readAllLines(usersFilePath, StandardCharsets.UTF_8);
-        List<User> users = new ArrayList<>();
+        Map<Integer, Set<Integer>> assignments = new HashMap<>();
 
-        for (String line : lines) {
-            String trimmedLine = line.trim();
+        for (Integer profileId : profileIds == null ? List.<Integer>of() : profileIds) {
+            if (profileId != null) {
+                assignments.computeIfAbsent(profileId, ignored -> new HashSet<>()).add(userId);
+            }
+        }
 
-            // Empty lines are ignored so the file stays easy to edit by hand.
-            if (trimmedLine.isEmpty()) {
-                continue;
+        insertProfileAssignments(connection, assignments);
+    }
+
+    private void insertProfileAssignments(Connection connection, Map<Integer, Set<Integer>> assignments)
+            throws SQLException {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+                INSERT INTO user_profile_assignments
+                (user_id, scan_profile_id)
+                VALUES (?, ?)
+                """)) {
+            for (Map.Entry<Integer, Set<Integer>> assignment : assignments.entrySet()) {
+                int profileId = assignment.getKey();
+
+                for (Integer userId : assignment.getValue()) {
+                    if (userId == null) {
+                        continue;
+                    }
+
+                    statement.setInt(1, userId);
+                    statement.setInt(2, profileId);
+                    statement.addBatch();
+                }
             }
 
-            String[] parts = trimmedLine.split(";");
+            statement.executeBatch();
+        }
+    }
 
-            // A malformed line is skipped instead of crashing the whole app.
-            if (parts.length != 4) {
-                continue;
+    private Map<Integer, List<String>> loadAssignedProfileNamesByUser(Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                     SELECT upa.user_id, sp.name
+                     FROM user_profile_assignments upa
+                     JOIN scan_profiles sp ON sp.id = upa.scan_profile_id
+                     ORDER BY sp.name
+                     """);
+             ResultSet resultSet = statement.executeQuery()) {
+            Map<Integer, List<String>> profileNamesByUser = new HashMap<>();
+
+            while (resultSet.next()) {
+                profileNamesByUser
+                        .computeIfAbsent(resultSet.getInt("user_id"), ignored -> new ArrayList<>())
+                        .add(resultSet.getString("name"));
             }
 
-            String username = parts[0].trim();
-            String passwordHash = parts[1].trim();
-            String role = parts[2].trim();
-            boolean active = Boolean.parseBoolean(parts[3].trim());
-
-            users.add(new User(username, passwordHash, role, active));
-        }
-
-        return users;
-    }
-
-    private void ensureStorageExists() throws IOException {
-        Path parentFolder = usersFilePath.getParent();
-        if (parentFolder != null) {
-            Files.createDirectories(parentFolder);
-        }
-
-        if (Files.notExists(usersFilePath)) {
-            saveDefaultUsers();
+            return profileNamesByUser;
         }
     }
 
-    private void saveDefaultUsers() throws IOException {
-        List<String> defaultUsers = List.of(
-                buildUserLine("admin", "admin123", "ADMIN", true),
-                buildUserLine("scanner", "user123", "USER", true),
-                buildUserLine("inactive", "inactive123", "USER", false)
+    private List<String> loadAssignedProfileNames(Connection connection, int userId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                     SELECT sp.name
+                     FROM user_profile_assignments upa
+                     JOIN scan_profiles sp ON sp.id = upa.scan_profile_id
+                     WHERE upa.user_id = ?
+                     ORDER BY sp.name
+                     """)) {
+            statement.setInt(1, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<String> profileNames = new ArrayList<>();
+
+                while (resultSet.next()) {
+                    profileNames.add(resultSet.getString("name"));
+                }
+
+                return profileNames;
+            }
+        }
+    }
+
+    private User readUser(ResultSet resultSet, List<String> assignedProfileNames) throws SQLException {
+        return new User(
+                resultSet.getInt("id"),
+                resultSet.getString("name"),
+                resultSet.getString("username"),
+                resultSet.getString("email"),
+                resultSet.getString("password_hash"),
+                displayRole(resultSet.getString("role")),
+                displayStatus(resultSet.getString("status")),
+                assignedProfileNames,
+                resultSet.getBoolean("is_current_user")
         );
-
-        Files.write(usersFilePath, defaultUsers, StandardCharsets.UTF_8);
     }
 
-    private String buildUserLine(String username, String plainTextPassword, String role, boolean active) {
-        String passwordHash = PasswordHasher.hash(plainTextPassword);
-        return username + ";" + passwordHash + ";" + role + ";" + active;
+    private int readGeneratedIntId(Statement statement) throws SQLException {
+        try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                return generatedKeys.getInt(1);
+            }
+        }
+
+        throw new SQLException("Database did not return a generated user id.");
+    }
+
+    private String displayRole(String role) {
+        String cleanedRole = clean(role);
+
+        if (cleanedRole.equalsIgnoreCase("admin")) {
+            return "Admin";
+        }
+
+        if (cleanedRole.equalsIgnoreCase("user")) {
+            return "User";
+        }
+
+        if (cleanedRole.equalsIgnoreCase("qa")) {
+            return "QA";
+        }
+
+        return titleCase(cleanedRole);
+    }
+
+    private String displayStatus(String status) {
+        return titleCase(clean(status));
+    }
+
+    private String titleCase(String value) {
+        if (value.isBlank()) {
+            return "";
+        }
+
+        String lowerCase = value.toLowerCase(java.util.Locale.ROOT);
+        return Character.toUpperCase(lowerCase.charAt(0)) + lowerCase.substring(1);
+    }
+
+    private String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 }

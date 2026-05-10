@@ -1,9 +1,8 @@
 package easv.bll;
 
 import easv.be.User;
+import easv.dal.DataAccessException;
 import easv.dal.UserDAO;
-
-import java.io.IOException;
 
 /**
  * This class contains the login rules.
@@ -57,7 +56,7 @@ public class AuthManager {
             // After a successful login, we keep the user in memory for later actions.
             UserSession.setCurrentUser(storedUser);
             return AuthResult.success(storedUser);
-        } catch (IOException exception) {
+        } catch (DataAccessException exception) {
             UserSession.clearCurrentUser();
             return AuthResult.failure("The system could not read the stored accounts.");
         }
