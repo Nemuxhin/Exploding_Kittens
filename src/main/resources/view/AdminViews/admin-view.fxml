@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.ImageView?>
@@ -16,18 +17,24 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="easv.gui.controller.admin.AdminController"
             stylesheets="@/css/app.css"
-            styleClass="app-shell"
             maxWidth="Infinity"
             maxHeight="Infinity">
+
+    <styleClass>
+        <String fx:value="app-shell"/>
+        <String fx:value="user-portal-shell"/>
+        <String fx:value="admin-portal-shell"/>
+    </styleClass>
 
     <top>
         <VBox styleClass="admin-shell-head">
             <HBox alignment="CENTER_LEFT"
-                  spacing="18"
+                  spacing="12"
                   styleClass="admin-top-bar">
 
                 <HBox alignment="CENTER_LEFT"
                       spacing="12"
+                      translateY="3"
                       styleClass="admin-brand">
                     <StackPane fx:id="brandMark" styleClass="admin-brand-mark">
                         <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
@@ -48,15 +55,12 @@
                                        visible="false"
                                        managed="false"/>
                         </StackPane>
-
-                        <Label text="Admin Portal" styleClass="admin-brand-subtitle"/>
                     </VBox>
                 </HBox>
 
-                <Region HBox.hgrow="ALWAYS"/>
-
-                <HBox alignment="CENTER"
+                <HBox alignment="CENTER_LEFT"
                       spacing="8"
+                      minWidth="0"
                       styleClass="admin-nav-bar">
                     <ToggleButton fx:id="dashboardNavItem"
                                   focusTraversable="false"
@@ -167,45 +171,60 @@
                 <Region HBox.hgrow="ALWAYS"/>
 
                 <HBox alignment="CENTER_RIGHT"
-                      spacing="12"
+                      spacing="9"
+                      translateY="3"
                       styleClass="admin-account">
                     <ToggleButton fx:id="darkModeToggleButton"
                                   focusTraversable="false"
                                   contentDisplay="GRAPHIC_ONLY">
                         <styleClass>
                             <String fx:value="admin-toolbar-button"/>
+                            <String fx:value="account-theme-toggle"/>
                         </styleClass>
                         <graphic>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
+                            <HBox alignment="CENTER_RIGHT" spacing="6">
                                 <SVGPath fx:id="themeModeIcon"
                                          content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
                                          styleClass="admin-toolbar-icon"/>
                                 <Label fx:id="themeModeLabel"
                                        text="Light Mode"
-                                       visible="false"
-                                       managed="false"
-                                       styleClass="admin-toolbar-label"/>
+                                       styleClass="account-theme-label"/>
                             </HBox>
                         </graphic>
                     </ToggleButton>
 
-                    <VBox alignment="CENTER_RIGHT" spacing="2">
-                        <Label fx:id="accountNameLabel"
-                               text="System Admin"
-                               styleClass="admin-account-name"/>
-                        <Label fx:id="accountRoleLabel"
-                               text="Administrative Portal"
-                               visible="false"
-                               managed="false"
-                               styleClass="admin-account-role"/>
-                    </VBox>
+                    <Button fx:id="accountMenuButton"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY">
+                        <styleClass>
+                            <String fx:value="account-menu-trigger"/>
+                        </styleClass>
+                        <graphic>
+                            <HBox alignment="CENTER_LEFT" spacing="9">
+                                <VBox alignment="CENTER_RIGHT" spacing="2">
+                                    <Label fx:id="accountNameLabel"
+                                           text="Admin System"
+                                           styleClass="admin-account-name"/>
+                                    <Label fx:id="accountRoleLabel"
+                                           text="Admin Portal"
+                                           visible="false"
+                                           managed="false"
+                                           styleClass="admin-account-role"/>
+                                </VBox>
 
-                    <StackPane styleClass="admin-avatar-shell">
-                        <Label text="AD" styleClass="admin-avatar-label"/>
-                    </StackPane>
+                                <StackPane styleClass="admin-avatar-shell">
+                                    <Label fx:id="avatarInitialsLabel"
+                                           text="AD"
+                                           styleClass="admin-avatar-label"/>
+                                </StackPane>
+
+                                <SVGPath content="M7 10l5 5 5-5H7z"
+                                         styleClass="account-menu-caret"/>
+                            </HBox>
+                        </graphic>
+                    </Button>
                 </HBox>
             </HBox>
-
         </VBox>
     </top>
 

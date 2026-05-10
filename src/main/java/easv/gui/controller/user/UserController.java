@@ -1,23 +1,37 @@
 package easv.gui.controller.user;
 
 import easv.be.User;
+import easv.bll.AuthManager;
 import easv.bll.UserSession;
+import easv.gui.MainApp;
 import easv.gui.UserPortalModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
@@ -52,19 +66,23 @@ public class UserController implements UserNavigator {
     @FXML private Label accountNameLabel;
     @FXML private Label accountRoleLabel;
     @FXML private Label avatarInitialsLabel;
+    @FXML private Button accountMenuButton;
 
     @FXML private ToggleButton dashboardNavItem;
     @FXML private ToggleButton scanNavItem;
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
     @FXML private ToggleButton exportsNavItem;
-    @FXML private ToggleButton settingsNavItem;
 
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private SVGPath darkModeToggleIcon;
+    @FXML private Label darkModeToggleLabel;
 
     private final UserPortalModel portalModel = new UserPortalModel();
+    private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
+    private MainApp mainApp;
+    private final ContextMenu accountMenu = new ContextMenu();
 
     @FXML
     private void initialize() {
@@ -74,13 +92,17 @@ public class UserController implements UserNavigator {
         showPage(UserPage.DASHBOARD);
     }
 
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
+
     private void configureShell() {
         UserPortalModel.AccountProfile fallbackProfile = portalModel.fetchAccountProfile();
         User currentUser = UserSession.getCurrentUser();
 
-        String accountName = currentUser == null || currentUser.getName().isBlank()
-                ? fallbackProfile.fullName()
-                : currentUser.getName();
+        String accountName = fallbackProfile.fullName() == null || fallbackProfile.fullName().isBlank()
+                ? (currentUser == null || currentUser.getName().isBlank() ? "User" : currentUser.getName())
+                : fallbackProfile.fullName();
 
         String accountRole = currentUser == null || currentUser.getRole().isBlank()
                 ? "User Portal"
@@ -162,6 +184,10 @@ public class UserController implements UserNavigator {
         if (darkModeToggleIcon != null) {
             darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
         }
+
+        if (darkModeToggleLabel != null) {
+            darkModeToggleLabel.setText(isDark ? "Dark Mode" : "Light Mode");
+        }
     }
 
     private void configureNavigation() {
@@ -172,6 +198,12 @@ public class UserController implements UserNavigator {
                 navItem.setOnAction(event -> showPage(page));
             }
         }
+
+        if (accountMenuButton != null) {
+            accountMenuButton.setOnAction(event -> toggleAccountMenu());
+        }
+
+        configureAccountMenu();
     }
 
     @Override
@@ -221,6 +253,7 @@ public class UserController implements UserNavigator {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> new ExportsController(portalModel).create();
+            case EDIT_PROFILE -> createEditProfilePage();
             case SETTINGS -> new SettingsController(portalModel).create();
             default -> createMissingPagePlaceholder(page.title());
         };
@@ -269,6 +302,58 @@ public class UserController implements UserNavigator {
         return placeholder;
     }
 
+    private VBox createEditProfilePage() {
+        UserPortalModel.AccountProfile profile = portalModel.fetchAccountProfile();
+
+        Label titleLabel = new Label("Edit User Profile");
+        titleLabel.getStyleClass().add("exports-title");
+
+        Label subtitleLabel = new Label("Update the account details shown in the portal header and personal menu.");
+        subtitleLabel.getStyleClass().add("exports-subtitle");
+
+        Label nameLabel = new Label("Full Name");
+        nameLabel.getStyleClass().add("field-label");
+        TextField nameField = new TextField(profile.fullName());
+        nameField.getStyleClass().add("weblager-text-field");
+
+        Label emailLabel = new Label("Email");
+        emailLabel.getStyleClass().add("field-label");
+        TextField emailField = new TextField(profile.email());
+        emailField.getStyleClass().add("weblager-text-field");
+
+        Label departmentLabel = new Label("Department");
+        departmentLabel.getStyleClass().add("field-label");
+        TextField departmentField = new TextField(profile.department());
+        departmentField.getStyleClass().add("weblager-text-field");
+
+        VBox form = new VBox(12,
+                nameLabel, nameField,
+                emailLabel, emailField,
+                departmentLabel, departmentField
+        );
+        form.getStyleClass().add("profile-info-panel");
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().add("portal-secondary-button");
+        cancelButton.setOnAction(event -> showPage(UserPage.DASHBOARD));
+
+        Button saveButton = new Button("Save Profile");
+        saveButton.getStyleClass().add("portal-primary-button");
+        saveButton.setOnAction(event -> {
+            portalModel.updateAccountProfile(nameField.getText(), emailField.getText(), departmentField.getText());
+            configureShell();
+            showPage(UserPage.DASHBOARD);
+        });
+
+        HBox actions = new HBox(9, cancelButton, saveButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox page = new VBox(24, new VBox(6, titleLabel, subtitleLabel), form, actions);
+        page.getStyleClass().addAll("portal-page", "exports-page");
+        page.setMaxWidth(Double.MAX_VALUE);
+        return page;
+    }
+
     private void setActiveNavItem(ToggleButton activeNavItem) {
         for (ToggleButton navItem : getNavigationItems()) {
             if (navItem != null) {
@@ -306,8 +391,7 @@ public class UserController implements UserNavigator {
                 scanNavItem,
                 myScansNavItem,
                 assignedQANavItem,
-                exportsNavItem,
-                settingsNavItem
+                exportsNavItem
         );
     }
 
@@ -318,7 +402,143 @@ public class UserController implements UserNavigator {
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
             case EXPORTS -> exportsNavItem;
-            case SETTINGS -> settingsNavItem;
+            case EDIT_PROFILE, SETTINGS -> null;
         };
+    }
+
+    private void configureAccountMenu() {
+        UserPortalModel.AccountProfile profile = portalModel.fetchAccountProfile();
+
+        HBox headerRow = new HBox(12,
+                buildMenuAvatar(initialsFor(profile.fullName())),
+                buildMenuHeaderText(profile.fullName(), profile.email())
+        );
+        headerRow.getStyleClass().add("account-dropdown-header");
+
+        CustomMenuItem headerItem = new CustomMenuItem(headerRow, false);
+        headerItem.getStyleClass().add("account-dropdown-header-item");
+        headerItem.setHideOnClick(false);
+
+        MenuItem editProfileItem = createAccountMenuItem("Edit User Profile", "user", () -> showPage(UserPage.EDIT_PROFILE));
+        MenuItem settingsItem = createAccountMenuItem("Settings", "settings", () -> showPage(UserPage.SETTINGS));
+        MenuItem logoutItem = createAccountMenuItem("Log Out", "download", this::handleLogout);
+
+        accountMenu.getItems().setAll(
+                headerItem,
+                new SeparatorMenuItem(),
+                editProfileItem,
+                settingsItem,
+                logoutItem
+        );
+        if (!accountMenu.getStyleClass().contains("account-dropdown-menu")) {
+            accountMenu.getStyleClass().add("account-dropdown-menu");
+        }
+    }
+
+    private void toggleAccountMenu() {
+        if (accountMenuButton == null) {
+            return;
+        }
+
+        if (accountMenu.isShowing()) {
+            accountMenu.hide();
+            return;
+        }
+
+        configureAccountMenu();
+        accountMenu.show(accountMenuButton, Side.BOTTOM, 0, 9);
+        keepAccountMenuInsideWindow();
+    }
+
+    private void keepAccountMenuInsideWindow() {
+        if (accountMenuButton == null || accountMenu.getScene() == null || accountMenu.getSkin() == null) {
+            return;
+        }
+
+        Bounds buttonBounds = accountMenuButton.localToScreen(accountMenuButton.getBoundsInLocal());
+        Window window = accountMenuButton.getScene().getWindow();
+
+        if (buttonBounds == null || window == null) {
+            return;
+        }
+
+        double menuWidth = accountMenu.getSkin().getNode().prefWidth(-1);
+        double inset = 12;
+        double minX = window.getX() + inset;
+        double maxX = window.getX() + window.getWidth() - menuWidth - inset;
+        double anchorX = Math.min(Math.max(buttonBounds.getMaxX() - menuWidth, minX), maxX);
+
+        accountMenu.setAnchorX(anchorX);
+        accountMenu.setAnchorY(buttonBounds.getMaxY() + 9);
+    }
+
+    private MenuItem createAccountMenuItem(String text, String iconKey, Runnable action) {
+        HBox row = new HBox(12,
+                wrapMenuIcon(iconKey),
+                buildMenuItemLabel(text),
+                buildMenuItemArrow()
+        );
+        row.getStyleClass().add("account-dropdown-item-row");
+        HBox.setMargin(row.getChildren().get(2), new Insets(0, 0, 0, 6));
+
+        CustomMenuItem item = new CustomMenuItem(row, true);
+        item.getStyleClass().add("account-dropdown-item");
+        item.setOnAction(event -> action.run());
+        return item;
+    }
+
+    private StackPane buildMenuAvatar(String initials) {
+        Label label = new Label(initials);
+        label.getStyleClass().add("account-dropdown-avatar-label");
+
+        StackPane avatar = new StackPane(label);
+        avatar.getStyleClass().add("account-dropdown-avatar");
+        return avatar;
+    }
+
+    private VBox buildMenuHeaderText(String name, String detail) {
+        Label nameLabel = new Label(name == null || name.isBlank() ? "User" : name);
+        nameLabel.getStyleClass().add("account-dropdown-name");
+
+        Label detailLabel = new Label(detail == null || detail.isBlank() ? "User Portal" : detail);
+        detailLabel.getStyleClass().add("account-dropdown-detail");
+
+        VBox textWrap = new VBox(3, nameLabel, detailLabel);
+        textWrap.setAlignment(Pos.CENTER_LEFT);
+        return textWrap;
+    }
+
+    private StackPane wrapMenuIcon(String iconKey) {
+        StackPane shell = new StackPane(UserPortalUi.buildIcon(iconKey, "account-dropdown-item-icon"));
+        shell.getStyleClass().add("account-dropdown-item-icon-shell");
+        return shell;
+    }
+
+    private Label buildMenuItemLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("account-dropdown-item-label");
+        HBox.setHgrow(label, Priority.ALWAYS);
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
+
+    private Label buildMenuItemArrow() {
+        Label arrow = new Label("›");
+        arrow.getStyleClass().add("account-dropdown-item-arrow");
+        return arrow;
+    }
+
+    private void handleLogout() {
+        authManager.logout();
+
+        if (mainApp == null) {
+            throw new IllegalStateException("MainApp is not available for logout navigation.");
+        }
+
+        try {
+            mainApp.showLoginView();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not return to the login view.", exception);
+        }
     }
 }
