@@ -7755,6 +7755,313 @@
     -fx-padding: 18;
 }
 
+.exports-dialog-stage {
+    -fx-background-color: transparent;
+    -fx-padding: 18;
+}
+
+.exports-dialog-pane {
+    -fx-pref-width: 760;
+}
+
+.exports-dialog-pane > .content {
+    -fx-background-color: -wl-surface;
+}
+
+.exports-dialog-pane > .button-bar,
+.exports-dialog-pane > .button-bar > .container {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-max-height: 0;
+    -fx-pref-height: 0;
+}
+
+.exports-dialog-content {
+    -fx-padding: 18;
+    -fx-spacing: 12;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-header {
+    -fx-spacing: 3;
+}
+
+.exports-dialog-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+}
+
+.exports-dialog-section-label,
+.exports-dialog-files-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.exports-dialog-box-card {
+    -fx-padding: 9 12 9 12;
+    -fx-spacing: 0;
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-box-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.exports-dialog-box-detail {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 18px;
+}
+
+.exports-dialog-type-row {
+    -fx-spacing: 9;
+}
+
+.exports-dialog-option-button {
+    -fx-min-height: 78;
+    -fx-pref-height: 78;
+    -fx-max-width: Infinity;
+    -fx-padding: 9 12 9 12;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 2;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.exports-dialog-option-button-unselected {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+}
+
+.exports-dialog-option-button-unselected:hover,
+.exports-dialog-option-button-unselected:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.exports-dialog-option-button-selected,
+.exports-dialog-option-button-selected:hover,
+.exports-dialog-option-button-selected:pressed {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-primary;
+}
+
+.exports-dialog-option-content {
+    -fx-alignment: top-left;
+}
+
+.exports-dialog-option-copy {
+    -fx-spacing: 3;
+    -fx-alignment: top-left;
+}
+
+.exports-dialog-option-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.exports-dialog-option-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 18px;
+}
+
+.exports-dialog-option-check-badge {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 12;
+    -fx-alignment: center;
+}
+
+.exports-dialog-option-check-icon {
+    -fx-fill: -wl-on-primary;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.exports-dialog-files-card {
+    -fx-padding: 9 12 9 12;
+    -fx-spacing: 6;
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-file-grid {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-files-count,
+.exports-dialog-file-name,
+.exports-dialog-empty-state,
+.exports-dialog-output-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 18px;
+}
+
+.exports-dialog-file-cell-box {
+    -fx-alignment: center-left;
+    -fx-padding: 15 18 15 18;
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.exports-dialog-file-cell-box-bordered {
+    -fx-border-color: transparent -wl-border -wl-border transparent;
+    -fx-border-width: 0 1 1 0;
+}
+
+.exports-dialog-file-icon {
+    -fx-fill: -wl-secondary;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.exports-dialog-file-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-max-height: 210;
+}
+
+.exports-dialog-file-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.exports-dialog-file-scroll > .corner {
+    -fx-background-color: transparent;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-padding: 3;
+    -fx-pref-width: 12;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .track {
+    -fx-background-color: -wl-scroll-track;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: -wl-scroll-thumb;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .thumb:hover,
+.exports-dialog-file-scroll .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: -wl-scroll-thumb-hover;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .increment-button,
+.exports-dialog-file-scroll .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .increment-arrow,
+.exports-dialog-file-scroll .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: transparent;
+}
+
+.exports-dialog-empty-state {
+    -fx-padding: 9 12 9 12;
+}
+
+.exports-dialog-link-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-secondary-nav-bg;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.exports-dialog-link-button:hover,
+.exports-dialog-link-button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-underline: true;
+}
+
+.exports-dialog-footer,
+.exports-dialog-output-box {
+    -fx-alignment: center-left;
+}
+
+.exports-dialog-footer {
+    -fx-spacing: 6;
+}
+
+.exports-dialog-output-box {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+}
+
+.exports-dialog-footer-actions {
+    -fx-alignment: center-right;
+    -fx-spacing: 9;
+}
+
+.exports-dialog-output-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+    -fx-pref-width: 420;
+    -fx-max-width: 420;
+}
+
+.exports-dialog-export-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+}
+
+.exports-dialog-cancel-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+}
+
+.exports-dialog-export-button,
+.exports-dialog-cancel-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+}
+
 .settings-layout {
     -fx-alignment: top-left;
 }

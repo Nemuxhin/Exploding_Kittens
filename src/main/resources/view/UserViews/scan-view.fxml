@@ -1060,7 +1060,7 @@
                        styleClass="submit-confirmation-summary-muted"/>
 
                 <Label fx:id="submitConfirmationSummaryLabel"
-                       text="0 documents ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· 0 pages submitted for QA"
+                       text="0 documents - 0 pages submitted for QA"
                        styleClass="submit-confirmation-summary-muted"/>
             </VBox>
 
@@ -1075,6 +1075,7 @@
         </VBox>
     </StackPane>
 </StackPane>
+
 
 
 

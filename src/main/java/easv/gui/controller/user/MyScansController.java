@@ -243,13 +243,13 @@ public class MyScansController {
         GridPane row = new GridPane();
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMaxWidth(Double.MAX_VALUE);
-        row.setHgap(15);
+        row.setHgap(12);
         row.getColumnConstraints().setAll(
-                percentColumn(17),
-                percentColumn(19),
-                percentColumn(8),
-                percentColumn(11),
-                percentColumn(19),
+                percentColumn(16),
+                percentColumn(18),
+                percentColumn(10),
+                percentColumn(10),
+                percentColumn(20),
                 percentColumn(12),
                 percentColumn(14)
         );
