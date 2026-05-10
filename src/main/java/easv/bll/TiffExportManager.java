@@ -5,9 +5,7 @@ import easv.be.TiffExportItem;
 import easv.be.TiffExportPlan;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class prepares TIFF export previews.
@@ -28,20 +26,16 @@ public class TiffExportManager {
     }
 
     public TiffExportPlan createMultiPagePlan(String profileName, String boxId, List<PageImage> pages) {
-        Map<String, List<PageImage>> pagesByDocument = new LinkedHashMap<>();
-
-        for (PageImage page : safePages(pages)) {
-            pagesByDocument.computeIfAbsent(page.getSourceReference(), key -> new ArrayList<>()).add(page);
-        }
-
+        List<PageImage> selectedPages = safePages(pages);
         List<TiffExportItem> items = new ArrayList<>();
 
-        for (Map.Entry<String, List<PageImage>> entry : pagesByDocument.entrySet()) {
-            String fileName = buildFileName(profileName, boxId, entry.getKey(), "multi-page");
-            items.add(new TiffExportItem(entry.getKey(), fileName, entry.getValue()));
+        if (!selectedPages.isEmpty()) {
+            // Multi-page means one combined TIFF containing all selected pages/files.
+            String fileName = buildFileName(profileName, boxId, "selected-files", "multi-page");
+            items.add(new TiffExportItem("SELECTED_FILES", fileName, selectedPages));
         }
 
-        return new TiffExportPlan("MULTI_PAGE_TIFF_PER_DOCUMENT", items, buildWarnings(profileName, boxId));
+        return new TiffExportPlan("MULTI_PAGE_TIFF_FILE", items, buildWarnings(profileName, boxId));
     }
 
     private List<PageImage> safePages(List<PageImage> pages) {

@@ -122,7 +122,7 @@ class AuditMetadataExportTest {
     void exportPlansShowFilesPagesAndWarnings() {
         TiffExportManager tiffExportManager = new TiffExportManager();
         PageImage pageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
-        PageImage pageTwo = new PageImage(2, PageImage.PageType.TIFF, "DOC-1");
+        PageImage pageTwo = new PageImage(2, PageImage.PageType.TIFF, "DOC-2");
 
         TiffExportPlan singlePagePlan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
         TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan("", "", List.of(pageOne, pageTwo));
@@ -131,6 +131,8 @@ class AuditMetadataExportTest {
         assertEquals(2, singlePagePlan.getPageCount());
         assertEquals("Profile_A_BOX-1_DOC-1_page-1.tiff", singlePagePlan.getItems().get(0).getFileName());
         assertEquals(1, multiPagePlan.getFileCount());
+        assertEquals(2, multiPagePlan.getPageCount());
+        assertEquals("MULTI_PAGE_TIFF_FILE", multiPagePlan.getExportType());
         assertEquals(2, multiPagePlan.getWarnings().size());
     }
 }
