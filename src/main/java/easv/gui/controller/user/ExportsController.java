@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -24,8 +25,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ExportsController {
     private static final String ALL_STATUSES = "All Statuses";
@@ -42,6 +45,9 @@ public class ExportsController {
     private final TextField searchField = new TextField();
     private final ComboBox<String> statusFilter = new ComboBox<>();
     private boolean filtersConfigured;
+
+    private record SelectableExportFile(UserPortalModel.ExportItem exportItem, String documentId, String displayName) {
+    }
 
     public ExportsController(UserPortalModel portalModel) {
         this.portalModel = portalModel;
@@ -246,8 +252,13 @@ public class ExportsController {
         includeRow.getStyleClass().add("exports-filter-panel");
         includeRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox selectedFilesBox = new VBox(8);
-        selectedFilesBox.getStyleClass().add("exports-table-panel");
+        Map<SelectableExportFile, CheckBox> fileCheckBoxes = buildFileCheckBoxes(item);
+
+        VBox fileSelectionBox = new VBox(8);
+        fileSelectionBox.getStyleClass().add("exports-table-panel");
+
+        VBox previewBox = new VBox(8);
+        previewBox.getStyleClass().add("exports-table-panel");
 
         Label outputLabel = new Label();
         outputLabel.getStyleClass().add("exports-footer-text");
@@ -262,11 +273,12 @@ public class ExportsController {
                 exportTypeRow,
                 sectionTitle("Include"),
                 includeRow,
-                selectedFilesBox,
+                fileSelectionBox,
+                previewBox,
                 outputLabel,
                 warningLabel
         );
-        content.setPrefWidth(760);
+        content.setPrefWidth(820);
         dialog.getDialogPane().setContent(content);
 
         Button exportButton = (Button) dialog.getDialogPane().lookupButton(exportButtonType);
@@ -274,10 +286,13 @@ public class ExportsController {
 
         Runnable refreshPreview = () -> {
             String includeMode = selectedIncludeMode(includeGroup);
-            List<PageImage> pages = createPagesForSelection(item, includeMode);
+            syncFileSelection(item, includeMode, fileCheckBoxes);
+            List<SelectableExportFile> selectedFiles = selectedFilesForMode(item, includeMode, fileCheckBoxes);
+            List<PageImage> pages = createPagesForFiles(selectedFiles);
             TiffExportPlan plan = createPlan(item, singlePageOption.isSelected(), pages);
 
-            selectedFilesBox.getChildren().setAll(buildSelectedFilesPreview(item, includeMode, plan));
+            fileSelectionBox.getChildren().setAll(buildFileSelectionContent(includeMode, fileCheckBoxes));
+            previewBox.getChildren().setAll(buildSelectedFilesPreview(selectedFiles, item, includeMode, plan));
             outputLabel.setText(outputText(plan, singlePageOption.isSelected()));
             warningLabel.setText(String.join(" ", plan.getWarnings()));
             warningLabel.setVisible(!plan.getWarnings().isEmpty());
@@ -289,10 +304,12 @@ public class ExportsController {
         oneFileOption.setOnAction(event -> refreshPreview.run());
         selectedFilesOption.setOnAction(event -> refreshPreview.run());
         entireBoxOption.setOnAction(event -> refreshPreview.run());
+        fileCheckBoxes.values().forEach(checkBox -> checkBox.setOnAction(event -> refreshPreview.run()));
 
         exportButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
             String includeMode = selectedIncludeMode(includeGroup);
-            List<PageImage> pages = createPagesForSelection(item, includeMode);
+            List<SelectableExportFile> selectedFiles = selectedFilesForMode(item, includeMode, fileCheckBoxes);
+            List<PageImage> pages = createPagesForFiles(selectedFiles);
             TiffExportPlan plan = createPlan(item, singlePageOption.isSelected(), pages);
             outputLabel.setText("Export prepared: " + plan.getFileCount() + " file(s), " + plan.getPageCount() + " page(s).");
             event.consume();
@@ -320,25 +337,62 @@ public class ExportsController {
         return option;
     }
 
-    private VBox buildSelectedFilesPreview(UserPortalModel.ExportItem item, String includeMode, TiffExportPlan plan) {
+    private Map<SelectableExportFile, CheckBox> buildFileCheckBoxes(UserPortalModel.ExportItem selectedItem) {
+        Map<SelectableExportFile, CheckBox> checkBoxes = new LinkedHashMap<>();
+
+        for (SelectableExportFile file : selectableFilesInSameBox(selectedItem)) {
+            CheckBox checkBox = new CheckBox(file.displayName());
+            checkBox.getStyleClass().add("exports-table-cell-primary");
+            checkBox.setSelected(file.exportItem().equals(selectedItem));
+            checkBoxes.put(file, checkBox);
+        }
+
+        return checkBoxes;
+    }
+
+    private VBox buildFileSelectionContent(String includeMode, Map<SelectableExportFile, CheckBox> fileCheckBoxes) {
         VBox content = new VBox(8);
-        List<String> fileNames = selectedFileNames(item, includeMode);
+        content.getChildren().addAll(
+                sectionTitle("Choose files"),
+                infoLine("Mode", includeMode)
+        );
+
+        for (CheckBox checkBox : fileCheckBoxes.values()) {
+            content.getChildren().add(checkBox);
+        }
+
+        if (fileCheckBoxes.isEmpty()) {
+            content.getChildren().add(infoLine("Files", "No ready files available for this box."));
+        }
+
+        return content;
+    }
+
+    private VBox buildSelectedFilesPreview(List<SelectableExportFile> selectedFiles,
+                                           UserPortalModel.ExportItem item,
+                                           String includeMode,
+                                           TiffExportPlan plan) {
+        VBox content = new VBox(8);
 
         content.getChildren().addAll(
-                sectionTitle("Selected files"),
+                sectionTitle("Export preview"),
                 infoLine("Selection", includeMode),
                 infoLine("Box ID", item.boxId()),
                 infoLine("Profile", item.profileName()),
-                infoLine("Files selected", String.valueOf(fileNames.size())),
+                infoLine("Files selected", String.valueOf(selectedFiles.size())),
                 infoLine("Pages selected", String.valueOf(plan.getPageCount()))
         );
 
-        for (String fileName : fileNames.stream().limit(4).toList()) {
-            content.getChildren().add(infoLine("File", fileName));
+        for (SelectableExportFile selectedFile : selectedFiles.stream().limit(4).toList()) {
+            content.getChildren().add(infoLine("File", selectedFile.displayName()));
         }
 
-        if (fileNames.size() > 4) {
-            content.getChildren().add(infoLine("More", (fileNames.size() - 4) + " more file(s)"));
+        if (selectedFiles.size() > 4) {
+            content.getChildren().add(infoLine("More", (selectedFiles.size() - 4) + " more file(s)"));
+        }
+
+        if (selectedFiles.isEmpty()) {
+            content.getChildren().add(infoLine("File", "Select at least one file to export."));
         }
 
         content.getChildren().add(sectionTitle("Filename preview"));
@@ -365,44 +419,100 @@ public class ExportsController {
         return tiffExportManager.createMultiPagePlan(item.profileName(), item.boxId(), pages);
     }
 
-    private List<PageImage> createPagesForSelection(UserPortalModel.ExportItem item, String includeMode) {
-        if (!INCLUDE_ENTIRE_BOX.equals(includeMode)) {
-            return createPagesForExport(item);
+    private void syncFileSelection(UserPortalModel.ExportItem selectedItem,
+                                   String includeMode,
+                                   Map<SelectableExportFile, CheckBox> fileCheckBoxes) {
+        boolean customSelection = INCLUDE_SELECTED_FILES.equals(includeMode);
+
+        for (Map.Entry<SelectableExportFile, CheckBox> entry : fileCheckBoxes.entrySet()) {
+            SelectableExportFile file = entry.getKey();
+            CheckBox checkBox = entry.getValue();
+            checkBox.setDisable(!customSelection);
+
+            if (INCLUDE_ONE_FILE.equals(includeMode)) {
+                checkBox.setSelected(file.equals(firstFileForItem(selectedItem)));
+            }
+
+            if (INCLUDE_ENTIRE_BOX.equals(includeMode)) {
+                checkBox.setSelected(true);
+            }
+        }
+    }
+
+    private List<SelectableExportFile> selectedFilesForMode(UserPortalModel.ExportItem selectedItem,
+                                                            String includeMode,
+                                                            Map<SelectableExportFile, CheckBox> fileCheckBoxes) {
+        if (INCLUDE_ONE_FILE.equals(includeMode)) {
+            return List.of(firstFileForItem(selectedItem));
         }
 
-        List<PageImage> pages = new ArrayList<>();
-        for (UserPortalModel.ExportItem exportItem : portalModel.fetchExports()) {
-            boolean sameBox = exportItem.boxId().equalsIgnoreCase(item.boxId());
-            boolean ready = "Ready".equalsIgnoreCase(exportItem.status());
+        if (INCLUDE_ENTIRE_BOX.equals(includeMode)) {
+            return selectableFilesInSameBox(selectedItem);
+        }
 
-            if (sameBox && ready) {
-                pages.addAll(createPagesForExport(exportItem));
+        return fileCheckBoxes.entrySet().stream()
+                .filter(entry -> entry.getValue().isSelected())
+                .map(Map.Entry::getKey)
+                .toList();
+    }
+
+    private List<SelectableExportFile> selectableFilesInSameBox(UserPortalModel.ExportItem selectedItem) {
+        List<SelectableExportFile> files = new ArrayList<>();
+
+        for (UserPortalModel.ExportItem item : readyItemsInSameBox(selectedItem)) {
+            for (String documentId : documentIdsFor(item)) {
+                String displayName = documentId + ".pdf";
+                files.add(new SelectableExportFile(item, documentId, displayName));
             }
+        }
+
+        return files;
+    }
+
+    private List<UserPortalModel.ExportItem> readyItemsInSameBox(UserPortalModel.ExportItem selectedItem) {
+        return portalModel.fetchExports().stream()
+                .filter(item -> item.boxId().equalsIgnoreCase(selectedItem.boxId()))
+                .filter(item -> "Ready".equalsIgnoreCase(item.status()))
+                .toList();
+    }
+
+    private SelectableExportFile firstFileForItem(UserPortalModel.ExportItem item) {
+        String documentId = documentIdsFor(item).get(0);
+        return new SelectableExportFile(item, documentId, documentId + ".pdf");
+    }
+
+    private List<PageImage> createPagesForFiles(List<SelectableExportFile> selectedFiles) {
+        List<PageImage> pages = new ArrayList<>();
+        for (SelectableExportFile selectedFile : selectedFiles) {
+            pages.addAll(createPagesForFile(selectedFile));
+        }
+        return pages;
+    }
+
+    private List<PageImage> createPagesForFile(SelectableExportFile file) {
+        List<PageImage> pages = new ArrayList<>();
+        UserPortalModel.ExportItem item = file.exportItem();
+        List<String> documentIds = documentIdsFor(item);
+        int documentIndex = Math.max(0, documentIds.indexOf(file.documentId()));
+        int totalPages = Math.max(1, item.pageCount());
+        int basePages = totalPages / documentIds.size();
+        int extraPages = totalPages % documentIds.size();
+        int pagesForDocument = Math.max(1, basePages + (documentIndex < extraPages ? 1 : 0));
+        int firstPageNumber = documentIndex * basePages + Math.min(documentIndex, extraPages) + 1;
+
+        for (int offset = 0; offset < pagesForDocument; offset++) {
+            pages.add(new PageImage(firstPageNumber + offset, PageImage.PageType.TIFF, file.documentId()));
         }
 
         return pages;
     }
 
-    private List<String> selectedFileNames(UserPortalModel.ExportItem item, String includeMode) {
-        if (INCLUDE_ENTIRE_BOX.equals(includeMode)) {
-            return portalModel.fetchExports().stream()
-                    .filter(exportItem -> exportItem.boxId().equalsIgnoreCase(item.boxId()))
-                    .filter(exportItem -> "Ready".equalsIgnoreCase(exportItem.status()))
-                    .map(UserPortalModel.ExportItem::fileName)
-                    .toList();
+    private List<String> documentIdsFor(UserPortalModel.ExportItem item) {
+        if (!item.documentIds().isEmpty()) {
+            return item.documentIds();
         }
 
-        if (INCLUDE_ONE_FILE.equals(includeMode)) {
-            return List.of(item.fileName());
-        }
-
-        if (item.documentIds().isEmpty()) {
-            return List.of(item.fileName());
-        }
-
-        return item.documentIds().stream()
-                .map(documentId -> documentId + ".pdf")
-                .toList();
+        return List.of(item.fileName().replace(".pdf", ""));
     }
 
     private String selectedIncludeMode(ToggleGroup includeGroup) {
