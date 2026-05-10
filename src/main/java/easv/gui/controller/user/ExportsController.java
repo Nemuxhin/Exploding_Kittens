@@ -230,12 +230,7 @@ public class ExportsController {
         action.setDisable(!"Completed".equalsIgnoreCase(item.status()));
         action.setOnAction(event -> openExportDialog(item));
 
-        Button deleteButton = new Button();
-        deleteButton.getStyleClass().add("exports-delete-button");
-        deleteButton.setGraphic(UserPortalUi.buildIcon("trash", "exports-delete-icon"));
-        deleteButton.setDisable(!"Completed".equalsIgnoreCase(item.status()));
-
-        HBox actionBox = new HBox(9, action, deleteButton);
+        HBox actionBox = new HBox(action);
         actionBox.getStyleClass().add("exports-action-box");
 
         row.add(primaryCell(item.boxId()), 0, 0);
