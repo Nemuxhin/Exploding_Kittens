@@ -125,7 +125,9 @@
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="142" styleClass="metadata-review-card-count"/>
+                            <Label fx:id="missingRequiredCountLabel"
+                                   text="0"
+                                   styleClass="metadata-review-card-count"/>
                         </HBox>
 
                         <Label text="Missing Required Metadata"
@@ -162,7 +164,9 @@
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="9" styleClass="metadata-review-card-count"/>
+                            <Label fx:id="exportBlockedCountLabel"
+                                   text="0"
+                                   styleClass="metadata-review-card-count"/>
                         </HBox>
 
                         <Label text="Export Blocked"
@@ -199,7 +203,9 @@
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="6" styleClass="metadata-review-card-count"/>
+                            <Label fx:id="failedValidationCountLabel"
+                                   text="0"
+                                   styleClass="metadata-review-card-count"/>
                         </HBox>
 
                         <Label text="Failed Validation"
@@ -236,7 +242,9 @@
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="58" styleClass="metadata-review-card-count"/>
+                            <Label fx:id="readyForQaCountLabel"
+                                   text="0"
+                                   styleClass="metadata-review-card-count"/>
                         </HBox>
 
                         <Label text="Ready for QA"
@@ -273,7 +281,9 @@
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="12" styleClass="metadata-review-card-count"/>
+                            <Label fx:id="qaRejectedCountLabel"
+                                   text="0"
+                                   styleClass="metadata-review-card-count"/>
                         </HBox>
 
                         <Label text="QA Rejected"
@@ -310,7 +320,9 @@
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="241" styleClass="metadata-review-card-count"/>
+                            <Label fx:id="recentlyScannedCountLabel"
+                                   text="0"
+                                   styleClass="metadata-review-card-count"/>
                         </HBox>
 
                         <Label text="Recently Scanned"

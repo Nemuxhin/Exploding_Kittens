@@ -117,10 +117,13 @@ public class MetadataController {
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private MetadataTemplateRow selectedTemplate;
-    private AdminManager adminManager = new AdminManager();
+    private AdminManager adminManager;
 
     void setAdminManager(AdminManager adminManager) {
-        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        this.adminManager = adminManager;
+        if (this.adminManager == null) {
+            return;
+        }
         loadTemplates();
         loadAssignedProfiles(List.of());
         renderAssignedProfiles();
@@ -131,7 +134,6 @@ public class MetadataController {
     private void initialize() {
         configureFilters();
         configureRowsPerPageSelector();
-        loadTemplates();
         templateFields.clear();
         loadAssignedProfiles(List.of());
         configureFiltering();
@@ -611,6 +613,11 @@ public class MetadataController {
     }
 
     private void loadAssignedProfiles(List<String> selectedProfileNames) {
+        if (adminManager == null) {
+            assignedProfiles.clear();
+            return;
+        }
+
         List<String> selectedProfiles = selectedProfileNames == null ? List.of() : selectedProfileNames;
 
         assignedProfiles.setAll(
@@ -650,13 +657,16 @@ public class MetadataController {
         CheckBox row = new CheckBox();
         HBox content = new HBox(18);
         content.setAlignment(Pos.CENTER_LEFT);
+        content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);
+        content.getStyleClass().add("metadata-profile-row-content");
 
         row.setMaxWidth(Double.MAX_VALUE);
         row.setSelected(profile.selected());
         row.setFocusTraversable(true);
         row.setGraphic(content);
         row.getStyleClass().add("metadata-profile-row");
+        content.prefWidthProperty().bind(row.widthProperty().subtract(66));
 
         if (lastRow) {
             row.getStyleClass().add("metadata-profile-row-last");
@@ -726,6 +736,10 @@ public class MetadataController {
     }
 
     private void updateTemplateStatus(MetadataTemplateRow template, String newStatus) {
+        if (adminManager == null) {
+            return;
+        }
+
         if ("Archived".equalsIgnoreCase(newStatus)) {
             adminManager.archiveMetadataTemplate(template.id());
         } else {
@@ -896,6 +910,10 @@ public class MetadataController {
 
     @FXML
     private void saveTemplate() {
+        if (adminManager == null) {
+            return;
+        }
+
         String templateName = templateNameField.getText().isBlank()
                 ? "Untitled Template"
                 : templateNameField.getText().trim();
@@ -1032,6 +1050,12 @@ public class MetadataController {
     }
 
     private void loadTemplates() {
+        if (adminManager == null) {
+            masterTemplates.clear();
+            refreshProfileFilterOptions();
+            return;
+        }
+
         masterTemplates.setAll(
                 adminManager.getMetadataTemplates().stream()
                         .map(this::toMetadataTemplateRow)
@@ -1074,10 +1098,12 @@ public class MetadataController {
         }
 
         String selectedProfile = profileFilterComboBox.getValue();
-        List<String> profileNames = adminManager.getProfiles().stream()
-                .map(ScanProfile::getName)
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .toList();
+        List<String> profileNames = adminManager == null
+                ? List.of()
+                : adminManager.getProfiles().stream()
+                        .map(ScanProfile::getName)
+                        .sorted(String.CASE_INSENSITIVE_ORDER)
+                        .toList();
 
         List<String> filterOptions = new ArrayList<>();
         filterOptions.add(ALL_PROFILES);

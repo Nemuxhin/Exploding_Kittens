@@ -1732,6 +1732,95 @@
     -fx-padding: 18;
 }
 
+.dashboard-stat-card {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-height: 126;
+    -fx-pref-height: 126;
+    -fx-max-height: 126;
+    -fx-padding: 15 18 15 18;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.dashboard-workflow-overview-card {
+    -fx-min-height: 126;
+    -fx-pref-height: 126;
+    -fx-max-height: 126;
+}
+
+.dashboard-stat-visual {
+    -fx-min-width: 84;
+    -fx-pref-width: 84;
+    -fx-max-width: 84;
+}
+
+.dashboard-stat-title {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-stat-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-stat-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.dashboard-trend-neutral,
+.dashboard-trend-up,
+.dashboard-trend-down {
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-trend-neutral {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.dashboard-trend-up {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.dashboard-trend-down {
+    -fx-text-fill: -wl-tag-red-text;
+}
+
+.dashboard-sparkline-teal,
+.dashboard-sparkline-blue,
+.dashboard-sparkline-purple,
+.dashboard-sparkline-orange {
+    -fx-fill: transparent;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.dashboard-sparkline-teal {
+    -fx-stroke: -wl-tag-teal-text;
+}
+
+.dashboard-sparkline-blue {
+    -fx-stroke: -wl-tag-blue-text;
+}
+
+.dashboard-sparkline-purple {
+    -fx-stroke: -wl-tag-purple-text;
+}
+
+.dashboard-sparkline-orange {
+    -fx-stroke: -wl-tag-amber-text;
+}
+
 .dashboard-attention-card {
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
@@ -1890,6 +1979,13 @@
     -fx-border-width: 0 0 1 0;
 }
 
+.dashboard-workflow-header {
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-padding: 15 18 3 18;
+    -fx-border-width: 0;
+}
+
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
@@ -1942,6 +2038,135 @@
 .dashboard-workflow-body,
 .dashboard-actions-grid {
     -fx-padding: 18;
+}
+
+.dashboard-workflow-status-body,
+.dashboard-quick-actions-grid {
+    -fx-padding: 18;
+}
+
+.dashboard-workflow-status-body {
+    -fx-padding: 3 18 12 18;
+    -fx-alignment: center-left;
+}
+
+.dashboard-donut-chart {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-max-height: 60;
+    -fx-alignment: center;
+}
+
+.dashboard-donut-track,
+.dashboard-donut-blue,
+.dashboard-donut-amber,
+.dashboard-donut-green {
+    -fx-fill: transparent;
+    -fx-stroke-width: 9;
+    -fx-stroke-line-cap: butt;
+}
+
+.dashboard-donut-track {
+    -fx-stroke: -wl-progress-track;
+}
+
+.dashboard-donut-blue {
+    -fx-stroke: -wl-status-info-text;
+}
+
+.dashboard-donut-amber {
+    -fx-stroke: -wl-progress-amber;
+}
+
+.dashboard-donut-green {
+    -fx-stroke: -wl-status-success-text;
+}
+
+.dashboard-donut-hole {
+    -fx-fill: -wl-surface;
+}
+
+.dashboard-workflow-legend-row {
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+}
+
+.dashboard-workflow-legend {
+    -fx-fill-width: true;
+}
+
+.dashboard-workflow-marker-blue,
+.dashboard-workflow-marker-amber,
+.dashboard-workflow-marker-green {
+    -fx-min-width: 9;
+    -fx-pref-width: 9;
+    -fx-max-width: 9;
+    -fx-min-height: 9;
+    -fx-pref-height: 9;
+    -fx-max-height: 9;
+    -fx-background-radius: 3;
+}
+
+.dashboard-workflow-marker-blue {
+    -fx-background-color: -wl-status-info-text;
+}
+
+.dashboard-workflow-marker-amber {
+    -fx-background-color: -wl-progress-amber;
+}
+
+.dashboard-workflow-marker-green {
+    -fx-background-color: -wl-status-success-text;
+}
+
+.dashboard-workflow-percent {
+    -fx-min-width: 36;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: center-right;
+}
+
+.dashboard-quick-action {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-min-height: 96;
+    -fx-pref-height: 96;
+    -fx-cursor: hand;
+}
+
+.dashboard-quick-action:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+}
+
+.dashboard-quick-action-icon-box {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-background-color: -wl-status-info-bg;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.dashboard-quick-action-icon {
+    -fx-fill: -wl-status-info-text;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.dashboard-quick-action-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
 }
 
 .dashboard-progress-track,
@@ -2371,8 +2596,14 @@
 }
 
 .assignment-checkbox-row > .graphic-container {
-    -fx-padding: 0 0 0 12;
+    -fx-padding: 0;
     -fx-alignment: center-left;
+}
+
+.assignment-row-content,
+.create-user-profile-content,
+.metadata-profile-row-content {
+    -fx-padding: 0 0 0 15;
 }
 
 .assignment-checkbox-row:hover {
@@ -3231,6 +3462,9 @@
 }
 
 .activity-log-event-summary-button {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-border-width: 0;
@@ -3662,7 +3896,7 @@
 
 .create-user-profile-row > .graphic-container,
 .metadata-profile-row > .graphic-container {
-    -fx-padding: 0 0 0 12;
+    -fx-padding: 0;
     -fx-alignment: center-left;
 }
 
@@ -6632,10 +6866,19 @@
     -fx-padding: 12 18;
 }
 
-.admin-brand-mark,
-.admin-avatar-shell {
+.admin-brand-mark {
     -fx-background-color: -wl-primary;
     -fx-background-radius: 6;
+    -fx-min-width: 33;
+    -fx-min-height: 33;
+    -fx-max-width: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center;
+}
+
+.admin-avatar-shell {
+    -fx-background-color: -wl-avatar-bg;
+    -fx-background-radius: 999;
     -fx-min-width: 33;
     -fx-min-height: 33;
     -fx-max-width: 33;
@@ -6649,10 +6892,15 @@
     -fx-fill: -wl-text;
 }
 
-.admin-brand-mark .admin-brand-icon,
-.admin-avatar-label {
+.admin-brand-mark .admin-brand-icon {
     -fx-fill: -wl-on-primary;
     -fx-text-fill: -wl-on-primary;
+}
+
+.admin-avatar-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
 }
 
 .admin-brand-title,
@@ -6689,9 +6937,160 @@
     -fx-padding: 0;
 }
 
+.admin-notification-dot {
+    -fx-min-width: 8;
+    -fx-pref-width: 8;
+    -fx-max-width: 8;
+    -fx-min-height: 8;
+    -fx-pref-height: 8;
+    -fx-max-height: 8;
+    -fx-background-color: -wl-error;
+    -fx-background-radius: 999;
+}
+
+.admin-account-menu-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 6 0 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.admin-account-menu-button > .graphic-container {
+    -fx-padding: 0;
+}
+
+.admin-account-menu-content {
+    -fx-alignment: center;
+}
+
+.admin-account-chevron {
+    -fx-fill: -wl-text-muted;
+    -fx-scale-x: 0.62;
+    -fx-scale-y: 0.62;
+}
+
 .admin-top-nav-button:hover,
-.admin-toolbar-button:hover {
+.admin-toolbar-button:hover,
+.admin-account-menu-button:hover {
     -fx-background-color: -wl-surface-hover;
+}
+
+.admin-account-dropdown {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+    -fx-padding: 9;
+    -fx-spacing: 6;
+}
+
+.admin-account-dropdown-header {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+    -fx-padding: 12;
+}
+
+.admin-account-menu-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.admin-account-menu-detail {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.admin-account-dropdown-item {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 0 12;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-cursor: hand;
+}
+
+.admin-account-dropdown-item:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.admin-account-theme-toggle {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.admin-account-theme-icon {
+    -fx-fill: -wl-text;
+}
+
+.admin-account-theme-toggle:selected {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.admin-account-theme-toggle:selected .admin-account-theme-icon {
+    -fx-fill: -wl-on-primary;
+}
+
+.admin-account-logout-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.admin-account-dropdown-divider {
+    -fx-background-color: -wl-border;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+}
+
+.admin-account-settings-page {
+    -fx-padding: 24;
+}
+
+.admin-account-section-button {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.admin-account-readonly-field {
+    -fx-opacity: 0.8;
+}
+
+.admin-keyboard-shortcuts-dialog {
+    -fx-background-color: -wl-surface;
+    -fx-padding: 15;
 }
 
 .admin-top-nav-button.active,
@@ -7147,4 +7546,78 @@
 
 .portal-inline-message.success {
     -fx-text-fill: -wl-status-success-text;
+}
+
+.portal-inline-message.error {
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+/* =========================================================
+   FINAL DASHBOARD LAYOUT OVERRIDES
+   Left column: Needs Attention above Scan Workflow.
+   Right column: Recent Activity with fixed max visual height.
+   ========================================================= */
+
+.dashboard-history-attention-layout {
+    -fx-alignment: top-left;
+    -fx-fill-height: true;
+}
+
+.dashboard-balanced-column,
+.dashboard-recent-activity-card {
+    -fx-min-height: 426;
+    -fx-pref-height: 426;
+    -fx-max-height: 426;
+}
+
+.dashboard-left-stack {
+    -fx-alignment: top-left;
+}
+
+.dashboard-workflow-overview-card {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+}
+
+.dashboard-workflow-header {
+    -fx-min-height: 57;
+    -fx-pref-height: 57;
+    -fx-max-height: 57;
+    -fx-padding: 12 18 9 18;
+}
+
+.dashboard-workflow-status-body {
+    -fx-padding: 12 18 15 18;
+    -fx-spacing: 18;
+    -fx-alignment: center-left;
+}
+
+.dashboard-simple-row {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-padding: 12 18 12 18;
+}
+
+.dashboard-activity-row {
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-max-height: 72;
+    -fx-padding: 15 18 15 18;
+}
+
+.dashboard-workflow-label {
+    -fx-wrap-text: false;
+    -fx-text-overrun: clip;
+}
+
+.dashboard-workflow-value {
+    -fx-min-width: 18;
+    -fx-alignment: center-right;
+}
+
+.dashboard-workflow-percent {
+    -fx-min-width: 30;
+    -fx-alignment: center-right;
 }

@@ -50,7 +50,7 @@ public class MetadataReviewController {
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
 
     private MetadataReviewRow activeReviewRecord;
-    private AdminManager adminManager = new AdminManager();
+    private AdminManager adminManager;
 
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
@@ -67,6 +67,13 @@ public class MetadataReviewController {
 
     @FXML private HBox batchActionBar;
     @FXML private Label batchSelectionLabel;
+
+    @FXML private Label missingRequiredCountLabel;
+    @FXML private Label exportBlockedCountLabel;
+    @FXML private Label failedValidationCountLabel;
+    @FXML private Label readyForQaCountLabel;
+    @FXML private Label qaRejectedCountLabel;
+    @FXML private Label recentlyScannedCountLabel;
 
     @FXML private VBox resultsRowsContainer;
     @FXML private VBox emptyStateBox;
@@ -107,7 +114,10 @@ public class MetadataReviewController {
     }
 
     void setAdminManager(AdminManager adminManager) {
-        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        this.adminManager = adminManager;
+        if (this.adminManager == null) {
+            return;
+        }
         loadRecords();
         applyFilters();
     }
@@ -255,6 +265,49 @@ public class MetadataReviewController {
         updateEmptyState(totalRecords);
         renderPagination(pageSlice, totalRecords);
         updateBatchBar();
+        updateSummaryCards();
+    }
+
+    private void updateSummaryCards() {
+        missingRequiredCountLabel.setText(String.valueOf(countRecords(this::isMissingRequired)));
+        exportBlockedCountLabel.setText(String.valueOf(countRecords(this::isExportBlocked)));
+        failedValidationCountLabel.setText(String.valueOf(countRecords(this::isFailedValidation)));
+        readyForQaCountLabel.setText(String.valueOf(countRecords(this::isReadyForQa)));
+        qaRejectedCountLabel.setText(String.valueOf(countRecords(this::isQaRejected)));
+        recentlyScannedCountLabel.setText(String.valueOf(countRecords(this::isRecentlyScanned)));
+    }
+
+    private long countRecords(java.util.function.Predicate<MetadataReviewRow> predicate) {
+        return records.stream()
+                .filter(predicate)
+                .count();
+    }
+
+    private boolean isMissingRequired(MetadataReviewRow record) {
+        return "Missing Required Fields".equalsIgnoreCase(record.metadataStatus());
+    }
+
+    private boolean isExportBlocked(MetadataReviewRow record) {
+        return isMissingRequired(record)
+                || "Invalid".equalsIgnoreCase(record.metadataStatus())
+                || "Incomplete".equalsIgnoreCase(record.metadataStatus());
+    }
+
+    private boolean isFailedValidation(MetadataReviewRow record) {
+        return "Invalid".equalsIgnoreCase(record.metadataStatus());
+    }
+
+    private boolean isReadyForQa(MetadataReviewRow record) {
+        return "Complete".equalsIgnoreCase(record.metadataStatus())
+                && "Ready for QA".equalsIgnoreCase(record.qaStatus());
+    }
+
+    private boolean isQaRejected(MetadataReviewRow record) {
+        return "QA Rejected".equalsIgnoreCase(record.qaStatus());
+    }
+
+    private boolean isRecentlyScanned(MetadataReviewRow record) {
+        return "Today".equalsIgnoreCase(record.dateGroup());
     }
 
     private GridPane buildTableRow(MetadataReviewRow record) {
@@ -398,7 +451,7 @@ public class MetadataReviewController {
             return;
         }
 
-        adminManager.addAuditLog("Exports", "Admin", "Exported metadata review records", "Metadata Review", "Success",
+        adminManager.addAuditLog("Exports", "Exported metadata review records", "Metadata Review", "Success",
                 selectedCount + " metadata review records were exported.");
 
         selectedRecordIds.clear();
@@ -645,7 +698,7 @@ public class MetadataReviewController {
     @FXML
     private void exportReport() {
         int exportCount = filteredRecords.isEmpty() ? records.size() : filteredRecords.size();
-        adminManager.addAuditLog("Exports", "Admin", "Exported metadata review report", "Metadata Review", "Success",
+        adminManager.addAuditLog("Exports", "Exported metadata review report", "Metadata Review", "Success",
                 "A metadata review report was exported.");
         paginationSummaryLabel.setText("Exported report for " + exportCount + " records");
     }
@@ -796,6 +849,12 @@ public class MetadataReviewController {
     }
 
     private void loadRecords() {
+        if (adminManager == null) {
+            records.clear();
+            refreshFilterOptions();
+            return;
+        }
+
         records.setAll(
                 adminManager.getMetadataReviewRecords().stream()
                         .map(this::toMetadataReviewRow)

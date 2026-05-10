@@ -46,7 +46,7 @@ public class AssignmentsController {
     private final Map<Integer, Set<Integer>> savedAssignments = new HashMap<>();
     private final Map<Integer, Set<Integer>> workingAssignments = new HashMap<>();
 
-    private AdminManager adminManager = new AdminManager();
+    private AdminManager adminManager;
 
     @FXML private Button byProfileButton;
     @FXML private Button byUserButton;
@@ -74,7 +74,10 @@ public class AssignmentsController {
     @FXML private Label changesLabel;
 
     void setAdminManager(AdminManager adminManager) {
-        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        this.adminManager = adminManager;
+        if (this.adminManager == null) {
+            return;
+        }
         loadDataFromManager();
         configureFiltersForMode();
         renderPage();
@@ -82,7 +85,6 @@ public class AssignmentsController {
 
     @FXML
     private void initialize() {
-        loadDataFromManager();
         configureListeners();
         configureFiltersForMode();
         renderPage();
@@ -100,6 +102,10 @@ public class AssignmentsController {
 
     @FXML
     private void saveChanges() {
+        if (adminManager == null) {
+            return;
+        }
+
         adminManager.saveProfileAssignments(workingAssignments);
         loadDataFromManager();
         renderPage();
@@ -145,6 +151,16 @@ public class AssignmentsController {
     }
 
     private void loadDataFromManager() {
+        if (adminManager == null) {
+            profiles.clear();
+            users.clear();
+            savedAssignments.clear();
+            workingAssignments.clear();
+            selectedProfile = null;
+            selectedUser = null;
+            return;
+        }
+
         int selectedProfileId = selectedProfile == null ? -1 : selectedProfile.getId();
         int selectedUserId = selectedUser == null ? -1 : selectedUser.getId();
 
@@ -432,17 +448,15 @@ public class AssignmentsController {
     private CheckBox buildUserAssignmentRow(User user) {
         CheckBox row = createAssignmentRow(getAssignedUserIds(selectedProfile.getId()).contains(user.getId()));
 
-        VBox textBox = new VBox(3);
-        textBox.getChildren().addAll(
-                createLabel(user.getName(), "assignment-row-title"),
-                createLabel(displayText(user.getEmail(), "No email"), "assignment-row-subtitle")
+        VBox textBox = createAssignmentTextBox(
+                user.getName(),
+                displayText(user.getEmail(), "No email")
         );
 
-        HBox content = createAssignmentRowContent();
+        HBox content = createAssignmentRowContent(row);
         content.getChildren().addAll(
                 createAvatar(initialsFor(user.getName())),
                 textBox,
-                createSpacer(),
                 createRoleBadge(user.getRole()),
                 createStatusBadge(user.getStatus())
         );
@@ -456,17 +470,15 @@ public class AssignmentsController {
     private CheckBox buildProfileAssignmentRow(ScanProfile profile) {
         CheckBox row = createAssignmentRow(getAssignedUserIds(profile.getId()).contains(selectedUser.getId()));
 
-        VBox textBox = new VBox(3);
-        textBox.getChildren().addAll(
-                createLabel(profile.getName(), "assignment-row-title"),
-                createLabel(displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-row-subtitle")
+        VBox textBox = createAssignmentTextBox(
+                profile.getName(),
+                displayText(profile.getExportNaming(), "{profileCode}_{boxId}")
         );
 
-        HBox content = createAssignmentRowContent();
+        HBox content = createAssignmentRowContent(row);
         content.getChildren().addAll(
                 createAvatar(initialsFor(profile.getName())),
                 textBox,
-                createSpacer(),
                 createStatusBadge(displayProfileStatus(profile))
         );
 
@@ -485,10 +497,25 @@ public class AssignmentsController {
         return row;
     }
 
-    private HBox createAssignmentRowContent() {
+    private VBox createAssignmentTextBox(String title, String subtitle) {
+        Label titleLabel = createLabel(title, "assignment-row-title");
+        Label subtitleLabel = createLabel(subtitle, "assignment-row-subtitle");
+
+        VBox textBox = new VBox(3, titleLabel, subtitleLabel);
+        textBox.setMinWidth(0);
+        textBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        return textBox;
+    }
+
+    private HBox createAssignmentRowContent(CheckBox row) {
         HBox content = new HBox(12);
         content.setAlignment(Pos.CENTER_LEFT);
+        content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);
+        content.getStyleClass().add("assignment-row-content");
+        content.prefWidthProperty().bind(row.widthProperty().subtract(72));
         return content;
     }
 

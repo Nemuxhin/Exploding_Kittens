@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.ImageView?>
@@ -11,17 +13,21 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.SVGPath?>
 
-<BorderPane fx:id="appRoot"
-            xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="easv.gui.controller.admin.AdminController"
-            stylesheets="@/css/app.css"
-            styleClass="app-shell"
-            maxWidth="Infinity"
-            maxHeight="Infinity">
+<StackPane fx:id="appShell"
+           xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="easv.gui.controller.admin.AdminController"
+           stylesheets="@/css/app.css"
+           styleClass="app-shell"
+           maxWidth="Infinity"
+           maxHeight="Infinity">
 
-    <top>
-        <VBox styleClass="admin-shell-head">
+    <BorderPane fx:id="appRoot"
+                maxWidth="Infinity"
+                maxHeight="Infinity">
+
+        <top>
+            <VBox styleClass="admin-shell-head">
             <HBox alignment="CENTER_LEFT"
                   spacing="18"
                   styleClass="admin-top-bar">
@@ -48,8 +54,6 @@
                                        visible="false"
                                        managed="false"/>
                         </StackPane>
-
-                        <Label text="Admin Portal" styleClass="admin-brand-subtitle"/>
                     </VBox>
                 </HBox>
 
@@ -169,52 +173,122 @@
                 <HBox alignment="CENTER_RIGHT"
                       spacing="12"
                       styleClass="admin-account">
-                    <ToggleButton fx:id="darkModeToggleButton"
-                                  focusTraversable="false"
-                                  contentDisplay="GRAPHIC_ONLY">
-                        <styleClass>
-                            <String fx:value="admin-toolbar-button"/>
-                        </styleClass>
+                    <Button fx:id="helpButton"
+                            text="?"
+                            focusTraversable="false"
+                            styleClass="admin-toolbar-button"/>
+
+                    <Button fx:id="keyboardShortcutsButton"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="admin-toolbar-button">
                         <graphic>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <SVGPath fx:id="themeModeIcon"
-                                         content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
+                            <SVGPath content="M3 5h18v14H3V5zm2 2v10h14V7H5zm2 2h2v2H7V9zm3 0h2v2h-2V9zm3 0h2v2h-2V9zm3 0h2v2h-2V9zM7 13h2v2H7v-2zm3 0h5v2h-5v-2zm6 0h2v2h-2v-2z"
+                                     styleClass="admin-toolbar-icon"/>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="notificationsButton"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="admin-toolbar-button">
+                        <graphic>
+                            <StackPane>
+                                <SVGPath content="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-5v1H5v-1l1.7-1.7V11a5.3 5.3 0 0 1 4.3-5.2V4a1 1 0 1 1 2 0v1.8A5.3 5.3 0 0 1 17.3 11v4.3L19 17zm-4-5.8a3 3 0 0 0-6 0V16h6v-4.8z"
                                          styleClass="admin-toolbar-icon"/>
-                                <Label fx:id="themeModeLabel"
-                                       text="Light Mode"
-                                       visible="false"
-                                       managed="false"
-                                       styleClass="admin-toolbar-label"/>
+                                <Region styleClass="admin-notification-dot"
+                                        StackPane.alignment="TOP_RIGHT"/>
+                            </StackPane>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="accountMenuButton"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="admin-account-menu-button">
+                        <graphic>
+                            <HBox alignment="CENTER" spacing="9" styleClass="admin-account-menu-content">
+                                <StackPane styleClass="admin-avatar-shell">
+                                    <Label fx:id="accountInitialsLabel"
+                                           text="AD"
+                                           styleClass="admin-avatar-label"/>
+                                </StackPane>
+                                <Label fx:id="accountNameLabel"
+                                       text="Admin"
+                                       styleClass="admin-account-name"/>
+                                <SVGPath content="M7 9.5 12 14.5l5-5 1.4 1.4L12 17.3 5.6 10.9 7 9.5z"
+                                         styleClass="admin-account-chevron"/>
                             </HBox>
                         </graphic>
-                    </ToggleButton>
-
-                    <VBox alignment="CENTER_RIGHT" spacing="2">
-                        <Label fx:id="accountNameLabel"
-                               text="System Admin"
-                               styleClass="admin-account-name"/>
-                        <Label fx:id="accountRoleLabel"
-                               text="Administrative Portal"
-                               visible="false"
-                               managed="false"
-                               styleClass="admin-account-role"/>
-                    </VBox>
-
-                    <StackPane styleClass="admin-avatar-shell">
-                        <Label text="AD" styleClass="admin-avatar-label"/>
-                    </StackPane>
+                    </Button>
                 </HBox>
             </HBox>
 
-        </VBox>
-    </top>
+            </VBox>
+        </top>
 
-    <center>
-        <StackPane fx:id="contentHost"
-                   minWidth="0"
-                   minHeight="0"
-                   maxWidth="Infinity"
-                   maxHeight="Infinity"
-                   styleClass="content-host"/>
-    </center>
-</BorderPane>
+        <center>
+            <StackPane fx:id="contentHost"
+                       minWidth="0"
+                       minHeight="0"
+                       maxWidth="Infinity"
+                       maxHeight="Infinity"
+                       styleClass="content-host"/>
+        </center>
+    </BorderPane>
+
+    <VBox fx:id="accountDropdownPane"
+          visible="false"
+          maxWidth="270"
+          styleClass="admin-account-dropdown"
+          StackPane.alignment="TOP_RIGHT">
+        <StackPane.margin>
+            <Insets top="60" right="24"/>
+        </StackPane.margin>
+
+        <VBox spacing="3" styleClass="admin-account-dropdown-header">
+            <Label fx:id="accountDropdownNameLabel"
+                   text="System Admin"
+                   styleClass="admin-account-menu-name"/>
+            <Label fx:id="accountDropdownDetailLabel"
+                   text="admin@example.com"
+                   styleClass="admin-account-menu-detail"/>
+        </VBox>
+
+        <Region styleClass="admin-account-dropdown-divider"/>
+
+        <Button fx:id="editProfileMenuButton"
+                text="Edit Profile"
+                maxWidth="Infinity"
+                alignment="CENTER_LEFT"
+                styleClass="admin-account-dropdown-item"/>
+        <Button fx:id="settingsPrivacyMenuButton"
+                text="Settings and Privacy"
+                maxWidth="Infinity"
+                alignment="CENTER_LEFT"
+                styleClass="admin-account-dropdown-item"/>
+
+        <Region styleClass="admin-account-dropdown-divider"/>
+
+        <ToggleButton fx:id="darkModeToggleButton"
+                      text="Light Mode"
+                      maxWidth="Infinity"
+                      contentDisplay="LEFT"
+                      graphicTextGap="8"
+                      focusTraversable="false"
+                      styleClass="admin-account-theme-toggle">
+            <graphic>
+                <SVGPath fx:id="darkModeToggleIcon"
+                         content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
+                         styleClass="admin-account-theme-icon"/>
+            </graphic>
+        </ToggleButton>
+
+        <Region styleClass="admin-account-dropdown-divider"/>
+
+        <Button fx:id="logoutMenuButton"
+                text="Log Out"
+                maxWidth="Infinity"
+                styleClass="admin-account-logout-button"/>
+    </VBox>
+</StackPane>

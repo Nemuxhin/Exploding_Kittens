@@ -2,6 +2,7 @@ package easv.gui.controller.admin;
 
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.dal.DataAccessException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -42,7 +43,7 @@ public class ManageUsersController {
 
     private static final SecureRandom PASSWORD_RANDOM = new SecureRandom();
     private static final String PASSWORD_CHARACTERS =
-            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
@@ -98,7 +99,7 @@ public class ManageUsersController {
     private final ObservableList<User> masterUsers = FXCollections.observableArrayList();
     private final List<ProfileAccessControl> profileControls = new ArrayList<>();
 
-    private AdminManager adminManager = new AdminManager();
+    private AdminManager adminManager;
     private FilteredList<User> filteredUsers;
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
@@ -106,7 +107,10 @@ public class ManageUsersController {
     private boolean adminProfileAccessExpanded;
 
     void setAdminManager(AdminManager adminManager) {
-        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        this.adminManager = adminManager;
+        if (this.adminManager == null) {
+            return;
+        }
         refreshProfileAccessControls();
         loadUsers();
         applyFilters();
@@ -144,6 +148,11 @@ public class ManageUsersController {
 
     @FXML
     private void saveUser() {
+        if (adminManager == null) {
+            showValidationMessage("User storage is not available.");
+            return;
+        }
+
         if (!validateUserEditor()) {
             return;
         }
@@ -161,6 +170,9 @@ public class ManageUsersController {
             }
         } catch (IllegalArgumentException exception) {
             showValidationMessage(exception.getMessage());
+            return;
+        } catch (DataAccessException exception) {
+            showValidationMessage("User could not be saved. Check the database connection and role setup.");
             return;
         }
 
@@ -362,11 +374,15 @@ public class ManageUsersController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        CheckBox row = new CheckBox();
+
         HBox content = new HBox(12, nameLabel, spacer, statusBadge);
         content.setAlignment(Pos.CENTER_LEFT);
+        content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);
+        content.getStyleClass().add("create-user-profile-content");
+        content.prefWidthProperty().bind(row.widthProperty().subtract(66));
 
-        CheckBox row = new CheckBox();
         row.setGraphic(content);
         row.getStyleClass().add("create-user-profile-row");
         row.setFocusTraversable(true);
@@ -424,7 +440,8 @@ public class ManageUsersController {
                 clean(emailField.getText()),
                 userRoleComboBox.getValue(),
                 userStatusComboBox.getValue(),
-                getSelectedProfileNames()
+                getSelectedProfileNames(),
+                clean(temporaryPasswordField.getText())
         );
     }
 
@@ -442,10 +459,18 @@ public class ManageUsersController {
     }
 
     private void deleteUser(User user) {
+        if (adminManager == null) {
+            showUserActionMessage("User storage is not available.");
+            return;
+        }
+
         try {
             adminManager.deleteUser(user.getId());
         } catch (IllegalArgumentException exception) {
             showUserActionMessage(exception.getMessage());
+            return;
+        } catch (DataAccessException exception) {
+            showUserActionMessage("User could not be deleted. Check the database connection.");
             return;
         }
 
@@ -736,10 +761,19 @@ public class ManageUsersController {
     }
 
     private void loadUsers() {
+        if (adminManager == null) {
+            masterUsers.clear();
+            return;
+        }
+
         masterUsers.setAll(adminManager.getUsers());
     }
 
     private List<ProfileOption> loadProfileOptions() {
+        if (adminManager == null) {
+            return List.of();
+        }
+
         return adminManager.getProfiles().stream()
                 .map(profile -> new ProfileOption(profile.getName(), profile.getStatus()))
                 .toList();

@@ -31,8 +31,7 @@
               fillWidth="true"
               minWidth="0"
               minHeight="0"
-              maxWidth="Infinity"
-              styleClass="admin-page">
+              maxWidth="Infinity">
 
             <styleClass>
                 <String fx:value="admin-page"/>
@@ -62,214 +61,150 @@
                     <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
                 </columnConstraints>
 
-                <VBox spacing="18"
+                <HBox spacing="12"
+                      alignment="CENTER_LEFT"
+                      minWidth="0"
                       maxWidth="Infinity"
-                      styleClass="dashboard-summary-card"
+                      styleClass="dashboard-stat-card"
                       GridPane.columnIndex="0"
                       GridPane.rowIndex="0">
 
-                    <HBox alignment="TOP_LEFT">
-                        <StackPane styleClass="dashboard-summary-icon-teal">
-                            <SVGPath content="M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z"
-                                     styleClass="dashboard-summary-icon-teal-path"/>
-                        </StackPane>
-
-                        <Region HBox.hgrow="ALWAYS"/>
-
+                    <VBox spacing="6"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="Total Users" styleClass="dashboard-stat-title"/>
                         <Label fx:id="totalUsersValueLabel"
-                               text="24"
-                               styleClass="dashboard-summary-value"/>
-                    </HBox>
-
-                    <VBox spacing="3">
-                        <Label text="Total Users" styleClass="dashboard-summary-title"/>
-                        <Label text="All registered admin and operator accounts"
-                               wrapText="true"
-                               styleClass="dashboard-summary-subtitle"/>
+                               text="0"
+                               styleClass="dashboard-stat-value"/>
+                        <Label text="vs last 7 days" styleClass="dashboard-stat-subtitle"/>
                     </VBox>
-                </VBox>
 
-                <VBox spacing="18"
+                    <VBox spacing="9"
+                          alignment="CENTER_RIGHT"
+                          styleClass="dashboard-stat-visual">
+                        <Label fx:id="totalUsersTrendLabel"
+                               text="- 0%"
+                               styleClass="dashboard-trend-neutral"/>
+                        <SVGPath fx:id="totalUsersSparkline"
+                                 content="M0 22 L12 20 L24 21 L36 12 L48 18 L60 8 L72 20 L84 10 L96 13"
+                                 styleClass="dashboard-sparkline-teal"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12"
+                      alignment="CENTER_LEFT"
+                      minWidth="0"
                       maxWidth="Infinity"
-                      styleClass="dashboard-summary-card"
+                      styleClass="dashboard-stat-card"
                       GridPane.columnIndex="1"
                       GridPane.rowIndex="0">
 
-                    <HBox alignment="TOP_LEFT">
-                        <StackPane styleClass="dashboard-summary-icon-blue">
-                            <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
-                                     styleClass="dashboard-summary-icon-blue-path"/>
-                        </StackPane>
-
-                        <Region HBox.hgrow="ALWAYS"/>
-
+                    <VBox spacing="6"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="Active Profiles" styleClass="dashboard-stat-title"/>
                         <Label fx:id="activeProfilesValueLabel"
-                               text="3"
-                               styleClass="dashboard-summary-value"/>
-                    </HBox>
-
-                    <VBox spacing="3">
-                        <Label text="Active Profiles" styleClass="dashboard-summary-title"/>
-                        <Label text="Profiles currently available for scanning"
-                               wrapText="true"
-                               styleClass="dashboard-summary-subtitle"/>
+                               text="0"
+                               styleClass="dashboard-stat-value"/>
+                        <Label text="vs last 7 days" styleClass="dashboard-stat-subtitle"/>
                     </VBox>
-                </VBox>
 
-                <VBox spacing="18"
+                    <VBox spacing="9"
+                          alignment="CENTER_RIGHT"
+                          styleClass="dashboard-stat-visual">
+                        <Label fx:id="activeProfilesTrendLabel"
+                               text="- 0%"
+                               styleClass="dashboard-trend-neutral"/>
+                        <SVGPath fx:id="activeProfilesSparkline"
+                                 content="M0 23 L12 21 L24 22 L36 15 L48 21 L60 8 L72 20 L84 12 L96 17"
+                                 styleClass="dashboard-sparkline-blue"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12"
+                      alignment="CENTER_LEFT"
+                      minWidth="0"
                       maxWidth="Infinity"
-                      styleClass="dashboard-summary-card"
+                      styleClass="dashboard-stat-card"
                       GridPane.columnIndex="2"
                       GridPane.rowIndex="0">
 
-                    <HBox alignment="TOP_LEFT">
-                        <StackPane styleClass="dashboard-summary-icon-green">
-                            <SVGPath content="M3 17.5 9.2 11.3l3.3 3.3L20 7.1V12h2V3.5h-8.5v2H18l-5.5 5.5-3.3-3.3L1.5 15.4 3 17.5z"
-                                     styleClass="dashboard-summary-icon-green-path"/>
-                        </StackPane>
-
-                        <Region HBox.hgrow="ALWAYS"/>
-
+                    <VBox spacing="6"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="Scans Today" styleClass="dashboard-stat-title"/>
                         <Label fx:id="scansTodayValueLabel"
-                               text="12"
-                               styleClass="dashboard-summary-value"/>
-                    </HBox>
-
-                    <VBox spacing="3">
-                        <Label text="Scans Today" styleClass="dashboard-summary-title"/>
-                        <Label text="Completed scans processed in the last 24 hours"
-                               wrapText="true"
-                               styleClass="dashboard-summary-subtitle"/>
+                               text="0"
+                               styleClass="dashboard-stat-value"/>
+                        <Label text="vs yesterday" styleClass="dashboard-stat-subtitle"/>
                     </VBox>
-                </VBox>
 
-                <VBox spacing="18"
+                    <VBox spacing="9"
+                          alignment="CENTER_RIGHT"
+                          styleClass="dashboard-stat-visual">
+                        <Label fx:id="scansTodayTrendLabel"
+                               text="- 0%"
+                               styleClass="dashboard-trend-neutral"/>
+                        <SVGPath fx:id="scansTodaySparkline"
+                                 content="M0 23 L12 20 L24 22 L36 18 L48 9 L60 22 L72 18 L84 10 L96 17"
+                                 styleClass="dashboard-sparkline-purple"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12"
+                      alignment="CENTER_LEFT"
+                      minWidth="0"
                       maxWidth="Infinity"
-                      styleClass="dashboard-summary-card"
+                      styleClass="dashboard-stat-card"
                       GridPane.columnIndex="3"
                       GridPane.rowIndex="0">
 
-                    <HBox alignment="TOP_LEFT">
-                        <StackPane styleClass="dashboard-summary-icon-amber">
-                            <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
-                                     styleClass="dashboard-summary-icon-amber-path"/>
-                        </StackPane>
-
-                        <Region HBox.hgrow="ALWAYS"/>
-
+                    <VBox spacing="6"
+                          minWidth="0"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="Waiting for QA" styleClass="dashboard-stat-title"/>
                         <Label fx:id="waitingForQaValueLabel"
-                               text="8"
-                               styleClass="dashboard-summary-value"/>
-                    </HBox>
-
-                    <VBox spacing="3">
-                        <Label text="Waiting for QA" styleClass="dashboard-summary-title"/>
-                        <Label text="Documents currently pending review"
-                               wrapText="true"
-                               styleClass="dashboard-summary-subtitle"/>
+                               text="0"
+                               styleClass="dashboard-stat-value"/>
+                        <Label text="vs yesterday" styleClass="dashboard-stat-subtitle"/>
                     </VBox>
-                </VBox>
+
+                    <VBox spacing="9"
+                          alignment="CENTER_RIGHT"
+                          styleClass="dashboard-stat-visual">
+                        <Label fx:id="waitingForQaTrendLabel"
+                               text="- 0%"
+                               styleClass="dashboard-trend-neutral"/>
+                        <SVGPath fx:id="waitingForQaSparkline"
+                                 content="M0 23 L12 21 L24 22 L36 15 L48 20 L60 9 L72 21 L84 13 L96 18"
+                                 styleClass="dashboard-sparkline-orange"/>
+                    </VBox>
+                </HBox>
             </GridPane>
 
             <HBox spacing="18"
                   alignment="TOP_LEFT"
+                  fillHeight="true"
                   maxWidth="Infinity"
-                  styleClass="dashboard-main-layout">
+                  styleClass="dashboard-history-attention-layout">
 
                 <VBox spacing="18"
+                      minWidth="0"
+                      prefWidth="0"
                       maxWidth="Infinity"
                       HBox.hgrow="ALWAYS">
+                    <styleClass>
+                        <String fx:value="dashboard-left-stack"/>
+                        <String fx:value="dashboard-balanced-column"/>
+                    </styleClass>
 
-                    <VBox spacing="0"
-                          maxWidth="Infinity"
-                          styleClass="dashboard-section-card">
-
-                        <HBox alignment="CENTER_LEFT"
-                              styleClass="dashboard-section-header">
-
-                            <VBox spacing="3">
-                                <Label text="Recent Activity" styleClass="dashboard-section-title"/>
-                                <Label text="Latest important system events"
-                                       styleClass="dashboard-section-subtitle"/>
-                            </VBox>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-
-                            <Button text="View All"
-                                    onAction="#viewActivity"
-                                    focusTraversable="false"
-                                    styleClass="metadata-action-button"/>
-                        </HBox>
-
-                        <VBox fx:id="recentActivityList"
-                              spacing="0"
-                              styleClass="dashboard-activity-list"/>
-                    </VBox>
-
-                    <VBox spacing="0"
-                          maxWidth="Infinity"
-                          styleClass="dashboard-section-card">
-
-                        <HBox alignment="CENTER_LEFT"
-                              styleClass="dashboard-section-header">
-                            <VBox spacing="3">
-                                <Label text="Scan Workflow Status" styleClass="dashboard-section-title"/>
-                                <Label text="Current processing overview"
-                                       styleClass="dashboard-section-subtitle"/>
-                            </VBox>
-                        </HBox>
-
-                        <VBox spacing="18"
-                              styleClass="dashboard-workflow-body">
-
-                            <VBox spacing="9">
-                                <HBox alignment="CENTER_LEFT">
-                                    <Label text="In Progress" styleClass="dashboard-workflow-label"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="inProgressValueLabel" text="18" styleClass="dashboard-workflow-value"/>
-                                </HBox>
-                                <StackPane alignment="CENTER_LEFT" styleClass="dashboard-progress-track">
-                                    <Region fx:id="inProgressBar"
-                                            prefWidth="180"
-                                            styleClass="dashboard-progress-fill-blue"/>
-                                </StackPane>
-                            </VBox>
-
-                            <VBox spacing="9">
-                                <HBox alignment="CENTER_LEFT">
-                                    <Label text="Waiting for QA" styleClass="dashboard-workflow-label"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="workflowWaitingQaValueLabel" text="8" styleClass="dashboard-workflow-value"/>
-                                </HBox>
-                                <StackPane alignment="CENTER_LEFT" styleClass="dashboard-progress-track">
-                                    <Region fx:id="waitingQaBar"
-                                            prefWidth="110"
-                                            styleClass="dashboard-progress-fill-amber"/>
-                                </StackPane>
-                            </VBox>
-
-                            <VBox spacing="9">
-                                <HBox alignment="CENTER_LEFT">
-                                    <Label text="Exported" styleClass="dashboard-workflow-label"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="exportedValueLabel" text="31" styleClass="dashboard-workflow-value"/>
-                                </HBox>
-                                <StackPane alignment="CENTER_LEFT" styleClass="dashboard-progress-track">
-                                    <Region fx:id="exportedBar"
-                                            prefWidth="240"
-                                            styleClass="dashboard-progress-fill-green"/>
-                                </StackPane>
-                            </VBox>
-                        </VBox>
-                    </VBox>
-                </VBox>
-
-                <VBox spacing="18"
-                      prefWidth="430"
-                      minWidth="360"
-                      maxWidth="430">
-
-                    <VBox spacing="0"
+                    <VBox fx:id="needsAttentionCard"
+                          spacing="0"
+                          minWidth="0"
                           maxWidth="Infinity"
                           styleClass="dashboard-section-card">
 
@@ -306,7 +241,9 @@
 
                         <VBox spacing="0" styleClass="dashboard-simple-list">
 
-                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
+                            <HBox fx:id="usersNoProfilesRow"
+                                  alignment="CENTER_LEFT"
+                                  styleClass="dashboard-simple-row">
                                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="usersNoProfilesCountLabel"
                                            text="3 users have no profiles"
@@ -320,12 +257,14 @@
                                         styleClass="metadata-action-button"/>
                             </HBox>
 
-                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
+                            <HBox fx:id="failedEventsRow"
+                                  alignment="CENTER_LEFT"
+                                  styleClass="dashboard-simple-row">
                                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="failedExportsCountLabel"
                                            text="2 failed exports"
                                            styleClass="dashboard-simple-title"/>
-                                    <Label text="Missing metadata fields"
+                                    <Label text="Check failed system activity"
                                            styleClass="dashboard-simple-detail"/>
                                 </VBox>
                                 <Button text="Review"
@@ -334,7 +273,9 @@
                                         styleClass="metadata-action-button"/>
                             </HBox>
 
-                            <HBox alignment="CENTER_LEFT" styleClass="dashboard-simple-row">
+                            <HBox fx:id="draftProfilesRow"
+                                  alignment="CENTER_LEFT"
+                                  styleClass="dashboard-simple-row">
                                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="draftProfilesCountLabel"
                                            text="1 draft profile"
@@ -351,60 +292,119 @@
                     </VBox>
 
                     <VBox spacing="0"
+                          minWidth="0"
                           maxWidth="Infinity"
-                          styleClass="dashboard-section-card">
+                          VBox.vgrow="ALWAYS">
+                        <styleClass>
+                            <String fx:value="dashboard-section-card"/>
+                            <String fx:value="dashboard-workflow-overview-card"/>
+                        </styleClass>
 
-                        <HBox alignment="CENTER_LEFT"
-                              styleClass="dashboard-section-header">
+                        <HBox alignment="CENTER_LEFT">
+                            <styleClass>
+                                <String fx:value="dashboard-section-header"/>
+                                <String fx:value="dashboard-workflow-header"/>
+                            </styleClass>
+
                             <VBox spacing="3">
-                                <Label text="Quick Actions" styleClass="dashboard-section-title"/>
-                                <Label text="Common admin actions"
+                                <Label text="Scan Workflow Status" styleClass="dashboard-section-title"/>
+                                <Label text="Current processing overview"
                                        styleClass="dashboard-section-subtitle"/>
                             </VBox>
                         </HBox>
 
-                        <GridPane hgap="12"
-                                  vgap="12"
-                                  styleClass="dashboard-actions-grid">
+                        <HBox spacing="18"
+                              alignment="CENTER_LEFT"
+                              maxWidth="Infinity"
+                              VBox.vgrow="ALWAYS"
+                              styleClass="dashboard-workflow-status-body">
 
-                            <columnConstraints>
-                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
-                                <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
-                            </columnConstraints>
+                            <StackPane fx:id="workflowDonutChart"
+                                       styleClass="dashboard-donut-chart"/>
 
-                            <Button text="Create User"
-                                    onAction="#createUser"
-                                    focusTraversable="false"
-                                    maxWidth="Infinity"
-                                    styleClass="create-user-button"
-                                    GridPane.columnIndex="0"
-                                    GridPane.rowIndex="0"/>
+                            <VBox spacing="6"
+                                  minWidth="0"
+                                  maxWidth="Infinity"
+                                  HBox.hgrow="ALWAYS"
+                                  styleClass="dashboard-workflow-legend">
 
-                            <Button text="Create Profile"
-                                    onAction="#createProfile"
-                                    focusTraversable="false"
-                                    maxWidth="Infinity"
-                                    styleClass="create-user-button"
-                                    GridPane.columnIndex="1"
-                                    GridPane.rowIndex="0"/>
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="9"
+                                      styleClass="dashboard-workflow-legend-row">
+                                    <Region styleClass="dashboard-workflow-marker-blue"/>
+                                    <Label text="In Progress" styleClass="dashboard-workflow-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="inProgressValueLabel"
+                                           text="0"
+                                           styleClass="dashboard-workflow-value"/>
+                                    <Label fx:id="inProgressPercentLabel"
+                                           text="0%"
+                                           styleClass="dashboard-workflow-percent"/>
+                                </HBox>
 
-                            <Button text="Create Metadata Template"
-                                    onAction="#createMetadataTemplate"
-                                    focusTraversable="false"
-                                    maxWidth="Infinity"
-                                    styleClass="metadata-secondary-header-button"
-                                    GridPane.columnIndex="0"
-                                    GridPane.rowIndex="1"/>
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="9"
+                                      styleClass="dashboard-workflow-legend-row">
+                                    <Region styleClass="dashboard-workflow-marker-amber"/>
+                                    <Label text="Waiting for QA" styleClass="dashboard-workflow-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="workflowWaitingQaValueLabel"
+                                           text="0"
+                                           styleClass="dashboard-workflow-value"/>
+                                    <Label fx:id="waitingQaPercentLabel"
+                                           text="0%"
+                                           styleClass="dashboard-workflow-percent"/>
+                                </HBox>
 
-                            <Button text="Manage Access"
-                                    onAction="#manageAccess"
-                                    focusTraversable="false"
-                                    maxWidth="Infinity"
-                                    styleClass="metadata-secondary-header-button"
-                                    GridPane.columnIndex="1"
-                                    GridPane.rowIndex="1"/>
-                        </GridPane>
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="9"
+                                      styleClass="dashboard-workflow-legend-row">
+                                    <Region styleClass="dashboard-workflow-marker-green"/>
+                                    <Label text="Exported" styleClass="dashboard-workflow-label"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label fx:id="exportedValueLabel"
+                                           text="0"
+                                           styleClass="dashboard-workflow-value"/>
+                                    <Label fx:id="exportedPercentLabel"
+                                           text="0%"
+                                           styleClass="dashboard-workflow-percent"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
                     </VBox>
+                </VBox>
+
+                <VBox spacing="0"
+                      minWidth="0"
+                      prefWidth="0"
+                      maxWidth="Infinity"
+                      HBox.hgrow="ALWAYS">
+                    <styleClass>
+                        <String fx:value="dashboard-section-card"/>
+                        <String fx:value="dashboard-recent-activity-card"/>
+                        <String fx:value="dashboard-balanced-column"/>
+                    </styleClass>
+
+                    <HBox alignment="CENTER_LEFT"
+                          styleClass="dashboard-section-header">
+
+                        <VBox spacing="3">
+                            <Label text="Recent Activity" styleClass="dashboard-section-title"/>
+                            <Label text="Latest important system events"
+                                   styleClass="dashboard-section-subtitle"/>
+                        </VBox>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button text="View All"
+                                onAction="#viewActivity"
+                                focusTraversable="false"
+                                styleClass="metadata-action-button"/>
+                    </HBox>
+
+                    <VBox fx:id="recentActivityList"
+                          spacing="0"
+                          styleClass="dashboard-activity-list"/>
                 </VBox>
             </HBox>
         </VBox>
