@@ -2,7 +2,7 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.MetadataField;
-import easv.be.MetadataReviewRecord;
+import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -29,7 +29,7 @@ public class AdminManager {
     private final List<User> users = new ArrayList<>();
     private final List<ScanProfile> profiles = new ArrayList<>();
     private final List<MetadataTemplate> metadataTemplates = new ArrayList<>();
-    private final List<MetadataReviewRecord> metadataReviewRecords = new ArrayList<>();
+    private final List<ReviewRecord> reviewRecords = new ArrayList<>();
     private final List<AuditLog> auditLogs = new ArrayList<>();
 
     private final Map<Integer, Set<Integer>> profileAssignments = new HashMap<>();
@@ -359,40 +359,40 @@ public class AdminManager {
                 .anyMatch(existingName -> existingName.equals(normalizedName));
     }
 
-    public List<MetadataReviewRecord> getMetadataReviewRecords() {
-        return metadataReviewRecords.stream()
-                .map(this::copyMetadataReviewRecord)
+    public List<ReviewRecord> getReviewRecords() {
+        return reviewRecords.stream()
+                .map(this::copyReviewRecord)
                 .toList();
     }
 
-    public MetadataReviewRecord saveMetadataReviewRecord(MetadataReviewRecord updatedRecord) {
+    public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
         if (updatedRecord == null || clean(updatedRecord.getId()).isBlank()) {
-            throw new IllegalArgumentException("Metadata review record is required.");
+            throw new IllegalArgumentException("Review record is required.");
         }
 
-        for (int index = 0; index < metadataReviewRecords.size(); index++) {
-            MetadataReviewRecord existingRecord = metadataReviewRecords.get(index);
+        for (int index = 0; index < reviewRecords.size(); index++) {
+            ReviewRecord existingRecord = reviewRecords.get(index);
 
             if (existingRecord.getId().equals(updatedRecord.getId())) {
-                MetadataReviewRecord savedRecord = copyMetadataReviewRecord(updatedRecord);
-                metadataDAO.saveMetadataReviewRecord(savedRecord);
-                metadataReviewRecords.set(index, savedRecord);
+                ReviewRecord savedRecord = copyReviewRecord(updatedRecord);
+                metadataDAO.saveReviewRecord(savedRecord);
+                reviewRecords.set(index, savedRecord);
 
-                addAuditLog("Metadata", "Updated metadata review", updatedRecord.getIdentity(), "Success",
-                        "A metadata review record was updated.");
+                addAuditLog("Review", "Updated review", updatedRecord.getIdentity(), "Success",
+                        "A review record was updated.");
 
-                return copyMetadataReviewRecord(updatedRecord);
+                return copyReviewRecord(updatedRecord);
             }
         }
 
-        MetadataReviewRecord savedRecord = copyMetadataReviewRecord(updatedRecord);
-        metadataDAO.saveMetadataReviewRecord(savedRecord);
-        metadataReviewRecords.add(savedRecord);
+        ReviewRecord savedRecord = copyReviewRecord(updatedRecord);
+        metadataDAO.saveReviewRecord(savedRecord);
+        reviewRecords.add(savedRecord);
 
-        addAuditLog("Metadata", "Created metadata review", updatedRecord.getIdentity(), "Success",
-                "A metadata review record was created.");
+        addAuditLog("Review", "Created review", updatedRecord.getIdentity(), "Success",
+                "A review record was created.");
 
-        return copyMetadataReviewRecord(updatedRecord);
+        return copyReviewRecord(updatedRecord);
     }
 
     public Map<Integer, Set<Integer>> getProfileAssignments() {
@@ -476,8 +476,8 @@ public class AdminManager {
         return new DashboardSummary(totalUsers, activeProfiles, draftProfiles, usersWithoutProfiles, failedEvents);
     }
 
-    private MetadataReviewRecord copyMetadataReviewRecord(MetadataReviewRecord record) {
-        return new MetadataReviewRecord(
+    private ReviewRecord copyReviewRecord(ReviewRecord record) {
+        return new ReviewRecord(
                 record.getId(),
                 record.getIdentity(),
                 record.getClient(),
@@ -499,7 +499,7 @@ public class AdminManager {
         loadUsers();
         loadProfiles();
         loadMetadataTemplates();
-        loadMetadataReviewRecords();
+        loadReviewRecords();
         loadProfileAssignments();
         loadAuditLogs();
         refreshUsersFromProfileAssignments();
@@ -524,9 +524,9 @@ public class AdminManager {
         nextMetadataFieldId = metadataDAO.nextMetadataFieldId();
     }
 
-    private void loadMetadataReviewRecords() {
-        metadataReviewRecords.clear();
-        metadataReviewRecords.addAll(metadataDAO.getMetadataReviewRecords());
+    private void loadReviewRecords() {
+        reviewRecords.clear();
+        reviewRecords.addAll(metadataDAO.getReviewRecords());
     }
 
     private void loadProfileAssignments() {

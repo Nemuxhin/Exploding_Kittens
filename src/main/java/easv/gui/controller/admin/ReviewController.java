@@ -1,6 +1,6 @@
 package easv.gui.controller.admin;
 
-import easv.be.MetadataReviewRecord;
+import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,16 +11,24 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +36,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
-public class MetadataReviewController {
+public class ReviewController {
 
     private static final String ALL_CLIENTS = "All Clients";
     private static final String ALL_ARCHIVES = "All Archives";
@@ -36,20 +44,31 @@ public class MetadataReviewController {
     private static final String ALL_METADATA_STATUSES = "All Metadata Statuses";
     private static final String ALL_QA_STATUSES = "All QA Statuses";
     private static final String ALL_USERS = "All Users";
+    private static final String RANGE_LAST_30_DAYS = "Last 30 Days";
+    private static final String RANGE_TODAY = "Today";
+    private static final String RANGE_LAST_7_DAYS = "Last 7 Days";
+    private static final String RANGE_THIS_MONTH = "This Month";
+    private static final String RANGE_ALL_TIME = "All Time";
+    private static final String RANGE_CUSTOM = "Custom Range";
 
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
+    private static final DateTimeFormatter DATE_RANGE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    private final ObservableList<MetadataReviewRow> records = FXCollections.observableArrayList();
+    private final ObservableList<ReviewRow> records = FXCollections.observableArrayList();
     private final Set<String> selectedRecordIds = new HashSet<>();
 
-    private List<MetadataReviewRow> filteredRecords = List.of();
-    private List<MetadataReviewRow> pageRecords = List.of();
+    private List<ReviewRow> filteredRecords = List.of();
+    private List<ReviewRow> pageRecords = List.of();
 
     private int currentPage = 1;
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
+    private boolean updatingDateControls;
+    private LocalDate fromDate;
+    private LocalDate toDate;
+    private LocalDate pendingRangeStart;
 
-    private MetadataReviewRow activeReviewRecord;
+    private ReviewRow activeReviewRecord;
     private AdminManager adminManager;
 
     @FXML private VBox overviewPane;
@@ -63,6 +82,7 @@ public class MetadataReviewController {
     @FXML private ComboBox<String> metadataStatusFilterComboBox;
     @FXML private ComboBox<String> qaStatusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
+    @FXML private DatePicker dateRangePicker;
     @FXML private ComboBox<String> scannedByFilterComboBox;
 
     @FXML private HBox batchActionBar;
@@ -123,6 +143,8 @@ public class MetadataReviewController {
     }
 
     private void configureFilters() {
+        configureDateRangePicker();
+
         clientFilterComboBox.getItems().setAll(
                 ALL_CLIENTS,
                 "Aalborg Municipality",
@@ -170,13 +192,14 @@ public class MetadataReviewController {
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
 
         dateRangeFilterComboBox.getItems().setAll(
-                "Last 30 Days",
-                "Today",
-                "Last 7 Days",
-                "This Month",
-                "All Time"
+                RANGE_LAST_30_DAYS,
+                RANGE_TODAY,
+                RANGE_LAST_7_DAYS,
+                RANGE_THIS_MONTH,
+                RANGE_ALL_TIME,
+                RANGE_CUSTOM
         );
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
 
         scannedByFilterComboBox.getItems().setAll(
                 ALL_USERS,
@@ -234,8 +257,17 @@ public class MetadataReviewController {
         profileFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         metadataStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         qaStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+        dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (updatingDateControls) {
+                return;
+            }
+
+            applyPresetDateRange(newValue);
+            applyFilters();
+        });
         scannedByFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
+
+        dateRangePicker.setOnAction(event -> handleDateRangeSelection(dateRangePicker.getValue()));
     }
 
     private void applyFilters() {
@@ -277,66 +309,66 @@ public class MetadataReviewController {
         recentlyScannedCountLabel.setText(String.valueOf(countRecords(this::isRecentlyScanned)));
     }
 
-    private long countRecords(java.util.function.Predicate<MetadataReviewRow> predicate) {
+    private long countRecords(java.util.function.Predicate<ReviewRow> predicate) {
         return records.stream()
                 .filter(predicate)
                 .count();
     }
 
-    private boolean isMissingRequired(MetadataReviewRow record) {
+    private boolean isMissingRequired(ReviewRow record) {
         return "Missing Required Fields".equalsIgnoreCase(record.metadataStatus());
     }
 
-    private boolean isExportBlocked(MetadataReviewRow record) {
+    private boolean isExportBlocked(ReviewRow record) {
         return isMissingRequired(record)
                 || "Invalid".equalsIgnoreCase(record.metadataStatus())
                 || "Incomplete".equalsIgnoreCase(record.metadataStatus());
     }
 
-    private boolean isFailedValidation(MetadataReviewRow record) {
+    private boolean isFailedValidation(ReviewRow record) {
         return "Invalid".equalsIgnoreCase(record.metadataStatus());
     }
 
-    private boolean isReadyForQa(MetadataReviewRow record) {
+    private boolean isReadyForQa(ReviewRow record) {
         return "Complete".equalsIgnoreCase(record.metadataStatus())
                 && "Ready for QA".equalsIgnoreCase(record.qaStatus());
     }
 
-    private boolean isQaRejected(MetadataReviewRow record) {
+    private boolean isQaRejected(ReviewRow record) {
         return "QA Rejected".equalsIgnoreCase(record.qaStatus());
     }
 
-    private boolean isRecentlyScanned(MetadataReviewRow record) {
+    private boolean isRecentlyScanned(ReviewRow record) {
         return "Today".equalsIgnoreCase(record.dateGroup());
     }
 
-    private GridPane buildTableRow(MetadataReviewRow record) {
+    private GridPane buildTableRow(ReviewRow record) {
         GridPane row = new GridPane();
-        row.getStyleClass().add("metadata-review-table-row");
+        row.getStyleClass().add("review-table-row");
 
         if (record.warning()) {
-            row.getStyleClass().add("metadata-review-table-row-warning");
+            row.getStyleClass().add("review-table-row-warning");
         }
 
         row.getColumnConstraints().setAll(createTableColumns());
 
         CheckBox selectCheckBox = new CheckBox();
-        selectCheckBox.getStyleClass().add("metadata-review-checkbox");
+        selectCheckBox.getStyleClass().add("review-checkbox");
         selectCheckBox.setSelected(selectedRecordIds.contains(record.id()));
         selectCheckBox.selectedProperty().addListener((observable, oldValue, selected) ->
                 updateSelection(record.id(), selected)
         );
 
         addCell(row, selectCheckBox, 0, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.identity(), "metadata-review-main-cell"), 1, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.client(), "metadata-review-cell-text"), 2, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.profile(), "metadata-review-cell-text"), 3, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.metadataTemplate(), "metadata-review-cell-text"), 4, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 1, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 2, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 3, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.metadataTemplate(), "review-cell-text"), 4, HPos.LEFT);
         addCell(row, createStatusBadge(record.metadataStatus(), "metadata"), 5, HPos.LEFT);
         addCell(row, createStatusBadge(record.qaStatus(), "qa"), 6, HPos.LEFT);
-        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "metadata-review-cell-text"), 7, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.lastUpdated(), "metadata-review-cell-text"), 8, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.assignedTo(), "metadata-review-cell-text"), 9, HPos.LEFT);
+        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 7, HPos.CENTER);
+        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 8, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 9, HPos.LEFT);
         addCell(row, createReviewButton(record), 10, HPos.LEFT);
 
         return row;
@@ -392,7 +424,7 @@ public class MetadataReviewController {
 
     private Label createStatusBadge(String status, String type) {
         Label badge = new Label(status);
-        badge.getStyleClass().add("metadata-review-status-badge");
+        badge.getStyleClass().add("review-status-badge");
 
         if ("metadata".equals(type)) {
             badge.getStyleClass().add(metadataStatusClass(status));
@@ -407,9 +439,9 @@ public class MetadataReviewController {
         return badge;
     }
 
-    private Button createReviewButton(MetadataReviewRow record) {
+    private Button createReviewButton(ReviewRow record) {
         Button button = new Button("Review");
-        button.getStyleClass().add("metadata-review-action-button");
+        button.getStyleClass().add("review-action-button");
         button.setFocusTraversable(false);
         button.setMinWidth(0);
         button.setMaxWidth(Double.MAX_VALUE);
@@ -451,8 +483,8 @@ public class MetadataReviewController {
             return;
         }
 
-        adminManager.addAuditLog("Exports", "Exported metadata review records", "Metadata Review", "Success",
-                selectedCount + " metadata review records were exported.");
+        adminManager.addAuditLog("Exports", "Exported selected review items", "Review Center", "Success",
+                selectedCount + " review items were exported.");
 
         selectedRecordIds.clear();
         renderRows();
@@ -469,17 +501,17 @@ public class MetadataReviewController {
         batchSelectionLabel.setText(selectedCount == 1 ? "1 selected" : selectedCount + " selected");
     }
 
-    private void updateSelectedRecords(UnaryOperator<MetadataReviewRow> updater) {
+    private void updateSelectedRecords(UnaryOperator<ReviewRow> updater) {
         if (selectedRecordIds.isEmpty()) {
             return;
         }
 
         for (int index = 0; index < records.size(); index++) {
-            MetadataReviewRow record = records.get(index);
+            ReviewRow record = records.get(index);
 
             if (selectedRecordIds.contains(record.id())) {
-                MetadataReviewRow updatedRecord = updater.apply(record);
-                adminManager.saveMetadataReviewRecord(toMetadataReviewRecord(updatedRecord));
+                ReviewRow updatedRecord = updater.apply(record);
+                adminManager.saveReviewRecord(toReviewRecord(updatedRecord));
                 records.set(index, updatedRecord);
             }
         }
@@ -567,7 +599,7 @@ public class MetadataReviewController {
         return ellipsis;
     }
 
-    private boolean matchesSearch(MetadataReviewRow record) {
+    private boolean matchesSearch(ReviewRow record) {
         String searchText = normalize(searchField.getText());
 
         if (searchText.isBlank()) {
@@ -576,22 +608,26 @@ public class MetadataReviewController {
 
         return normalize(record.identity()).contains(searchText)
                 || normalize(record.client()).contains(searchText)
+                || normalize(record.archive()).contains(searchText)
                 || normalize(record.profile()).contains(searchText)
                 || normalize(record.metadataTemplate()).contains(searchText)
                 || normalize(record.metadataStatus()).contains(searchText)
                 || normalize(record.qaStatus()).contains(searchText)
                 || normalize(record.assignedTo()).contains(searchText)
-                || normalize(record.scannedBy()).contains(searchText);
+                || normalize(record.scannedBy()).contains(searchText)
+                || normalize(record.lastUpdated()).contains(searchText)
+                || normalize(record.dateGroup()).contains(searchText)
+                || String.valueOf(record.pages()).contains(searchText);
     }
 
-    private boolean matchesFilters(MetadataReviewRow record) {
+    private boolean matchesFilters(ReviewRow record) {
         return matchesCombo(record.client(), clientFilterComboBox.getValue(), ALL_CLIENTS)
                 && matchesCombo(record.archive(), archiveFilterComboBox.getValue(), ALL_ARCHIVES)
                 && matchesCombo(record.profile(), profileFilterComboBox.getValue(), ALL_PROFILES)
                 && matchesCombo(record.metadataStatus(), metadataStatusFilterComboBox.getValue(), ALL_METADATA_STATUSES)
                 && matchesCombo(record.qaStatus(), qaStatusFilterComboBox.getValue(), ALL_QA_STATUSES)
                 && matchesCombo(record.scannedBy(), scannedByFilterComboBox.getValue(), ALL_USERS)
-                && matchesDateRange(record.dateGroup(), dateRangeFilterComboBox.getValue());
+                && matchesDateRange(record);
     }
 
     private boolean matchesCombo(String value, String selectedValue, String allValue) {
@@ -600,39 +636,108 @@ public class MetadataReviewController {
                 || value.equalsIgnoreCase(selectedValue);
     }
 
-    private boolean matchesDateRange(String recordDateGroup, String selectedDateRange) {
-        if (selectedDateRange == null
-                || "Last 30 Days".equals(selectedDateRange)
-                || "This Month".equals(selectedDateRange)
-                || "All Time".equals(selectedDateRange)) {
+    private boolean matchesDateRange(ReviewRow record) {
+        if (RANGE_ALL_TIME.equals(dateRangeFilterComboBox.getValue())) {
             return true;
         }
 
-        if ("Last 7 Days".equals(selectedDateRange)) {
-            return "Today".equalsIgnoreCase(recordDateGroup)
-                    || "Last 7 Days".equalsIgnoreCase(recordDateGroup);
+        LocalDate recordDate = parseReviewDate(record);
+
+        if (recordDate == null) {
+            return false;
         }
 
-        return recordDateGroup.equalsIgnoreCase(selectedDateRange);
+        LocalDate rangeStart = fromDate;
+        LocalDate rangeEnd = toDate;
+
+        if (rangeStart == null && rangeEnd == null) {
+            return true;
+        }
+
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            LocalDate swappedDate = rangeStart;
+            rangeStart = rangeEnd;
+            rangeEnd = swappedDate;
+        }
+
+        boolean afterStart = rangeStart == null || !recordDate.isBefore(rangeStart);
+        boolean beforeEnd = rangeEnd == null || !recordDate.isAfter(rangeEnd);
+
+        return afterStart && beforeEnd;
+    }
+
+    private LocalDate parseReviewDate(ReviewRow record) {
+        LocalDate updatedDate = parseDateText(record.lastUpdated());
+
+        if (updatedDate != null) {
+            return updatedDate;
+        }
+
+        return parseDateText(record.dateGroup());
+    }
+
+    private LocalDate parseDateText(String value) {
+        String dateText = value == null ? "" : value.trim();
+        String normalizedDateText = normalize(dateText);
+
+        if (dateText.isBlank()) {
+            return null;
+        }
+
+        return switch (normalizedDateText) {
+            case "today", "saved just now", "updated just now" -> LocalDate.now();
+            case "yesterday" -> LocalDate.now().minusDays(1);
+            case "last 7 days" -> LocalDate.now().minusDays(7);
+            case "last 30 days" -> LocalDate.now().minusDays(30);
+            default -> parseFormattedDate(dateText);
+        };
+    }
+
+    private LocalDate parseFormattedDate(String dateText) {
+        List<DateTimeFormatter> dateFormatters = List.of(
+                DATE_RANGE_FORMATTER,
+                DateTimeFormatter.ISO_LOCAL_DATE
+        );
+
+        for (DateTimeFormatter formatter : dateFormatters) {
+            try {
+                return LocalDate.parse(dateText, formatter);
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        List<DateTimeFormatter> dateTimeFormatters = List.of(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+                DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+        );
+
+        for (DateTimeFormatter formatter : dateTimeFormatters) {
+            try {
+                return LocalDateTime.parse(dateText, formatter).toLocalDate();
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        return null;
     }
 
     private String metadataStatusClass(String status) {
         return switch (normalize(status)) {
-            case "not started" -> "metadata-review-status-neutral";
-            case "incomplete" -> "metadata-review-status-warning";
-            case "missing required fields", "invalid" -> "metadata-review-status-danger";
-            case "complete", "approved" -> "metadata-review-status-success";
-            default -> "metadata-review-status-neutral";
+            case "not started" -> "review-status-neutral";
+            case "incomplete" -> "review-status-warning";
+            case "missing required fields", "invalid" -> "review-status-danger";
+            case "complete", "approved" -> "review-status-success";
+            default -> "review-status-neutral";
         };
     }
 
     private String qaStatusClass(String status) {
         return switch (normalize(status)) {
-            case "not started" -> "metadata-review-status-neutral";
-            case "waiting for qa", "qa in progress", "ready for qa" -> "metadata-review-status-info";
-            case "qa approved" -> "metadata-review-status-success";
-            case "qa rejected" -> "metadata-review-status-danger";
-            default -> "metadata-review-status-neutral";
+            case "not started" -> "review-status-neutral";
+            case "waiting for qa", "qa in progress", "ready for qa" -> "review-status-info";
+            case "qa approved" -> "review-status-success";
+            case "qa rejected" -> "review-status-danger";
+            default -> "review-status-neutral";
         };
     }
 
@@ -645,7 +750,7 @@ public class MetadataReviewController {
         profileFilterComboBox.setValue(ALL_PROFILES);
         metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
         scannedByFilterComboBox.setValue(ALL_USERS);
 
         selectedRecordIds.clear();
@@ -657,63 +762,225 @@ public class MetadataReviewController {
     private void showMissingRequiredQueue() {
         metadataStatusFilterComboBox.setValue("Missing Required Fields");
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
     }
 
     @FXML
     private void showExportBlockedQueue() {
         metadataStatusFilterComboBox.setValue("Missing Required Fields");
         qaStatusFilterComboBox.setValue("Waiting for QA");
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
     }
 
     @FXML
     private void showFailedValidationQueue() {
         metadataStatusFilterComboBox.setValue("Invalid");
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
     }
 
     @FXML
     private void showReadyForQaQueue() {
         metadataStatusFilterComboBox.setValue("Complete");
         qaStatusFilterComboBox.setValue("Ready for QA");
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
     }
 
     @FXML
     private void showQaRejectedQueue() {
         metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue("QA Rejected");
-        dateRangeFilterComboBox.setValue("Last 30 Days");
+        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
     }
 
     @FXML
     private void showRecentlyScannedQueue() {
         metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
-        dateRangeFilterComboBox.setValue("Today");
+        LocalDate today = LocalDate.now();
+        setDateRange(RANGE_TODAY, today, today);
+    }
+
+    private void applyPresetDateRange(String selectedRange) {
+        LocalDate today = LocalDate.now();
+
+        switch (selectedRange) {
+            case RANGE_TODAY -> setDateRange(RANGE_TODAY, today, today);
+            case RANGE_LAST_7_DAYS -> setDateRange(RANGE_LAST_7_DAYS, today.minusDays(7), today);
+            case RANGE_THIS_MONTH -> setDateRange(RANGE_THIS_MONTH, today.withDayOfMonth(1), today);
+            case RANGE_ALL_TIME -> setDateRange(RANGE_ALL_TIME, null, null);
+            case RANGE_CUSTOM -> {
+            }
+            default -> setDateRange(RANGE_LAST_30_DAYS, today.minusDays(30), today);
+        }
+    }
+
+    private void setDateRange(String selectedRange, LocalDate fromDate, LocalDate toDate) {
+        updatingDateControls = true;
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+        pendingRangeStart = null;
+        dateRangeFilterComboBox.setValue(selectedRange);
+        dateRangePicker.setValue(toDate != null ? toDate : fromDate);
+        dateRangePicker.getEditor().setText(formatDateRange());
+        dateRangePicker.setDayCellFactory(dateRangePicker.getDayCellFactory());
+        updatingDateControls = false;
+    }
+
+    private void handleDateRangeSelection(LocalDate selectedDate) {
+        if (updatingDateControls || selectedDate == null) {
+            return;
+        }
+
+        updatingDateControls = true;
+
+        if (pendingRangeStart == null) {
+            pendingRangeStart = selectedDate;
+            fromDate = selectedDate;
+            toDate = null;
+        } else {
+            if (selectedDate.isBefore(pendingRangeStart)) {
+                fromDate = selectedDate;
+                toDate = pendingRangeStart;
+            } else {
+                fromDate = pendingRangeStart;
+                toDate = selectedDate;
+            }
+
+            pendingRangeStart = null;
+        }
+
+        dateRangeFilterComboBox.setValue(RANGE_CUSTOM);
+        dateRangePicker.setValue(toDate != null ? toDate : fromDate);
+        dateRangePicker.getEditor().setText(formatDateRange());
+        dateRangePicker.setDayCellFactory(dateRangePicker.getDayCellFactory());
+        updatingDateControls = false;
+        applyFilters();
+    }
+
+    private void configureDateRangePicker() {
+        dateRangePicker.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate value) {
+                return formatDateRange();
+            }
+
+            @Override
+            public LocalDate fromString(String value) {
+                return null;
+            }
+        });
+
+        dateRangePicker.setDayCellFactory(picker -> new DateCell() {
+            {
+                addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                    LocalDate selectedDate = getItem();
+
+                    if (isSelectableDate(selectedDate)) {
+                        selectDateFromCalendar(selectedDate, event);
+                    }
+                });
+                addEventFilter(MouseEvent.MOUSE_RELEASED, MouseEvent::consume);
+                addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
+            }
+
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                getStyleClass().removeAll(
+                        "activity-log-date-range-start",
+                        "activity-log-date-range-end",
+                        "activity-log-date-range-between",
+                        "activity-log-date-disabled"
+                );
+
+                if (empty || date == null) {
+                    return;
+                }
+
+                if (date.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                    getStyleClass().add("activity-log-date-disabled");
+                    return;
+                }
+
+                if (isRangeStart(date)) {
+                    getStyleClass().add("activity-log-date-range-start");
+                }
+
+                if (isRangeEnd(date)) {
+                    getStyleClass().add("activity-log-date-range-end");
+                }
+
+                if (isBetweenRange(date)) {
+                    getStyleClass().add("activity-log-date-range-between");
+                }
+            }
+        });
+    }
+
+    private void selectDateFromCalendar(LocalDate selectedDate, MouseEvent event) {
+        handleDateRangeSelection(selectedDate);
+
+        if (pendingRangeStart == null) {
+            dateRangePicker.hide();
+        } else {
+            dateRangePicker.show();
+        }
+
+        event.consume();
+    }
+
+    private boolean isSelectableDate(LocalDate date) {
+        return date != null && !date.isAfter(LocalDate.now());
+    }
+
+    private boolean isRangeStart(LocalDate date) {
+        return fromDate != null && date.equals(fromDate);
+    }
+
+    private boolean isRangeEnd(LocalDate date) {
+        return toDate != null && date.equals(toDate);
+    }
+
+    private boolean isBetweenRange(LocalDate date) {
+        return fromDate != null
+                && toDate != null
+                && date.isAfter(fromDate)
+                && date.isBefore(toDate);
+    }
+
+    private String formatDateRange() {
+        if (fromDate == null && toDate == null) {
+            return RANGE_ALL_TIME;
+        }
+
+        if (fromDate != null && toDate == null) {
+            return DATE_RANGE_FORMATTER.format(fromDate);
+        }
+
+        return DATE_RANGE_FORMATTER.format(fromDate) + " - " + DATE_RANGE_FORMATTER.format(toDate);
     }
 
     @FXML
     private void exportReport() {
         int exportCount = filteredRecords.isEmpty() ? records.size() : filteredRecords.size();
-        adminManager.addAuditLog("Exports", "Exported metadata review report", "Metadata Review", "Success",
-                "A metadata review report was exported.");
-        paginationSummaryLabel.setText("Exported report for " + exportCount + " records");
+        adminManager.addAuditLog("Exports", "Exported review center report", "Review Center", "Success",
+                "A review center report was exported.");
+        paginationSummaryLabel.setText("Exported review report for " + exportCount + " records");
     }
 
-    private void openReviewWorkspace(MetadataReviewRow record) {
+    private void openReviewWorkspace(ReviewRow record) {
         activeReviewRecord = record;
 
         workspaceTitleLabel.setText(record.identity());
         workspaceSubtitleLabel.setText(
                 record.profile()
-                        + " · "
+                        + " - "
                         + record.client()
-                        + " · "
+                        + " - "
                         + record.pages()
-                        + " pages · "
+                        + " pages - "
                         + record.metadataStatus()
         );
 
@@ -724,7 +991,7 @@ public class MetadataReviewController {
         workspaceWarningLabel.setText(
                 isBlocked
                         ? "Export blocked: 2 required metadata fields are missing."
-                        : "All required metadata is complete. Ready for QA/export."
+                        : "Metadata is complete. Ready for QA assignment or approval."
         );
 
         configureWorkspaceControls();
@@ -756,7 +1023,7 @@ public class MetadataReviewController {
         }
 
         replaceActiveRecord(activeReviewRecord.withLastUpdated("Saved just now"));
-        workspaceWarningLabel.setText("Metadata saved just now.");
+        workspaceWarningLabel.setText("Review saved just now.");
     }
 
     @FXML
@@ -795,8 +1062,8 @@ public class MetadataReviewController {
         replaceActiveRecord(activeReviewRecord.withReviewState(activeReviewRecord.metadataStatus(), "QA Rejected", true));
     }
 
-    private void replaceActiveRecord(MetadataReviewRow updatedRecord) {
-        adminManager.saveMetadataReviewRecord(toMetadataReviewRecord(updatedRecord));
+    private void replaceActiveRecord(ReviewRow updatedRecord) {
+        adminManager.saveReviewRecord(toReviewRecord(updatedRecord));
 
         for (int index = 0; index < records.size(); index++) {
             if (records.get(index).id().equals(updatedRecord.id())) {
@@ -856,15 +1123,15 @@ public class MetadataReviewController {
         }
 
         records.setAll(
-                adminManager.getMetadataReviewRecords().stream()
-                        .map(this::toMetadataReviewRow)
+                adminManager.getReviewRecords().stream()
+                        .map(this::toReviewRow)
                         .toList()
         );
         refreshFilterOptions();
     }
 
-    private MetadataReviewRow toMetadataReviewRow(MetadataReviewRecord record) {
-        return new MetadataReviewRow(
+    private ReviewRow toReviewRow(ReviewRecord record) {
+        return new ReviewRow(
                 record.getId(),
                 record.getIdentity(),
                 record.getClient(),
@@ -882,8 +1149,8 @@ public class MetadataReviewController {
         );
     }
 
-    private MetadataReviewRecord toMetadataReviewRecord(MetadataReviewRow row) {
-        return new MetadataReviewRecord(
+    private ReviewRecord toReviewRecord(ReviewRow row) {
+        return new ReviewRecord(
                 row.id(),
                 row.identity(),
                 row.client(),
@@ -902,10 +1169,10 @@ public class MetadataReviewController {
     }
 
     private void refreshFilterOptions() {
-        setComboOptions(clientFilterComboBox, ALL_CLIENTS, records.stream().map(MetadataReviewRow::client).toList());
-        setComboOptions(archiveFilterComboBox, ALL_ARCHIVES, records.stream().map(MetadataReviewRow::archive).toList());
-        setComboOptions(profileFilterComboBox, ALL_PROFILES, records.stream().map(MetadataReviewRow::profile).toList());
-        setComboOptions(scannedByFilterComboBox, ALL_USERS, records.stream().map(MetadataReviewRow::scannedBy).toList());
+        setComboOptions(clientFilterComboBox, ALL_CLIENTS, records.stream().map(ReviewRow::client).toList());
+        setComboOptions(archiveFilterComboBox, ALL_ARCHIVES, records.stream().map(ReviewRow::archive).toList());
+        setComboOptions(profileFilterComboBox, ALL_PROFILES, records.stream().map(ReviewRow::profile).toList());
+        setComboOptions(scannedByFilterComboBox, ALL_USERS, records.stream().map(ReviewRow::scannedBy).toList());
     }
 
     private void setComboOptions(ComboBox<String> comboBox, String allOption, List<String> values) {
@@ -932,7 +1199,7 @@ public class MetadataReviewController {
         }
     }
 
-    record MetadataReviewRow(
+    record ReviewRow(
             String id,
             String identity,
             String client,
@@ -948,8 +1215,8 @@ public class MetadataReviewController {
             String dateGroup,
             boolean warning
     ) {
-        private MetadataReviewRow withLastUpdated(String updatedAt) {
-            return new MetadataReviewRow(
+        private ReviewRow withLastUpdated(String updatedAt) {
+            return new ReviewRow(
                     id,
                     identity,
                     client,
@@ -967,8 +1234,8 @@ public class MetadataReviewController {
             );
         }
 
-        private MetadataReviewRow withAssignedTo(String newAssignedTo) {
-            return new MetadataReviewRow(
+        private ReviewRow withAssignedTo(String newAssignedTo) {
+            return new ReviewRow(
                     id,
                     identity,
                     client,
@@ -986,8 +1253,8 @@ public class MetadataReviewController {
             );
         }
 
-        private MetadataReviewRow withReviewState(String newMetadataStatus, String newQaStatus, boolean hasWarning) {
-            return new MetadataReviewRow(
+        private ReviewRow withReviewState(String newMetadataStatus, String newQaStatus, boolean hasWarning) {
+            return new ReviewRow(
                     id,
                     identity,
                     client,

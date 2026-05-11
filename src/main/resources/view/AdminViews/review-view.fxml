@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
@@ -18,7 +19,7 @@
 
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="easv.gui.controller.admin.MetadataReviewController"
+            fx:controller="easv.gui.controller.admin.ReviewController"
             fitToWidth="true"
             fitToHeight="false"
             hbarPolicy="NEVER"
@@ -32,7 +33,7 @@
     <content>
         <StackPane minWidth="0"
                    maxWidth="Infinity"
-                   styleClass="metadata-review-page-host">
+                   styleClass="review-page-host">
 
             <!-- =====================================================
                  OVERVIEW / WORK QUEUE
@@ -47,7 +48,7 @@
                 <styleClass>
                     <String fx:value="admin-page"/>
                     <String fx:value="main-content"/>
-                    <String fx:value="metadata-review-page"/>
+                    <String fx:value="review-page"/>
                 </styleClass>
 
                 <padding>
@@ -59,20 +60,20 @@
                       styleClass="page-header">
 
                     <VBox spacing="3" styleClass="page-heading-copy">
-                        <Label text="Metadata Review" styleClass="page-title"/>
-                        <Label text="Review, complete, and correct metadata for scanned boxes, cases, documents, and pages"
+                        <Label text="Review Center" styleClass="page-title"/>
+                        <Label text="Track scanned boxes through metadata, QA assignment, QA review, and export readiness"
                                styleClass="page-subtitle"/>
                     </VBox>
 
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button text="Export Report"
+                    <Button text="Export Review Report"
                             onAction="#exportReport"
                             styleClass="secondary-outline-button"
                             focusTraversable="false"/>
                 </HBox>
 
-                <HBox styleClass="metadata-review-search-shell"
+                <HBox styleClass="review-search-shell"
                       maxWidth="Infinity">
 
                     <StackPane styleClass="field-icon-shell">
@@ -81,7 +82,7 @@
                     </StackPane>
 
                     <TextField fx:id="searchField"
-                               promptText="Search by Box ID, case number, client, document title, barcode, or profile..."
+                               promptText="Search by box, case, client, profile, QA status, scanner, or assigned reviewer..."
                                styleClass="search-field-input"
                                maxWidth="Infinity"
                                HBox.hgrow="ALWAYS"/>
@@ -90,7 +91,7 @@
                 <GridPane hgap="15"
                           vgap="15"
                           maxWidth="Infinity"
-                          styleClass="metadata-review-queue-grid">
+                          styleClass="review-queue-grid">
 
                     <columnConstraints>
                         <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
@@ -107,8 +108,8 @@
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="0">
                         <styleClass>
-                            <String fx:value="metadata-review-queue-card"/>
-                            <String fx:value="metadata-review-queue-warning"/>
+                            <String fx:value="review-queue-card"/>
+                            <String fx:value="review-queue-warning"/>
                         </styleClass>
                         <graphic>
                             <VBox maxWidth="Infinity" spacing="15">
@@ -116,22 +117,22 @@
                         <HBox alignment="CENTER_LEFT">
                             <StackPane>
                                 <styleClass>
-                                    <String fx:value="metadata-review-card-icon-box"/>
-                                    <String fx:value="metadata-review-card-icon-warning-box"/>
+                                    <String fx:value="review-card-icon-box"/>
+                                    <String fx:value="review-card-icon-warning-box"/>
                                 </styleClass>
 
                                 <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
-                                         styleClass="metadata-review-card-icon-warning"/>
+                                         styleClass="review-card-icon-warning"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="missingRequiredCountLabel"
                                    text="0"
-                                   styleClass="metadata-review-card-count"/>
+                                   styleClass="review-card-count"/>
                         </HBox>
 
-                        <Label text="Missing Required Metadata"
-                               styleClass="metadata-review-card-title"/>
+                        <Label text="Metadata Needed"
+                               styleClass="review-card-title"/>
 
                             </VBox>
                         </graphic>
@@ -146,8 +147,8 @@
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="0">
                         <styleClass>
-                            <String fx:value="metadata-review-queue-card"/>
-                            <String fx:value="metadata-review-queue-danger"/>
+                            <String fx:value="review-queue-card"/>
+                            <String fx:value="review-queue-danger"/>
                         </styleClass>
                         <graphic>
                             <VBox maxWidth="Infinity" spacing="15">
@@ -155,22 +156,22 @@
                         <HBox alignment="CENTER_LEFT">
                             <StackPane>
                                 <styleClass>
-                                    <String fx:value="metadata-review-card-icon-box"/>
-                                    <String fx:value="metadata-review-card-icon-danger-box"/>
+                                    <String fx:value="review-card-icon-box"/>
+                                    <String fx:value="review-card-icon-danger-box"/>
                                 </styleClass>
 
                                 <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.5 12.1-1.4 1.4L12 13.4l-2.1 2.1-1.4-1.4 2.1-2.1-2.1-2.1 1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1z"
-                                         styleClass="metadata-review-card-icon-danger"/>
+                                         styleClass="review-card-icon-danger"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="exportBlockedCountLabel"
                                    text="0"
-                                   styleClass="metadata-review-card-count"/>
+                                   styleClass="review-card-count"/>
                         </HBox>
 
                         <Label text="Export Blocked"
-                               styleClass="metadata-review-card-title"/>
+                               styleClass="review-card-title"/>
 
                             </VBox>
                         </graphic>
@@ -185,8 +186,8 @@
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="0">
                         <styleClass>
-                            <String fx:value="metadata-review-queue-card"/>
-                            <String fx:value="metadata-review-queue-danger"/>
+                            <String fx:value="review-queue-card"/>
+                            <String fx:value="review-queue-danger"/>
                         </styleClass>
                         <graphic>
                             <VBox maxWidth="Infinity" spacing="15">
@@ -194,22 +195,22 @@
                         <HBox alignment="CENTER_LEFT">
                             <StackPane>
                                 <styleClass>
-                                    <String fx:value="metadata-review-card-icon-box"/>
-                                    <String fx:value="metadata-review-card-icon-danger-box"/>
+                                    <String fx:value="review-card-icon-box"/>
+                                    <String fx:value="review-card-icon-danger-box"/>
                                 </styleClass>
 
                                 <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.5 12.1-1.4 1.4L12 13.4l-2.1 2.1-1.4-1.4 2.1-2.1-2.1-2.1 1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1z"
-                                         styleClass="metadata-review-card-icon-danger"/>
+                                         styleClass="review-card-icon-danger"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="failedValidationCountLabel"
                                    text="0"
-                                   styleClass="metadata-review-card-count"/>
+                                   styleClass="review-card-count"/>
                         </HBox>
 
-                        <Label text="Failed Validation"
-                               styleClass="metadata-review-card-title"/>
+                        <Label text="Validation Failed"
+                               styleClass="review-card-title"/>
 
                             </VBox>
                         </graphic>
@@ -224,8 +225,8 @@
                           GridPane.columnIndex="0"
                           GridPane.rowIndex="1">
                         <styleClass>
-                            <String fx:value="metadata-review-queue-card"/>
-                            <String fx:value="metadata-review-queue-success"/>
+                            <String fx:value="review-queue-card"/>
+                            <String fx:value="review-queue-success"/>
                         </styleClass>
                         <graphic>
                             <VBox maxWidth="Infinity" spacing="15">
@@ -233,22 +234,22 @@
                         <HBox alignment="CENTER_LEFT">
                             <StackPane>
                                 <styleClass>
-                                    <String fx:value="metadata-review-card-icon-box"/>
-                                    <String fx:value="metadata-review-card-icon-success-box"/>
+                                    <String fx:value="review-card-icon-box"/>
+                                    <String fx:value="review-card-icon-success-box"/>
                                 </styleClass>
 
                                 <SVGPath content="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-                                         styleClass="metadata-review-card-icon-success"/>
+                                         styleClass="review-card-icon-success"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="readyForQaCountLabel"
                                    text="0"
-                                   styleClass="metadata-review-card-count"/>
+                                   styleClass="review-card-count"/>
                         </HBox>
 
                         <Label text="Ready for QA"
-                               styleClass="metadata-review-card-title"/>
+                               styleClass="review-card-title"/>
 
                             </VBox>
                         </graphic>
@@ -263,8 +264,8 @@
                           GridPane.columnIndex="1"
                           GridPane.rowIndex="1">
                         <styleClass>
-                            <String fx:value="metadata-review-queue-card"/>
-                            <String fx:value="metadata-review-queue-warning"/>
+                            <String fx:value="review-queue-card"/>
+                            <String fx:value="review-queue-warning"/>
                         </styleClass>
                         <graphic>
                             <VBox maxWidth="Infinity" spacing="15">
@@ -272,22 +273,22 @@
                         <HBox alignment="CENTER_LEFT">
                             <StackPane>
                                 <styleClass>
-                                    <String fx:value="metadata-review-card-icon-box"/>
-                                    <String fx:value="metadata-review-card-icon-warning-box"/>
+                                    <String fx:value="review-card-icon-box"/>
+                                    <String fx:value="review-card-icon-warning-box"/>
                                 </styleClass>
 
                                 <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
-                                         styleClass="metadata-review-card-icon-warning"/>
+                                         styleClass="review-card-icon-warning"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="qaRejectedCountLabel"
                                    text="0"
-                                   styleClass="metadata-review-card-count"/>
+                                   styleClass="review-card-count"/>
                         </HBox>
 
                         <Label text="QA Rejected"
-                               styleClass="metadata-review-card-title"/>
+                               styleClass="review-card-title"/>
 
                             </VBox>
                         </graphic>
@@ -302,8 +303,8 @@
                           GridPane.columnIndex="2"
                           GridPane.rowIndex="1">
                         <styleClass>
-                            <String fx:value="metadata-review-queue-card"/>
-                            <String fx:value="metadata-review-queue-neutral"/>
+                            <String fx:value="review-queue-card"/>
+                            <String fx:value="review-queue-neutral"/>
                         </styleClass>
                         <graphic>
                             <VBox maxWidth="Infinity" spacing="15">
@@ -311,22 +312,22 @@
                         <HBox alignment="CENTER_LEFT">
                             <StackPane>
                                 <styleClass>
-                                    <String fx:value="metadata-review-card-icon-box"/>
-                                    <String fx:value="metadata-review-card-icon-neutral-box"/>
+                                    <String fx:value="review-card-icon-box"/>
+                                    <String fx:value="review-card-icon-neutral-box"/>
                                 </styleClass>
 
                                 <SVGPath content="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2zm1 11h5v-2h-4V6h-2v7z"
-                                         styleClass="metadata-review-card-icon-neutral"/>
+                                         styleClass="review-card-icon-neutral"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
                             <Label fx:id="recentlyScannedCountLabel"
                                    text="0"
-                                   styleClass="metadata-review-card-count"/>
+                                   styleClass="review-card-count"/>
                         </HBox>
 
                         <Label text="Recently Scanned"
-                               styleClass="metadata-review-card-title"/>
+                               styleClass="review-card-title"/>
 
                             </VBox>
                         </graphic>
@@ -335,7 +336,7 @@
 
                 <VBox spacing="15"
                       maxWidth="Infinity"
-                      styleClass="metadata-review-filter-card">
+                      styleClass="review-filter-card">
 
                     <GridPane hgap="15"
                               vgap="15"
@@ -348,13 +349,23 @@
                             <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
                         </columnConstraints>
 
-                        <ComboBox fx:id="clientFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="archiveFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="profileFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="metadataStatusFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="qaStatusFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <ComboBox fx:id="dateRangeFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <ComboBox fx:id="scannedByFilterComboBox" maxWidth="Infinity" styleClass="metadata-review-filter" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="clientFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="archiveFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="profileFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="metadataStatusFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="qaStatusFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="dateRangeFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="scannedByFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <DatePicker fx:id="dateRangePicker"
+                                    editable="false"
+                                    maxWidth="Infinity"
+                                    GridPane.columnIndex="3"
+                                    GridPane.rowIndex="1">
+                            <styleClass>
+                                <String fx:value="review-filter"/>
+                                <String fx:value="activity-log-date-picker"/>
+                            </styleClass>
+                        </DatePicker>
                     </GridPane>
                 </VBox>
 
@@ -364,28 +375,26 @@
                       visible="false"
                       managed="false"
                       maxWidth="Infinity"
-                      styleClass="metadata-review-batch-bar">
+                      styleClass="review-batch-bar">
 
                     <Label fx:id="batchSelectionLabel"
                            text="0 selected"
-                           styleClass="metadata-review-batch-label"/>
+                           styleClass="review-batch-label"/>
 
                     <Region HBox.hgrow="ALWAYS"/>
 
-                    <Button text="Assign QA" onAction="#assignSelectedToQa" styleClass="profile-secondary-button" focusTraversable="false"/>
-                    <Button text="Apply Tag" disable="true" styleClass="profile-secondary-button" focusTraversable="false"/>
+                    <Button text="Assign to QA" onAction="#assignSelectedToQa" styleClass="profile-secondary-button" focusTraversable="false"/>
                     <Button text="Mark Ready for QA" onAction="#markSelectedReadyForQa" styleClass="profile-secondary-button" focusTraversable="false"/>
-                    <Button text="Export Selected" onAction="#exportSelected" styleClass="profile-secondary-button" focusTraversable="false"/>
                     <Button text="Clear Selection" onAction="#clearSelection" styleClass="profile-secondary-button" focusTraversable="false"/>
                 </HBox>
 
                 <VBox spacing="0"
                       fillWidth="true"
                       maxWidth="Infinity"
-                      styleClass="metadata-review-results-card">
+                      styleClass="review-results-card">
 
                     <GridPane maxWidth="Infinity"
-                              styleClass="metadata-review-table-header">
+                              styleClass="review-table-header">
 
                         <columnConstraints>
                             <ColumnConstraints percentWidth="4" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
@@ -403,34 +412,34 @@
 
                         <Region GridPane.columnIndex="0"/>
 
-                        <Label text="Box / Case / Document" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="1"/>
-                        <Label text="Client" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="2"/>
-                        <Label text="Profile" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="3"/>
-                        <Label text="Metadata Template" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="4"/>
-                        <Label text="Metadata Status" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="5"/>
-                        <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="6"/>
-                        <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="7"/>
-                        <Label text="Last Updated" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="8"/>
-                        <Label text="Assigned To" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="9"/>
-                        <Label text="Actions" wrapText="true" maxWidth="Infinity" styleClass="metadata-review-header-label" GridPane.columnIndex="10"/>
+                        <Label text="Box" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="1"/>
+                        <Label text="Client" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="2"/>
+                        <Label text="Profile" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="3"/>
+                        <Label text="Metadata Template" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="4"/>
+                        <Label text="Metadata Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="5"/>
+                        <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6"/>
+                        <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="7"/>
+                        <Label text="Last Updated" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="8"/>
+                        <Label text="QA Assignee" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="9"/>
+                        <Label text="Review" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="10"/>
                     </GridPane>
 
                     <VBox fx:id="resultsRowsContainer"
                           spacing="0"
                           fillWidth="true"
                           maxWidth="Infinity"
-                          styleClass="metadata-review-table-body"/>
+                          styleClass="review-table-body"/>
 
                     <VBox fx:id="emptyStateBox"
                           spacing="9"
                           visible="false"
                           managed="false"
                           maxWidth="Infinity"
-                          styleClass="metadata-review-empty-state">
+                          styleClass="review-empty-state">
 
-                        <Label text="No matching metadata records" styleClass="empty-state-title"/>
+                        <Label text="No matching review items" styleClass="empty-state-title"/>
 
-                        <Label text="Try changing filters or searching for a different box, case, client, or profile."
+                        <Label text="Try changing filters or searching for a different box, case, client, profile, or assignee."
                                styleClass="empty-state-copy"/>
 
                         <Button text="Clear Filters"
@@ -537,7 +546,7 @@
                               spacing="12"
                               styleClass="metadata-header-actions">
 
-                            <Button text="Save Metadata"
+                            <Button text="Save Review"
                                     onAction="#saveMetadata"
                                     focusTraversable="false">
                                 <styleClass>
@@ -546,7 +555,7 @@
                                 </styleClass>
                             </Button>
 
-                            <Button text="Mark Complete"
+                            <Button text="Mark Metadata Complete"
                                     onAction="#markComplete"
                                     focusTraversable="false">
                                 <styleClass>
@@ -555,7 +564,7 @@
                                 </styleClass>
                             </Button>
 
-                            <Button text="Send to QA"
+                            <Button text="Assign QA"
                                     onAction="#sendToQa"
                                     focusTraversable="false">
                                 <styleClass>
@@ -564,7 +573,7 @@
                                 </styleClass>
                             </Button>
 
-                            <Button text="Approve"
+                            <Button text="Approve QA"
                                     onAction="#approveReview"
                                     focusTraversable="false">
                                 <styleClass>
@@ -573,7 +582,7 @@
                                 </styleClass>
                             </Button>
 
-                            <Button text="Reject"
+                            <Button text="Reject QA"
                                     onAction="#rejectReview"
                                     focusTraversable="false">
                                 <styleClass>
@@ -761,8 +770,8 @@
                           styleClass="metadata-workspace-right-panel">
 
                         <VBox spacing="3">
-                            <Label text="Metadata" styleClass="metadata-workspace-panel-title"/>
-                            <Label text="Review and complete required values"
+                            <Label text="Review Details" styleClass="metadata-workspace-panel-title"/>
+                            <Label text="Complete metadata and QA checks"
                                    styleClass="metadata-workspace-panel-subtitle"/>
                         </VBox>
 
@@ -869,13 +878,13 @@
                         <Region VBox.vgrow="ALWAYS"/>
 
                         <VBox spacing="9" styleClass="metadata-workspace-side-actions">
-                            <Button text="Save Metadata"
+                            <Button text="Save Review"
                                     onAction="#saveMetadata"
                                     focusTraversable="false"
                                     maxWidth="Infinity"
                                     styleClass="metadata-secondary-header-button"/>
 
-                            <Button text="Mark Document Complete"
+                            <Button text="Mark Metadata Complete"
                                     onAction="#markComplete"
                                     focusTraversable="false"
                                     maxWidth="Infinity"

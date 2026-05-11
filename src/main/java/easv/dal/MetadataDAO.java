@@ -1,7 +1,7 @@
 package easv.dal;
 
 import easv.be.MetadataField;
-import easv.be.MetadataReviewRecord;
+import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
 
@@ -219,7 +219,7 @@ public class MetadataDAO {
         }
     }
 
-    public List<MetadataReviewRecord> getMetadataReviewRecords() {
+    public List<ReviewRecord> getReviewRecords() {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
@@ -240,10 +240,10 @@ public class MetadataDAO {
                      ORDER BY updated_at DESC, created_at DESC, id
                      """);
              ResultSet resultSet = statement.executeQuery()) {
-            List<MetadataReviewRecord> records = new ArrayList<>();
+            List<ReviewRecord> records = new ArrayList<>();
 
             while (resultSet.next()) {
-                records.add(new MetadataReviewRecord(
+                records.add(new ReviewRecord(
                         resultSet.getString("id"),
                         resultSet.getString("identity_value"),
                         resultSet.getString("client_name"),
@@ -263,19 +263,19 @@ public class MetadataDAO {
 
             return records;
         } catch (SQLException exception) {
-            throw new DataAccessException("Failed to read metadata review records.", exception);
+            throw new DataAccessException("Failed to read review records.", exception);
         }
     }
 
-    public void saveMetadataReviewRecord(MetadataReviewRecord record) {
+    public void saveReviewRecord(ReviewRecord record) {
         try (Connection connection = databaseConnection.getConnection()) {
-            if (metadataReviewRecordExists(connection, record.getId())) {
-                updateMetadataReviewRecord(connection, record);
+            if (reviewRecordExists(connection, record.getId())) {
+                updateReviewRecord(connection, record);
             } else {
-                insertMetadataReviewRecord(connection, record);
+                insertReviewRecord(connection, record);
             }
         } catch (SQLException exception) {
-            throw new DataAccessException("Failed to save metadata review record " + record.getId(), exception);
+            throw new DataAccessException("Failed to save review record " + record.getId(), exception);
         }
     }
 
@@ -494,7 +494,7 @@ public class MetadataDAO {
         throw new DataAccessException("Scan profile does not exist in the database: " + clean(profileName), null);
     }
 
-    private boolean metadataReviewRecordExists(Connection connection, String recordId) throws SQLException {
+    private boolean reviewRecordExists(Connection connection, String recordId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT 1
                 FROM metadata_review_records
@@ -508,7 +508,7 @@ public class MetadataDAO {
         }
     }
 
-    private void insertMetadataReviewRecord(Connection connection, MetadataReviewRecord record) throws SQLException {
+    private void insertReviewRecord(Connection connection, ReviewRecord record) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 INSERT INTO metadata_review_records
                 (id, identity_value, client_name, archive_name, profile_name, metadata_template_name,
@@ -516,12 +516,12 @@ public class MetadataDAO {
                  date_group, warning, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """)) {
-            setMetadataReviewRecordValues(statement, record);
+            setReviewRecordValues(statement, record);
             statement.executeUpdate();
         }
     }
 
-    private void updateMetadataReviewRecord(Connection connection, MetadataReviewRecord record) throws SQLException {
+    private void updateReviewRecord(Connection connection, ReviewRecord record) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 UPDATE metadata_review_records
                 SET identity_value = ?,
@@ -558,7 +558,7 @@ public class MetadataDAO {
         }
     }
 
-    private void setMetadataReviewRecordValues(PreparedStatement statement, MetadataReviewRecord record)
+    private void setReviewRecordValues(PreparedStatement statement, ReviewRecord record)
             throws SQLException {
         statement.setString(1, record.getId());
         statement.setString(2, record.getIdentity());

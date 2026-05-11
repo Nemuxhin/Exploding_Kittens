@@ -186,27 +186,31 @@
                 </HBox>
             </GridPane>
 
-            <HBox spacing="18"
-                  alignment="TOP_LEFT"
-                  fillHeight="true"
-                  maxWidth="Infinity"
-                  styleClass="dashboard-history-attention-layout">
+            <GridPane hgap="18"
+                      vgap="18"
+                      maxWidth="Infinity"
+                      styleClass="dashboard-history-attention-layout">
+
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
+                </columnConstraints>
 
                 <VBox spacing="18"
                       minWidth="0"
-                      prefWidth="0"
                       maxWidth="Infinity"
-                      HBox.hgrow="ALWAYS">
-                    <styleClass>
-                        <String fx:value="dashboard-left-stack"/>
-                        <String fx:value="dashboard-balanced-column"/>
-                    </styleClass>
+                      styleClass="dashboard-left-stack"
+                      GridPane.columnIndex="0"
+                      GridPane.rowIndex="0">
 
                     <VBox fx:id="needsAttentionCard"
                           spacing="0"
                           minWidth="0"
-                          maxWidth="Infinity"
-                          styleClass="dashboard-section-card">
+                          maxWidth="Infinity">
+                        <styleClass>
+                            <String fx:value="dashboard-section-card"/>
+                            <String fx:value="dashboard-needs-attention-card"/>
+                        </styleClass>
 
                         <VBox spacing="15" maxWidth="Infinity">
                             <padding>
@@ -229,7 +233,7 @@
 
                                 <VBox spacing="3" alignment="CENTER_RIGHT">
                                     <Label fx:id="needsAttentionValueLabel"
-                                           text="6"
+                                           text="0"
                                            styleClass="dashboard-summary-value"/>
                                     <Label text="Open items"
                                            styleClass="dashboard-summary-subtitle"/>
@@ -246,11 +250,12 @@
                                   styleClass="dashboard-simple-row">
                                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="usersNoProfilesCountLabel"
-                                           text="3 users have no profiles"
+                                           text="0 users have no profiles"
                                            styleClass="dashboard-simple-title"/>
                                     <Label text="Assign access before scanning"
                                            styleClass="dashboard-simple-detail"/>
                                 </VBox>
+
                                 <Button text="Review"
                                         onAction="#manageAccess"
                                         focusTraversable="false"
@@ -262,11 +267,12 @@
                                   styleClass="dashboard-simple-row">
                                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="failedExportsCountLabel"
-                                           text="2 failed exports"
+                                           text="0 failed events"
                                            styleClass="dashboard-simple-title"/>
                                     <Label text="Check failed system activity"
                                            styleClass="dashboard-simple-detail"/>
                                 </VBox>
+
                                 <Button text="Review"
                                         onAction="#reviewFailedExports"
                                         focusTraversable="false"
@@ -278,11 +284,12 @@
                                   styleClass="dashboard-simple-row">
                                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                                     <Label fx:id="draftProfilesCountLabel"
-                                           text="1 draft profile"
+                                           text="0 draft profiles"
                                            styleClass="dashboard-simple-title"/>
                                     <Label text="Court Records is not active yet"
                                            styleClass="dashboard-simple-detail"/>
                                 </VBox>
+
                                 <Button text="Open"
                                         onAction="#createProfile"
                                         focusTraversable="false"
@@ -293,8 +300,7 @@
 
                     <VBox spacing="0"
                           minWidth="0"
-                          maxWidth="Infinity"
-                          VBox.vgrow="ALWAYS">
+                          maxWidth="Infinity">
                         <styleClass>
                             <String fx:value="dashboard-section-card"/>
                             <String fx:value="dashboard-workflow-overview-card"/>
@@ -316,7 +322,6 @@
                         <HBox spacing="18"
                               alignment="CENTER_LEFT"
                               maxWidth="Infinity"
-                              VBox.vgrow="ALWAYS"
                               styleClass="dashboard-workflow-status-body">
 
                             <StackPane fx:id="workflowDonutChart"
@@ -376,13 +381,13 @@
 
                 <VBox spacing="0"
                       minWidth="0"
-                      prefWidth="0"
                       maxWidth="Infinity"
-                      HBox.hgrow="ALWAYS">
+                      styleClass="dashboard-recent-activity-card"
+                      GridPane.columnIndex="1"
+                      GridPane.rowIndex="0">
                     <styleClass>
                         <String fx:value="dashboard-section-card"/>
                         <String fx:value="dashboard-recent-activity-card"/>
-                        <String fx:value="dashboard-balanced-column"/>
                     </styleClass>
 
                     <HBox alignment="CENTER_LEFT"
@@ -406,7 +411,7 @@
                           spacing="0"
                           styleClass="dashboard-activity-list"/>
                 </VBox>
-            </HBox>
+            </GridPane>
         </VBox>
     </content>
 </ScrollPane>

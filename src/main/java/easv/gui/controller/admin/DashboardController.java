@@ -1,7 +1,7 @@
 package easv.gui.controller.admin;
 
 import easv.be.AuditLog;
-import easv.be.MetadataReviewRecord;
+import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -273,11 +273,11 @@ public class DashboardController {
         return matches;
     }
 
-    private int countMetadataReviewRecords(MetadataReviewPredicate predicate) {
-        List<MetadataReviewRecord> records = adminManager.getMetadataReviewRecords();
+    private int countReviewRecords(ReviewPredicate predicate) {
+        List<ReviewRecord> records = adminManager.getReviewRecords();
         int matches = 0;
 
-        for (MetadataReviewRecord record : records) {
+        for (ReviewRecord record : records) {
             if (predicate.matches(record)) {
                 matches++;
             }
@@ -287,7 +287,7 @@ public class DashboardController {
     }
 
     private int countWaitingForQaRecords() {
-        return countMetadataReviewRecords(record ->
+        return countReviewRecords(record ->
                 contains(record.getQaStatus(), "waiting")
                         || contains(record.getQaStatus(), "ready")
                         || contains(record.getMetadataStatus(), "ready")
@@ -481,14 +481,14 @@ public class DashboardController {
 
     @FXML
     private void reviewFailedExports() {
-        navigator.showMetadataReview();
+        navigator.showReview();
     }
 
     private interface LogPredicate {
         boolean matches(AuditLog log);
     }
 
-    private interface MetadataReviewPredicate {
-        boolean matches(MetadataReviewRecord record);
+    private interface ReviewPredicate {
+        boolean matches(ReviewRecord record);
     }
 }

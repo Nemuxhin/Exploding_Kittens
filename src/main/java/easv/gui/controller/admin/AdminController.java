@@ -61,7 +61,7 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton profilesNavItem;
     @FXML private ToggleButton assignmentsNavItem;
     @FXML private ToggleButton metadataNavItem;
-    @FXML private ToggleButton metadataReviewNavItem;
+    @FXML private ToggleButton reviewNavItem;
     @FXML private ToggleButton activityNavItem;
 
     @FXML private Button accountMenuButton;
@@ -282,8 +282,8 @@ public class AdminController implements AdminNavigator {
             assignmentsController.setAdminManager(adminManager);
         } else if (controller instanceof MetadataController metadataController) {
             metadataController.setAdminManager(adminManager);
-        } else if (controller instanceof MetadataReviewController metadataReviewController) {
-            metadataReviewController.setAdminManager(adminManager);
+        } else if (controller instanceof ReviewController reviewController) {
+            reviewController.setAdminManager(adminManager);
         } else if (controller instanceof ActivityController activityController) {
             activityController.setAdminManager(adminManager);
         }
@@ -308,11 +308,10 @@ public class AdminController implements AdminNavigator {
         subtitleLabel.getStyleClass().add("page-subtitle");
 
         VBox placeholder = new VBox(6, titleLabel, subtitleLabel);
-        placeholder.getStyleClass().addAll("admin-page", "main-content");
+        placeholder.getStyleClass().addAll("admin-page", "main-content", "admin-missing-page-placeholder");
         placeholder.setAlignment(Pos.TOP_LEFT);
         placeholder.setMaxWidth(Double.MAX_VALUE);
         placeholder.setMaxHeight(Double.MAX_VALUE);
-        placeholder.setStyle("-fx-padding: 24;");
 
         return placeholder;
     }
@@ -341,7 +340,7 @@ public class AdminController implements AdminNavigator {
                 profilesNavItem,
                 assignmentsNavItem,
                 metadataNavItem,
-                metadataReviewNavItem,
+                reviewNavItem,
                 activityNavItem
         );
     }
@@ -353,7 +352,7 @@ public class AdminController implements AdminNavigator {
             case PROFILES -> profilesNavItem;
             case ASSIGNMENTS -> assignmentsNavItem;
             case METADATA_TEMPLATES -> metadataNavItem;
-            case METADATA_REVIEW -> metadataReviewNavItem;
+            case REVIEW -> reviewNavItem;
             case ACTIVITY -> activityNavItem;
         };
     }
