@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,18 @@ public class PageImageDAO {
     }
 
     public void saveAll(Connection connection, UUID documentId, List<PageImage> pageImages) {
+        syncDocumentPages(connection, documentId, pageImages);
+    }
+
+    public void syncDocumentPages(UUID documentId, List<PageImage> pageImages) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            syncDocumentPages(connection, documentId, pageImages);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to synchronize pages for document " + documentId, e);
+        }
+    }
+
+    public void syncDocumentPages(Connection connection, UUID documentId, List<PageImage> pageImages) {
         if (documentId == null) {
             throw new IllegalArgumentException("documentId must not be null");
         }
@@ -39,18 +52,32 @@ public class PageImageDAO {
         if (connection == null) {
             throw new IllegalArgumentException("connection must not be null");
         }
-        try {
+        try (PreparedStatement deleteStatement = connection.prepareStatement(
+                "DELETE FROM document_pages WHERE document_id = ?")) {
+            deleteStatement.setString(1, documentId.toString());
+            deleteStatement.executeUpdate();
+
             for (PageImage pageImage : pageImages) {
-                if (exists(connection, pageImage.getId())) {
-                    continue;
-                }
-                try (PreparedStatement statement = connection.prepareStatement(
-                        "INSERT INTO document_pages (id, document_id, page_number, page_type, source_reference) VALUES (?, ?, ?, ?, ?)")) {
+                try (PreparedStatement statement = connection.prepareStatement("""
+                        INSERT INTO document_pages (
+                            id, document_id, page_number, page_order, page_type, source_reference,
+                            reference_id, rotation_degrees, display_content, deleted_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """)) {
                     statement.setString(1, pageImage.getId().toString());
                     statement.setString(2, documentId.toString());
                     statement.setInt(3, pageImage.getPageNumber());
-                    statement.setString(4, pageImage.getPageType().name());
-                    statement.setString(5, pageImage.getSourceReference());
+                    statement.setInt(4, pageImage.getPageNumber());
+                    statement.setString(5, pageImage.getPageType().name());
+                    statement.setString(6, pageImage.getSourceReference());
+                    statement.setInt(7, pageImage.getReferenceId());
+                    statement.setInt(8, pageImage.getRotationDegrees());
+                    statement.setString(9, pageImage.getDisplayContent());
+                    if (pageImage.getDeletedAt() == null) {
+                        statement.setNull(10, java.sql.Types.TIMESTAMP);
+                    } else {
+                        statement.setTimestamp(10, Timestamp.from(pageImage.getDeletedAt()));
+                    }
                     statement.executeUpdate();
                 }
             }
@@ -65,7 +92,13 @@ public class PageImageDAO {
         }
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT id, page_number, page_type, source_reference FROM document_pages WHERE document_id = ? ORDER BY page_number")) {
+                     """
+                     SELECT id, page_number, page_type, source_reference, reference_id, rotation_degrees,
+                            display_content, deleted_at
+                     FROM document_pages
+                     WHERE document_id = ?
+                     ORDER BY page_order, id
+                     """)) {
             statement.setString(1, documentId.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 List<PageImage> pages = new ArrayList<>();
@@ -74,23 +107,19 @@ public class PageImageDAO {
                             UUID.fromString(resultSet.getString("id")),
                             resultSet.getInt("page_number"),
                             PageImage.PageType.valueOf(resultSet.getString("page_type")),
-                            resultSet.getString("source_reference")
+                            resultSet.getString("source_reference"),
+                            resultSet.getInt("reference_id"),
+                            resultSet.getInt("rotation_degrees"),
+                            resultSet.getString("display_content"),
+                            resultSet.getTimestamp("deleted_at") == null
+                                    ? null
+                                    : resultSet.getTimestamp("deleted_at").toInstant()
                     ));
                 }
                 return pages;
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch pages for document " + documentId, e);
-        }
-    }
-
-    private boolean exists(Connection connection, UUID pageId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT 1 FROM document_pages WHERE id = ?")) {
-            statement.setString(1, pageId.toString());
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next();
-            }
         }
     }
 }

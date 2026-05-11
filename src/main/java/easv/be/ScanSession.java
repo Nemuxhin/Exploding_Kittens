@@ -12,6 +12,9 @@ public class ScanSession {
     private final Box box;
     private final List<Document> importedDocuments = new ArrayList<>();
     private final List<String> failures = new ArrayList<>();
+    private String selectedBarcodeBehavior = "";
+    private String lastStatus = "READY";
+    private int nextReferenceId = 1;
 
     public ScanSession(Box box) {
         this(UUID.randomUUID(), Instant.now(), box);
@@ -43,6 +46,26 @@ public class ScanSession {
         return List.copyOf(failures);
     }
 
+    public String getSelectedBarcodeBehavior() {
+        return selectedBarcodeBehavior;
+    }
+
+    public String getLastStatus() {
+        return lastStatus;
+    }
+
+    public void setSelectedBarcodeBehavior(String selectedBarcodeBehavior) {
+        this.selectedBarcodeBehavior = selectedBarcodeBehavior == null ? "" : selectedBarcodeBehavior.trim();
+    }
+
+    public void setLastStatus(String lastStatus) {
+        this.lastStatus = lastStatus == null || lastStatus.isBlank() ? "READY" : lastStatus.trim();
+    }
+
+    public int allocateReferenceId() {
+        return nextReferenceId++;
+    }
+
     public void addImportedDocument(Document document) {
         Objects.requireNonNull(document, "document");
         boolean exists = importedDocuments.stream()
@@ -57,5 +80,6 @@ public class ScanSession {
             throw new IllegalArgumentException("message must not be blank");
         }
         failures.add(message);
+        lastStatus = "FAILED";
     }
 }

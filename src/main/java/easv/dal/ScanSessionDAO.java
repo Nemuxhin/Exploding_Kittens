@@ -23,13 +23,16 @@ public class ScanSessionDAO {
     public void save(ScanSession session) {
         try (Connection connection = databaseConnection.getConnection()) {
             if (existsSession(connection, session.getId())) {
+                updateSessionState(session);
                 return;
             }
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO scan_sessions (id, started_at, box_id) VALUES (?, ?, ?)")) {
+                    "INSERT INTO scan_sessions (id, started_at, box_id, selected_barcode_behavior, last_status) VALUES (?, ?, ?, ?, ?)")) {
                 statement.setString(1, session.getId().toString());
                 statement.setTimestamp(2, Timestamp.from(session.getStartedAt()));
                 statement.setString(3, session.getBox().getId().toString());
+                statement.setString(4, session.getSelectedBarcodeBehavior());
+                statement.setString(5, session.getLastStatus());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -61,8 +64,25 @@ public class ScanSessionDAO {
             statement.setString(2, session.getId().toString());
             statement.setString(3, message);
             statement.executeUpdate();
+            updateSessionState(session);
         } catch (SQLException e) {
             throw new DataAccessException("Failed to record session failure for " + session.getId(), e);
+        }
+    }
+
+    public void updateSessionState(ScanSession session) {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     UPDATE scan_sessions
+                     SET selected_barcode_behavior = ?, last_status = ?
+                     WHERE id = ?
+                     """)) {
+            statement.setString(1, session.getSelectedBarcodeBehavior());
+            statement.setString(2, session.getLastStatus());
+            statement.setString(3, session.getId().toString());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to update scan session state for " + session.getId(), e);
         }
     }
 

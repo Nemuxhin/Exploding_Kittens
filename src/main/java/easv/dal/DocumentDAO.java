@@ -1,6 +1,7 @@
 package easv.dal;
 
 import easv.be.Document;
+import easv.be.PageImage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,7 +46,7 @@ public class DocumentDAO {
                 statement.setString(2, document.getSourceItemId());
                 statement.setString(3, caseFileId.toString());
                 statement.executeUpdate();
-                pageImageDAO.saveAll(connection, document.getId(), document.getPages());
+                pageImageDAO.syncDocumentPages(connection, document.getId(), document.getAllPages());
                 connection.commit();
                 return document;
             } catch (SQLException | DataAccessException e) {
@@ -127,6 +129,82 @@ public class DocumentDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch documents for case file " + caseFileId, e);
+        }
+    }
+
+    public Document synchronizePages(Document document) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            pageImageDAO.syncDocumentPages(connection, document.getId(), document.getAllPages());
+            return document;
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to synchronize document pages for " + document.getId(), e);
+        }
+    }
+
+    public Document addPage(UUID documentId, PageImage pageImage, int position) {
+        Document document = findRequiredDocument(documentId);
+        document.addPage(pageImage, position);
+        return synchronizePages(document);
+    }
+
+    public Document movePage(UUID documentId, UUID pageId, int newPosition) {
+        Document document = findRequiredDocument(documentId);
+        document.movePage(pageId, newPosition);
+        return synchronizePages(document);
+    }
+
+    public Document deletePage(UUID documentId, UUID pageId) {
+        Document document = findRequiredDocument(documentId);
+        document.deletePage(pageId);
+        return synchronizePages(document);
+    }
+
+    public Document restorePage(UUID documentId, UUID pageId, int position) {
+        Document document = findRequiredDocument(documentId);
+        document.restorePage(pageId, position);
+        return synchronizePages(document);
+    }
+
+    public void movePageToDocument(UUID sourceDocumentId, UUID targetDocumentId, UUID pageId, int targetPosition) {
+        Document sourceDocument = findRequiredDocument(sourceDocumentId);
+        Document targetDocument = findRequiredDocument(targetDocumentId);
+
+        PageImage pageImage = sourceDocument.extractPage(pageId);
+        pageImage.restore();
+        targetDocument.addPage(pageImage, targetPosition);
+
+        try (Connection connection = databaseConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                pageImageDAO.syncDocumentPages(connection, sourceDocument.getId(), sourceDocument.getAllPages());
+                pageImageDAO.syncDocumentPages(connection, targetDocument.getId(), targetDocument.getAllPages());
+                connection.commit();
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to move page between documents", e);
+        }
+    }
+
+    private Document findRequiredDocument(UUID documentId) {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT id, source_item_id FROM documents WHERE id = ?")) {
+            statement.setString(1, documentId.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new IllegalArgumentException("Document could not be found.");
+                }
+                return new Document(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getString("source_item_id"),
+                        pageImageDAO.findByDocumentId(documentId)
+                );
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch document " + documentId, e);
         }
     }
 

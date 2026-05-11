@@ -202,7 +202,11 @@ public class ManageUsersController {
         userRoleComboBox.getItems().setAll(ROLE_USER, ROLE_ADMIN);
         userStatusComboBox.getItems().setAll(STATUS_ACTIVE, STATUS_INACTIVE);
 
-        refreshProfileAccessControls();
+        if (adminManager != null) {
+            refreshProfileAccessControls();
+        } else if (profileListBox != null) {
+            profileListBox.getChildren().clear();
+        }
 
         userRoleComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (ROLE_ADMIN.equals(newValue) && !ROLE_ADMIN.equals(oldValue)) {
@@ -234,6 +238,14 @@ public class ManageUsersController {
     }
 
     private void refreshProfileAccessControls() {
+        if (adminManager == null) {
+            profileControls.clear();
+            if (profileListBox != null) {
+                profileListBox.getChildren().clear();
+            }
+            return;
+        }
+
         profileControls.clear();
 
         profileControls.addAll(loadProfileOptions().stream()

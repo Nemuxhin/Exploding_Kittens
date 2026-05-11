@@ -193,6 +193,10 @@
                             <Label fx:id="profileInfoSplittingLabel"
                                    text="Splitting method: —"
                                    styleClass="profile-info-line"/>
+
+                            <Label fx:id="profileInfoBarcodeBehaviorLabel"
+                                   text="Barcode behavior: —"
+                                   styleClass="profile-info-line"/>
                         </VBox>
 
                         <!-- Box ID -->
@@ -277,6 +281,10 @@
 
                     <Label fx:id="workspaceSessionSubtitleLabel"
                            text="0 files scanned · 0 documents created · 0 pending pages"
+                           styleClass="workspace-subtitle"/>
+
+                    <Label fx:id="scanStatusLabel"
+                           text="Status: Ready"
                            styleClass="workspace-subtitle"/>
                 </VBox>
 

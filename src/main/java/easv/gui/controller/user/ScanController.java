@@ -61,6 +61,7 @@ public class ScanController {
     @FXML private Label profileInfoMetadataLabel;
     @FXML private Label profileInfoQaLabel;
     @FXML private Label profileInfoSplittingLabel;
+    @FXML private Label profileInfoBarcodeBehaviorLabel;
 
     @FXML private Button startScanningButton;
     @FXML private Button viewMyScansButton;
@@ -68,6 +69,7 @@ public class ScanController {
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
+    @FXML private Label scanStatusLabel;
     @FXML private Label boxStructureSubtitleLabel;
     @FXML private Label selectedFileTitleLabel;
     @FXML private Label selectedFileRefLabel;
@@ -108,6 +110,9 @@ public class ScanController {
 
     private int nextReferenceId = 1;
     private int nextFileId = 1;
+    private boolean scanningStoppedByBarcode = false;
+    private String pendingBarcodeBehavior = "Continue scanning when barcode is found";
+    private String activeBarcodeBehavior = "Continue scanning when barcode is found";
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -177,6 +182,8 @@ public class ScanController {
             profileInfoMetadataLabel.setText("Metadata required: —");
             profileInfoQaLabel.setText("QA required: —");
             profileInfoSplittingLabel.setText("Splitting method: —");
+            profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: —");
+            pendingBarcodeBehavior = "Continue scanning when barcode is found";
             return;
         }
 
@@ -187,28 +194,35 @@ public class ScanController {
                 profileInfoMetadataLabel.setText("Metadata required: Yes");
                 profileInfoQaLabel.setText("QA required: Yes");
                 profileInfoSplittingLabel.setText("Splitting method: Manual or barcode");
+                pendingBarcodeBehavior = "Continue scanning when barcode is found";
             }
             case "Technical Drawings" -> {
                 profileInfoMetadataLabel.setText("Metadata required: Yes");
                 profileInfoQaLabel.setText("QA required: No");
                 profileInfoSplittingLabel.setText("Splitting method: Single document");
+                pendingBarcodeBehavior = "Continue scanning when barcode is found";
             }
             case "Court Records" -> {
                 profileInfoMetadataLabel.setText("Metadata required: Yes");
                 profileInfoQaLabel.setText("QA required: Yes");
                 profileInfoSplittingLabel.setText("Splitting method: Barcode");
+                pendingBarcodeBehavior = "Stop scanning when barcode is found";
             }
             case "Standard Scan" -> {
                 profileInfoMetadataLabel.setText("Metadata required: No");
                 profileInfoQaLabel.setText("QA required: No");
                 profileInfoSplittingLabel.setText("Splitting method: Manual");
+                pendingBarcodeBehavior = "Continue scanning when barcode is found";
             }
             default -> {
                 profileInfoMetadataLabel.setText("Metadata required: Unknown");
                 profileInfoQaLabel.setText("QA required: Unknown");
                 profileInfoSplittingLabel.setText("Splitting method: Unknown");
+                pendingBarcodeBehavior = "Continue scanning when barcode is found";
             }
         }
+
+        profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: " + pendingBarcodeBehavior);
     }
 
     private void configureValidation() {
@@ -438,6 +452,8 @@ public class ScanController {
 
         nextReferenceId = 1;
         nextFileId = 1;
+        scanningStoppedByBarcode = false;
+        activeBarcodeBehavior = pendingBarcodeBehavior;
 
         selectedPage = null;
         resetPreviewViewState();
@@ -446,10 +462,16 @@ public class ScanController {
 
         refreshWorkspace();
         updateUndoButtonState();
+        updateScanStatus("Ready");
     }
 
     @FXML
     private void onScanNextFile() {
+        if (scanningStoppedByBarcode) {
+            updateScanStatus("Stopped on barcode");
+            return;
+        }
+
         saveUndoState();
 
         boolean barcode = shouldMockBarcode();
@@ -470,6 +492,13 @@ public class ScanController {
 
         rebuildDocumentsFromPages();
         refreshWorkspace();
+
+        if (barcode && activeBarcodeBehavior.toLowerCase().contains("stop")) {
+            scanningStoppedByBarcode = true;
+            updateScanStatus("Stopped on barcode");
+        } else {
+            updateScanStatus(barcode ? "Imported - barcode detected" : "Imported");
+        }
     }
 
     private boolean shouldMockBarcode() {
@@ -646,6 +675,12 @@ public class ScanController {
     private void updatePreviewZoomLabel() {
         if (previewZoomLabel != null) {
             previewZoomLabel.setText(Math.round(previewZoomMultiplier.get() * 100) + "%");
+        }
+    }
+
+    private void updateScanStatus(String status) {
+        if (scanStatusLabel != null) {
+            scanStatusLabel.setText("Status: " + status);
         }
     }
 

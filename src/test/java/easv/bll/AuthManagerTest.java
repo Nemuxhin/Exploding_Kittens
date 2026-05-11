@@ -3,9 +3,7 @@ package easv.bll;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.nio.file.Path;
+import easv.dal.DatabaseConnection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,9 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuthManagerTest {
 
-    @TempDir
-    Path tempDir;
-
     @AfterEach
     void clearSession() {
         UserSession.clearCurrentUser();
@@ -24,7 +19,7 @@ class AuthManagerTest {
 
     @Test
     void loginSucceedsForValidActiveUser() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        UserDAO userDAO = new UserDAO(createDatabase("auth-success"));
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("admin", "admin123");
@@ -37,7 +32,7 @@ class AuthManagerTest {
 
     @Test
     void loginFailsForWrongPassword() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        UserDAO userDAO = new UserDAO(createDatabase("auth-wrong-password"));
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("admin", "wrong-password");
@@ -49,7 +44,7 @@ class AuthManagerTest {
 
     @Test
     void loginFailsForInactiveAccount() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        UserDAO userDAO = new UserDAO(createDatabase("auth-inactive"));
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("inactive", "inactive123");
@@ -57,5 +52,9 @@ class AuthManagerTest {
         assertFalse(authResult.isSuccess());
         assertEquals("This account is inactive and cannot log in.", authResult.getMessage());
         assertFalse(UserSession.hasCurrentUser());
+    }
+
+    private DatabaseConnection createDatabase(String databaseName) {
+        return new DatabaseConnection("jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1", "sa", "");
     }
 }

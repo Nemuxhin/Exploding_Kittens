@@ -5,8 +5,14 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 public class DatabaseConnection {
@@ -37,6 +43,52 @@ public class DatabaseConnection {
 
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(jdbcUrl, username, password);
+    }
+
+    static boolean tableExists(Connection connection, String tableName) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        List<String> schemaCandidates = getSchemaCandidates(connection);
+        for (String candidate : new String[]{tableName, tableName.toUpperCase(Locale.ROOT), tableName.toLowerCase(Locale.ROOT)}) {
+            for (String schemaCandidate : schemaCandidates) {
+                try (ResultSet resultSet = metaData.getTables(connection.getCatalog(), schemaCandidate, candidate, new String[]{"TABLE"})) {
+                    if (resultSet.next()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean columnExists(Connection connection, String tableName, String columnName) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        List<String> schemaCandidates = getSchemaCandidates(connection);
+        String[] tableCandidates = new String[]{tableName, tableName.toUpperCase(Locale.ROOT), tableName.toLowerCase(Locale.ROOT)};
+        String[] columnCandidates = new String[]{columnName, columnName.toUpperCase(Locale.ROOT), columnName.toLowerCase(Locale.ROOT)};
+
+        for (String tableCandidate : tableCandidates) {
+            for (String columnCandidate : columnCandidates) {
+                for (String schemaCandidate : schemaCandidates) {
+                    try (ResultSet resultSet = metaData.getColumns(connection.getCatalog(), schemaCandidate, tableCandidate, columnCandidate)) {
+                        if (resultSet.next()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static List<String> getSchemaCandidates(Connection connection) throws SQLException {
+        LinkedHashSet<String> candidates = new LinkedHashSet<>();
+        String currentSchema = connection.getSchema();
+        if (currentSchema != null && !currentSchema.isBlank()) {
+            candidates.add(currentSchema);
+        }
+        candidates.add("PUBLIC");
+        candidates.add("dbo");
+        return new ArrayList<>(candidates);
     }
 
     private static String readConfiguredValue(String envName, String propertyName, String fallback) {
