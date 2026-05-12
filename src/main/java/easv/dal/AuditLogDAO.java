@@ -14,6 +14,8 @@ import java.util.List;
 
 public class AuditLogDAO {
     private final DatabaseConnection databaseConnection;
+    private final List<AuditLog> inMemoryLogs;
+    private int inMemoryNextId = 1;
 
     public AuditLogDAO() {
         this(new DatabaseConnection());
@@ -21,9 +23,23 @@ public class AuditLogDAO {
 
     public AuditLogDAO(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
+        this.inMemoryLogs = null;
+    }
+
+    private AuditLogDAO(List<AuditLog> inMemoryLogs) {
+        this.databaseConnection = null;
+        this.inMemoryLogs = inMemoryLogs;
+    }
+
+    public static AuditLogDAO inMemory() {
+        return new AuditLogDAO(new ArrayList<>());
     }
 
     public List<AuditLog> getAllAuditLogs() {
+        if (inMemoryLogs != null) {
+            return new ArrayList<>(inMemoryLogs);
+        }
+
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id, timestamp, type, actor, action, target, status, description
@@ -44,6 +60,10 @@ public class AuditLogDAO {
     }
 
     public int nextAuditLogId() {
+        if (inMemoryLogs != null) {
+            return inMemoryNextId++;
+        }
+
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("SELECT COALESCE(MAX(id), 0) + 1 FROM audit_logs");
              ResultSet resultSet = statement.executeQuery()) {
@@ -55,6 +75,11 @@ public class AuditLogDAO {
     }
 
     public AuditLog saveAuditLog(AuditLog log) {
+        if (inMemoryLogs != null) {
+            inMemoryLogs.add(log);
+            return log;
+        }
+
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO audit_logs

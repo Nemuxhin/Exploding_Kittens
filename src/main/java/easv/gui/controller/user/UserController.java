@@ -1,6 +1,8 @@
 package easv.gui.controller.user;
 
 import easv.be.User;
+import easv.bll.KeyboardShortcut;
+import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
@@ -101,6 +103,7 @@ public class UserController implements UserNavigator {
     @FXML private SVGPath darkModeToggleIcon;
 
     private final UserPortalModel portalModel = new UserPortalModel();
+    private final ShortcutManager shortcutManager = new ShortcutManager();
     private final UserManager userManager = new UserManager();
     private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
 
@@ -684,38 +687,9 @@ public class UserController implements UserNavigator {
 
     private VBox createKeyboardShortcutsBody(Dialog<ButtonType> dialog) {
         HBox cards = new HBox(24,
-                createShortcutCard(
-                        "General",
-                        List.of(
-                                shortcutData("Open shortcuts", "?"),
-                                shortcutData("Close dialog", "Esc"),
-                                shortcutData("Save progress", "Ctrl + S")
-                        )
-                ),
-                createShortcutCard(
-                        "Scanning",
-                        List.of(
-                                shortcutData("Scan next page", "Space"),
-                                shortcutData("Previous page", "←"),
-                                shortcutData("Next page", "→"),
-                                shortcutData("Rotate right", "R"),
-                                shortcutData("Rotate left", "L"),
-                                shortcutData("Delete page", "Delete"),
-                                shortcutData("Open metadata", "M"),
-                                shortcutData("Export", "E")
-                        )
-                ),
-                createShortcutCard(
-                        "QA Review",
-                        List.of(
-                                shortcutData("Approve page", "A"),
-                                shortcutData("Mark needs fix", "F"),
-                                shortcutData("Add comment", "N"),
-                                shortcutData("Previous page", "←"),
-                                shortcutData("Next page", "→"),
-                                shortcutData("Complete QA", "C")
-                        )
-                )
+                createShortcutCard("Keyboard", shortcutManager.getShortcuts().stream()
+                        .map(this::shortcutData)
+                        .toList())
         );
         cards.getStyleClass().add("weblager-shortcuts-card-row");
         cards.setAlignment(Pos.TOP_CENTER);
@@ -773,6 +747,10 @@ public class UserController implements UserNavigator {
 
     private ShortcutData shortcutData(String label, String key) {
         return new ShortcutData(label, key);
+    }
+
+    private ShortcutData shortcutData(KeyboardShortcut shortcut) {
+        return new ShortcutData(shortcut.getActionName(), shortcut.getDisplayKeys());
     }
 
     private record ShortcutData(String label, String key) {
