@@ -43,7 +43,6 @@ public class AdminController implements AdminNavigator {
     private static final String DARK_MODE_CLASS = "dark";
     private static final String ACCOUNT_SECTION = "Edit Profile";
     private static final String PRIVACY_SECTION = "Settings and Privacy";
-    private static final String HELP_SECTION = "Help and Support";
     private static final String MOON_ICON_PATH =
             "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
     private static final String SUN_ICON_PATH =
@@ -74,7 +73,6 @@ public class AdminController implements AdminNavigator {
     @FXML private Button settingsPrivacyMenuButton;
     @FXML private Button logoutMenuButton;
     @FXML private Button keyboardShortcutsButton;
-    @FXML private Button helpButton;
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private SVGPath darkModeToggleIcon;
 
@@ -91,7 +89,6 @@ public class AdminController implements AdminNavigator {
         configureAccount();
         configureAccountMenu();
         configureKeyboardShortcutsButton();
-        configureHelpButton();
         configureThemeToggle();
         configureNavigation();
         showPage(AdminPage.DASHBOARD);
@@ -158,12 +155,6 @@ public class AdminController implements AdminNavigator {
     private void configureKeyboardShortcutsButton() {
         if (keyboardShortcutsButton != null) {
             keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
-        }
-    }
-
-    private void configureHelpButton() {
-        if (helpButton != null) {
-            helpButton.setOnAction(event -> showHelpDialog());
         }
     }
 
@@ -423,7 +414,6 @@ public class AdminController implements AdminNavigator {
         return switch (section) {
             case ACCOUNT_SECTION -> "Manage your account information and password.";
             case PRIVACY_SECTION -> "Settings and privacy options.";
-            case HELP_SECTION -> "Help and support resources.";
             default -> "";
         };
     }
@@ -459,7 +449,6 @@ public class AdminController implements AdminNavigator {
                 switch (selectedSection) {
                     case ACCOUNT_SECTION -> buildAccountProfileSection();
                     case PRIVACY_SECTION -> buildEmptyAccountSection(PRIVACY_SECTION);
-                    case HELP_SECTION -> buildEmptyAccountSection(HELP_SECTION);
                     default -> buildEmptyAccountSection(selectedSection);
                 }
         );
@@ -649,25 +638,6 @@ public class AdminController implements AdminNavigator {
 
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Keyboard Shortcuts");
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-
-        VBox content = new VBox();
-        content.setMinSize(360, 180);
-        content.getStyleClass().add("admin-keyboard-shortcuts-dialog");
-        dialog.getDialogPane().setContent(content);
-
-        if (appShell != null && appShell.getScene() != null) {
-            dialog.initOwner(appShell.getScene().getWindow());
-        }
-
-        dialog.showAndWait();
-    }
-
-    private void showHelpDialog() {
-        hideAccountDropdown();
-
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle(HELP_SECTION);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
         VBox content = new VBox();

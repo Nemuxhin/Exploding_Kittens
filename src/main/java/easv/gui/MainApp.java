@@ -1,8 +1,10 @@
 package easv.gui;
 
 import easv.be.User;
+import easv.bll.UserSession;
 import easv.gui.controller.LoginController;
 import easv.gui.controller.admin.AdminController;
+import easv.gui.controller.user.UserController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -48,6 +50,8 @@ public class MainApp extends Application {
     }
 
     public void showLoginView() throws IOException {
+        UserSession.clearCurrentUser();
+
         FXMLLoader loader = new FXMLLoader(getRequiredResource(LOGIN_VIEW));
         Parent root = loader.load();
 
@@ -58,12 +62,21 @@ public class MainApp extends Application {
     }
 
     public void showMainView(User user) throws IOException {
+        UserSession.setCurrentUser(user);
+
         String view = isAdmin(user) ? ADMIN_VIEW : USER_VIEW;
+
         FXMLLoader loader = new FXMLLoader(getRequiredResource(view));
         Parent root = loader.load();
 
-        if (loader.getController() instanceof AdminController adminController) {
+        Object controller = loader.getController();
+
+        if (controller instanceof AdminController adminController) {
             adminController.setMainApp(this);
+        }
+
+        if (controller instanceof UserController userController) {
+            userController.setMainApp(this);
         }
 
         showView(root, APP_TITLE);
