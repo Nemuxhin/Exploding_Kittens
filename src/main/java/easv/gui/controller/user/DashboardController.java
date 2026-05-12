@@ -22,6 +22,8 @@ import java.util.List;
 public class DashboardController {
     private final UserPortalModel portalModel;
     private final UserNavigator navigator;
+    private GridPane metricsSection;
+    private HBox lowerSection;
 
     public DashboardController(UserPortalModel portalModel, UserNavigator navigator) {
         this.portalModel = portalModel;
@@ -31,9 +33,13 @@ public class DashboardController {
     public Node create() {
         VBox page = new VBox(28);
         page.getStyleClass().addAll("portal-page", "dashboard-page");
+        metricsSection = buildMetricsSkeleton();
+        lowerSection = buildLowerSectionSkeleton();
         page.getChildren().setAll(
                 buildIntro(),
-                createLoadingSection()
+                metricsSection,
+                buildActions(),
+                lowerSection
         );
         loadDashboardAsync(page);
         return page;
@@ -254,32 +260,6 @@ public class DashboardController {
         return card;
     }
 
-    private VBox createLoadingSection() {
-        Label title = new Label("Loading workspace data...");
-        title.getStyleClass().add("dashboard-section-title");
-
-        Label copy = new Label("Dashboard metrics and recent scan history are being loaded.");
-        copy.getStyleClass().add("dashboard-section-subtitle");
-        copy.setWrapText(true);
-
-        VBox box = new VBox(8, title, copy);
-        box.getStyleClass().add("admin-panel-card");
-        return box;
-    }
-
-    private VBox createLoadFailureSection() {
-        Label title = new Label("Workspace data could not be loaded");
-        title.getStyleClass().add("dashboard-section-title");
-
-        Label copy = new Label("The portal loaded, but dashboard data is unavailable right now.");
-        copy.getStyleClass().add("dashboard-section-subtitle");
-        copy.setWrapText(true);
-
-        VBox box = new VBox(8, title, copy);
-        box.getStyleClass().add("admin-panel-card");
-        return box;
-    }
-
     private void loadDashboardAsync(VBox page) {
         BackgroundExecutor.io().execute(() -> {
             try {
@@ -289,17 +269,15 @@ public class DashboardController {
                         portalModel.fetchAccountProfile()
                 );
 
-                Platform.runLater(() -> page.getChildren().setAll(
-                        buildIntro(),
-                        buildMetrics(snapshot.metrics()),
-                        buildActions(),
-                        buildLowerSection(snapshot.recentScans(), snapshot.accountProfile())
-                ));
+                Platform.runLater(() -> {
+                    page.getChildren().set(1, buildMetrics(snapshot.metrics()));
+                    page.getChildren().set(3, buildLowerSection(snapshot.recentScans(), snapshot.accountProfile()));
+                });
             } catch (RuntimeException exception) {
-                Platform.runLater(() -> page.getChildren().setAll(
-                        buildIntro(),
-                        createLoadFailureSection()
-                ));
+                Platform.runLater(() -> {
+                    page.getChildren().set(1, buildMetricsFailureState());
+                    page.getChildren().set(3, buildLowerSectionFailureState());
+                });
             }
         });
     }
@@ -352,6 +330,210 @@ public class DashboardController {
         card.getStyleClass().add("admin-metric-card");
         card.setMaxWidth(Double.MAX_VALUE);
         return card;
+    }
+
+    private GridPane buildMetricsSkeleton() {
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setMaxWidth(Double.MAX_VALUE);
+        grid.getColumnConstraints().setAll(
+                percentColumn(25),
+                percentColumn(25),
+                percentColumn(25),
+                percentColumn(25)
+        );
+
+        grid.add(loadingMetricCard("Assigned Profiles"), 0, 0);
+        grid.add(loadingMetricCard("Batches"), 1, 0);
+        grid.add(loadingMetricCard("Documents"), 2, 0);
+        grid.add(loadingMetricCard("Pages"), 3, 0);
+        return grid;
+    }
+
+    private HBox buildLowerSectionSkeleton() {
+        HBox layout = new HBox(20);
+        layout.setAlignment(Pos.TOP_LEFT);
+        layout.getStyleClass().add("admin-dashboard-layout");
+
+        VBox main = new VBox(24, buildRecentScansSkeleton());
+        main.getStyleClass().add("admin-dashboard-main");
+        HBox.setHgrow(main, Priority.ALWAYS);
+
+        VBox side = new VBox(24, buildQuickAccessSkeleton(), buildAccountSkeleton());
+        side.getStyleClass().add("admin-dashboard-side");
+        side.setPrefWidth(390);
+        side.setMinWidth(340);
+        side.setMaxWidth(420);
+
+        layout.getChildren().addAll(main, side);
+        return layout;
+    }
+
+    private GridPane buildMetricsFailureState() {
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setMaxWidth(Double.MAX_VALUE);
+        grid.getColumnConstraints().setAll(percentColumn(100));
+        grid.add(sectionFailureCard("Dashboard metrics could not be loaded."), 0, 0);
+        return grid;
+    }
+
+    private HBox buildLowerSectionFailureState() {
+        HBox layout = new HBox(20);
+        layout.setAlignment(Pos.TOP_LEFT);
+        layout.getStyleClass().add("admin-dashboard-layout");
+
+        VBox main = new VBox(24, sectionFailureCard("Recent scan history is unavailable right now."));
+        main.getStyleClass().add("admin-dashboard-main");
+        HBox.setHgrow(main, Priority.ALWAYS);
+
+        VBox side = new VBox(24, buildQuickAccessSkeleton(), buildAccountSkeleton());
+        side.getStyleClass().add("admin-dashboard-side");
+        side.setPrefWidth(390);
+        side.setMinWidth(340);
+        side.setMaxWidth(420);
+
+        layout.getChildren().addAll(main, side);
+        return layout;
+    }
+
+    private VBox loadingMetricCard(String titleText) {
+        StackPane iconBox = new StackPane();
+        iconBox.getStyleClass().add("dashboard-summary-icon-blue");
+        Label icon = new Label("...");
+        icon.getStyleClass().add("dashboard-summary-title");
+        iconBox.getChildren().add(icon);
+
+        Label value = new Label("—");
+        value.getStyleClass().add("dashboard-summary-value");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(iconBox, spacer, value);
+        header.setAlignment(Pos.TOP_LEFT);
+
+        Label title = new Label(titleText);
+        title.getStyleClass().add("dashboard-summary-title");
+
+        Label subtitle = new Label("Loading...");
+        subtitle.getStyleClass().add("dashboard-summary-subtitle");
+
+        VBox text = new VBox(4, title, subtitle);
+        VBox card = new VBox(12, header, text);
+        card.getStyleClass().add("admin-metric-card");
+        card.setMaxWidth(Double.MAX_VALUE);
+        return card;
+    }
+
+    private VBox buildRecentScansSkeleton() {
+        VBox card = new VBox(0);
+        card.getStyleClass().add("admin-panel-card");
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        Label title = new Label("Recent Scans");
+        title.getStyleClass().add("dashboard-section-title");
+        Label subtitle = new Label("Latest batches in your workspace and their current state.");
+        subtitle.getStyleClass().add("dashboard-section-subtitle");
+        subtitle.setWrapText(true);
+
+        Button link = new Button("View All ->");
+        link.getStyleClass().add("admin-link-button");
+        link.setOnAction(event -> navigator.showScans());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(12, new VBox(3, title, subtitle), spacer, link);
+        header.getStyleClass().add("admin-panel-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox table = new VBox();
+        table.getStyleClass().add("portal-table");
+        table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "DATE", "PAGES", "STATUS"));
+        table.getChildren().addAll(
+                skeletonRow("Loading scans..."),
+                skeletonRow("Loading scans..."),
+                skeletonRow("Loading scans...")
+        );
+
+        card.getChildren().addAll(header, table);
+        return card;
+    }
+
+    private VBox buildQuickAccessSkeleton() {
+        VBox card = new VBox(18);
+        card.getStyleClass().add("admin-panel-card");
+
+        Label title = new Label("Quick Access");
+        title.getStyleClass().add("dashboard-section-title");
+        Label subtitle = new Label("Fast entry points for the next step in your workflow.");
+        subtitle.getStyleClass().add("dashboard-section-subtitle");
+        subtitle.setWrapText(true);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(12);
+        grid.getColumnConstraints().setAll(percentColumn(50), percentColumn(50));
+
+        grid.add(quickButton("New Scan", true, navigator::showNewScan), 0, 0);
+        grid.add(quickButton("Assigned QA", false, navigator::showAssignedQa), 1, 0);
+        grid.add(quickButton("Exports", false, navigator::showExports), 0, 1);
+        grid.add(quickButton("Settings", false, navigator::showSettings), 1, 1);
+
+        Label processingTitle = new Label("Checking active work...");
+        processingTitle.getStyleClass().add("dashboard-simple-title");
+
+        Label processingDetail = new Label("Recent scan state is loading.");
+        processingDetail.getStyleClass().add("dashboard-simple-detail");
+        processingDetail.setWrapText(true);
+
+        card.getChildren().addAll(title, subtitle, grid, processingTitle, processingDetail);
+        return card;
+    }
+
+    private VBox buildAccountSkeleton() {
+        VBox card = new VBox(18);
+        card.getStyleClass().add("admin-panel-card");
+
+        Label title = new Label("Account Summary");
+        title.getStyleClass().add("dashboard-section-title");
+        Label subtitle = new Label("Current user context for scanning and export work.");
+        subtitle.getStyleClass().add("dashboard-section-subtitle");
+        subtitle.setWrapText(true);
+
+        card.getChildren().addAll(
+                title,
+                subtitle,
+                detailBlock("Name", "Loading..."),
+                detailBlock("Email", "Loading..."),
+                detailBlock("Department", "Loading...")
+        );
+
+        return card;
+    }
+
+    private VBox sectionFailureCard(String message) {
+        Label title = new Label("Unavailable");
+        title.getStyleClass().add("dashboard-section-title");
+
+        Label copy = new Label(message);
+        copy.getStyleClass().add("dashboard-section-subtitle");
+        copy.setWrapText(true);
+
+        VBox card = new VBox(8, title, copy);
+        card.getStyleClass().add("admin-panel-card");
+        return card;
+    }
+
+    private GridPane skeletonRow(String message) {
+        GridPane row = createRowSkeleton();
+        row.getStyleClass().add("portal-table-row");
+        Label label = new Label(message);
+        label.getStyleClass().add("portal-table-cell");
+        row.add(label, 0, 0);
+        GridPane.setColumnSpan(label, 5);
+        return row;
     }
 
     private Button createActionTile(String iconKey, String titleText, String bodyText, boolean primary, Runnable action) {
