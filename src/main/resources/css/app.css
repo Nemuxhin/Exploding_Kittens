@@ -5374,30 +5374,24 @@
 }
 
 .page-tray-document-split {
-    -fx-min-width: 60;
-    -fx-pref-width: 60;
-    -fx-max-width: 60;
-    -fx-min-height: 111;
-    -fx-pref-height: 111;
-    -fx-max-height: 111;
-    -fx-padding: 0 9 0 9;
-    -fx-background-color: transparent;
+    -fx-min-width: 9;
+    -fx-pref-width: 9;
+    -fx-max-width: 9;
+    -fx-min-height: 75;
+    -fx-pref-height: 75;
+    -fx-max-height: 75;
     -fx-alignment: center;
 }
 
 .page-tray-document-split-line {
-    -fx-min-width: 24;
-    -fx-pref-width: 24;
-    -fx-max-width: 24;
-    -fx-min-height: 105;
-    -fx-pref-height: 105;
-    -fx-max-height: 105;
-    -fx-background-color: #F0BF2F;
+    -fx-min-width: 3;
+    -fx-pref-width: 3;
+    -fx-max-width: 3;
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-background-color: -wl-status-info-text;
     -fx-background-radius: 999;
-    -fx-border-color: #D29B00;
-    -fx-border-radius: 999;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(210, 155, 0, 0.22), 6, 0, 0, 0);
 }
 
 .page-tray-item-dragging {
