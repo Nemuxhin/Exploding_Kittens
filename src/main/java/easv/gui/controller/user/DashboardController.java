@@ -594,16 +594,18 @@ public class DashboardController {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("portal-table-row");
 
-        Button box = new Button(item.boxId());
-        box.getStyleClass().add("portal-table-link");
-        box.setOnAction(event -> navigator.resumeRecentScan(item));
-
-        row.add(box, 0, 0);
+        row.add(primaryCell(item.boxId()), 0, 0);
         row.add(dataLabel(item.profileName()), 1, 0);
         row.add(dataLabel(item.startedAt()), 2, 0);
         row.add(dataLabel(String.valueOf(item.pages())), 3, 0);
         row.add(UserPortalUi.buildStatusChip(item.status()), 4, 0);
         return row;
+    }
+
+    private Label primaryCell(String value) {
+        Label label = new Label(value);
+        label.getStyleClass().add("exports-table-cell-primary");
+        return label;
     }
 
     private Label dataLabel(String value) {

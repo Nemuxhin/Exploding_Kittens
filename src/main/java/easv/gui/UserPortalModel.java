@@ -61,8 +61,8 @@ public class UserPortalModel {
         }
     }
     public record RecentScanItem(String boxId, String profileName, String status, String startedAt, int pages) {}
-    public record HistoryItem(String boxId, String profileName, String status, String startedAt, String completedAt, int pages) {}
-    public record ExportItem(String fileName, String boxId, String profileName, String createdAt, String size, String status) {}
+    public record HistoryItem(String boxId, String profileName, int documents, String status, String startedAt, String completedAt, int pages, String size) {}
+    public record ExportItem(String fileName, String boxId, String profileName, int documents, String createdAt, String size, String status) {}
     public record PortalSession(ProfileItem profile, BoxItem box) {
         public String exportName() {
             return profile.name() + "_" + box.id();
@@ -154,10 +154,12 @@ public class UserPortalModel {
                     .map(summary -> new HistoryItem(
                             summary.boxId(),
                             summary.profileName(),
+                            summary.documentCount(),
                             summary.status(),
                             formatHistoryTime(summary.startedAt()),
                             isCompletedStatus(summary.status()) ? formatHistoryTime(summary.startedAt()) : "-",
-                            summary.pageCount()
+                            summary.pageCount(),
+                            "-"
                     ))
                     .toList();
         } catch (DataAccessException exception) {
@@ -166,7 +168,18 @@ public class UserPortalModel {
     }
 
     public List<ExportItem> fetchExports() {
-        return List.of();
+        return fetchScanHistory().stream()
+                .filter(item -> isCompletedStatus(item.status()))
+                .map(item -> new ExportItem(
+                        formatExportName(item.profileName(), item.boxId()) + ".pdf",
+                        item.boxId(),
+                        item.profileName(),
+                        item.documents(),
+                        item.completedAt(),
+                        item.size(),
+                        item.status()
+                ))
+                .toList();
     }
 
     public List<ProfileSetting> fetchProfileSettings(ProfileItem profile) {

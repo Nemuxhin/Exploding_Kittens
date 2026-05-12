@@ -396,6 +396,7 @@ public class UserController implements UserNavigator {
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
             case EXPORTS -> exportsNavItem;
+            case EDIT_PROFILE -> null;
             case SETTINGS -> null;
         };
     }
