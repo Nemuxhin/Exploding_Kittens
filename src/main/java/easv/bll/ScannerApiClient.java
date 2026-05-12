@@ -2,13 +2,15 @@ package easv.bll;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import easv.dal.DataAccessException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -25,10 +27,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ScannerApiClient {
-    private static final String DEFAULT_BASE_URL = "https://studenttiffapi-production.up.railway.app";
+    private static final String DEFAULT_BASE_URL = "https://studentiffapi-production.up.railway.app";
     private static final String DEFAULT_FETCH_MODE = "paged";
     private static final int DEFAULT_PAGE_SIZE = 1;
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
+    private static final String DATABASE_PROPERTIES_FILE = "database.properties";
 
     private final Queue<Object> queuedResponses = new ArrayDeque<>();
     private final HttpClient httpClient;
@@ -457,11 +460,23 @@ public class ScannerApiClient {
 
     private static Properties loadConfiguration() {
         Properties properties = new Properties();
-        try {
-            Properties fileProperties = new Properties();
-            fileProperties.load(ScannerApiClient.class.getClassLoader().getResourceAsStream("database.properties"));
-            properties.putAll(fileProperties);
-        } catch (Exception ignored) {
+        Path propertiesPath = Path.of(DATABASE_PROPERTIES_FILE);
+        if (Files.exists(propertiesPath)) {
+            try (InputStream inputStream = Files.newInputStream(propertiesPath)) {
+                properties.load(inputStream);
+            } catch (IOException ignored) {
+            }
+        }
+
+        try (InputStream inputStream = ScannerApiClient.class.getClassLoader().getResourceAsStream(DATABASE_PROPERTIES_FILE)) {
+            if (inputStream == null) {
+                return properties;
+            }
+            Properties classpathProperties = new Properties();
+            classpathProperties.load(inputStream);
+            classpathProperties.forEach((key, value) ->
+                    properties.putIfAbsent(String.valueOf(key), String.valueOf(value)));
+        } catch (IOException ignored) {
         }
         return properties;
     }

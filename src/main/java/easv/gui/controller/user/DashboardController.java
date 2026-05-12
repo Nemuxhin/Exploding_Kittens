@@ -1,6 +1,8 @@
 package easv.gui.controller.user;
 
+import easv.gui.BackgroundExecutor;
 import easv.gui.UserPortalModel;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -15,6 +17,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 
+import java.util.List;
+
 public class DashboardController {
     private final UserPortalModel portalModel;
     private final UserNavigator navigator;
@@ -27,12 +31,11 @@ public class DashboardController {
     public Node create() {
         VBox page = new VBox(28);
         page.getStyleClass().addAll("portal-page", "dashboard-page");
-        page.getChildren().addAll(
+        page.getChildren().setAll(
                 buildIntro(),
-                buildMetrics(),
-                buildActions(),
-                buildLowerSection()
+                createLoadingSection()
         );
+        loadDashboardAsync(page);
         return page;
     }
 
@@ -48,7 +51,7 @@ public class DashboardController {
         return intro;
     }
 
-    private GridPane buildMetrics() {
+    private GridPane buildMetrics(List<UserPortalModel.DashboardMetric> metrics) {
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(20);
@@ -60,7 +63,6 @@ public class DashboardController {
                 percentColumn(25)
         );
 
-        var metrics = portalModel.fetchDashboardMetrics();
         grid.add(metricCard(
                 "dashboard-summary-icon-teal",
                 "dashboard-summary-icon-teal-path",
@@ -134,16 +136,17 @@ public class DashboardController {
         return grid;
     }
 
-    private HBox buildLowerSection() {
+    private HBox buildLowerSection(List<UserPortalModel.RecentScanItem> recentScans,
+                                   UserPortalModel.AccountProfile accountProfile) {
         HBox layout = new HBox(20);
         layout.setAlignment(Pos.TOP_LEFT);
         layout.getStyleClass().add("admin-dashboard-layout");
 
-        VBox main = new VBox(24, buildRecentScansCard());
+        VBox main = new VBox(24, buildRecentScansCard(recentScans));
         main.getStyleClass().add("admin-dashboard-main");
         HBox.setHgrow(main, Priority.ALWAYS);
 
-        VBox side = new VBox(24, buildQuickAccessPanel(), buildAccountPanel());
+        VBox side = new VBox(24, buildQuickAccessPanel(recentScans), buildAccountPanel(accountProfile));
         side.getStyleClass().add("admin-dashboard-side");
         side.setPrefWidth(390);
         side.setMinWidth(340);
@@ -153,7 +156,7 @@ public class DashboardController {
         return layout;
     }
 
-    private VBox buildRecentScansCard() {
+    private VBox buildRecentScansCard(List<UserPortalModel.RecentScanItem> recentScans) {
         VBox card = new VBox(0);
         card.getStyleClass().add("admin-panel-card");
         card.setMaxWidth(Double.MAX_VALUE);
@@ -177,15 +180,22 @@ public class DashboardController {
         VBox table = new VBox();
         table.getStyleClass().add("portal-table");
         table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "DATE", "PAGES", "STATUS"));
-        for (UserPortalModel.RecentScanItem item : portalModel.fetchRecentScans()) {
-            table.getChildren().add(createDataRow(item));
+        if (recentScans.isEmpty()) {
+            Label empty = new Label("No scan activity has been stored yet.");
+            empty.getStyleClass().add("dashboard-section-subtitle");
+            empty.setWrapText(true);
+            table.getChildren().add(empty);
+        } else {
+            for (UserPortalModel.RecentScanItem item : recentScans) {
+                table.getChildren().add(createDataRow(item));
+            }
         }
 
         card.getChildren().addAll(header, table);
         return card;
     }
 
-    private VBox buildQuickAccessPanel() {
+    private VBox buildQuickAccessPanel(List<UserPortalModel.RecentScanItem> recentScans) {
         VBox card = new VBox(18);
         card.getStyleClass().add("admin-panel-card");
 
@@ -205,7 +215,7 @@ public class DashboardController {
         grid.add(quickButton("Exports", false, navigator::showExports), 0, 1);
         grid.add(quickButton("Settings", false, navigator::showSettings), 1, 1);
 
-        UserPortalModel.RecentScanItem processingItem = portalModel.fetchRecentScans().stream()
+        UserPortalModel.RecentScanItem processingItem = recentScans.stream()
                 .filter(item -> "Processing".equalsIgnoreCase(item.status()))
                 .findFirst()
                 .orElse(null);
@@ -223,9 +233,7 @@ public class DashboardController {
         return card;
     }
 
-    private VBox buildAccountPanel() {
-        UserPortalModel.AccountProfile accountProfile = portalModel.fetchAccountProfile();
-
+    private VBox buildAccountPanel(UserPortalModel.AccountProfile accountProfile) {
         VBox card = new VBox(18);
         card.getStyleClass().add("admin-panel-card");
 
@@ -244,6 +252,63 @@ public class DashboardController {
         );
 
         return card;
+    }
+
+    private VBox createLoadingSection() {
+        Label title = new Label("Loading workspace data...");
+        title.getStyleClass().add("dashboard-section-title");
+
+        Label copy = new Label("Dashboard metrics and recent scan history are being loaded.");
+        copy.getStyleClass().add("dashboard-section-subtitle");
+        copy.setWrapText(true);
+
+        VBox box = new VBox(8, title, copy);
+        box.getStyleClass().add("admin-panel-card");
+        return box;
+    }
+
+    private VBox createLoadFailureSection() {
+        Label title = new Label("Workspace data could not be loaded");
+        title.getStyleClass().add("dashboard-section-title");
+
+        Label copy = new Label("The portal loaded, but dashboard data is unavailable right now.");
+        copy.getStyleClass().add("dashboard-section-subtitle");
+        copy.setWrapText(true);
+
+        VBox box = new VBox(8, title, copy);
+        box.getStyleClass().add("admin-panel-card");
+        return box;
+    }
+
+    private void loadDashboardAsync(VBox page) {
+        BackgroundExecutor.io().execute(() -> {
+            try {
+                DashboardSnapshot snapshot = new DashboardSnapshot(
+                        portalModel.fetchDashboardMetrics(),
+                        portalModel.fetchRecentScans(),
+                        portalModel.fetchAccountProfile()
+                );
+
+                Platform.runLater(() -> page.getChildren().setAll(
+                        buildIntro(),
+                        buildMetrics(snapshot.metrics()),
+                        buildActions(),
+                        buildLowerSection(snapshot.recentScans(), snapshot.accountProfile())
+                ));
+            } catch (RuntimeException exception) {
+                Platform.runLater(() -> page.getChildren().setAll(
+                        buildIntro(),
+                        createLoadFailureSection()
+                ));
+            }
+        });
+    }
+
+    private record DashboardSnapshot(
+            List<UserPortalModel.DashboardMetric> metrics,
+            List<UserPortalModel.RecentScanItem> recentScans,
+            UserPortalModel.AccountProfile accountProfile
+    ) {
     }
 
     private VBox detailBlock(String labelText, String valueText) {

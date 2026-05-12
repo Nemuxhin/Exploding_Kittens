@@ -257,7 +257,7 @@ public class UserController implements UserNavigator {
         Label titleLabel = new Label(pageTitle);
         titleLabel.getStyleClass().add("page-title");
 
-        Label subtitleLabel = new Label("This page has not been created yet.");
+        Label subtitleLabel = new Label("No content is available for this section.");
         subtitleLabel.getStyleClass().add("page-subtitle");
 
         VBox placeholder = new VBox(6, titleLabel, subtitleLabel);

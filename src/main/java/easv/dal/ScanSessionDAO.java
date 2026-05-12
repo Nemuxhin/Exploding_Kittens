@@ -5,8 +5,12 @@ import easv.be.ScanSession;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class ScanSessionDAO {
@@ -21,18 +25,20 @@ public class ScanSessionDAO {
     }
 
     public void save(ScanSession session) {
+        ensureProfileNameColumn();
         try (Connection connection = databaseConnection.getConnection()) {
             if (existsSession(connection, session.getId())) {
                 updateSessionState(session);
                 return;
             }
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO scan_sessions (id, started_at, box_id, selected_barcode_behavior, last_status) VALUES (?, ?, ?, ?, ?)")) {
+                    "INSERT INTO scan_sessions (id, started_at, box_id, profile_name, selected_barcode_behavior, last_status) VALUES (?, ?, ?, ?, ?, ?)")) {
                 statement.setString(1, session.getId().toString());
                 statement.setTimestamp(2, Timestamp.from(session.getStartedAt()));
                 statement.setString(3, session.getBox().getId().toString());
-                statement.setString(4, session.getSelectedBarcodeBehavior());
-                statement.setString(5, session.getLastStatus());
+                statement.setString(4, session.getProfileName());
+                statement.setString(5, session.getSelectedBarcodeBehavior());
+                statement.setString(6, session.getLastStatus());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -71,18 +77,71 @@ public class ScanSessionDAO {
     }
 
     public void updateSessionState(ScanSession session) {
+        ensureProfileNameColumn();
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE scan_sessions
-                     SET selected_barcode_behavior = ?, last_status = ?
+                     SET profile_name = ?, selected_barcode_behavior = ?, last_status = ?
                      WHERE id = ?
                      """)) {
-            statement.setString(1, session.getSelectedBarcodeBehavior());
-            statement.setString(2, session.getLastStatus());
-            statement.setString(3, session.getId().toString());
+            statement.setString(1, session.getProfileName());
+            statement.setString(2, session.getSelectedBarcodeBehavior());
+            statement.setString(3, session.getLastStatus());
+            statement.setString(4, session.getId().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException("Failed to update scan session state for " + session.getId(), e);
+        }
+    }
+
+    public List<ScanSessionSummary> findHistorySummaries() {
+        ensureProfileNameColumn();
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT s.id,
+                            s.started_at,
+                            COALESCE(NULLIF(s.profile_name, ''), 'Unspecified Profile') AS profile_name,
+                            COALESCE(NULLIF(s.last_status, ''), 'READY') AS last_status,
+                            b.box_id AS box_id,
+                            COUNT(DISTINCT ssd.document_id) AS document_count,
+                            COUNT(dp.id) AS page_count
+                     FROM scan_sessions s
+                     JOIN boxes b ON b.id = s.box_id
+                     LEFT JOIN scan_session_documents ssd ON ssd.session_id = s.id
+                     LEFT JOIN document_pages dp ON dp.document_id = ssd.document_id
+                     GROUP BY s.id, s.started_at, s.profile_name, s.last_status, b.box_id
+                     ORDER BY s.started_at DESC
+                     """);
+             ResultSet resultSet = statement.executeQuery()) {
+            List<ScanSessionSummary> summaries = new ArrayList<>();
+            while (resultSet.next()) {
+                summaries.add(new ScanSessionSummary(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getTimestamp("started_at").toInstant(),
+                        resultSet.getString("box_id"),
+                        resultSet.getString("profile_name"),
+                        normalizeStatus(resultSet.getString("last_status")),
+                        resultSet.getInt("document_count"),
+                        resultSet.getInt("page_count")
+                ));
+            }
+            return summaries;
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch scan session history", e);
+        }
+    }
+
+    private void ensureProfileNameColumn() {
+        try (Connection connection = databaseConnection.getConnection()) {
+            if (DatabaseConnection.columnExists(connection, "scan_sessions", "profile_name")) {
+                return;
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "ALTER TABLE scan_sessions ADD profile_name VARCHAR(255) NULL")) {
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to ensure scan session profile column", e);
         }
     }
 
@@ -101,5 +160,28 @@ public class ScanSessionDAO {
             statement.setString(2, documentId.toString());
             return statement.executeQuery().next();
         }
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "Processing";
+        }
+        return switch (status.trim().toUpperCase()) {
+            case "IMPORTED", "NO_MORE_FILES" -> "Completed";
+            case "STOPPED_ON_BARCODE" -> "Processing";
+            case "FAILED", "FETCH_FAILED" -> "Failed";
+            default -> "Processing";
+        };
+    }
+
+    public record ScanSessionSummary(
+            UUID sessionId,
+            Instant startedAt,
+            String boxId,
+            String profileName,
+            String status,
+            int documentCount,
+            int pageCount
+    ) {
     }
 }

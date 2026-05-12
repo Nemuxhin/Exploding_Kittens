@@ -42,7 +42,7 @@
                         <TextField fx:id="usernameField" promptText="Enter username" />
                         <Label styleClass="field-label" text="Password" />
                         <PasswordField fx:id="passwordField" promptText="Enter password" onAction="#handleLogin" />
-                        <Button maxWidth="1.7976931348623157E308" onAction="#handleLogin" styleClass="primary-button" text="Log In" />
+                        <Button fx:id="loginButton" maxWidth="1.7976931348623157E308" onAction="#handleLogin" styleClass="primary-button" text="Log In" />
                         <Label fx:id="messageLabel" styleClass="message-label" text="Ready to sign in." wrapText="true" />
                     </children>
                 </VBox>

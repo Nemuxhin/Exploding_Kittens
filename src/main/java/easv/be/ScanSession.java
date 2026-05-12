@@ -10,20 +10,23 @@ public class ScanSession {
     private final UUID id;
     private final Instant startedAt;
     private final Box box;
+    private final String profileName;
     private final List<Document> importedDocuments = new ArrayList<>();
     private final List<String> failures = new ArrayList<>();
     private String selectedBarcodeBehavior = "";
     private String lastStatus = "READY";
     private int nextReferenceId = 1;
+    private int nextImportedItemNumber = 1;
 
-    public ScanSession(Box box) {
-        this(UUID.randomUUID(), Instant.now(), box);
+    public ScanSession(Box box, String profileName) {
+        this(UUID.randomUUID(), Instant.now(), box, profileName);
     }
 
-    public ScanSession(UUID id, Instant startedAt, Box box) {
+    public ScanSession(UUID id, Instant startedAt, Box box, String profileName) {
         this.id = Objects.requireNonNull(id, "id");
         this.startedAt = Objects.requireNonNull(startedAt, "startedAt");
         this.box = Objects.requireNonNull(box, "box");
+        this.profileName = profileName == null ? "" : profileName.trim();
     }
 
     public UUID getId() {
@@ -36,6 +39,10 @@ public class ScanSession {
 
     public Box getBox() {
         return box;
+    }
+
+    public String getProfileName() {
+        return profileName;
     }
 
     public List<Document> getImportedDocuments() {
@@ -64,6 +71,10 @@ public class ScanSession {
 
     public int allocateReferenceId() {
         return nextReferenceId++;
+    }
+
+    public int allocateImportedItemNumber() {
+        return nextImportedItemNumber++;
     }
 
     public void addImportedDocument(Document document) {

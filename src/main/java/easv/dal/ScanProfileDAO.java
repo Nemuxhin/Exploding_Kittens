@@ -13,6 +13,7 @@ import java.util.Optional;
 public class ScanProfileDAO {
 
     private final DatabaseConnection databaseConnection;
+    private volatile boolean defaultProfilesChecked = false;
 
     public ScanProfileDAO() {
         this(new DatabaseConnection());
@@ -20,28 +21,11 @@ public class ScanProfileDAO {
 
     public ScanProfileDAO(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
-        ensureDefaultProfiles();
     }
 
     public List<ScanProfile> findAll() {
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, name, code, description, status, metadata_template_name, export_naming,
-                            last_updated, archived, barcode_splitting, barcode_detected_behavior,
-                            barcode_page_behavior, default_rotation, brightness, contrast, deskew,
-                            export_format, metadata_required_before_export
-                     FROM %s
-                     ORDER BY id
-                     """.formatted(profileTable(connection)));
-             ResultSet resultSet = statement.executeQuery()) {
-            List<ScanProfile> profiles = new ArrayList<>();
-            while (resultSet.next()) {
-                profiles.add(mapProfile(resultSet));
-            }
-            return profiles;
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to fetch scan profiles", e);
-        }
+        ensureDefaultProfilesIfNeeded();
+        return loadProfiles();
     }
 
     public Optional<ScanProfile> findById(int profileId) {
@@ -182,7 +166,7 @@ public class ScanProfileDAO {
     }
 
     private void ensureDefaultProfiles() {
-        if (!findAll().isEmpty()) {
+        if (!loadProfiles().isEmpty()) {
             return;
         }
 
@@ -194,6 +178,42 @@ public class ScanProfileDAO {
                 "Draft", "", "{profileCode}_{boxId}", "Created just now", false, false,
                 "Start new document", "Keep barcode page in final document",
                 "0 deg", "Normal", "Higher", true, "PDF/A", true));
+    }
+
+    private void ensureDefaultProfilesIfNeeded() {
+        if (defaultProfilesChecked) {
+            return;
+        }
+
+        synchronized (this) {
+            if (defaultProfilesChecked) {
+                return;
+            }
+
+            ensureDefaultProfiles();
+            defaultProfilesChecked = true;
+        }
+    }
+
+    private List<ScanProfile> loadProfiles() {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT id, name, code, description, status, metadata_template_name, export_naming,
+                            last_updated, archived, barcode_splitting, barcode_detected_behavior,
+                            barcode_page_behavior, default_rotation, brightness, contrast, deskew,
+                            export_format, metadata_required_before_export
+                     FROM %s
+                     ORDER BY id
+                     """.formatted(profileTable(connection)));
+             ResultSet resultSet = statement.executeQuery()) {
+            List<ScanProfile> profiles = new ArrayList<>();
+            while (resultSet.next()) {
+                profiles.add(mapProfile(resultSet));
+            }
+            return profiles;
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch scan profiles", e);
+        }
     }
 
     private String profileTable(Connection connection) throws SQLException {

@@ -70,8 +70,8 @@ public class ScanManager {
         return boxDAO.saveOrGetExisting(boxId, description);
     }
 
-    public ScanSession startSession(String boxId, String description) {
-        ScanSession session = new ScanSession(registerBox(boxId, description));
+    public ScanSession startSession(String boxId, String profileName) {
+        ScanSession session = new ScanSession(registerBox(boxId, "Scanned box"), profileName);
         scanSessionDAO.save(session);
         return session;
     }
@@ -102,9 +102,9 @@ public class ScanManager {
         }
 
         TiffFetchService.FetchedItem fetchedItem = fetchResult.item();
-        ScannerApiClient.ApiTiffItem item = fetchedItem.source();
+        NormalizedItem item = normalizeImportedItem(session, fetchedItem.source());
         Client client = registerClient(item.clientNumber(), item.clientName());
-        Box box = registerBox(item.boxId(), item.boxDescription());
+        Box box = session.getBox();
         CaseFile caseFile = caseFileDAO.saveOrGetExisting(item.caseReference(), client, box);
 
         final BarcodeHandlingResult handlingResult;
@@ -127,9 +127,9 @@ public class ScanManager {
         session.setLastStatus(handlingResult.stoppedOnBarcode() ? "STOPPED_ON_BARCODE" : "IMPORTED");
         scanSessionDAO.updateSessionState(session);
         if (handlingResult.stoppedOnBarcode()) {
-            return ScanImportResult.stoppedOnBarcode(storedDocuments, handlingResult.message());
+            return ScanImportResult.stoppedOnBarcode(storedDocuments, handlingResult.scannedPages(), handlingResult.message());
         }
-        return ScanImportResult.imported(storedDocuments);
+        return ScanImportResult.imported(storedDocuments, handlingResult.scannedPages());
     }
 
     public List<Document> importAllAvailable(ScanSession session) {
@@ -173,18 +173,25 @@ public class ScanManager {
             String barcodePageBehavior
     ) {
         List<Document> documents = new ArrayList<>();
+        List<PageImage> scannedPages = new ArrayList<>();
         List<PageImage> currentPages = new ArrayList<>();
         int documentIndex = 1;
         boolean stopOnBarcode = barcodeBehavior != null && barcodeBehavior.toLowerCase().contains("stop");
 
         for (TiffFetchService.FetchedPage page : pages) {
-            PageImage.PageType pageType = barcodeSplitService.classify(page.sourceReference());
+            BarcodeSplitService.DetectionResult detectionResult = barcodeSplitService.classify(
+                    page.sourceReference(),
+                    page.barcodeValue(),
+                    page.displayContent()
+            );
+            PageImage.PageType pageType = detectionResult.pageType();
             PageImage pageImage = new PageImage(page.pageNumber(), pageType, page.sourceReference());
             pageImage.setReferenceId(session.allocateReferenceId());
             pageImage.setDisplayContent(page.displayContent());
+            scannedPages.add(pageImage);
 
             if (pageType == PageImage.PageType.BARCODE) {
-                if (page.barcodeValue() == null || page.barcodeValue().isBlank()) {
+                if (detectionResult.barcodeValue().isBlank()) {
                     throw new IllegalArgumentException("Unreadable barcode result.");
                 }
 
@@ -200,7 +207,7 @@ public class ScanManager {
                 }
 
                 if (stopOnBarcode) {
-                    return new BarcodeHandlingResult(documents, true, "Scanning stopped because a barcode was detected.");
+                    return new BarcodeHandlingResult(documents, scannedPages, true, "Scanning stopped because a barcode was detected.");
                 }
                 continue;
             }
@@ -212,9 +219,56 @@ public class ScanManager {
             documents.add(new Document(itemId + "-" + documentIndex, currentPages));
         }
 
-        return new BarcodeHandlingResult(documents, false, "");
+        return new BarcodeHandlingResult(documents, scannedPages, false, "");
     }
 
-    private record BarcodeHandlingResult(List<Document> documents, boolean stoppedOnBarcode, String message) {
+    private NormalizedItem normalizeImportedItem(ScanSession session, ScannerApiClient.ApiTiffItem item) {
+        int importedItemNumber = session.allocateImportedItemNumber();
+        String itemKey = String.format("%s-item-%04d", shortSessionKey(session), importedItemNumber);
+
+        String itemId = isGeneratedItemId(item.itemId())
+                ? itemKey
+                : item.itemId();
+
+        String caseReference = isGeneratedCaseReference(item.caseReference())
+                ? session.getBox().getBoxId() + "-CASE-" + String.format("%04d", importedItemNumber)
+                : item.caseReference();
+
+        String clientNumber = isGeneratedClientNumber(item.clientNumber())
+                ? session.getBox().getBoxId() + "-CLIENT"
+                : item.clientNumber();
+
+        String clientName = isGeneratedClientName(item.clientName())
+                ? "Scanned Import"
+                : item.clientName();
+
+        return new NormalizedItem(itemId, caseReference, clientNumber, clientName);
+    }
+
+    private String shortSessionKey(ScanSession session) {
+        String id = session.getId().toString().replace("-", "");
+        return id.substring(0, Math.min(12, id.length()));
+    }
+
+    private boolean isGeneratedItemId(String itemId) {
+        return itemId == null || itemId.isBlank() || itemId.startsWith("api-item-");
+    }
+
+    private boolean isGeneratedCaseReference(String caseReference) {
+        return caseReference == null || caseReference.isBlank() || caseReference.startsWith("CASE-");
+    }
+
+    private boolean isGeneratedClientNumber(String clientNumber) {
+        return clientNumber == null || clientNumber.isBlank() || clientNumber.startsWith("CLIENT-");
+    }
+
+    private boolean isGeneratedClientName(String clientName) {
+        return clientName == null || clientName.isBlank() || "Imported Client".equalsIgnoreCase(clientName.trim());
+    }
+
+    private record BarcodeHandlingResult(List<Document> documents, List<PageImage> scannedPages, boolean stoppedOnBarcode, String message) {
+    }
+
+    private record NormalizedItem(String itemId, String caseReference, String clientNumber, String clientName) {
     }
 }
