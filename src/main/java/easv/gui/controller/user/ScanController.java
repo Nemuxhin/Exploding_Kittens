@@ -3,6 +3,7 @@ package easv.gui.controller.user;
 import easv.be.CaseMetadata;
 import easv.bll.AuditLogManager;
 import easv.bll.MetadataManager;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
@@ -160,6 +161,7 @@ public class ScanController {
             return;
         }
 
+        node.setFocusTraversable(true);
         node.addEventFilter(KeyEvent.KEY_PRESSED, this::handleWorkspaceShortcut);
     }
 
@@ -170,10 +172,18 @@ public class ScanController {
         }
 
         if (event.getCode() == KeyCode.RIGHT) {
-            onNextFile();
+            if (isReviewWorkspaceVisible()) {
+                onNextReviewPage();
+            } else {
+                onNextFile();
+            }
             event.consume();
         } else if (event.getCode() == KeyCode.LEFT) {
-            onPreviousFile();
+            if (isReviewWorkspaceVisible()) {
+                onPreviousReviewPage();
+            } else {
+                onPreviousFile();
+            }
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.Z) {
             onUndoLastAction();
@@ -206,7 +216,7 @@ public class ScanController {
 
                 if (page != null) {
                     selectedPage = page;
-                    refreshWorkspace();
+                    refreshActiveWorkspace();
                 }
             } catch (NumberFormatException ignored) {
                 // Invalid input simply keeps the current page selected.
@@ -483,7 +493,7 @@ public class ScanController {
 
         selectedPage = findPageByReferenceId(snapshot.selectedPageReferenceId);
 
-        refreshWorkspace();
+        refreshActiveWorkspace();
         clampPreviewTranslation();
         updateUndoButtonState();
     }
@@ -800,7 +810,7 @@ public class ScanController {
         saveUndoState();
 
         selectedPage.rotationDegrees = normalizeRotation(selectedPage.rotationDegrees - 90);
-        refreshWorkspace();
+        refreshActiveWorkspace();
     }
 
     @FXML
@@ -812,7 +822,7 @@ public class ScanController {
         saveUndoState();
 
         selectedPage.rotationDegrees = normalizeRotation(selectedPage.rotationDegrees + 90);
-        refreshWorkspace();
+        refreshActiveWorkspace();
     }
 
     private int normalizeRotation(int rotationDegrees) {
@@ -847,7 +857,7 @@ public class ScanController {
         }
 
         rebuildDocumentsFromPages();
-        refreshWorkspace();
+        refreshActiveWorkspace();
     }
 
     @FXML
@@ -902,7 +912,7 @@ public class ScanController {
 
     @FXML
     private void onSaveProgress() {
-        refreshWorkspace();
+        refreshActiveWorkspace();
         auditLogManager.logUserAction(AuditLogManager.METADATA_SAVED, buildCurrentCaseId(), null, null,
                 null, getSelectedProfile(), getBoxId(), "Scan progress was saved.");
     }
@@ -1085,6 +1095,8 @@ public class ScanController {
 
         reviewWorkspaceView.setVisible(false);
         reviewWorkspaceView.setManaged(false);
+
+        Platform.runLater(scanWorkspaceView::requestFocus);
     }
 
     private void showReviewWorkspaceView() {
@@ -1096,6 +1108,20 @@ public class ScanController {
 
         reviewWorkspaceView.setVisible(true);
         reviewWorkspaceView.setManaged(true);
+
+        Platform.runLater(reviewWorkspaceView::requestFocus);
+    }
+
+    private boolean isReviewWorkspaceVisible() {
+        return reviewWorkspaceView != null && reviewWorkspaceView.isVisible();
+    }
+
+    private void refreshActiveWorkspace() {
+        if (isReviewWorkspaceVisible()) {
+            refreshReviewWorkspace();
+        } else {
+            refreshWorkspace();
+        }
     }
 
     private void refreshWorkspace() {
