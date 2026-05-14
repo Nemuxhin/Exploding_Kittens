@@ -33,9 +33,9 @@ public class DocumentDAO {
         if (caseFileId == null) {
             throw new IllegalArgumentException("caseFileId must not be null");
         }
-        Optional<Document> existing = findBySourceItemId(document.getSourceItemId());
-        if (existing.isPresent()) {
-            return existing.get();
+        Optional<UUID> existingDocumentId = findIdBySourceItemId(document.getSourceItemId());
+        if (existingDocumentId.isPresent()) {
+            return new Document(existingDocumentId.get(), document.getSourceItemId(), List.of());
         }
 
         try (Connection connection = databaseConnection.getConnection()) {
@@ -52,13 +52,43 @@ public class DocumentDAO {
             } catch (SQLException | DataAccessException e) {
                 connection.rollback();
                 if (e instanceof SQLException sqlException && isUniqueViolation(sqlException)) {
-                    return findBySourceItemId(document.getSourceItemId()).orElseThrow();
+                    UUID documentId = findIdBySourceItemId(document.getSourceItemId()).orElseThrow();
+                    return new Document(documentId, document.getSourceItemId(), List.of());
                 }
                 throw e;
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to store document " + document.getSourceItemId(), e);
         } catch (DataAccessException e) {
+            throw new DataAccessException("Failed to store document " + document.getSourceItemId(), e);
+        }
+    }
+
+    public Document saveOrGetExisting(Connection connection, Document document, UUID caseFileId) {
+        if (document == null) {
+            throw new IllegalArgumentException("document must not be null");
+        }
+        if (caseFileId == null) {
+            throw new IllegalArgumentException("caseFileId must not be null");
+        }
+        Optional<UUID> existingDocumentId = findIdBySourceItemId(connection, document.getSourceItemId());
+        if (existingDocumentId.isPresent()) {
+            return new Document(existingDocumentId.get(), document.getSourceItemId(), List.of());
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO documents (id, source_item_id, case_file_id) VALUES (?, ?, ?)")) {
+            statement.setString(1, document.getId().toString());
+            statement.setString(2, document.getSourceItemId());
+            statement.setString(3, caseFileId.toString());
+            statement.executeUpdate();
+            pageImageDAO.syncDocumentPages(connection, document.getId(), document.getAllPages());
+            return document;
+        } catch (SQLException e) {
+            if (isUniqueViolation(e)) {
+                UUID documentId = findIdBySourceItemId(connection, document.getSourceItemId()).orElseThrow();
+                return new Document(documentId, document.getSourceItemId(), List.of());
+            }
             throw new DataAccessException("Failed to store document " + document.getSourceItemId(), e);
         }
     }
@@ -84,6 +114,43 @@ public class DocumentDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch document " + sourceItemId, e);
+        }
+    }
+
+    private Optional<UUID> findIdBySourceItemId(String sourceItemId) {
+        if (sourceItemId == null || sourceItemId.isBlank()) {
+            throw new IllegalArgumentException("sourceItemId must not be blank");
+        }
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT id FROM documents WHERE source_item_id = ?")) {
+            statement.setString(1, sourceItemId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(UUID.fromString(resultSet.getString("id")));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch document id for " + sourceItemId, e);
+        }
+    }
+
+    private Optional<UUID> findIdBySourceItemId(Connection connection, String sourceItemId) {
+        if (sourceItemId == null || sourceItemId.isBlank()) {
+            throw new IllegalArgumentException("sourceItemId must not be blank");
+        }
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT id FROM documents WHERE source_item_id = ?")) {
+            statement.setString(1, sourceItemId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(UUID.fromString(resultSet.getString("id")));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch document id for " + sourceItemId, e);
         }
     }
 

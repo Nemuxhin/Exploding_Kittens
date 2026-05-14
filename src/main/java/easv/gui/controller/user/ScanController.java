@@ -1,31 +1,28 @@
 package easv.gui.controller.user;
 
-import easv.be.Document;
 import easv.be.PageImage;
-import easv.be.ScanProfile;
 import easv.be.ScanSession;
-import easv.be.User;
-import easv.gui.BackgroundExecutor;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
-import easv.bll.UserSession;
-import easv.dal.DataAccessException;
-import easv.dal.ScanProfileDAO;
+import easv.gui.BackgroundExecutor;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -34,29 +31,30 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.input.ZoomEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.util.Base64;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 
 public class ScanController {
@@ -86,23 +84,33 @@ public class ScanController {
     @FXML private Label profileInfoMetadataLabel;
     @FXML private Label profileInfoQaLabel;
     @FXML private Label profileInfoSplittingLabel;
-    @FXML private Label profileInfoBarcodeBehaviorLabel;
 
     @FXML private Button startScanningButton;
     @FXML private Button viewMyScansButton;
     @FXML private Button undoLastActionButton;
+    @FXML private Button rotateLeftButton;
+    @FXML private Button rotateRightButton;
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
-    @FXML private Label scanStatusLabel;
+    @FXML private Label workspaceSessionInlineSubtitleLabel;
+    @FXML private Label headerReferenceInfoLabel;
+    @FXML private Label headerFilesInfoLabel;
+    @FXML private Label headerDocumentsInfoLabel;
+
     @FXML private Label boxStructureSubtitleLabel;
     @FXML private Label selectedFileTitleLabel;
     @FXML private Label selectedFileRefLabel;
     @FXML private Label totalFilesLabel;
     @FXML private Label pageTrayTitleLabel;
     @FXML private Label previewZoomLabel;
+    @FXML private Label reviewReferenceInfoLabel;
+    @FXML private Label reviewFilesInfoLabel;
+    @FXML private Label reviewDocumentsInfoLabel;
+    @FXML private Label reviewZoomLabel;
 
     @FXML private VBox documentTreeContainer;
+    @FXML private ScrollPane documentTreeScrollPane;
     @FXML private StackPane previewHost;
     @FXML private HBox pageTrayContainer;
 
@@ -120,6 +128,13 @@ public class ScanController {
     @FXML private Label reviewBoxValueLabel;
     @FXML private Label reviewProfileValueLabel;
     @FXML private Label reviewDocumentsValueLabel;
+    @FXML private Label reviewSidebarSubtitleLabel;
+    @FXML private Label reviewSelectionProfileValueLabel;
+    @FXML private Label reviewSelectionBoxValueLabel;
+    @FXML private Label reviewSelectionDocumentValueLabel;
+    @FXML private Label reviewSelectionFileValueLabel;
+    @FXML private Label reviewSelectionReferenceValueLabel;
+    @FXML private Label reviewSelectionFileIdValueLabel;
     @FXML private VBox reviewDocumentListContainer;
     @FXML private Label reviewSelectedTitleLabel;
     @FXML private StackPane reviewPreviewHost;
@@ -130,19 +145,15 @@ public class ScanController {
     private final List<DocumentGroup> documents = new ArrayList<>();
     private final Set<Integer> collapsedDocuments = new HashSet<>();
     private final Deque<ScanSnapshot> undoStack = new ArrayDeque<>();
-    private final Map<String, ScanProfile> availableProfilesByName = new LinkedHashMap<>();
-    private final Map<Integer, WritableImage> previewImageCache = new HashMap<>();
-    private final Map<Integer, String> previewLoadFailures = new HashMap<>();
-    private final Set<Integer> previewLoadsInProgress = new HashSet<>();
     private final ScanManager scanManager = new ScanManager();
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
+    private final DoubleProperty reviewZoomMultiplier = new SimpleDoubleProperty(1.0);
 
     private int nextReferenceId = 1;
     private int nextFileId = 1;
-    private boolean scanningStoppedByBarcode = false;
-    private String pendingBarcodeBehavior = "Continue scanning when barcode is found";
-    private String activeBarcodeBehavior = "Continue scanning when barcode is found";
+    private ScanSession activeScanSession;
+    private boolean scanInProgress = false;
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -152,9 +163,9 @@ public class ScanController {
     private double previewTranslateStartY = 0;
 
     private StackPane currentPreviewWrapper;
+    private StackPane currentReviewPreviewWrapper;
 
     private ScannedPage selectedPage;
-    private ScanSession activeScanSession;
 
     private UserNavigator navigator = UserNavigator.none();
 
@@ -167,24 +178,67 @@ public class ScanController {
         configureProfiles();
         configureProfileInfo();
         configureValidation();
+        configureDocumentTreeScroll();
         configurePreviewInteractions();
+        configureReviewPreviewInteractions();
         updatePreviewZoomLabel();
+        updateReviewZoomLabel();
         updateUndoButtonState();
         hideFinishReviewModal();
         hideSubmitConfirmationModal();
         showSetupView();
     }
 
+    private void configureDocumentTreeScroll() {
+        if (documentTreeScrollPane == null) {
+            return;
+        }
+
+        documentTreeScrollPane.setFitToHeight(false);
+        documentTreeScrollPane.setPannable(true);
+        documentTreeScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        installDocumentTreeScrollHandler(documentTreeScrollPane);
+        if (documentTreeContainer != null) {
+            documentTreeContainer.setMinHeight(Region.USE_PREF_SIZE);
+            installDocumentTreeScrollHandler(documentTreeContainer);
+        }
+    }
+
+    private void installDocumentTreeScrollHandler(Node node) {
+        node.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (documentTreeContainer == null || documentTreeScrollPane == null) {
+                return;
+            }
+
+            double contentHeight = documentTreeContainer.getBoundsInLocal().getHeight();
+            double viewportHeight = documentTreeScrollPane.getViewportBounds().getHeight();
+            double scrollableHeight = contentHeight - viewportHeight;
+
+            if (scrollableHeight <= 0) {
+                return;
+            }
+
+            double delta = event.getDeltaY();
+            double nextValue = documentTreeScrollPane.getVvalue() - (delta / scrollableHeight);
+            documentTreeScrollPane.setVvalue(clamp(nextValue, 0.0, 1.0));
+            event.consume();
+        });
+    }
+
     private void configureProfiles() {
-        profileComboBox.setDisable(true);
-        profileComboBox.setPromptText("Loading profiles...");
+        profileComboBox.getItems().setAll(
+                "Building Archive",
+                "Technical Drawings",
+                "Court Records",
+                "Standard Scan"
+        );
+
+        profileComboBox.setPromptText("Select profile");
         profileComboBox.getSelectionModel().clearSelection();
 
         profileComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 updateProfileInfo(newValue)
         );
-
-        loadProfilesAsync();
     }
 
     private void configureProfileInfo() {
@@ -204,24 +258,43 @@ public class ScanController {
     }
 
     private void updateProfileInfo(String selectedProfile) {
-        ScanProfile profile = selectedProfile == null ? null : availableProfilesByName.get(selectedProfile);
-
-        if (profile == null) {
+        if (selectedProfile == null || selectedProfile.isBlank()) {
             profileInfoTitleLabel.setText("No profile selected");
-            profileInfoMetadataLabel.setText("Metadata required: —");
-            profileInfoQaLabel.setText("QA required: —");
-            profileInfoSplittingLabel.setText("Splitting method: —");
-            profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: —");
-            pendingBarcodeBehavior = "Continue scanning when barcode is found";
+            profileInfoMetadataLabel.setText("Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            profileInfoQaLabel.setText("QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            profileInfoSplittingLabel.setText("Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
             return;
         }
 
-        profileInfoTitleLabel.setText(profile.getName());
-        profileInfoMetadataLabel.setText("Metadata required: " + (profile.isMetadataRequiredBeforeExport() ? "Yes" : "No"));
-        profileInfoQaLabel.setText("QA required: " + (profile.isMetadataRequiredBeforeExport() ? "Yes" : "No"));
-        profileInfoSplittingLabel.setText("Splitting method: " + (profile.isBarcodeSplitting() ? "Barcode" : "Manual"));
-        pendingBarcodeBehavior = defaultBarcodeBehavior(profile);
-        profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: " + pendingBarcodeBehavior);
+        profileInfoTitleLabel.setText(selectedProfile);
+
+        switch (selectedProfile) {
+            case "Building Archive" -> {
+                profileInfoMetadataLabel.setText("Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoQaLabel.setText("QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoSplittingLabel.setText("Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            }
+            case "Technical Drawings" -> {
+                profileInfoMetadataLabel.setText("Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoQaLabel.setText("QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoSplittingLabel.setText("Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            }
+            case "Court Records" -> {
+                profileInfoMetadataLabel.setText("Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoQaLabel.setText("QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoSplittingLabel.setText("Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            }
+            case "Standard Scan" -> {
+                profileInfoMetadataLabel.setText("Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoQaLabel.setText("QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoSplittingLabel.setText("Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            }
+            default -> {
+                profileInfoMetadataLabel.setText("Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoQaLabel.setText("QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+                profileInfoSplittingLabel.setText("Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â");
+            }
+        }
     }
 
     private void configureValidation() {
@@ -267,6 +340,21 @@ public class ScanController {
         previewZoomMultiplier.addListener((observable, oldValue, newValue) -> {
             updatePreviewZoomLabel();
             clampPreviewTranslation();
+        });
+    }
+
+    private void configureReviewPreviewInteractions() {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(reviewPreviewHost.widthProperty());
+        clip.heightProperty().bind(reviewPreviewHost.heightProperty());
+        reviewPreviewHost.setClip(clip);
+
+        reviewPreviewHost.widthProperty().addListener((observable, oldValue, newValue) -> clampReviewPreviewTranslation());
+        reviewPreviewHost.heightProperty().addListener((observable, oldValue, newValue) -> clampReviewPreviewTranslation());
+
+        reviewZoomMultiplier.addListener((observable, oldValue, newValue) -> {
+            updateReviewZoomLabel();
+            clampReviewPreviewTranslation();
         });
     }
 
@@ -448,15 +536,11 @@ public class ScanController {
         documents.clear();
         collapsedDocuments.clear();
         undoStack.clear();
-        previewImageCache.clear();
-        previewLoadFailures.clear();
-        previewLoadsInProgress.clear();
 
         nextReferenceId = 1;
         nextFileId = 1;
-        scanningStoppedByBarcode = false;
-        activeBarcodeBehavior = pendingBarcodeBehavior;
-        activeScanSession = null;
+        activeScanSession = scanManager.startSession(getBoxId(), getSelectedProfile());
+        scanInProgress = false;
 
         selectedPage = null;
         resetPreviewViewState();
@@ -465,57 +549,106 @@ public class ScanController {
 
         refreshWorkspace();
         updateUndoButtonState();
-        try {
-            activeScanSession = scanManager.startSession(getBoxId(), getSelectedProfile());
-            if (activeScanSession != null) {
-                activeScanSession.setSelectedBarcodeBehavior(activeBarcodeBehavior);
-            }
-            updateScanStatus("Ready");
-        } catch (RuntimeException exception) {
-            updateScanStatus("Failed to start session");
-        }
     }
 
     @FXML
     private void onScanNextFile() {
-        if (activeScanSession == null) {
-            updateScanStatus("Session not started");
-            return;
-        }
-
-        if (scanningStoppedByBarcode) {
-            updateScanStatus("Stopped on barcode");
+        if (scanInProgress || activeScanSession == null) {
             return;
         }
 
         saveUndoState();
-        try {
-            ScanImportResult result = scanManager.scanNextItem(
-                    activeScanSession,
-                    activeBarcodeBehavior,
-                    selectedBarcodePageBehavior()
-            );
+        scanInProgress = true;
 
-            switch (result.getStatus()) {
-                case IMPORTED -> {
-                    appendImportedPages(result.getScannedPages());
-                    refreshWorkspace();
-                    updateScanStatus("Imported");
-                }
-                case STOPPED_ON_BARCODE -> {
-                    appendImportedPages(result.getScannedPages());
-                    scanningStoppedByBarcode = true;
-                    refreshWorkspace();
-                    updateScanStatus(result.getMessage().isBlank() ? "Stopped on barcode" : result.getMessage());
-                }
-                case FETCH_FAILED -> {
-                    updateScanStatus(result.getMessage().isBlank() ? "Fetch failed" : result.getMessage());
-                }
-                case NO_MORE_FILES -> updateScanStatus("No more files");
+        BackgroundExecutor.io().execute(() -> {
+            try {
+                ScanImportResult result = scanManager.scanNextItem(
+                        activeScanSession,
+                        activeScanSession.getSelectedBarcodeBehavior(),
+                        "Keep barcode page in final document"
+                );
+                Platform.runLater(() -> applyScanImportResult(result));
+            } catch (RuntimeException exception) {
+                Platform.runLater(() -> {
+                    scanInProgress = false;
+                    selectedFileTitleLabel.setText("Scan failed");
+                    selectedFileRefLabel.setText(exception.getMessage() == null || exception.getMessage().isBlank()
+                            ? "Failed to import next file."
+                            : exception.getMessage());
+                });
             }
-        } catch (RuntimeException exception) {
-            updateScanStatus("Scan failed");
+        });
+    }
+
+    private void applyScanImportResult(ScanImportResult result) {
+        scanInProgress = false;
+
+        if (result == null) {
+            selectedFileTitleLabel.setText("Scan failed");
+            selectedFileRefLabel.setText("No scan result returned.");
+            return;
         }
+
+        if (result.getStatus() == ScanImportResult.Status.NO_MORE_FILES) {
+            selectedFileTitleLabel.setText("No more files");
+            selectedFileRefLabel.setText("The remote scanner queue is empty.");
+            refreshWorkspace();
+            return;
+        }
+
+        if (result.getStatus() == ScanImportResult.Status.FETCH_FAILED) {
+            selectedFileTitleLabel.setText("Scan failed");
+            selectedFileRefLabel.setText(result.getMessage().isBlank()
+                    ? "Failed to import the next file."
+                    : result.getMessage());
+            refreshWorkspace();
+            return;
+        }
+
+        for (PageImage pageImage : result.getScannedPages()) {
+            ScannedPage scannedPage = mapImportedPage(pageImage);
+            allPages.add(scannedPage);
+            selectedPage = scannedPage;
+        }
+
+        rebuildDocumentsFromPages();
+        refreshWorkspace();
+        scrollDocumentTreeToLatest();
+
+        if (result.getStatus() == ScanImportResult.Status.STOPPED_ON_BARCODE && !result.getMessage().isBlank()) {
+            selectedFileRefLabel.setText(result.getMessage());
+        }
+    }
+
+    private void scrollDocumentTreeToLatest() {
+        if (documentTreeScrollPane == null) {
+            return;
+        }
+        Platform.runLater(() -> {
+            if (documentTreeContainer != null) {
+                documentTreeContainer.applyCss();
+                documentTreeContainer.layout();
+            }
+            documentTreeScrollPane.layout();
+            Platform.runLater(() -> documentTreeScrollPane.setVvalue(1.0));
+        });
+    }
+
+    private ScannedPage mapImportedPage(PageImage pageImage) {
+        boolean barcode = pageImage.getPageType() == PageImage.PageType.BARCODE;
+        ScannedPage page = new ScannedPage(
+                Math.max(pageImage.getReferenceId(), nextReferenceId),
+                nextFileId,
+                barcode,
+                false,
+                pageImage.getSourceReference(),
+                pageImage.getDisplayContent(),
+                pageImage.getPreviewContent()
+        );
+        page.rotationDegrees = pageImage.getRotationDegrees();
+        nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
+        nextFileId++;
+        return page;
     }
 
     private void rebuildDocumentsFromPages() {
@@ -532,34 +665,32 @@ public class ScanController {
         for (ScannedPage page : allPages) {
             if (page.barcode) {
                 if (!currentDocumentPages.isEmpty()) {
-                    DocumentGroup document = createDocument(documentNumber, "Barcode split", currentDocumentPages, false);
+                    DocumentGroup document = createDocument(documentNumber, "Barcode split", currentDocumentPages);
                     documents.add(document);
                     documentNumber++;
-                    currentDocumentPages.clear();
+                    currentDocumentPages = new ArrayList<>();
                 }
 
+                currentDocumentPages.add(page);
                 continue;
             }
 
             currentDocumentPages.add(page);
 
             if (page.splitReasonAfter != null && !page.splitReasonAfter.isBlank()) {
-                DocumentGroup document = createDocument(documentNumber, page.splitReasonAfter, currentDocumentPages, false);
+                DocumentGroup document = createDocument(documentNumber, page.splitReasonAfter, currentDocumentPages);
                 documents.add(document);
                 documentNumber++;
                 currentDocumentPages.clear();
             }
         }
 
-        if (!currentDocumentPages.isEmpty()) {
-            documents.add(createDocument(documentNumber, "", currentDocumentPages, true));
-        }
+        pendingPages.addAll(currentDocumentPages);
         collapsedDocuments.removeIf(documentId -> documentId > documents.size());
     }
 
-    private DocumentGroup createDocument(int documentNumber, String splitReason, List<ScannedPage> pages, boolean open) {
-        String sourceDocumentId = pages.isEmpty() ? "" : pages.get(0).sourceDocumentId;
-        DocumentGroup document = new DocumentGroup(documentNumber, splitReason, sourceDocumentId, open);
+    private DocumentGroup createDocument(int documentNumber, String splitReason, List<ScannedPage> pages) {
+        DocumentGroup document = new DocumentGroup(documentNumber, splitReason);
         document.pages.addAll(pages);
 
         for (ScannedPage page : document.pages) {
@@ -608,7 +739,7 @@ public class ScanController {
     }
 
     private void selectAdjacentReviewPage(int direction) {
-        List<ScannedPage> reviewPages = getReviewSequence();
+        List<ScannedPage> reviewPages = getReviewPages();
 
         if (reviewPages.isEmpty()) {
             selectedPage = null;
@@ -616,7 +747,7 @@ public class ScanController {
             return;
         }
 
-        if (selectedPage == null || !reviewPages.contains(selectedPage)) {
+        if (selectedPage == null || selectedPage.barcode || !reviewPages.contains(selectedPage)) {
             selectedPage = direction < 0
                     ? reviewPages.get(reviewPages.size() - 1)
                     : reviewPages.get(0);
@@ -636,8 +767,16 @@ public class ScanController {
         refreshReviewWorkspace();
     }
 
-    private List<ScannedPage> getReviewSequence() {
-        return new ArrayList<>(allPages);
+    private List<ScannedPage> getReviewPages() {
+        List<ScannedPage> reviewPages = new ArrayList<>();
+
+        for (ScannedPage page : allPages) {
+            if (!page.barcode) {
+                reviewPages.add(page);
+            }
+        }
+
+        return reviewPages;
     }
 
     @FXML
@@ -682,9 +821,9 @@ public class ScanController {
         }
     }
 
-    private void updateScanStatus(String status) {
-        if (scanStatusLabel != null) {
-            scanStatusLabel.setText("Status: " + status);
+    private void updateReviewZoomLabel() {
+        if (reviewZoomLabel != null) {
+            reviewZoomLabel.setText(Math.round(reviewZoomMultiplier.get() * 100) + "%");
         }
     }
 
@@ -750,6 +889,93 @@ public class ScanController {
 
     private double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(value, max));
+    }
+
+    @FXML
+    private void onReviewZoomIn() {
+        zoomReviewPreviewBy(PREVIEW_ZOOM_STEP);
+    }
+
+    @FXML
+    private void onReviewZoomOut() {
+        zoomReviewPreviewBy(-PREVIEW_ZOOM_STEP);
+    }
+
+    private void zoomReviewPreviewBy(double zoomDelta) {
+        setReviewPreviewZoom(reviewZoomMultiplier.get() + zoomDelta);
+    }
+
+    private void setReviewPreviewZoom(double zoom) {
+        reviewZoomMultiplier.set(clamp(zoom, MIN_PREVIEW_ZOOM, MAX_PREVIEW_ZOOM));
+    }
+
+    @FXML
+    private void onResetReviewPreviewView() {
+        resetReviewPreviewViewState();
+        clampReviewPreviewTranslation();
+    }
+
+    private void resetReviewPreviewViewState() {
+        reviewZoomMultiplier.set(1.0);
+
+        if (currentReviewPreviewWrapper != null) {
+            currentReviewPreviewWrapper.setTranslateX(0);
+            currentReviewPreviewWrapper.setTranslateY(0);
+        }
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewUp() {
+        nudgeReviewPreview(0, -PREVIEW_NUDGE_AMOUNT);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewDown() {
+        nudgeReviewPreview(0, PREVIEW_NUDGE_AMOUNT);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewLeft() {
+        nudgeReviewPreview(-PREVIEW_NUDGE_AMOUNT, 0);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewRight() {
+        nudgeReviewPreview(PREVIEW_NUDGE_AMOUNT, 0);
+    }
+
+    private void nudgeReviewPreview(double deltaX, double deltaY) {
+        if (currentReviewPreviewWrapper == null) {
+            return;
+        }
+
+        currentReviewPreviewWrapper.setTranslateX(currentReviewPreviewWrapper.getTranslateX() + deltaX);
+        currentReviewPreviewWrapper.setTranslateY(currentReviewPreviewWrapper.getTranslateY() + deltaY);
+        clampReviewPreviewTranslation();
+    }
+
+    private void clampReviewPreviewTranslation() {
+        if (currentReviewPreviewWrapper == null || reviewPreviewHost == null) {
+            return;
+        }
+
+        double scale = currentReviewPreviewWrapper.getScaleX();
+
+        if (scale <= 0) {
+            scale = 1;
+        }
+
+        double scaledWidth = PREVIEW_PAGE_WIDTH * scale;
+        double scaledHeight = PREVIEW_PAGE_HEIGHT * scale;
+
+        double hostWidth = Math.max(1, reviewPreviewHost.getWidth());
+        double hostHeight = Math.max(1, reviewPreviewHost.getHeight());
+
+        double maxX = Math.abs(hostWidth - scaledWidth) / 2;
+        double maxY = Math.abs(hostHeight - scaledHeight) / 2;
+
+        currentReviewPreviewWrapper.setTranslateX(clamp(currentReviewPreviewWrapper.getTranslateX(), -maxX, maxX));
+        currentReviewPreviewWrapper.setTranslateY(clamp(currentReviewPreviewWrapper.getTranslateY(), -maxY, maxY));
     }
 
     @FXML
@@ -865,9 +1091,40 @@ public class ScanController {
     }
 
     @FXML
+    private void onCreateMetadata() {
+        if (allPages.isEmpty()) {
+            return;
+        }
+
+        if (!pendingPages.isEmpty()) {
+            saveUndoState();
+
+            ScannedPage lastPendingPage = pendingPages.get(pendingPages.size() - 1);
+            lastPendingPage.splitReasonAfter = "Finish batch";
+
+            rebuildDocumentsFromPages();
+            refreshWorkspace();
+        }
+
+        ensureReviewSelection();
+        refreshReviewWorkspace();
+        showReviewWorkspaceView();
+    }
+
+    @FXML
     private void onFinishReview() {
         if (allPages.isEmpty()) {
             return;
+        }
+
+        if (!pendingPages.isEmpty()) {
+            saveUndoState();
+
+            ScannedPage lastPendingPage = pendingPages.get(pendingPages.size() - 1);
+            lastPendingPage.splitReasonAfter = "Finish batch";
+
+            rebuildDocumentsFromPages();
+            refreshWorkspace();
         }
 
         updateFinishReviewModal();
@@ -896,11 +1153,11 @@ public class ScanController {
         finishReviewOverlay.setManaged(false);
     }
 
-    private void updateSubmitConfirmationModal() {
+        private void updateSubmitConfirmationModal() {
         submitConfirmationBoxIdLabel.setText(getBoxId());
         submitConfirmationProfileLabel.setText(getSelectedProfile());
         submitConfirmationSummaryLabel.setText(
-                documents.size() + " documents · "
+                documents.size() + " documents - "
                         + getNormalPageCount() + " pages submitted for QA"
         );
     }
@@ -940,6 +1197,8 @@ public class ScanController {
 
     @FXML
     private void onBackToScanningFromReview() {
+        hideFinishReviewModal();
+        hideSubmitConfirmationModal();
         refreshWorkspace();
         showWorkspaceView();
     }
@@ -949,20 +1208,17 @@ public class ScanController {
         markScanSubmittedForQa();
     }
 
-    private void markScanSubmittedForQa() {
+        private void markScanSubmittedForQa() {
         hideFinishReviewModal();
 
-        workspaceSessionSubtitleLabel.setText(
-                allPages.size() + " files scanned · "
-                        + documents.size() + " documents created · submitted for QA"
+        setWorkspaceSessionSubtitle(
+                allPages.size() + " files scanned - "
+                        + documents.size() + " documents created - "
+                        + getNormalPageCount() + " pages submitted for QA"
         );
 
         if (reviewDocumentsValueLabel != null) {
-            reviewDocumentsValueLabel.setText(
-                    documents.size() + " · "
-                            + getNormalPageCount()
-                            + " pages · submitted for QA"
-            );
+            reviewDocumentsValueLabel.setText(documents.size() + " - " + getNormalPageCount() + " pages");
         }
 
         updateSubmitConfirmationModal();
@@ -985,7 +1241,6 @@ public class ScanController {
 
         nextReferenceId = 1;
         nextFileId = 1;
-        activeScanSession = null;
 
         selectedPage = null;
 
@@ -1011,6 +1266,11 @@ public class ScanController {
         navigator.showMyScans();
     }
 
+    @FXML
+    private void onBackToScanSetup() {
+        showSetupView();
+    }
+
     private void showSetupView() {
         scanSetupView.setVisible(true);
         scanSetupView.setManaged(true);
@@ -1020,6 +1280,8 @@ public class ScanController {
 
         reviewWorkspaceView.setVisible(false);
         reviewWorkspaceView.setManaged(false);
+
+        scanSetupView.toFront();
     }
 
     private void showWorkspaceView() {
@@ -1031,6 +1293,8 @@ public class ScanController {
 
         reviewWorkspaceView.setVisible(false);
         reviewWorkspaceView.setManaged(false);
+
+        scanWorkspaceView.toFront();
     }
 
     private void showReviewWorkspaceView() {
@@ -1042,27 +1306,64 @@ public class ScanController {
 
         reviewWorkspaceView.setVisible(true);
         reviewWorkspaceView.setManaged(true);
+
+        reviewWorkspaceView.toFront();
     }
 
     private void refreshWorkspace() {
         updateWorkspaceHeader();
+        refreshHeaderInfoChips();
+        updateRotationButtons();
         renderDocumentTree();
         renderPreview();
-        renderPageTray();
         updateUndoButtonState();
+    }
+
+    private void updateRotationButtons() {
+        if (rotateLeftButton == null || rotateRightButton == null) {
+            return;
+        }
+
+        if (!hasNormalSelectedPage()) {
+            rotateLeftButton.setText("Rotate Left (90°)");
+            rotateRightButton.setText("Rotate Right (90°)");
+            return;
+        }
+
+        int currentRotation = normalizeRotation(selectedPage.rotationDegrees);
+        int leftTarget = normalizeRotation(currentRotation - 90);
+        int rightTarget = normalizeRotation(currentRotation + 90);
+
+        rotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
+        rotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
+    }
+
+    private void refreshHeaderInfoChips() {
+        if (headerFilesInfoLabel != null) {
+            headerFilesInfoLabel.setText("Scanned Files: " + allPages.size());
+        }
+        if (headerDocumentsInfoLabel != null) {
+            headerDocumentsInfoLabel.setText("Documents: " + documents.size());
+        }
+        if (headerReferenceInfoLabel != null) {
+            headerReferenceInfoLabel.setText(
+                    selectedPage == null ? "Ref: \u2014" : "Ref: " + selectedPage.referenceIdLabel()
+            );
+        }
     }
 
     private void updateWorkspaceHeader() {
         String boxId = getBoxId();
         String profile = getSelectedProfile();
 
-        workspaceSessionTitleLabel.setText("Scanning Session · " + boxId);
-        workspaceSessionSubtitleLabel.setText(
-                allPages.size() + " files scanned · "
-                        + documents.size() + " documents visible"
+        workspaceSessionTitleLabel.setText("Scanning Session \u00B7 " + boxId);
+        setWorkspaceSessionSubtitle(
+                allPages.size() + " files scanned \u00B7 "
+                        + documents.size() + " documents \u00B7 "
+                        + pendingPages.size() + " pending pages"
         );
 
-        boxStructureSubtitleLabel.setText(profile + " · " + boxId);
+        boxStructureSubtitleLabel.setText(profile + " \u00B7 " + boxId);
         totalFilesLabel.setText(allPages.size() + " files");
         pageTrayTitleLabel.setText("Scanned Files");
 
@@ -1077,30 +1378,38 @@ public class ScanController {
         String selectedInfo = "Ref: " + selectedPage.referenceIdLabel();
 
         if (selectedPage.documentNumber > 0) {
-            selectedInfo += " · Document " + selectedPage.documentNumber;
+            selectedInfo += " \u00B7 Document " + selectedPage.documentNumber;
 
             int pageNumber = getPageNumberInDocument(selectedPage);
 
             if (pageNumber > 0) {
-                selectedInfo += " · Page " + pageNumber;
+                selectedInfo += " \u00B7 Page " + pageNumber;
             }
         } else if (selectedPage.barcode) {
-            selectedInfo += " · Barcode split marker";
+            selectedInfo += " \u00B7 Barcode split marker";
         } else {
-            selectedInfo += " · In progress document";
+            selectedInfo += " \u00B7 Pending document";
         }
 
         if (selectedPage.needsRescan) {
-            selectedInfo += " · Needs rescan";
+            selectedInfo += " \u00B7 Needs rescan";
         }
 
         if (selectedPage.rotationDegrees != 0) {
-            selectedInfo += " · Rotated " + selectedPage.rotationDegrees + "°";
+            selectedInfo += " \u00B7 Rotated " + selectedPage.rotationDegrees + "\u00B0";
         }
 
         selectedFileRefLabel.setText(selectedInfo);
     }
 
+    private void setWorkspaceSessionSubtitle(String text) {
+        if (workspaceSessionSubtitleLabel != null) {
+            workspaceSessionSubtitleLabel.setText(text);
+        }
+        if (workspaceSessionInlineSubtitleLabel != null) {
+            workspaceSessionInlineSubtitleLabel.setText(text);
+        }
+    }
     private int getPageNumberInDocument(ScannedPage page) {
         for (DocumentGroup document : documents) {
             int pageIndex = document.pages.indexOf(page);
@@ -1123,109 +1432,17 @@ public class ScanController {
         return boxId == null || boxId.isBlank() ? "No box ID" : boxId.trim();
     }
 
-    private List<String> loadAvailableProfileNames() {
-        availableProfilesByName.clear();
-        try {
-            ScanProfileDAO scanProfileDAO = new ScanProfileDAO();
-            List<ScanProfile> allProfiles = scanProfileDAO.findAll();
-            User currentUser = UserSession.getCurrentUser();
-            List<String> assignedNames = currentUser == null ? List.of() : currentUser.getAssignedProfiles();
-
-            for (ScanProfile profile : allProfiles) {
-                if (profile.isArchived()) {
-                    continue;
-                }
-                if (!assignedNames.isEmpty() && assignedNames.stream().noneMatch(name -> name.equalsIgnoreCase(profile.getName()))) {
-                    continue;
-                }
-                availableProfilesByName.put(profile.getName(), profile);
-            }
-
-            if (availableProfilesByName.isEmpty()) {
-                for (ScanProfile profile : allProfiles) {
-                    if (!profile.isArchived()) {
-                        availableProfilesByName.put(profile.getName(), profile);
-                    }
-                }
-            }
-        } catch (DataAccessException exception) {
-            availableProfilesByName.clear();
-        }
-
-        return new ArrayList<>(availableProfilesByName.keySet());
-    }
-
-    private void loadProfilesAsync() {
-        BackgroundExecutor.io().execute(() -> {
-            List<String> profileNames = loadAvailableProfileNames();
-            Platform.runLater(() -> {
-                profileComboBox.getItems().setAll(profileNames);
-                profileComboBox.setDisable(false);
-                profileComboBox.setPromptText(profileNames.isEmpty() ? "No profiles available" : "Select profile");
-                updateProfileInfo(profileComboBox.getValue());
-                updateStartScanningState();
-            });
-        });
-    }
-
-    private String defaultBarcodeBehavior(ScanProfile profile) {
-        if (profile == null || profile.getBarcodeDetectedBehavior().isBlank()) {
-            return "Continue scanning when barcode is found";
-        }
-
-        String behavior = profile.getBarcodeDetectedBehavior().toLowerCase();
-        if (behavior.contains("stop")) {
-            return "Stop scanning when barcode is found";
-        }
-        return "Continue scanning when barcode is found";
-    }
-
-    private String selectedBarcodePageBehavior() {
-        ScanProfile profile = availableProfilesByName.get(profileComboBox.getValue());
-        if (profile == null || profile.getBarcodePageBehavior().isBlank()) {
-            return "Keep barcode page in final document";
-        }
-        return profile.getBarcodePageBehavior();
-    }
-
-    private void appendImportedPages(List<PageImage> scannedPages) {
-        if (scannedPages == null || scannedPages.isEmpty()) {
-            return;
-        }
-
-        for (PageImage page : scannedPages) {
-            int referenceId = page.getReferenceId() > 0 ? page.getReferenceId() : nextReferenceId;
-
-            ScannedPage scannedPage = new ScannedPage(
-                    referenceId,
-                    nextFileId++,
-                    page.getPageType() == PageImage.PageType.BARCODE,
-                    false,
-                    page.getSourceReference(),
-                    page.getDisplayContent(),
-                    ""
-            );
-            scannedPage.rotationDegrees = page.getRotationDegrees();
-
-            allPages.add(scannedPage);
-            selectedPage = scannedPage;
-            nextReferenceId = Math.max(nextReferenceId, referenceId + 1);
-        }
-
-        rebuildDocumentsFromPages();
-    }
-
     private void renderDocumentTree() {
         documentTreeContainer.getChildren().clear();
 
-        if (documents.isEmpty()) {
+        if (documents.isEmpty() && pendingPages.isEmpty()) {
             VBox emptyState = new VBox(6);
             emptyState.getStyleClass().add("document-tree-empty-state");
 
             Label title = new Label("No documents created yet");
             title.getStyleClass().add("document-tree-empty-title");
 
-            Label copy = new Label("Scanned files appear in the tray below. The current document appears here as pages are scanned and closes when a barcode split or manual split is applied.");
+            Label copy = new Label("Scanned files appear directly inside the current document as pages are scanned. Documents close after barcode detection, manual split, or finishing the batch.");
             copy.setWrapText(true);
             copy.getStyleClass().add("document-tree-empty-copy");
 
@@ -1237,18 +1454,24 @@ public class ScanController {
         for (int index = 0; index < documents.size(); index++) {
             DocumentGroup document = documents.get(index);
 
-            VBox documentBlock = new VBox(0);
+            VBox documentBlock = new VBox(12);
+            documentBlock.setAlignment(Pos.TOP_LEFT);
             documentBlock.getStyleClass().add("document-tree-document-block");
 
             HBox documentHeader = createDocumentHeader(document);
+            documentHeader.getStyleClass().add("document-tree-document-header-framed");
             documentBlock.getChildren().add(documentHeader);
 
             if (!collapsedDocuments.contains(document.number)) {
+                VBox pageStack = new VBox(18);
+                pageStack.setAlignment(Pos.TOP_CENTER);
+                pageStack.getStyleClass().add("document-tree-page-stack");
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     ScannedPage page = document.pages.get(pageIndex);
-                    HBox pageRow = createDocumentTreePageRow(page, pageIndex + 1);
-                    documentBlock.getChildren().add(pageRow);
+                    VBox pageCard = createDocumentTreePageCard(page, pageIndex + 1);
+                    pageStack.getChildren().add(pageCard);
                 }
+                documentBlock.getChildren().add(pageStack);
             }
 
             documentTreeContainer.getChildren().add(documentBlock);
@@ -1257,6 +1480,56 @@ public class ScanController {
                 documentTreeContainer.getChildren().add(createDocumentTreeSplitRow(document.splitReason));
             }
         }
+
+        if (!pendingPages.isEmpty()) {
+            int pendingDocumentNumber = documents.size() + 1;
+            VBox pendingBlock = new VBox(12);
+            pendingBlock.setAlignment(Pos.TOP_LEFT);
+            pendingBlock.getStyleClass().add("document-tree-document-block");
+
+            HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, pendingPages);
+            pendingHeader.getStyleClass().add("document-tree-document-header-framed");
+            pendingBlock.getChildren().add(pendingHeader);
+
+            if (!collapsedDocuments.contains(pendingDocumentNumber)) {
+                VBox pageStack = new VBox(18);
+                pageStack.setAlignment(Pos.TOP_CENTER);
+                pageStack.getStyleClass().add("document-tree-page-stack");
+                for (int pageIndex = 0; pageIndex < pendingPages.size(); pageIndex++) {
+                    ScannedPage page = pendingPages.get(pageIndex);
+                    VBox pageCard = createDocumentTreePageCard(page, pageIndex + 1);
+                    pageStack.getChildren().add(pageCard);
+                }
+                pendingBlock.getChildren().add(pageStack);
+            }
+
+            documentTreeContainer.getChildren().add(pendingBlock);
+        } else if (shouldShowNextPendingDocumentPlaceholder()) {
+            int pendingDocumentNumber = documents.size() + 1;
+            VBox pendingBlock = new VBox(12);
+            pendingBlock.setAlignment(Pos.TOP_LEFT);
+            pendingBlock.getStyleClass().add("document-tree-document-block");
+
+            HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, List.of());
+            pendingHeader.getStyleClass().add("document-tree-document-header-framed");
+            pendingBlock.getChildren().add(pendingHeader);
+
+            if (!collapsedDocuments.contains(pendingDocumentNumber)) {
+                Label waitingLabel = new Label("Waiting for the next scanned page");
+                waitingLabel.getStyleClass().add("document-tree-empty-copy");
+                waitingLabel.setWrapText(true);
+                waitingLabel.setMaxWidth(180);
+                pendingBlock.getChildren().add(waitingLabel);
+            }
+
+            documentTreeContainer.getChildren().add(pendingBlock);
+        }
+    }
+
+    private boolean shouldShowNextPendingDocumentPlaceholder() {
+        return pendingPages.isEmpty()
+                && !allPages.isEmpty()
+                && allPages.get(allPages.size() - 1).barcode;
     }
 
     private HBox createDocumentHeader(DocumentGroup document) {
@@ -1264,10 +1537,11 @@ public class ScanController {
         documentHeader.setAlignment(Pos.CENTER_LEFT);
         documentHeader.getStyleClass().add("document-tree-document-header");
 
-        Label chevron = new Label(collapsedDocuments.contains(document.number) ? "›" : "⌄");
-        chevron.getStyleClass().add("document-tree-chevron");
+        Region chevron = new Region();
+        chevron.getStyleClass().add("document-tree-chevron-icon");
+        chevron.setRotate(collapsedDocuments.contains(document.number) ? 0 : 90);
 
-        Label documentName = new Label(document.displayTitle());
+        Label documentName = new Label("Document " + document.number);
         documentName.getStyleClass().add("document-tree-document-title");
 
         Region spacer = new Region();
@@ -1325,12 +1599,45 @@ public class ScanController {
         return documentHeader;
     }
 
+    private HBox createPendingDocumentHeader(int documentNumber, List<ScannedPage> pages) {
+        HBox documentHeader = new HBox(9);
+        documentHeader.setAlignment(Pos.CENTER_LEFT);
+        documentHeader.getStyleClass().add("document-tree-document-header");
+
+        Region chevron = new Region();
+        chevron.getStyleClass().add("document-tree-chevron-icon");
+        chevron.setRotate(collapsedDocuments.contains(documentNumber) ? 0 : 90);
+
+        Label documentName = new Label("Document " + documentNumber);
+        documentName.getStyleClass().add("document-tree-document-title");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        boolean hasRescanPages = pages.stream().anyMatch(page -> page.needsRescan);
+        Label warning = new Label(hasRescanPages ? "!" : "");
+        warning.getStyleClass().add("document-tree-warning");
+
+        Label pageCount = new Label(pages.size() + " pages");
+        pageCount.getStyleClass().add("document-tree-count");
+
+        documentHeader.getChildren().addAll(chevron, documentName, spacer, warning, pageCount);
+
+        documentHeader.setOnMouseClicked(event -> {
+            if (collapsedDocuments.contains(documentNumber)) {
+                collapsedDocuments.remove(documentNumber);
+            } else {
+                collapsedDocuments.add(documentNumber);
+            }
+
+            renderDocumentTree();
+        });
+
+        return documentHeader;
+    }
+
     private boolean shouldShowTreeSplitRow(DocumentGroup document, int documentIndex) {
         boolean isLastDocument = documentIndex == documents.size() - 1;
-
-        if (document.open && isLastDocument) {
-            return false;
-        }
 
         if ("Finish batch".equals(document.splitReason) && isLastDocument) {
             return false;
@@ -1370,10 +1677,10 @@ public class ScanController {
             row.getStyleClass().add("document-tree-page-selected");
         }
 
-        Label drag = new Label("⋮⋮");
+        Label drag = new Label("\u22EE");
         drag.getStyleClass().add("document-tree-page-drag");
 
-        Label name = new Label(page.displayPageTitle(pageNumberInDocument));
+        Label name = new Label("Page " + pageNumberInDocument);
         name.getStyleClass().add("document-tree-page-title");
 
         Region spacer = new Region();
@@ -1392,6 +1699,17 @@ public class ScanController {
         configurePageDrag(row, page);
 
         return row;
+    }
+
+    private VBox createDocumentTreePageCard(ScannedPage page, int pageNumberInDocument) {
+        VBox card = createEmbeddedPageCard(page, "Page " + pageNumberInDocument);
+        card.getStyleClass().add("document-embedded-page-card");
+        card.setOnMouseClicked(event -> {
+            selectedPage = page;
+            refreshWorkspace();
+        });
+        configurePageDrag(card, page);
+        return card;
     }
 
     private void movePageToDocumentEnd(ScannedPage page, int targetDocumentNumber) {
@@ -1494,7 +1812,7 @@ public class ScanController {
         Label title = new Label("Ready to scan");
         title.getStyleClass().add("scan-preview-empty-title");
 
-        Label copy = new Label("Place a file in the scanner and click “Scan Next File”.");
+        Label copy = new Label("Click \"Scan Next File\".");
         copy.getStyleClass().add("scan-preview-empty-copy");
 
         emptyPreview.getChildren().addAll(title, copy);
@@ -1503,6 +1821,25 @@ public class ScanController {
     }
 
     private Node createBarcodePreview(ScannedPage page) {
+        Image image = resolvePageImage(page);
+        if (image != null) {
+            StackPane preview = new StackPane(createPreviewImageView(image, PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT));
+            preview.getStyleClass().add("mock-document-page");
+            preview.setMinWidth(PREVIEW_PAGE_WIDTH);
+            preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
+            preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
+            preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
+            preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+            preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+            preview.setRotate(page.rotationDegrees);
+
+            Label badge = new Label("BARCODE");
+            badge.getStyleClass().add("barcode-preview-badge");
+            StackPane.setAlignment(badge, Pos.TOP_CENTER);
+            preview.getChildren().add(badge);
+            return preview;
+        }
+
         VBox barcodePreview = new VBox(15);
         barcodePreview.setAlignment(Pos.CENTER);
         barcodePreview.getStyleClass().add("mock-document-page");
@@ -1533,9 +1870,18 @@ public class ScanController {
     }
 
     private Node createDocumentPreview(ScannedPage page) {
-        Node actualPreview = createActualDocumentPreview(page);
-        if (actualPreview != null) {
-            return actualPreview;
+        Image image = resolvePageImage(page);
+        if (image != null) {
+            StackPane preview = new StackPane(createPreviewImageView(image, PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT));
+            preview.getStyleClass().add("mock-document-page");
+            preview.setMinWidth(PREVIEW_PAGE_WIDTH);
+            preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
+            preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
+            preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
+            preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+            preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+            preview.setRotate(page.rotationDegrees);
+            return preview;
         }
 
         VBox documentPage = new VBox(15);
@@ -1635,197 +1981,79 @@ public class ScanController {
         return documentPage;
     }
 
-    private Node createActualDocumentPreview(ScannedPage page) {
-        if (page == null || page.displayContent.isBlank()) {
+    private ImageView createPreviewImageView(Image image, double fitWidth, double fitHeight) {
+        ImageView imageView = new ImageView(image);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        imageView.setCache(true);
+        imageView.setFitWidth(fitWidth);
+        imageView.setFitHeight(fitHeight);
+        return imageView;
+    }
+
+    private ImageView createThumbnailImageView(Image image, double fitWidth, double fitHeight) {
+        ImageView imageView = new ImageView(image);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        imageView.setCache(true);
+        imageView.setFitWidth(fitWidth);
+        imageView.setFitHeight(fitHeight);
+        return imageView;
+    }
+
+    private void applyThumbnailClip(StackPane thumbnail, double arcSize) {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(thumbnail.widthProperty());
+        clip.heightProperty().bind(thumbnail.heightProperty());
+        clip.setArcWidth(arcSize);
+        clip.setArcHeight(arcSize);
+        thumbnail.setClip(clip);
+    }
+
+    private Image resolvePageImage(ScannedPage page) {
+        if (page == null) {
+            return null;
+        }
+        if (page.cachedPreviewImage != null) {
+            return page.cachedPreviewImage;
+        }
+
+        String imageContent = page.imageContent();
+        if (imageContent.isBlank()) {
             return null;
         }
 
-        String failureMessage = previewLoadFailures.get(page.referenceId);
-        if (failureMessage != null) {
-            return createPreviewUnavailableState(failureMessage);
-        }
-
-        WritableImage image = previewImageCache.get(page.referenceId);
-        if (image == null) {
-            ensurePreviewImageLoaded(page);
-            return createPreviewLoadingState();
-        }
-
-        ImageView imageView = new ImageView(image);
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(PREVIEW_PAGE_WIDTH);
-        imageView.setFitHeight(PREVIEW_PAGE_HEIGHT);
-        imageView.setRotate(page.rotationDegrees);
-        imageView.setSmooth(true);
-
-        StackPane preview = new StackPane(imageView);
-        preview.setAlignment(Pos.CENTER);
-        preview.getStyleClass().add("mock-document-page");
-        preview.setMinWidth(PREVIEW_PAGE_WIDTH);
-        preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
-        preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
-        preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
-        preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
-        preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
-
-        if (page.needsRescan) {
-            Label warning = new Label("Marked for rescan");
-            warning.getStyleClass().add("preview-warning-banner");
-            StackPane.setAlignment(warning, Pos.TOP_CENTER);
-            preview.getChildren().add(warning);
-        }
-
-        return preview;
+        page.cachedPreviewImage = decodeDataUriImage(imageContent);
+        return page.cachedPreviewImage;
     }
 
-    private Node createPreviewLoadingState() {
-        VBox loading = new VBox(9);
-        loading.setAlignment(Pos.CENTER);
-        loading.getStyleClass().add("mock-document-page");
-        loading.setMinWidth(PREVIEW_PAGE_WIDTH);
-        loading.setPrefWidth(PREVIEW_PAGE_WIDTH);
-        loading.setMaxWidth(PREVIEW_PAGE_WIDTH);
-        loading.setMinHeight(PREVIEW_PAGE_HEIGHT);
-        loading.setPrefHeight(PREVIEW_PAGE_HEIGHT);
-        loading.setMaxHeight(PREVIEW_PAGE_HEIGHT);
-
-        Label title = new Label("Loading TIFF preview");
-        title.getStyleClass().add("scan-preview-empty-title");
-
-        Label copy = new Label("The scanned page is being decoded from the API response.");
-        copy.getStyleClass().add("scan-preview-empty-copy");
-        copy.setWrapText(true);
-
-        loading.getChildren().addAll(title, copy);
-        return loading;
-    }
-
-    private Node createPreviewUnavailableState(String message) {
-        VBox unavailable = new VBox(9);
-        unavailable.setAlignment(Pos.CENTER);
-        unavailable.getStyleClass().add("mock-document-page");
-        unavailable.setMinWidth(PREVIEW_PAGE_WIDTH);
-        unavailable.setPrefWidth(PREVIEW_PAGE_WIDTH);
-        unavailable.setMaxWidth(PREVIEW_PAGE_WIDTH);
-        unavailable.setMinHeight(PREVIEW_PAGE_HEIGHT);
-        unavailable.setPrefHeight(PREVIEW_PAGE_HEIGHT);
-        unavailable.setMaxHeight(PREVIEW_PAGE_HEIGHT);
-
-        Label title = new Label("TIFF preview unavailable");
-        title.getStyleClass().add("scan-preview-empty-title");
-
-        Label copy = new Label(message);
-        copy.getStyleClass().add("scan-preview-empty-copy");
-        copy.setWrapText(true);
-        copy.setMaxWidth(360);
-
-        unavailable.getChildren().addAll(title, copy);
-        return unavailable;
-    }
-
-    private void ensurePreviewImageLoaded(ScannedPage page) {
-        if (page == null || page.displayContent.isBlank()) {
-            return;
-        }
-        if (previewImageCache.containsKey(page.referenceId) || previewLoadsInProgress.contains(page.referenceId)) {
-            return;
+    private Image decodeDataUriImage(String dataUri) {
+        if (dataUri == null || dataUri.isBlank()) {
+            return null;
         }
 
-        previewLoadsInProgress.add(page.referenceId);
-        int referenceId = page.referenceId;
-        String displayContent = page.displayContent;
-
-        BackgroundExecutor.io().execute(() -> {
-            PreviewDecodeResult result = decodePreviewImage(displayContent);
-            Platform.runLater(() -> {
-                previewLoadsInProgress.remove(referenceId);
-                if (result.image() != null) {
-                    previewImageCache.put(referenceId, result.image());
-                    previewLoadFailures.remove(referenceId);
-                } else {
-                    previewLoadFailures.put(referenceId, result.message());
-                }
-
-                if (selectedPage != null && selectedPage.referenceId == referenceId) {
-                    if (reviewWorkspaceView.isVisible()) {
-                        refreshReviewWorkspace();
-                    } else {
-                        refreshWorkspace();
-                    }
-                }
-            });
-        });
-    }
-
-    private PreviewDecodeResult decodePreviewImage(String displayContent) {
-        byte[] bytes = extractDisplayContentBytes(displayContent);
-        if (bytes.length == 0) {
-            return PreviewDecodeResult.failed("The API response did not contain previewable TIFF data.");
+        int commaIndex = dataUri.indexOf(',');
+        if (commaIndex < 0 || commaIndex >= dataUri.length() - 1) {
+            return null;
         }
 
-        ImageIO.scanForPlugins();
-
-        try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
-            if (imageInputStream == null) {
-                return PreviewDecodeResult.failed("The TIFF preview stream could not be opened.");
+        try {
+            String header = dataUri.substring(0, commaIndex).toLowerCase(Locale.ROOT);
+            byte[] bytes = Base64.getDecoder().decode(dataUri.substring(commaIndex + 1));
+            if (header.contains("image/png") || header.contains("image/jpeg") || header.contains("image/jpg")) {
+                return new Image(new ByteArrayInputStream(bytes));
             }
 
-            var readers = ImageIO.getImageReaders(imageInputStream);
-            if (!readers.hasNext()) {
-                return PreviewDecodeResult.failed("No TIFF reader is available for this API file.");
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
+            if (bufferedImage != null) {
+                return SwingFXUtils.toFXImage(bufferedImage, null);
             }
 
-            ImageReader reader = readers.next();
-            try {
-                reader.setInput(imageInputStream, true, true);
-
-                int width = reader.getWidth(0);
-                int height = reader.getHeight(0);
-
-                ImageReadParam param = reader.getDefaultReadParam();
-                int subsampling = Math.max(1, Math.min(
-                        Math.max(1, width / (int) PREVIEW_PAGE_WIDTH),
-                        Math.max(1, height / (int) PREVIEW_PAGE_HEIGHT)
-                ));
-                param.setSourceSubsampling(subsampling, subsampling, 0, 0);
-
-                BufferedImage bufferedImage = reader.read(0, param);
-                if (bufferedImage == null) {
-                    return PreviewDecodeResult.failed("The TIFF reader returned no image for this page.");
-                }
-
-                return PreviewDecodeResult.success(SwingFXUtils.toFXImage(bufferedImage, null));
-            } finally {
-                reader.dispose();
-            }
+            return new Image(new ByteArrayInputStream(bytes));
+        } catch (IllegalArgumentException exception) {
+            return null;
         } catch (Exception exception) {
-            return PreviewDecodeResult.failed("The TIFF preview could not be decoded: " + exception.getClass().getSimpleName());
-        }
-    }
-
-    private byte[] extractDisplayContentBytes(String displayContent) {
-        if (displayContent == null || displayContent.isBlank()) {
-            return new byte[0];
-        }
-
-        String encoded = displayContent.trim();
-        int base64Index = encoded.indexOf("base64,");
-        if (base64Index >= 0) {
-            encoded = encoded.substring(base64Index + 7);
-        }
-
-        return Base64.getDecoder().decode(encoded);
-    }
-
-    private record PreviewDecodeResult(WritableImage image, String message) {
-        private static PreviewDecodeResult success(WritableImage image) {
-            return new PreviewDecodeResult(image, "");
-        }
-
-        private static PreviewDecodeResult failed(String message) {
-            return new PreviewDecodeResult(null, message == null || message.isBlank()
-                    ? "The TIFF preview could not be decoded."
-                    : message);
+            return null;
         }
     }
 
@@ -1953,10 +2181,10 @@ public class ScanController {
         StackPane splitMarker = new StackPane();
         splitMarker.getStyleClass().add("page-tray-document-split");
 
-        Region line = new Region();
-        line.getStyleClass().add("page-tray-document-split-line");
+        Region divider = new Region();
+        divider.getStyleClass().add("page-tray-document-split-line");
 
-        splitMarker.getChildren().add(line);
+        splitMarker.getChildren().add(divider);
 
         return splitMarker;
     }
@@ -2097,23 +2325,39 @@ public class ScanController {
 
     private void refreshReviewWorkspace() {
         updateReviewHeader();
+        updateReviewSelectionCard(
+                selectedPage == null ? null : findDocumentContainingPage(selectedPage),
+                selectedPage,
+                selectedPage == null ? -1 : getPageNumberInDocument(selectedPage)
+        );
         renderReviewDocumentList();
         renderReviewPreview();
-        renderReviewPageTray();
     }
 
     private void updateReviewHeader() {
+        String referenceText = selectedPage == null ? "Ref: -" : "Ref: " + selectedPage.referenceIdLabel();
+
         reviewBoxValueLabel.setText(getBoxId());
         reviewProfileValueLabel.setText(getSelectedProfile());
-        reviewDocumentsValueLabel.setText(documents.size() + " · " + getNormalPageCount() + " pages");
+        if (reviewSidebarSubtitleLabel != null) {
+            reviewSidebarSubtitleLabel.setText(getSelectedProfile() + " · " + getBoxId());
+        }
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText(referenceText);
+        }
+
+        if (reviewFilesInfoLabel != null) {
+            reviewFilesInfoLabel.setText("Scanned Files: " + allPages.size());
+        }
+
+        if (reviewDocumentsInfoLabel != null) {
+            reviewDocumentsInfoLabel.setText("Documents: " + documents.size());
+        }
+        reviewDocumentsValueLabel.setText(documents.size() + " \u00B7 " + getNormalPageCount() + " pages");
 
         if (selectedPage == null) {
             reviewSelectedTitleLabel.setText("No page selected");
-            return;
-        }
-
-        if (selectedPage.barcode) {
-            reviewSelectedTitleLabel.setText("Barcode split marker");
+            updateReviewSelectionCard(null, null, -1);
             return;
         }
 
@@ -2122,10 +2366,43 @@ public class ScanController {
 
         if (document == null || pageNumber < 1) {
             reviewSelectedTitleLabel.setText(selectedPage.fileName());
+            updateReviewSelectionCard(null, selectedPage, -1);
             return;
         }
 
-        reviewSelectedTitleLabel.setText(document.displayTitle() + " · Page " + pageNumber);
+        reviewSelectedTitleLabel.setText("Document " + document.number + " \u00B7 Page " + pageNumber);
+    }
+
+    private void updateReviewSelectionCard(DocumentGroup document, ScannedPage page, int pageNumber) {
+        if (reviewSelectionProfileValueLabel != null) {
+            reviewSelectionProfileValueLabel.setText(getSelectedProfile());
+        }
+
+        if (reviewSelectionBoxValueLabel != null) {
+            reviewSelectionBoxValueLabel.setText(getBoxId());
+        }
+
+        if (reviewSelectionDocumentValueLabel != null) {
+            reviewSelectionDocumentValueLabel.setText(document == null ? "-" : "Document " + document.number);
+        }
+
+        if (reviewSelectionFileValueLabel != null) {
+            if (page == null) {
+                reviewSelectionFileValueLabel.setText("-");
+            } else if (pageNumber > 0) {
+                reviewSelectionFileValueLabel.setText("File " + pageNumber);
+            } else {
+                reviewSelectionFileValueLabel.setText(page.fileName());
+            }
+        }
+
+        if (reviewSelectionReferenceValueLabel != null) {
+            reviewSelectionReferenceValueLabel.setText(page == null ? "-" : page.referenceIdLabel());
+        }
+
+        if (reviewSelectionFileIdValueLabel != null) {
+            reviewSelectionFileIdValueLabel.setText(page == null ? "-" : String.valueOf(page.fileId));
+        }
     }
 
     private int getNormalPageCount() {
@@ -2162,51 +2439,71 @@ public class ScanController {
         for (int index = 0; index < documents.size(); index++) {
             DocumentGroup document = documents.get(index);
 
+            VBox documentBlock = new VBox(12);
+            documentBlock.setAlignment(Pos.TOP_LEFT);
+            documentBlock.getStyleClass().add("document-tree-document-block");
+
             HBox documentCard = new HBox(9);
             documentCard.setAlignment(Pos.CENTER_LEFT);
-            documentCard.getStyleClass().add("review-document-card");
+            documentCard.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
 
-            if (document.pages.contains(selectedPage)) {
-                documentCard.getStyleClass().add("review-document-card-selected");
-            }
+            Region chevron = new Region();
+            chevron.getStyleClass().add("document-tree-chevron-icon");
+            chevron.setRotate(collapsedDocuments.contains(document.number) ? 0 : 90);
 
-            Label title = new Label(document.displayTitle());
-            title.getStyleClass().add("review-document-title");
+            Label title = new Label("Document " + document.number);
+            title.getStyleClass().add("document-tree-document-title");
 
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
             Label warning = new Label(document.hasPagesNeedingRescan() ? "!" : "");
-            warning.getStyleClass().add("review-document-warning");
+            warning.getStyleClass().add("document-tree-warning");
 
             Label count = new Label(document.pages.size() + " pages");
-            count.getStyleClass().add("review-document-count");
+            count.getStyleClass().add("document-tree-count");
 
-            documentCard.getChildren().addAll(title, spacer, warning, count);
+            documentCard.getChildren().addAll(chevron, title, spacer, warning, count);
 
             documentCard.setOnMouseClicked(event -> {
+                if (collapsedDocuments.contains(document.number)) {
+                    collapsedDocuments.remove(document.number);
+                } else {
+                    collapsedDocuments.add(document.number);
+                }
+
                 if (!document.pages.isEmpty()) {
                     selectedPage = document.pages.get(0);
-                    refreshReviewWorkspace();
                 }
+                refreshReviewWorkspace();
             });
 
-            reviewDocumentListContainer.getChildren().add(documentCard);
+            documentBlock.getChildren().add(documentCard);
+
+            if (!collapsedDocuments.contains(document.number)) {
+                VBox pageStack = new VBox(18);
+                pageStack.setAlignment(Pos.TOP_CENTER);
+                pageStack.getStyleClass().add("document-tree-page-stack");
+                for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
+                    ScannedPage page = document.pages.get(pageIndex);
+                    VBox pageCard = createReviewEmbeddedPageCard(page, pageIndex + 1);
+                    pageStack.getChildren().add(pageCard);
+                }
+                documentBlock.getChildren().add(pageStack);
+            }
+
+            reviewDocumentListContainer.getChildren().add(documentBlock);
 
             if (index < documents.size() - 1) {
-                reviewDocumentListContainer.getChildren().add(createReviewSplitRow(findSplitMarkerAfter(document)));
+                reviewDocumentListContainer.getChildren().add(createReviewSplitRow());
             }
         }
     }
 
-    private Node createReviewSplitRow(ScannedPage splitMarker) {
+    private Node createReviewSplitRow() {
         HBox row = new HBox(9);
         row.setAlignment(Pos.CENTER);
         row.getStyleClass().add("review-split-row");
-
-        if (splitMarker != null && splitMarker == selectedPage) {
-            row.getStyleClass().add("review-document-card-selected");
-        }
 
         Region leftLine = new Region();
         leftLine.getStyleClass().add("review-split-line");
@@ -2221,13 +2518,6 @@ public class ScanController {
 
         row.getChildren().addAll(leftLine, label, rightLine);
 
-        if (splitMarker != null) {
-            row.setOnMouseClicked(event -> {
-                selectedPage = splitMarker;
-                refreshReviewWorkspace();
-            });
-        }
-
         return row;
     }
 
@@ -2235,14 +2525,377 @@ public class ScanController {
         reviewPreviewHost.getChildren().clear();
 
         if (selectedPage == null) {
+            currentReviewPreviewWrapper = null;
             reviewPreviewHost.getChildren().add(createReviewEmptyPreview());
             return;
         }
 
-        Node previewNode = selectedPage.barcode
-                ? createBarcodePreview(selectedPage)
-                : createDocumentPreview(selectedPage);
+        Node previewNode = createDocumentPreview(selectedPage);
         reviewPreviewHost.getChildren().add(wrapReviewPreviewWithAutoScale(previewNode));
+    }
+
+    private VBox createReviewEmbeddedPageCard(ScannedPage page, int pageNumber) {
+        VBox card = new VBox(3);
+        card.setAlignment(Pos.CENTER);
+        card.getStyleClass().addAll("review-page-tray-item", "review-embedded-page-card");
+
+        if (page == selectedPage) {
+            card.getStyleClass().add("review-page-tray-item-selected");
+        }
+
+        if (page.needsRescan) {
+            card.getStyleClass().add("review-page-tray-item-warning");
+        }
+
+        StackPane thumbnail = new StackPane();
+        thumbnail.getStyleClass().add("review-page-tray-thumbnail");
+        applyThumbnailClip(thumbnail, 28);
+        Image image = resolvePageImage(page);
+        if (image != null) {
+            thumbnail.getChildren().add(createThumbnailImageView(image, 148, 214));
+        } else {
+            VBox lines = new VBox(3);
+            lines.setAlignment(Pos.TOP_LEFT);
+            lines.getChildren().addAll(
+                    createLine("tray-line-dark", 27, 3),
+                    createLine("tray-line-light", 42, 3),
+                    createLine("tray-line-light", 36, 3),
+                    createLine("tray-line-light", 30, 3)
+            );
+            thumbnail.getChildren().add(lines);
+        }
+
+        Label status = new Label(getTrayStatusText(page));
+        status.getStyleClass().add("page-tray-status-badge");
+        StackPane.setAlignment(status, Pos.TOP_RIGHT);
+        thumbnail.getChildren().add(status);
+
+        Label number = new Label("Page " + pageNumber);
+        number.getStyleClass().add("review-page-tray-number");
+        number.setMaxWidth(Double.MAX_VALUE);
+        number.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(thumbnail, number);
+        card.setOnMouseClicked(event -> {
+            selectedPage = page;
+            refreshReviewWorkspace();
+        });
+
+        return card;
+    }
+
+    @FXML
+    private void onOpenExportTypeDialog() {
+        Stage stage = new Stage();
+        stage.setTitle("TIFF Export");
+        stage.initModality(Modality.WINDOW_MODAL);
+        stage.setResizable(false);
+
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            stage.initOwner(reviewWorkspaceView.getScene().getWindow());
+        }
+
+        VBox content = buildExportDialogContent(stage);
+        StackPane root = new StackPane(content);
+        root.getStyleClass().addAll("app-shell", "exports-dialog-stage");
+
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
+        Scene scene = new Scene(root);
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
+
+        stage.setScene(scene);
+        stage.sizeToScene();
+        stage.showAndWait();
+    }
+
+    private VBox buildExportDialogContent(Stage stage) {
+        List<String> boxFiles = buildExportFiles();
+        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(
+                boxFiles.size() > 1 ? TiffExportType.MULTI_PAGE : TiffExportType.SINGLE_PAGE
+        );
+
+        Label title = new Label("TIFF Export");
+        title.getStyleClass().add("exports-dialog-title");
+
+        VBox header = new VBox(9, title);
+        header.getStyleClass().add("exports-dialog-header");
+
+        Label boxValue = new Label(getBoxId());
+        boxValue.getStyleClass().add("exports-dialog-box-value");
+
+        Label boxDetail = new Label("Only files from this box can be exported in this dialog.");
+        boxDetail.getStyleClass().add("exports-dialog-box-detail");
+
+        VBox boxCard = new VBox(6, boxValue, boxDetail);
+        boxCard.getStyleClass().add("exports-dialog-box-card");
+
+        Button singlePageCard = buildExportTypeCard(
+                "Single-page TIFF",
+                "Separate TIFF files",
+                TiffExportType.SINGLE_PAGE,
+                selectedType
+        );
+        Button multiPageCard = buildExportTypeCard(
+                "Multi-page TIFF",
+                "One combined TIFF",
+                TiffExportType.MULTI_PAGE,
+                selectedType
+        );
+        HBox.setHgrow(singlePageCard, Priority.ALWAYS);
+        HBox.setHgrow(multiPageCard, Priority.ALWAYS);
+
+        HBox typeRow = new HBox(18, singlePageCard, multiPageCard);
+        typeRow.getStyleClass().add("exports-dialog-type-row");
+
+        Label selectedFilesTitle = new Label("Files in box");
+        selectedFilesTitle.getStyleClass().add("exports-dialog-files-title");
+
+        Label selectedFilesCount = new Label(formatSelectedFileCount(boxFiles.size()));
+        selectedFilesCount.getStyleClass().add("exports-dialog-files-count");
+
+        Region filesSpacer = new Region();
+        HBox.setHgrow(filesSpacer, Priority.ALWAYS);
+
+        HBox filesHeader = new HBox(18, selectedFilesTitle, filesSpacer, selectedFilesCount);
+        filesHeader.setAlignment(Pos.CENTER_LEFT);
+
+        GridPane fileGrid = new GridPane();
+        fileGrid.getStyleClass().add("exports-dialog-file-grid");
+
+        ScrollPane fileListScroll = new ScrollPane(fileGrid);
+        fileListScroll.getStyleClass().add("exports-dialog-file-scroll");
+        fileListScroll.setFitToWidth(true);
+        fileListScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        fileListScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        fileListScroll.setPrefViewportHeight(156);
+        renderSelectedFiles(fileGrid, boxFiles);
+
+        VBox filesCard = new VBox(18, filesHeader, fileListScroll);
+        filesCard.getStyleClass().add("exports-dialog-files-card");
+
+        Region divider = new Region();
+        divider.getStyleClass().add("portal-divider");
+        divider.setMaxWidth(Double.MAX_VALUE);
+
+        Label outputLabel = new Label("Output:");
+        outputLabel.getStyleClass().add("exports-dialog-output-label");
+
+        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size()));
+        outputValue.getStyleClass().add("exports-dialog-output-value");
+        outputValue.setWrapText(false);
+        outputValue.setMinHeight(Region.USE_PREF_SIZE);
+        outputValue.setPrefWidth(420);
+        outputValue.setMaxWidth(420);
+        selectedType.addListener((observable, oldValue, newValue) ->
+                outputValue.setText(buildOutputText(newValue, boxFiles.size()))
+        );
+
+        HBox outputBox = new HBox(9, outputLabel, outputValue);
+        outputBox.getStyleClass().add("exports-dialog-output-box");
+        outputBox.setAlignment(Pos.CENTER_LEFT);
+        outputBox.setMinHeight(36);
+        outputBox.setPrefHeight(36);
+        outputBox.setMaxHeight(36);
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().addAll("portal-secondary-button", "exports-dialog-cancel-button");
+        cancelButton.setCancelButton(true);
+        cancelButton.setOnAction(event -> stage.close());
+
+        Button exportButton = new Button("Export");
+        exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
+        exportButton.setDefaultButton(true);
+        exportButton.setOnAction(event -> stage.close());
+
+        HBox footerActions = new HBox(9, cancelButton, exportButton);
+        footerActions.getStyleClass().add("exports-dialog-footer-actions");
+        footerActions.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox footer = new VBox(9, outputBox, footerActions);
+        footer.getStyleClass().add("exports-dialog-footer");
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.setFillWidth(true);
+
+        VBox content = new VBox(18, header, boxCard, typeRow, filesCard, divider, footer);
+        content.getStyleClass().add("exports-dialog-content");
+        content.setFillWidth(true);
+        return content;
+    }
+
+    private Button buildExportTypeCard(
+            String titleText,
+            String subtitleText,
+            TiffExportType type,
+            ObjectProperty<TiffExportType> selectedType
+    ) {
+        Label title = new Label(titleText);
+        title.getStyleClass().add("exports-dialog-option-title");
+
+        Label subtitle = new Label(subtitleText);
+        subtitle.getStyleClass().add("exports-dialog-option-subtitle");
+
+        VBox copy = new VBox(9, title, subtitle);
+        copy.getStyleClass().add("exports-dialog-option-copy");
+
+        StackPane checkBadge = new StackPane(UserPortalUi.buildIcon("selected-check", "exports-dialog-option-check-icon"));
+        checkBadge.getStyleClass().add("exports-dialog-option-check-badge");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox graphic = new HBox(12, copy, spacer, checkBadge);
+        graphic.getStyleClass().add("exports-dialog-option-content");
+        graphic.setAlignment(Pos.TOP_LEFT);
+
+        Button button = new Button();
+        button.getStyleClass().add("exports-dialog-option-button");
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        button.setGraphic(graphic);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setFocusTraversable(false);
+        button.setOnAction(event -> selectedType.set(type));
+
+        Runnable refreshSelection = () -> updateExportTypeCard(button, checkBadge, selectedType.get() == type);
+        selectedType.addListener((observable, oldValue, newValue) -> refreshSelection.run());
+        refreshSelection.run();
+
+        return button;
+    }
+
+    private void updateExportTypeCard(Button button, StackPane checkBadge, boolean selected) {
+        button.getStyleClass().removeAll(
+                "exports-dialog-option-button-selected",
+                "exports-dialog-option-button-unselected"
+        );
+        button.getStyleClass().add(selected
+                ? "exports-dialog-option-button-selected"
+                : "exports-dialog-option-button-unselected");
+        checkBadge.setVisible(selected);
+        checkBadge.setManaged(true);
+    }
+
+    private void renderSelectedFiles(GridPane fileGrid, List<String> selectedFiles) {
+        fileGrid.getChildren().clear();
+        fileGrid.getColumnConstraints().setAll(
+                percentColumn(33.333),
+                percentColumn(33.333),
+                percentColumn(33.333)
+        );
+
+        if (selectedFiles.isEmpty()) {
+            Label emptyState = new Label("No files available for this export.");
+            emptyState.getStyleClass().add("exports-dialog-empty-state");
+            fileGrid.add(emptyState, 0, 0, 3, 1);
+            return;
+        }
+
+        for (int index = 0; index < selectedFiles.size(); index++) {
+            int column = index % 3;
+            int row = index / 3;
+            fileGrid.add(createSelectedFileCell(selectedFiles.get(index), column < 2), column, row);
+        }
+    }
+
+    private HBox createSelectedFileCell(String fileName, boolean withRightBorder) {
+        Label fileLabel = new Label(fileName);
+        fileLabel.getStyleClass().add("exports-dialog-file-name");
+
+        HBox cell = new HBox(6, fileLabel);
+        cell.getStyleClass().add("exports-dialog-file-cell-box");
+        if (withRightBorder) {
+            cell.getStyleClass().add("exports-dialog-file-cell-box-bordered");
+        }
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        return cell;
+    }
+
+    private List<String> buildExportFiles() {
+        int count = Math.max(1, documents.size());
+        List<String> files = new ArrayList<>(count);
+        for (int index = 1; index <= count; index++) {
+            files.add("file_" + String.format(Locale.US, "%03d", index));
+        }
+        return files;
+    }
+
+    private String formatSelectedFileCount(int fileCount) {
+        return fileCount + " " + (fileCount == 1 ? "file" : "files");
+    }
+
+    private String buildOutputText(TiffExportType type, int selectedFileCount) {
+        return switch (type) {
+            case SINGLE_PAGE -> selectedFileCount + " separate .tiff " + (selectedFileCount == 1 ? "file" : "files") + " will be generated";
+            case MULTI_PAGE -> "All selected files will be combined into one .tiff file";
+        };
+    }
+
+    private javafx.scene.layout.ColumnConstraints percentColumn(double percentWidth) {
+        javafx.scene.layout.ColumnConstraints column = new javafx.scene.layout.ColumnConstraints();
+        column.setPercentWidth(percentWidth);
+        column.setFillWidth(true);
+        column.setHgrow(Priority.ALWAYS);
+        return column;
+    }
+
+    private VBox createEmbeddedPageCard(ScannedPage page, String labelText) {
+        VBox card = new VBox(3);
+        card.setAlignment(Pos.CENTER);
+
+        if (page.barcode) {
+            card.getStyleClass().add("page-tray-barcode-split-card");
+        } else {
+            card.getStyleClass().add("page-tray-item");
+        }
+
+        if (page == selectedPage) {
+            card.getStyleClass().add(page.barcode
+                    ? "page-tray-barcode-split-card-selected"
+                    : "page-tray-item-selected"
+            );
+        }
+
+        if (page.needsRescan) {
+            card.getStyleClass().add("page-tray-item-warning");
+        }
+
+        StackPane thumbnail = new StackPane();
+        thumbnail.getStyleClass().add("page-tray-thumbnail");
+        applyThumbnailClip(thumbnail, 28);
+        Image image = resolvePageImage(page);
+        if (image != null) {
+            thumbnail.getChildren().add(createThumbnailImageView(image, 148, 214));
+        } else if (page.barcode) {
+            Label barcode = new Label("||||");
+            barcode.getStyleClass().add("page-tray-barcode-mark");
+            thumbnail.getChildren().add(barcode);
+        } else {
+            VBox lines = new VBox(3);
+            lines.setAlignment(Pos.TOP_LEFT);
+            lines.getChildren().addAll(
+                    createLine("tray-line-dark", 27, 3),
+                    createLine("tray-line-light", 42, 3),
+                    createLine("tray-line-light", 36, 3),
+                    createLine("tray-line-light", 30, 3)
+            );
+            thumbnail.getChildren().add(lines);
+        }
+
+        Label status = new Label(getTrayStatusText(page));
+        status.getStyleClass().add("page-tray-status-badge");
+        StackPane.setAlignment(status, Pos.TOP_RIGHT);
+        thumbnail.getChildren().add(status);
+
+        Label number = new Label(labelText);
+        number.getStyleClass().add(page.barcode ? "page-tray-barcode-split-label" : "page-tray-number");
+        number.setMaxWidth(Double.MAX_VALUE);
+        number.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(thumbnail, number);
+        return card;
     }
 
     private Node wrapReviewPreviewWithAutoScale(Node previewNode) {
@@ -2258,11 +2911,15 @@ public class ScanController {
             double widthScale = availableWidth / PREVIEW_PAGE_WIDTH;
             double heightScale = availableHeight / PREVIEW_PAGE_HEIGHT;
 
-            return Math.min(1.0, Math.min(widthScale, heightScale));
-        }, reviewPreviewHost.widthProperty(), reviewPreviewHost.heightProperty());
+            double autoScale = Math.min(1.0, Math.min(widthScale, heightScale));
+            return autoScale * reviewZoomMultiplier.get();
+        }, reviewPreviewHost.widthProperty(), reviewPreviewHost.heightProperty(), reviewZoomMultiplier);
 
         wrapper.scaleXProperty().bind(scaleBinding);
         wrapper.scaleYProperty().bind(scaleBinding);
+        currentReviewPreviewWrapper = wrapper;
+        scaleBinding.addListener((observable, oldValue, newValue) -> clampReviewPreviewTranslation());
+        clampReviewPreviewTranslation();
 
         return wrapper;
     }
@@ -2287,13 +2944,6 @@ public class ScanController {
         reviewPageTrayContainer.getChildren().clear();
 
         DocumentGroup selectedDocument = findDocumentContainingPage(selectedPage);
-
-        if (selectedPage != null && selectedPage.barcode) {
-            Label empty = new Label("Barcode split marker selected.");
-            empty.getStyleClass().add("page-tray-empty-copy");
-            reviewPageTrayContainer.getChildren().add(empty);
-            return;
-        }
 
         if (selectedDocument == null || selectedDocument.pages.isEmpty()) {
             Label empty = new Label("No pages available.");
@@ -2369,21 +3019,6 @@ public class ScanController {
         return null;
     }
 
-    private ScannedPage findSplitMarkerAfter(DocumentGroup document) {
-        if (document == null || document.pages.isEmpty()) {
-            return null;
-        }
-
-        ScannedPage lastPage = document.pages.get(document.pages.size() - 1);
-        int lastIndex = allPages.indexOf(lastPage);
-        if (lastIndex < 0 || lastIndex >= allPages.size() - 1) {
-            return null;
-        }
-
-        ScannedPage nextPage = allPages.get(lastIndex + 1);
-        return nextPage.barcode ? nextPage : null;
-    }
-
     private static final class ScanSnapshot {
         private final List<PageSnapshot> pages = new ArrayList<>();
         private final int selectedPageReferenceId;
@@ -2422,25 +3057,25 @@ public class ScanController {
         private final int referenceId;
         private final int fileId;
         private final boolean barcode;
-        private final String sourceReference;
-        private final String displayContent;
-        private final String sourceDocumentId;
         private final int documentNumber;
         private final int rotationDegrees;
         private final boolean needsRescan;
         private final String splitReasonAfter;
+        private final String sourceReference;
+        private final String displayContent;
+        private final String previewContent;
 
         private PageSnapshot(ScannedPage page) {
             this.referenceId = page.referenceId;
             this.fileId = page.fileId;
             this.barcode = page.barcode;
-            this.sourceReference = page.sourceReference;
-            this.displayContent = page.displayContent;
-            this.sourceDocumentId = page.sourceDocumentId;
             this.documentNumber = page.documentNumber;
             this.rotationDegrees = page.rotationDegrees;
             this.needsRescan = page.needsRescan;
             this.splitReasonAfter = page.splitReasonAfter;
+            this.sourceReference = page.sourceReference;
+            this.displayContent = page.displayContent;
+            this.previewContent = page.previewContent;
         }
 
         private ScannedPage toScannedPage() {
@@ -2451,7 +3086,7 @@ public class ScanController {
                     needsRescan,
                     sourceReference,
                     displayContent,
-                    sourceDocumentId
+                    previewContent
             );
             page.documentNumber = documentNumber;
             page.rotationDegrees = rotationDegrees;
@@ -2463,15 +3098,11 @@ public class ScanController {
     private static final class DocumentGroup {
         private final int number;
         private final String splitReason;
-        private final String sourceDocumentId;
-        private final boolean open;
         private final List<ScannedPage> pages = new ArrayList<>();
 
-        private DocumentGroup(int number, String splitReason, String sourceDocumentId, boolean open) {
+        private DocumentGroup(int number, String splitReason) {
             this.number = number;
             this.splitReason = splitReason;
-            this.sourceDocumentId = sourceDocumentId == null ? "" : sourceDocumentId;
-            this.open = open;
         }
 
         private boolean hasPagesNeedingRescan() {
@@ -2483,16 +3114,11 @@ public class ScanController {
 
             return false;
         }
+    }
 
-        private String displayTitle() {
-            if (!sourceDocumentId.isBlank() && !sourceDocumentId.startsWith("api-item-")) {
-                return open ? sourceDocumentId + " (In progress)" : sourceDocumentId;
-            }
-            if (!pages.isEmpty() && !pages.get(0).sourceReference.isBlank()) {
-                return open ? pages.get(0).sourceReference + " (In progress)" : pages.get(0).sourceReference;
-            }
-            return open ? "Document " + number + " (In progress)" : "Document " + number;
-        }
+    private enum TiffExportType {
+        SINGLE_PAGE,
+        MULTI_PAGE
     }
 
     private static final class ScannedPage {
@@ -2501,12 +3127,17 @@ public class ScanController {
         private final boolean barcode;
         private final String sourceReference;
         private final String displayContent;
-        private final String sourceDocumentId;
+        private final String previewContent;
 
         private int documentNumber;
         private int rotationDegrees;
         private boolean needsRescan;
         private String splitReasonAfter;
+        private transient Image cachedPreviewImage;
+
+        private ScannedPage(int referenceId, int fileId, boolean barcode, boolean needsRescan) {
+            this(referenceId, fileId, barcode, needsRescan, "", "", "");
+        }
 
         private ScannedPage(
                 int referenceId,
@@ -2515,7 +3146,7 @@ public class ScanController {
                 boolean needsRescan,
                 String sourceReference,
                 String displayContent,
-                String sourceDocumentId
+                String previewContent
         ) {
             this.referenceId = referenceId;
             this.fileId = fileId;
@@ -2523,7 +3154,7 @@ public class ScanController {
             this.needsRescan = needsRescan;
             this.sourceReference = sourceReference == null ? "" : sourceReference;
             this.displayContent = displayContent == null ? "" : displayContent;
-            this.sourceDocumentId = sourceDocumentId == null ? "" : sourceDocumentId;
+            this.previewContent = previewContent == null ? "" : previewContent;
             this.rotationDegrees = 0;
         }
 
@@ -2535,7 +3166,6 @@ public class ScanController {
             if (!sourceReference.isBlank()) {
                 return sourceReference;
             }
-
             if (barcode) {
                 return "barcode_split_" + String.format("%02d", referenceId) + ".tiff";
             }
@@ -2543,11 +3173,15 @@ public class ScanController {
             return "scan_file_" + String.format("%02d", fileId) + ".tiff";
         }
 
-        private String displayPageTitle(int pageNumberInDocument) {
-            if (!sourceReference.isBlank()) {
-                return sourceReference;
+        private String imageContent() {
+            if (!previewContent.isBlank()) {
+                return previewContent;
             }
-            return "Page " + pageNumberInDocument;
+            return displayContent;
         }
     }
 }
+
+
+
+

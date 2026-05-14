@@ -68,7 +68,7 @@ public class ScannerApiClient {
         queuedResponses.add(new ApiFailure(message));
     }
 
-    public Optional<ApiTiffItem> fetchNextItem() {
+    public synchronized Optional<ApiTiffItem> fetchNextItem() {
         if (!queuedResponses.isEmpty()) {
             Object next = queuedResponses.remove();
             if (next instanceof ApiFailure failure) {
@@ -84,12 +84,21 @@ public class ScannerApiClient {
 
         String contentType = normalizeContentType(response.contentType());
         try {
-            Optional<ApiTiffItem> item = contentType.contains("json")
-                    ? parseJsonResponse(response.body())
-                    : parseBinaryResponse(response.body(), contentType, response.contentDisposition());
+            List<ApiTiffItem> items = contentType.contains("json")
+                    ? parseJsonResponseItems(response.body())
+                    : parseBinaryResponse(response.body(), contentType, response.contentDisposition())
+                            .map(List::of)
+                            .orElseGet(List::of);
 
-            item.ifPresent(ignored -> advanceOffset());
-            return item;
+            if (items.isEmpty()) {
+                return Optional.empty();
+            }
+
+            advanceOffset();
+            for (int index = 1; index < items.size(); index++) {
+                queuedResponses.add(items.get(index));
+            }
+            return Optional.of(items.get(0));
         } catch (IOException exception) {
             throw new ScannerApiException("Failed to parse TIFF API response: " + exception.getMessage(), exception);
         }
@@ -180,7 +189,7 @@ public class ScannerApiClient {
                         entryName,
                         "image/tiff",
                         entryBytes,
-                        inferBarcodeValue(entryName)
+                        ""
                 ));
             }
         } catch (IOException exception) {
@@ -202,22 +211,22 @@ public class ScannerApiClient {
         );
     }
 
-    private Optional<ApiTiffItem> parseJsonResponse(byte[] body) throws IOException {
+    private List<ApiTiffItem> parseJsonResponseItems(byte[] body) throws IOException {
         JsonNode root = objectMapper.readTree(body);
         if (root == null || root.isNull()) {
-            return Optional.empty();
+            return List.of();
         }
 
         if (root.isArray()) {
             if (root.isEmpty()) {
-                return Optional.empty();
+                return List.of();
             }
 
             JsonNode first = root.get(0);
             if (looksLikePageNode(first)) {
-                return Optional.of(buildItemFromPages(root));
+                return List.of(buildItemFromPages(root));
             }
-            return Optional.of(buildItemFromItemNode(first));
+            return buildItemsFromArray(root);
         }
 
         JsonNode dataNode = firstPresent(root,
@@ -225,25 +234,33 @@ public class ScannerApiClient {
         if (dataNode != null) {
             if (dataNode.isArray()) {
                 if (dataNode.isEmpty()) {
-                    return Optional.empty();
+                    return List.of();
                 }
                 JsonNode first = dataNode.get(0);
                 if (looksLikePageNode(first)) {
-                    return Optional.of(buildItemFromPages(dataNode));
+                    return List.of(buildItemFromPages(dataNode));
                 }
-                return Optional.of(buildItemFromItemNode(first));
+                return buildItemsFromArray(dataNode);
             }
             if (looksLikePageNode(dataNode)) {
-                return Optional.of(buildItemFromPages(singletonArray(dataNode)));
+                return List.of(buildItemFromPages(singletonArray(dataNode)));
             }
-            return Optional.of(buildItemFromItemNode(dataNode));
+            return List.of(buildItemFromItemNode(dataNode));
         }
 
         if (looksLikePageNode(root)) {
-            return Optional.of(buildItemFromPages(singletonArray(root)));
+            return List.of(buildItemFromPages(singletonArray(root)));
         }
 
-        return Optional.of(buildItemFromItemNode(root));
+        return List.of(buildItemFromItemNode(root));
+    }
+
+    private List<ApiTiffItem> buildItemsFromArray(JsonNode itemsNode) {
+        List<ApiTiffItem> items = new ArrayList<>();
+        for (JsonNode itemNode : itemsNode) {
+            items.add(buildItemFromItemNode(itemNode));
+        }
+        return items;
     }
 
     private ApiTiffItem buildItemFromItemNode(JsonNode node) {
@@ -294,7 +311,7 @@ public class ScannerApiClient {
             String sourceReference = fallback(text(pageNode, "sourceReference", "fileName", "name", "id"),
                     "api-file-" + (offset + 1) + "-" + pageNumber + ".tiff");
             String contentType = fallback(text(pageNode, "contentType", "mimeType", "type"), "image/tiff");
-            String barcodeValue = text(pageNode, "barcodeValue", "barcode", "separator");
+            String barcodeValue = text(pageNode, "barcodeValue", "barcode");
 
             pages.add(new ApiTiffPage(
                     intValue(pageNode, pageNumber, "pageNumber", "page", "index"),
@@ -550,7 +567,7 @@ public class ScannerApiClient {
                     sourceReference,
                     inferContentType(sourceReference),
                     DEFAULT_TIFF_BYTES,
-                    inferBarcodeValue(sourceReference)
+                    ""
             );
         }
 
@@ -587,14 +604,4 @@ public class ScannerApiClient {
                 : "image/tiff";
     }
 
-    private static String inferBarcodeValue(String sourceReference) {
-        if (sourceReference == null) {
-            return "";
-        }
-        String normalized = sourceReference.toLowerCase();
-        if (normalized.contains("barcode") || normalized.contains("separator") || normalized.startsWith("bc_")) {
-            return "BARCODE:" + sourceReference;
-        }
-        return "";
-    }
 }

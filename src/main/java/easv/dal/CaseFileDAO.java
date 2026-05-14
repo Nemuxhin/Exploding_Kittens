@@ -30,8 +30,16 @@ public class CaseFileDAO {
         if (caseReference == null || caseReference.isBlank()) {
             throw new IllegalArgumentException("caseReference must not be blank");
         }
-        return findByReference(caseReference)
+        return findHeaderByReference(caseReference)
                 .orElseGet(() -> insert(caseReference, client, box));
+    }
+
+    public CaseFile saveOrGetExisting(Connection connection, String caseReference, Client client, Box box) {
+        if (caseReference == null || caseReference.isBlank()) {
+            throw new IllegalArgumentException("caseReference must not be blank");
+        }
+        return findHeaderByReference(connection, caseReference)
+                .orElseGet(() -> insert(connection, caseReference, client, box));
     }
 
     public Optional<CaseFile> findByReference(String caseReference) {
@@ -57,6 +65,87 @@ public class CaseFileDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch case file " + caseReference, e);
+        }
+    }
+
+    private Optional<CaseFile> findHeaderByReference(String caseReference) {
+        if (caseReference == null || caseReference.isBlank()) {
+            throw new IllegalArgumentException("caseReference must not be blank");
+        }
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT cf.id, cf.case_reference,
+                            c.id AS client_id, c.client_number, c.name,
+                            b.id AS box_pk, b.box_id, b.description
+                     FROM case_files cf
+                     JOIN clients c ON c.id = cf.client_id
+                     JOIN boxes b ON b.id = cf.box_id
+                     WHERE cf.case_reference = ?
+                     """)) {
+            statement.setString(1, caseReference);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    Client foundClient = new Client(
+                            UUID.fromString(resultSet.getString("client_id")),
+                            resultSet.getString("client_number"),
+                            resultSet.getString("name")
+                    );
+                    Box foundBox = new Box(
+                            UUID.fromString(resultSet.getString("box_pk")),
+                            resultSet.getString("box_id"),
+                            resultSet.getString("description")
+                    );
+                    return Optional.of(new CaseFile(
+                            UUID.fromString(resultSet.getString("id")),
+                            resultSet.getString("case_reference"),
+                            foundClient,
+                            foundBox
+                    ));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch case file header " + caseReference, e);
+        }
+    }
+
+    private Optional<CaseFile> findHeaderByReference(Connection connection, String caseReference) {
+        if (caseReference == null || caseReference.isBlank()) {
+            throw new IllegalArgumentException("caseReference must not be blank");
+        }
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT cf.id, cf.case_reference,
+                       c.id AS client_id, c.client_number, c.name,
+                       b.id AS box_pk, b.box_id, b.description
+                FROM case_files cf
+                JOIN clients c ON c.id = cf.client_id
+                JOIN boxes b ON b.id = cf.box_id
+                WHERE cf.case_reference = ?
+                """)) {
+            statement.setString(1, caseReference);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    Client foundClient = new Client(
+                            UUID.fromString(resultSet.getString("client_id")),
+                            resultSet.getString("client_number"),
+                            resultSet.getString("name")
+                    );
+                    Box foundBox = new Box(
+                            UUID.fromString(resultSet.getString("box_pk")),
+                            resultSet.getString("box_id"),
+                            resultSet.getString("description")
+                    );
+                    return Optional.of(new CaseFile(
+                            UUID.fromString(resultSet.getString("id")),
+                            resultSet.getString("case_reference"),
+                            foundClient,
+                            foundBox
+                    ));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch case file header " + caseReference, e);
         }
     }
 
@@ -95,7 +184,25 @@ public class CaseFileDAO {
             return caseFile;
         } catch (SQLException e) {
             if (isUniqueViolation(e)) {
-                return findByReference(caseReference).orElseThrow();
+                return findHeaderByReference(caseReference).orElseThrow();
+            }
+            throw new DataAccessException("Failed to store case file " + caseReference, e);
+        }
+    }
+
+    private CaseFile insert(Connection connection, String caseReference, Client client, Box box) {
+        CaseFile caseFile = new CaseFile(UUID.randomUUID(), caseReference, client, box);
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO case_files (id, case_reference, client_id, box_id) VALUES (?, ?, ?, ?)")) {
+            statement.setString(1, caseFile.getId().toString());
+            statement.setString(2, caseFile.getCaseReference());
+            statement.setString(3, client.getId().toString());
+            statement.setString(4, box.getId().toString());
+            statement.executeUpdate();
+            return caseFile;
+        } catch (SQLException e) {
+            if (isUniqueViolation(e)) {
+                return findHeaderByReference(connection, caseReference).orElseThrow();
             }
             throw new DataAccessException("Failed to store case file " + caseReference, e);
         }

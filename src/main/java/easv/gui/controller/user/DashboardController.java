@@ -133,11 +133,11 @@ public class DashboardController {
                 navigator::showAssignedQa
         ), 0, 1);
         grid.add(createActionTile(
-                "exports",
-                "Exports",
-                "Track completed files and download ready batches.",
+                "scans",
+                "Resume Work",
+                "Open your scan list and continue the next batch.",
                 false,
-                navigator::showExports
+                navigator::showScans
         ), 1, 1);
         return grid;
     }
@@ -218,8 +218,7 @@ public class DashboardController {
 
         grid.add(quickButton("New Scan", true, navigator::showNewScan), 0, 0);
         grid.add(quickButton("Assigned QA", false, navigator::showAssignedQa), 1, 0);
-        grid.add(quickButton("Exports", false, navigator::showExports), 0, 1);
-        grid.add(quickButton("Settings", false, navigator::showSettings), 1, 1);
+        grid.add(quickButton("My Scans", false, navigator::showScans), 0, 1);
 
         UserPortalModel.RecentScanItem processingItem = recentScans.stream()
                 .filter(item -> "Processing".equalsIgnoreCase(item.status()))
@@ -478,8 +477,7 @@ public class DashboardController {
 
         grid.add(quickButton("New Scan", true, navigator::showNewScan), 0, 0);
         grid.add(quickButton("Assigned QA", false, navigator::showAssignedQa), 1, 0);
-        grid.add(quickButton("Exports", false, navigator::showExports), 0, 1);
-        grid.add(quickButton("Settings", false, navigator::showSettings), 1, 1);
+        grid.add(quickButton("My Scans", false, navigator::showScans), 0, 1);
 
         Label processingTitle = new Label("Checking active work...");
         processingTitle.getStyleClass().add("dashboard-simple-title");

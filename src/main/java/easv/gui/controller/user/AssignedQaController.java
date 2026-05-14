@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -24,6 +25,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 public class AssignedQaController {
 
@@ -50,13 +53,16 @@ public class AssignedQaController {
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusFilterComboBox;
-    @FXML private ComboBox<String> profileFilterComboBox;
-    @FXML private VBox qaCardListContainer;
+    @FXML private DatePicker fromDatePicker;
+    @FXML private DatePicker toDatePicker;
+    @FXML private HBox assignedQaFilterPanel;
+    @FXML private TilePane qaCardListContainer;
 
     @FXML private Label qaBoxIdLabel;
     @FXML private Label qaProfileLabel;
     @FXML private Label qaProgressLabel;
     @FXML private Label reviewStatusBadge;
+    @FXML private Label qaSidebarSubtitleLabel;
 
     @FXML private VBox qaDocumentTreeContainer;
     @FXML private Label selectedQaPageTitleLabel;
@@ -98,6 +104,7 @@ public class AssignedQaController {
     @FXML
     private void initialize() {
         configureFilters();
+        configureAssignedQaListLayout();
         configureQaControls();
         configureQaPreviewInteractions();
         loadMockAssignments();
@@ -119,18 +126,19 @@ public class AssignedQaController {
         );
         statusFilterComboBox.getSelectionModel().selectFirst();
 
-        profileFilterComboBox.getItems().setAll(
-                "All Profiles",
-                "Court Records",
-                "Building Archive",
-                "Technical Drawings",
-                "Standard Scan"
-        );
-        profileFilterComboBox.getSelectionModel().selectFirst();
-
         searchField.textProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        profileFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
+        UserPortalUi.configureDateFilterPicker(fromDatePicker);
+        UserPortalUi.configureDateFilterPicker(toDatePicker);
+        fromDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
+        toDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
+    }
+
+    private void configureAssignedQaListLayout() {
+        if (assignedQaFilterPanel != null && qaCardListContainer != null) {
+            qaCardListContainer.prefWidthProperty().bind(assignedQaFilterPanel.widthProperty());
+            qaCardListContainer.maxWidthProperty().bind(assignedQaFilterPanel.widthProperty());
+        }
     }
 
     // =========================================================
@@ -414,6 +422,7 @@ public class AssignedQaController {
                 "Michael Johnson",
                 5,
                 41,
+                LocalDate.now(),
                 "Today 14:30",
                 0,
                 QaStatus.WAITING_FOR_QA
@@ -425,6 +434,7 @@ public class AssignedQaController {
                 "Sarah Smith",
                 3,
                 24,
+                LocalDate.now(),
                 "Today 10:15",
                 12,
                 QaStatus.IN_REVIEW
@@ -436,6 +446,7 @@ public class AssignedQaController {
                 "Emily Davis",
                 2,
                 18,
+                LocalDate.now().minusDays(1),
                 "Yesterday",
                 15,
                 QaStatus.ISSUES_FOUND,
@@ -445,11 +456,36 @@ public class AssignedQaController {
         allAssignments.add(new QaAssignment(
                 "BOX-2026-005",
                 "Standard Scan",
-                "David Wilson",
-                1,
-                12,
-                "2 days ago",
-                12,
+                "John Doe",
+                4,
+                32,
+                LocalDate.now(),
+                "Today 09:00",
+                0,
+                QaStatus.WAITING_FOR_QA
+        ));
+
+        allAssignments.add(new QaAssignment(
+                "BOX-2026-004",
+                "Court Records",
+                "Ahmed Ali",
+                6,
+                48,
+                LocalDate.now(),
+                "Today 11:20",
+                24,
+                QaStatus.IN_REVIEW
+        ));
+
+        allAssignments.add(new QaAssignment(
+                "BOX-2026-003",
+                "Building Archive",
+                "Sara Lee",
+                3,
+                21,
+                LocalDate.now().minusDays(1),
+                "Yesterday",
+                21,
                 QaStatus.QA_COMPLETED
         ));
     }
@@ -504,14 +540,14 @@ public class AssignedQaController {
         return assignment.status.displayName.equals(selectedStatus);
     }
 
-    private boolean matchesProfile(QaAssignment assignment) {
-        String selectedProfile = profileFilterComboBox.getValue();
+    private boolean matchesFromDate(QaAssignment assignment) {
+        LocalDate fromDate = fromDatePicker.getValue();
+        return fromDate == null || !assignment.assignedDate.isBefore(fromDate);
+    }
 
-        if (selectedProfile == null || selectedProfile.equals("All Profiles")) {
-            return true;
-        }
-
-        return assignment.profile.equals(selectedProfile);
+    private boolean matchesToDate(QaAssignment assignment) {
+        LocalDate toDate = toDatePicker.getValue();
+        return toDate == null || !assignment.assignedDate.isAfter(toDate);
     }
 
     // =========================================================
@@ -524,7 +560,8 @@ public class AssignedQaController {
         List<QaAssignment> filteredAssignments = allAssignments.stream()
                 .filter(this::matchesSearch)
                 .filter(this::matchesStatus)
-                .filter(this::matchesProfile)
+                .filter(this::matchesFromDate)
+                .filter(this::matchesToDate)
                 .collect(Collectors.toList());
 
         if (filteredAssignments.isEmpty()) {
@@ -557,21 +594,18 @@ public class AssignedQaController {
     // =========================================================
 
     private VBox createAssignmentCard(QaAssignment assignment) {
-        VBox card = new VBox(15);
+        VBox card = new VBox(18);
         card.getStyleClass().add("assigned-qa-card");
-        card.setMaxWidth(Double.MAX_VALUE);
+        card.setMinWidth(280);
+        card.setPrefWidth(280);
+        card.setMaxWidth(280);
+        card.setMinHeight(350);
+        card.setPrefHeight(350);
+        card.setMaxHeight(350);
 
-        HBox topRow = new HBox(15);
-        topRow.setAlignment(Pos.TOP_LEFT);
-        topRow.setMaxWidth(Double.MAX_VALUE);
-
-        VBox leftContent = new VBox(12);
-        leftContent.setMaxWidth(Double.MAX_VALUE);
-        leftContent.setFillWidth(true);
-        HBox.setHgrow(leftContent, Priority.ALWAYS);
-
-        HBox titleRow = new HBox(12);
+        HBox titleRow = new HBox(15);
         titleRow.setAlignment(Pos.CENTER_LEFT);
+        titleRow.setMaxWidth(Double.MAX_VALUE);
 
         Label boxIdLabel = new Label(assignment.boxId);
         boxIdLabel.getStyleClass().add("assigned-qa-card-title");
@@ -584,84 +618,59 @@ public class AssignedQaController {
 
         titleRow.getChildren().addAll(boxIdLabel, statusBadge);
 
-        HBox metaRowOne = new HBox(18);
-        metaRowOne.setAlignment(Pos.CENTER_LEFT);
-
         Label profileLabel = new Label(assignment.profile);
-        profileLabel.getStyleClass().add("assigned-qa-card-meta");
-
-        Label separatorOne = new Label("·");
-        separatorOne.getStyleClass().add("assigned-qa-card-meta-separator");
+        profileLabel.getStyleClass().add("assigned-qa-card-profile");
 
         Label scannedByLabel = new Label("Scanned by " + assignment.scannedBy);
         scannedByLabel.getStyleClass().add("assigned-qa-card-meta");
 
-        metaRowOne.getChildren().addAll(profileLabel, separatorOne, scannedByLabel);
-
         Label documentSummaryLabel = new Label(
                 assignment.documentCount + " document" + (assignment.documentCount == 1 ? "" : "s")
-                        + " · "
+                        + " \u00B7 "
                         + assignment.totalPages + " pages"
         );
-        documentSummaryLabel.getStyleClass().add("assigned-qa-card-detail");
-
-        HBox metaRowTwo = new HBox(18);
-        metaRowTwo.setAlignment(Pos.CENTER_LEFT);
+        documentSummaryLabel.getStyleClass().add("assigned-qa-card-detail-strong");
 
         Label assignedLabel = new Label("Assigned: " + assignment.assignedTimeLabel);
         assignedLabel.getStyleClass().add("assigned-qa-card-detail");
-
-        Label separatorTwo = new Label("·");
-        separatorTwo.getStyleClass().add("assigned-qa-card-meta-separator");
 
         Label progressLabel = new Label(
                 "Progress: " + assignment.reviewedPages + " / " + assignment.totalPages + " pages reviewed"
         );
         progressLabel.getStyleClass().add("assigned-qa-card-detail");
-
-        metaRowTwo.getChildren().addAll(assignedLabel, separatorTwo, progressLabel);
+        progressLabel.setWrapText(true);
 
         if (assignment.status == QaStatus.ISSUES_FOUND && assignment.issueCount > 0) {
-            Label separatorThree = new Label("·");
-            separatorThree.getStyleClass().add("assigned-qa-card-meta-separator");
-
-            Label issuesLabel = new Label(assignment.issueCount + " issues found");
-            issuesLabel.getStyleClass().add("assigned-qa-card-issues");
-
-            metaRowTwo.getChildren().addAll(separatorThree, issuesLabel);
+            progressLabel.setText(progressLabel.getText() + " \u00B7 " + assignment.issueCount + " issues found");
+            progressLabel.getStyleClass().add("assigned-qa-card-issues");
         }
+
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
 
         StackPane progressBar = createAssignmentProgressBar(assignment);
 
-        leftContent.getChildren().addAll(
-                titleRow,
-                metaRowOne,
-                documentSummaryLabel,
-                metaRowTwo,
-                progressBar
-        );
-
-        VBox rightContent = new VBox();
-        rightContent.setAlignment(Pos.TOP_RIGHT);
-        rightContent.setMinWidth(150);
-        rightContent.setPrefWidth(150);
-        rightContent.setMaxWidth(150);
-
-        Button actionButton = new Button(getAssignmentActionButtonText(assignment.status));
-        actionButton.getStyleClass().add(getAssignmentActionButtonStyleClass(assignment.status));
-        actionButton.setMinWidth(132);
-        actionButton.setPrefWidth(132);
-        actionButton.setMaxWidth(132);
+        Button actionButton = new Button("Start QA");
+        actionButton.getStyleClass().add("assigned-qa-primary-button");
+        actionButton.setMaxWidth(Double.MAX_VALUE);
+        actionButton.setMinHeight(40);
+        actionButton.setPrefHeight(40);
         actionButton.setOnAction(event -> onOpenAssignment(assignment));
 
-        rightContent.getChildren().add(actionButton);
-
-        topRow.getChildren().addAll(leftContent, rightContent);
-        card.getChildren().add(topRow);
+        card.getChildren().addAll(
+                titleRow,
+                profileLabel,
+                scannedByLabel,
+                documentSummaryLabel,
+                assignedLabel,
+                progressLabel,
+                spacer,
+                progressBar,
+                actionButton
+        );
 
         return card;
     }
-
     // =========================================================
     // ASSIGNED QA PROGRESS BAR
     // =========================================================
@@ -875,7 +884,6 @@ public class AssignedQaController {
         renderQaHeader();
         renderQaDocumentTree();
         renderQaPreview();
-        renderQaPageTray();
         renderQaTools();
     }
 
@@ -919,6 +927,7 @@ public class AssignedQaController {
 
         qaBoxIdLabel.setText(selectedAssignment.boxId);
         qaProfileLabel.setText(selectedAssignment.profile);
+        updateQaSidebarSubtitle();
         qaProgressLabel.setText(
                 selectedAssignment.reviewedPages + " / "
                         + selectedAssignment.totalPages
@@ -941,7 +950,7 @@ public class AssignedQaController {
             selectedQaPageTitleLabel.setText("No page selected");
             selectedQaPageSubtitleLabel.setText("Select a page to review.");
         } else {
-            selectedQaPageTitleLabel.setText(document.name + " · Page " + page.pageNumber);
+            selectedQaPageTitleLabel.setText(document.name + " \u00B7 Page " + page.pageNumber);
             selectedQaPageSubtitleLabel.setText(getPageStatusText(page.status));
         }
 
@@ -967,15 +976,17 @@ public class AssignedQaController {
         for (int documentIndex = 0; documentIndex < reviewDocuments.size(); documentIndex++) {
             QaDocument document = reviewDocuments.get(documentIndex);
 
-            VBox documentBlock = new VBox(0);
+            VBox documentBlock = new VBox(12);
+            documentBlock.setAlignment(Pos.TOP_LEFT);
             documentBlock.getStyleClass().add("document-tree-document-block");
 
             HBox documentHeader = new HBox(9);
             documentHeader.setAlignment(Pos.CENTER_LEFT);
-            documentHeader.getStyleClass().add("document-tree-document-header");
+            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
 
-            Label chevron = new Label(document.expanded ? "⌄" : "›");
-            chevron.getStyleClass().add("document-tree-chevron");
+            Region chevron = new Region();
+            chevron.getStyleClass().add("document-tree-chevron-icon");
+            chevron.setRotate(document.expanded ? 90 : 0);
 
             Label title = new Label(document.name);
             title.getStyleClass().add("document-tree-document-title");
@@ -997,38 +1008,17 @@ public class AssignedQaController {
             documentBlock.getChildren().add(documentHeader);
 
             if (document.expanded) {
+                VBox pageStack = new VBox(18);
+                pageStack.setAlignment(Pos.TOP_CENTER);
+                pageStack.getStyleClass().add("document-tree-page-stack");
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     QaPage page = document.pages.get(pageIndex);
-
-                    HBox pageRow = new HBox(9);
-                    pageRow.setAlignment(Pos.CENTER_LEFT);
-                    pageRow.getStyleClass().add("document-tree-page-row");
-
-                    if (documentIndex == selectedDocumentIndex && pageIndex == selectedPageIndex) {
-                        pageRow.getStyleClass().add("document-tree-page-selected");
-                    }
-
-                    Label pageName = new Label("Page " + page.pageNumber);
-                    pageName.getStyleClass().add("document-tree-page-title");
-
-                    Region rowSpacer = new Region();
-                    HBox.setHgrow(rowSpacer, Priority.ALWAYS);
-
-                    Label pageStatus = new Label(getPageStatusGlyph(page.status));
-                    pageStatus.getStyleClass().addAll(
-                            "qa-tree-page-status",
-                            getPageStatusStyleClass(page.status)
-                    );
-
-                    pageRow.getChildren().addAll(pageName, rowSpacer, pageStatus);
-
                     final int rowDocumentIndex = documentIndex;
                     final int rowPageIndex = pageIndex;
-
-                    pageRow.setOnMouseClicked(event -> selectQaPage(rowDocumentIndex, rowPageIndex));
-
-                    documentBlock.getChildren().add(pageRow);
+                    VBox pageCard = createQaEmbeddedPageCard(page, rowDocumentIndex, rowPageIndex);
+                    pageStack.getChildren().add(pageCard);
                 }
+                documentBlock.getChildren().add(pageStack);
             }
 
             qaDocumentTreeContainer.getChildren().add(documentBlock);
@@ -1055,7 +1045,7 @@ public class AssignedQaController {
             Label title = new Label("No page selected");
             title.getStyleClass().add("scan-preview-empty-title");
 
-            Label copy = new Label("Select a page from the document list or page tray.");
+            Label copy = new Label("Select a page from the documents list.");
             copy.getStyleClass().add("scan-preview-empty-copy");
 
             emptyPreview.getChildren().addAll(title, copy);
@@ -1170,7 +1160,7 @@ public class AssignedQaController {
                 createLine("mock-line-light", 315, 7)
         );
 
-        Label pageLabel = new Label(document.name + " · Page " + page.pageNumber);
+        Label pageLabel = new Label(document.name + " \u00B7 Page " + page.pageNumber);
         pageLabel.getStyleClass().add("qa-preview-page-label");
         pageLabel.setMaxWidth(Double.MAX_VALUE);
         pageLabel.setAlignment(Pos.CENTER);
@@ -1206,6 +1196,53 @@ public class AssignedQaController {
         input.setMinWidth(174);
         input.setPrefWidth(174);
         return input;
+    }
+
+    private void updateQaSidebarSubtitle() {
+        if (qaSidebarSubtitleLabel == null) {
+            return;
+        }
+
+        if (selectedAssignment == null) {
+            qaSidebarSubtitleLabel.setText("No assignment selected");
+            return;
+        }
+
+        qaSidebarSubtitleLabel.setText(selectedAssignment.profile + " \u00B7 " + selectedAssignment.boxId);
+    }
+
+    private VBox createQaEmbeddedPageCard(QaPage page, int documentIndex, int pageIndex) {
+        VBox card = new VBox(3);
+        card.setAlignment(Pos.CENTER);
+        card.getStyleClass().addAll("page-tray-item", "qa-embedded-page-card");
+
+        if (pageIndex == selectedPageIndex && documentIndex == selectedDocumentIndex) {
+            card.getStyleClass().add("page-tray-item-selected");
+        }
+
+        StackPane thumbnail = new StackPane();
+        thumbnail.getStyleClass().add("page-tray-thumbnail");
+
+        Region pageBlock = new Region();
+        pageBlock.getStyleClass().add("qa-tray-page-block");
+
+        Label status = new Label(getPageStatusGlyph(page.status));
+        status.getStyleClass().addAll(
+                "qa-tray-status-mark",
+                getPageStatusStyleClass(page.status)
+        );
+        StackPane.setAlignment(status, Pos.TOP_RIGHT);
+
+        thumbnail.getChildren().addAll(pageBlock, status);
+
+        Label number = new Label("Page " + page.pageNumber);
+        number.getStyleClass().add("page-tray-number");
+        number.setMaxWidth(Double.MAX_VALUE);
+        number.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(thumbnail, number);
+        card.setOnMouseClicked(event -> selectQaPage(documentIndex, pageIndex));
+        return card;
     }
 
     // =========================================================
@@ -1659,6 +1696,7 @@ public class AssignedQaController {
         private final String scannedBy;
         private final int documentCount;
         private final int totalPages;
+        private final LocalDate assignedDate;
         private final String assignedTimeLabel;
 
         private int reviewedPages;
@@ -1671,6 +1709,7 @@ public class AssignedQaController {
                 String scannedBy,
                 int documentCount,
                 int totalPages,
+                LocalDate assignedDate,
                 String assignedTimeLabel,
                 int reviewedPages,
                 QaStatus status
@@ -1681,6 +1720,7 @@ public class AssignedQaController {
                     scannedBy,
                     documentCount,
                     totalPages,
+                    assignedDate,
                     assignedTimeLabel,
                     reviewedPages,
                     status,
@@ -1694,6 +1734,7 @@ public class AssignedQaController {
                 String scannedBy,
                 int documentCount,
                 int totalPages,
+                LocalDate assignedDate,
                 String assignedTimeLabel,
                 int reviewedPages,
                 QaStatus status,
@@ -1704,6 +1745,7 @@ public class AssignedQaController {
             this.scannedBy = Objects.requireNonNull(scannedBy);
             this.documentCount = documentCount;
             this.totalPages = totalPages;
+            this.assignedDate = Objects.requireNonNull(assignedDate);
             this.assignedTimeLabel = Objects.requireNonNull(assignedTimeLabel);
             this.reviewedPages = reviewedPages;
             this.status = Objects.requireNonNull(status);
@@ -1714,7 +1756,7 @@ public class AssignedQaController {
     private static final class QaDocument {
         private final String name;
         private final List<QaPage> pages = new ArrayList<>();
-        private boolean expanded = true;
+        private boolean expanded = false;
 
         private QaDocument(String name) {
             this.name = name;
@@ -1748,3 +1790,4 @@ public class AssignedQaController {
         }
     }
 }
+

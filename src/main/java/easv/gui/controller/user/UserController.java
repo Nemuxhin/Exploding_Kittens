@@ -15,12 +15,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -61,18 +59,6 @@ public class UserController implements UserNavigator {
     private static final String SUN_ICON_PATH =
             "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
 
-    private static final String HELP_SCAN_ICON_PATH =
-            "M4 4h5v2H6v3H4V4zm11 0h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 0h2v5h-5v-2h3v-3zM11 8h2v3h3v2h-3v3h-2v-3H8v-2h3V8z";
-
-    private static final String HELP_QA_ICON_PATH =
-            "M5 3h10l4 4v14H5V3zm2 2v14h10V8h-3V5H7zm2 5h6v1.5H9V10zm0 3h6v1.5H9V13zm0 3h4v1.5H9V16z";
-
-    private static final String HELP_EXPORT_ICON_PATH =
-            "M11 3h2v8h3l-4 4-4-4h3V3zM5 14h2v4h10v-4h2v6H5v-6z";
-
-    private static final String HELP_SETTINGS_ICON_PATH =
-            "M9 2h2l.5 2.1 1.9.8 1.8-1 1.4 1.4-1 1.8.8 1.9L18 9v2l-2.1.5-.8 1.9 1 1.8-1.4 1.4-1.8-1-.9 1.9L11 18H9l-.5-2.1-1.9-.8-1.8 1L3.4 14.7l1-1.8L3.6 11 2 10V8l2.1-.5.8-1.9-1-1.8L5.3 2.4l1.8 1 .9-1.9z M10 7a3 3 0 100 6 3 3 0 000-6z";
-
     @FXML private StackPane appShell;
     @FXML private BorderPane appRoot;
     @FXML private StackPane contentHost;
@@ -85,11 +71,7 @@ public class UserController implements UserNavigator {
     @FXML private ToggleButton scanNavItem;
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
-    @FXML private ToggleButton exportsNavItem;
-
     @FXML private Button keyboardShortcutsButton;
-    @FXML private Button helpButton;
-
     @FXML private Button accountMenuButton;
     @FXML private Label accountNameLabel;
     @FXML private Label accountInitialsLabel;
@@ -118,7 +100,6 @@ public class UserController implements UserNavigator {
         configureAccount();
         configureAccountMenu();
         configureKeyboardShortcutsButton();
-        configureHelpButton();
         configureThemeToggle();
         configureNavigation();
         showPage(UserPage.DASHBOARD);
@@ -177,12 +158,6 @@ public class UserController implements UserNavigator {
     private void configureKeyboardShortcutsButton() {
         if (keyboardShortcutsButton != null) {
             keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
-        }
-    }
-
-    private void configureHelpButton() {
-        if (helpButton != null) {
-            helpButton.setOnAction(event -> showHelpDialog());
         }
     }
 
@@ -288,7 +263,9 @@ public class UserController implements UserNavigator {
 
     private void loadPage(UserPage page) {
         if (!page.hasFxml()) {
-            contentHost.getChildren().setAll(wrapScrollable(createProgrammaticPage(page)));
+            Node content = wrapScrollable(createProgrammaticPage(page));
+            StackPane.setAlignment(content, Pos.TOP_CENTER);
+            contentHost.getChildren().setAll(content);
             return;
         }
 
@@ -305,6 +282,7 @@ public class UserController implements UserNavigator {
 
             configureLoadedController(loader.getController());
             configureLoadedPageSize(loadedPage);
+            StackPane.setAlignment(loadedPage, Pos.TOP_CENTER);
 
             contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
@@ -316,7 +294,7 @@ public class UserController implements UserNavigator {
         return switch (page) {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
-            case EXPORTS -> new ExportsController(portalModel).create();
+            case EXPORTS -> createMissingPagePlaceholder("Exports");
             case SETTINGS -> new SettingsController(portalModel).create();
             default -> createMissingPagePlaceholder(page.title());
         };
@@ -387,8 +365,7 @@ public class UserController implements UserNavigator {
                 dashboardNavItem,
                 scanNavItem,
                 myScansNavItem,
-                assignedQANavItem,
-                exportsNavItem
+                assignedQANavItem
         );
     }
 
@@ -398,7 +375,7 @@ public class UserController implements UserNavigator {
             case SCAN -> scanNavItem;
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
-            case EXPORTS -> exportsNavItem;
+            case EXPORTS -> null;
             case EDIT_PROFILE -> null;
             case SETTINGS -> null;
         };
@@ -426,7 +403,9 @@ public class UserController implements UserNavigator {
     private void showAccountSettingsPage() {
         hideAccountDropdown();
         setActiveNavItem(null);
-        contentHost.getChildren().setAll(wrapScrollable(createAccountSettingsPage()));
+        Node content = wrapScrollable(createAccountSettingsPage());
+        StackPane.setAlignment(content, Pos.TOP_CENTER);
+        contentHost.getChildren().setAll(content);
     }
 
     private VBox createAccountSettingsPage() {
@@ -771,207 +750,6 @@ public class UserController implements UserNavigator {
 
         return row;
     }
-
-    private void showHelpDialog() {
-        hideAccountDropdown();
-
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.initStyle(StageStyle.UNDECORATED);
-        dialog.setHeaderText(null);
-
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-
-        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
-        if (defaultCloseButton != null) {
-            defaultCloseButton.setVisible(false);
-            defaultCloseButton.setManaged(false);
-        }
-
-        dialog.getDialogPane().getStyleClass().addAll(
-                "app-shell",
-                "weblager-help-dialog-pane"
-        );
-
-        if (isDarkModeEnabled()) {
-            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
-        }
-
-        if (appShell != null && appShell.getScene() != null) {
-            dialog.initOwner(appShell.getScene().getWindow());
-            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
-        }
-
-        dialog.getDialogPane().setContent(createHelpDialogContent(dialog));
-        dialog.showAndWait();
-    }
-
-    private VBox createHelpDialogContent(Dialog<ButtonType> dialog) {
-        VBox root = new VBox();
-        root.getStyleClass().add("weblager-help-root");
-
-        root.getChildren().addAll(
-                createHelpDialogHeader(dialog),
-                createHelpDialogBody()
-        );
-
-        return root;
-    }
-
-    private HBox createHelpDialogHeader(Dialog<ButtonType> dialog) {
-        Label title = new Label("Help & Documentation");
-        title.getStyleClass().add("weblager-help-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button closeButton = new Button("×");
-        closeButton.getStyleClass().add("weblager-help-close-button");
-        closeButton.setFocusTraversable(false);
-        closeButton.setOnAction(event -> {
-            dialog.setResult(ButtonType.CLOSE);
-            dialog.close();
-        });
-
-        HBox header = new HBox(12, title, spacer, closeButton);
-        header.getStyleClass().add("weblager-help-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        return header;
-    }
-
-    private ScrollPane createHelpDialogBody() {
-        VBox content = new VBox(18);
-        content.getStyleClass().add("weblager-help-content");
-
-        VBox gettingStartedRows = new VBox(15,
-                createHelpRow(
-                        HELP_SCAN_ICON_PATH,
-                        "Starting a Scan",
-                        "Navigate to New Scan, select your scan type, choose a profile, and enter the Box ID. The system will guide you through each page for quality approval."
-                ),
-                createHelpRow(
-                        HELP_QA_ICON_PATH,
-                        "Quality Assurance",
-                        "During scanning, review each page as it appears. Use Space to approve, F to flag for rescan, or Delete to remove. Flagged pages can be rescanned later."
-                ),
-                createHelpRow(
-                        HELP_EXPORT_ICON_PATH,
-                        "Exporting Files",
-                        "After scanning, configure your export settings including format, quality level, and OCR options. Files are available in the Exports page."
-                ),
-                createHelpRow(
-                        HELP_SETTINGS_ICON_PATH,
-                        "Customizing Settings",
-                        "Open your account menu to access Settings and Privacy, dark mode, account details, and logout."
-                )
-        );
-
-        VBox commonQuestions = new VBox(6,
-                createHelpSectionTitle("Common Questions"),
-                createQuestion(
-                        "What's the difference between single and multi scan?",
-                        "Single scan is for one document with multiple pages. Multi scan allows you to scan multiple separate documents in one session."
-                ),
-                createQuestion(
-                        "Can I edit a scan after completion?",
-                        "Once completed, you can view and export scans but cannot modify them. You can flag pages for rescan or delete unwanted pages during the scanning process."
-                ),
-                createQuestion(
-                        "How long are exports stored?",
-                        "Exports are stored for 30 days. Download important files promptly to avoid data loss."
-                )
-        );
-        commonQuestions.getStyleClass().add("weblager-help-questions");
-
-        content.getChildren().addAll(
-                createHelpSectionTitle("Getting Started"),
-                gettingStartedRows,
-                createHelpDivider(),
-                commonQuestions,
-                createHelpDivider(),
-                createHelpSupportSection()
-        );
-
-        ScrollPane scrollPane = new ScrollPane(content);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(false);
-        scrollPane.setPrefViewportWidth(690);
-        scrollPane.setPrefViewportHeight(510);
-        scrollPane.getStyleClass().add("weblager-help-scroll");
-
-        return scrollPane;
-    }
-
-    private VBox createHelpSupportSection() {
-        Label title = new Label("Need More Help?");
-        title.getStyleClass().add("weblager-help-section-title");
-
-        Label copy = new Label("Contact your system administrator or IT support team for additional assistance.");
-        copy.setWrapText(true);
-        copy.getStyleClass().add("weblager-help-support-copy");
-
-        Hyperlink emailLink = new Hyperlink("support@company.com");
-        emailLink.getStyleClass().add("weblager-help-support-link");
-        emailLink.setFocusTraversable(false);
-
-        VBox section = new VBox(12, title, copy, emailLink);
-        section.getStyleClass().add("weblager-help-support-section");
-
-        return section;
-    }
-
-    private HBox createHelpRow(String iconPath, String titleText, String bodyText) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(iconPath);
-        icon.getStyleClass().add("weblager-help-icon");
-
-        StackPane iconShell = new StackPane(icon);
-        iconShell.getStyleClass().add("weblager-help-icon-shell");
-
-        Label title = new Label(titleText);
-        title.getStyleClass().add("weblager-help-row-title");
-
-        Label body = new Label(bodyText);
-        body.setWrapText(true);
-        body.getStyleClass().add("weblager-help-row-copy");
-
-        VBox textBox = new VBox(4, title, body);
-        textBox.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(textBox, Priority.ALWAYS);
-
-        HBox row = new HBox(15, iconShell, textBox);
-        row.setAlignment(Pos.TOP_LEFT);
-        row.getStyleClass().add("weblager-help-row");
-
-        return row;
-    }
-
-    private TitledPane createQuestion(String questionText, String answerText) {
-        Label answer = new Label(answerText);
-        answer.setWrapText(true);
-        answer.getStyleClass().add("weblager-help-answer");
-
-        TitledPane question = new TitledPane(questionText, answer);
-        question.setExpanded(false);
-        question.setAnimated(false);
-        question.setFocusTraversable(false);
-        question.getStyleClass().add("weblager-help-question");
-
-        return question;
-    }
-
-    private Label createHelpSectionTitle(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("weblager-help-section-title");
-        return label;
-    }
-
-    private Region createHelpDivider() {
-        Region divider = new Region();
-        divider.getStyleClass().add("weblager-help-divider");
-        return divider;
-    }
-
     private void logout() {
         UserSession.clearCurrentUser();
         hideAccountDropdown();
@@ -1041,3 +819,4 @@ public class UserController implements UserNavigator {
         return value == null ? "" : value.trim();
     }
 }
+

@@ -799,11 +799,6 @@ public class ProfilesController {
     }
 
     @FXML
-    private void editTemplate() {
-        navigator.showMetadataTemplates();
-    }
-
-    @FXML
     private void manageAccess() {
         navigator.showAssignments();
     }

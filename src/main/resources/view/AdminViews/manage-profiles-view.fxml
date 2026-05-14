@@ -560,13 +560,7 @@
                             <Button text="Preview Metadata Form"
                                     onAction="#previewMetadataForm"
                                     focusTraversable="false"
-                                    styleClass="profile-editor-secondary-button"/>
-
-                            <Button text="Edit Template ↗"
-                                    onAction="#editTemplate"
-                                    focusTraversable="false"
-                                    styleClass="profile-editor-link-button"/>
-                        </HBox>
+                                    styleClass="profile-editor-secondary-button"/>                        </HBox>
                     </VBox>
 
 
@@ -681,3 +675,4 @@
         </StackPane>
     </content>
 </ScrollPane>
+

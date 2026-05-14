@@ -59,8 +59,6 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton usersNavItem;
     @FXML private ToggleButton profilesNavItem;
     @FXML private ToggleButton assignmentsNavItem;
-    @FXML private ToggleButton metadataNavItem;
-    @FXML private ToggleButton reviewNavItem;
     @FXML private ToggleButton activityNavItem;
 
     @FXML private Button accountMenuButton;
@@ -271,10 +269,6 @@ public class AdminController implements AdminNavigator {
             profilesController.setAdminManager(adminManager);
         } else if (controller instanceof AssignmentsController assignmentsController) {
             assignmentsController.setAdminManager(adminManager);
-        } else if (controller instanceof MetadataController metadataController) {
-            metadataController.setAdminManager(adminManager);
-        } else if (controller instanceof ReviewController reviewController) {
-            reviewController.setAdminManager(adminManager);
         } else if (controller instanceof ActivityController activityController) {
             activityController.setAdminManager(adminManager);
         }
@@ -330,8 +324,6 @@ public class AdminController implements AdminNavigator {
                 usersNavItem,
                 profilesNavItem,
                 assignmentsNavItem,
-                metadataNavItem,
-                reviewNavItem,
                 activityNavItem
         );
     }
@@ -342,8 +334,8 @@ public class AdminController implements AdminNavigator {
             case USERS -> usersNavItem;
             case PROFILES -> profilesNavItem;
             case ASSIGNMENTS -> assignmentsNavItem;
-            case METADATA_TEMPLATES -> metadataNavItem;
-            case REVIEW -> reviewNavItem;
+            case METADATA_TEMPLATES -> null;
+            case REVIEW -> null;
             case ACTIVITY -> activityNavItem;
         };
     }

@@ -273,8 +273,8 @@
                                            styleClass="dashboard-simple-detail"/>
                                 </VBox>
 
-                                <Button text="Review"
-                                        onAction="#reviewFailedExports"
+                                <Button text="Open"
+                                        onAction="#viewActivity"
                                         focusTraversable="false"
                                         styleClass="metadata-action-button"/>
                             </HBox>

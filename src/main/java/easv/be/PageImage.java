@@ -17,6 +17,7 @@ public class PageImage {
     private int referenceId;
     private int rotationDegrees;
     private String displayContent;
+    private String previewContent;
     private Instant deletedAt;
 
     public PageImage(int pageNumber, PageType pageType, String sourceReference) {
@@ -47,6 +48,7 @@ public class PageImage {
         this.referenceId = Math.max(referenceId, 0);
         this.rotationDegrees = normalizeRotation(rotationDegrees);
         this.displayContent = displayContent == null ? "" : displayContent;
+        this.previewContent = "";
         this.deletedAt = deletedAt;
     }
 
@@ -78,6 +80,10 @@ public class PageImage {
         return displayContent;
     }
 
+    public String getPreviewContent() {
+        return previewContent;
+    }
+
     public Instant getDeletedAt() {
         return deletedAt;
     }
@@ -103,6 +109,10 @@ public class PageImage {
 
     public void setDisplayContent(String displayContent) {
         this.displayContent = displayContent == null ? "" : displayContent;
+    }
+
+    public void setPreviewContent(String previewContent) {
+        this.previewContent = previewContent == null ? "" : previewContent;
     }
 
     public void markDeleted(Instant deletedAt) {

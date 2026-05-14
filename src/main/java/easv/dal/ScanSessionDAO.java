@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class ScanSessionDAO {
+    private static volatile boolean profileNameColumnChecked;
+
     private final DatabaseConnection databaseConnection;
 
     public ScanSessionDAO() {
@@ -62,6 +64,22 @@ public class ScanSessionDAO {
         }
     }
 
+    public void linkDocument(Connection connection, ScanSession session, Document document) {
+        try {
+            if (existsSessionDocumentLink(connection, session.getId(), document.getId())) {
+                return;
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO scan_session_documents (session_id, document_id) VALUES (?, ?)")) {
+                statement.setString(1, session.getId().toString());
+                statement.setString(2, document.getId().toString());
+                statement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to link document to session " + session.getId(), e);
+        }
+    }
+
     public void recordFailure(ScanSession session, String message) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -80,6 +98,23 @@ public class ScanSessionDAO {
         ensureProfileNameColumn();
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
+                     UPDATE scan_sessions
+                     SET profile_name = ?, selected_barcode_behavior = ?, last_status = ?
+                     WHERE id = ?
+                     """)) {
+            statement.setString(1, session.getProfileName());
+            statement.setString(2, session.getSelectedBarcodeBehavior());
+            statement.setString(3, session.getLastStatus());
+            statement.setString(4, session.getId().toString());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to update scan session state for " + session.getId(), e);
+        }
+    }
+
+    public void updateSessionState(Connection connection, ScanSession session) {
+        ensureProfileNameColumn();
+        try (PreparedStatement statement = connection.prepareStatement("""
                      UPDATE scan_sessions
                      SET profile_name = ?, selected_barcode_behavior = ?, last_status = ?
                      WHERE id = ?
@@ -132,13 +167,18 @@ public class ScanSessionDAO {
     }
 
     private void ensureProfileNameColumn() {
+        if (profileNameColumnChecked) {
+            return;
+        }
         try (Connection connection = databaseConnection.getConnection()) {
             if (DatabaseConnection.columnExists(connection, "scan_sessions", "profile_name")) {
+                profileNameColumnChecked = true;
                 return;
             }
             try (PreparedStatement statement = connection.prepareStatement(
                     "ALTER TABLE scan_sessions ADD profile_name VARCHAR(255) NULL")) {
                 statement.executeUpdate();
+                profileNameColumnChecked = true;
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to ensure scan session profile column", e);

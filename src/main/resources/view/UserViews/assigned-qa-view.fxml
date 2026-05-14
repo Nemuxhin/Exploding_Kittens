@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
@@ -12,6 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
 <StackPane xmlns="http://javafx.com/javafx/21"
@@ -42,72 +44,102 @@
 
         <content>
             <VBox spacing="24"
-                  alignment="TOP_CENTER"
+                  alignment="TOP_LEFT"
                   minWidth="0"
                   maxWidth="Infinity"
-                  fillWidth="false"
+                  fillWidth="true"
                   styleClass="assigned-qa-content">
 
                 <padding>
-                    <Insets top="36" right="24" bottom="36" left="24"/>
+                    <Insets top="30" right="30" bottom="30" left="30"/>
                 </padding>
 
                 <!-- =========================================================
                      LIST HEADER
                      ========================================================= -->
 
-                <VBox spacing="6"
+                <HBox alignment="TOP_LEFT"
+                      spacing="0"
+                      maxWidth="Infinity"
+                      styleClass="assigned-qa-header-row">
+
+                    <VBox spacing="6"
                       alignment="TOP_LEFT"
-                      prefWidth="1080"
-                      maxWidth="1080"
+                      HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity"
                       styleClass="assigned-qa-header">
 
-                    <Label text="Assigned QA"
+                    <Label text="QA Review"
                            styleClass="assigned-qa-title"/>
 
                     <Label text="Review scan sessions assigned to you."
                            styleClass="assigned-qa-subtitle"/>
-                </VBox>
+                    </VBox>
+                </HBox>
 
                 <!-- =========================================================
                      LIST FILTERS
                      ========================================================= -->
 
-                <HBox spacing="18"
+                <HBox fx:id="assignedQaFilterPanel"
+                      spacing="18"
                       alignment="CENTER_LEFT"
-                      prefWidth="1080"
-                      maxWidth="1080"
-                      styleClass="assigned-qa-toolbar">
+                      maxWidth="Infinity"
+                      styleClass="exports-filter-panel">
 
-                    <TextField fx:id="searchField"
-                               promptText="Search box ID or profile..."
-                               HBox.hgrow="ALWAYS"
-                               maxWidth="Infinity"
-                               styleClass="assigned-qa-search-field"/>
+                    <VBox spacing="6"
+                          HBox.hgrow="ALWAYS"
+                          styleClass="exports-filter-wrap">
+                        <Label text="Search"
+                               styleClass="exports-filter-label"/>
+                        <TextField fx:id="searchField"
+                                   promptText="Search by box, profile, or status"
+                                   maxWidth="Infinity"
+                                   styleClass="exports-filter-input"/>
+                    </VBox>
 
-                    <ComboBox fx:id="statusFilterComboBox"
-                              prefWidth="210"
-                              minWidth="210"
-                              maxWidth="210"
-                              styleClass="assigned-qa-filter-combo"/>
+                    <VBox spacing="6"
+                          styleClass="exports-filter-wrap">
+                        <Label text="Status"
+                               styleClass="exports-filter-label"/>
+                        <ComboBox fx:id="statusFilterComboBox"
+                                  prefWidth="240"
+                                  minWidth="240"
+                                  maxWidth="240"
+                                  styleClass="exports-status-filter"/>
+                    </VBox>
 
-                    <ComboBox fx:id="profileFilterComboBox"
-                              prefWidth="252"
-                              minWidth="252"
-                              maxWidth="252"
-                              styleClass="assigned-qa-filter-combo"/>
+                    <VBox spacing="6"
+                          HBox.hgrow="ALWAYS"
+                          styleClass="exports-filter-wrap">
+                        <Label text="From Date"
+                               styleClass="exports-filter-label"/>
+                        <DatePicker fx:id="fromDatePicker"
+                                    maxWidth="Infinity"/>
+                    </VBox>
+
+                    <VBox spacing="6"
+                          HBox.hgrow="ALWAYS"
+                          styleClass="exports-filter-wrap">
+                        <Label text="To Date"
+                               styleClass="exports-filter-label"/>
+                        <DatePicker fx:id="toDatePicker"
+                                    maxWidth="Infinity"/>
+                    </VBox>
                 </HBox>
 
                 <!-- =========================================================
                      LIST CARDS
                      ========================================================= -->
 
-                <VBox fx:id="qaCardListContainer"
-                      spacing="15"
-                      prefWidth="1080"
-                      maxWidth="1080"
-                      fillWidth="true"
-                      styleClass="assigned-qa-card-list"/>
+                <TilePane fx:id="qaCardListContainer"
+                          hgap="16"
+                          vgap="16"
+                          prefColumns="4"
+                          prefTileWidth="280"
+                          prefTileHeight="350"
+                          maxWidth="Infinity"
+                          styleClass="assigned-qa-card-list"/>
             </VBox>
         </content>
     </ScrollPane>
@@ -160,14 +192,14 @@
                                text="BOX-2026-007"
                                styleClass="qa-review-meta-strong"/>
 
-                        <Label text="·"
+                        <Label text="&#x2022;"
                                styleClass="qa-review-meta-separator"/>
 
                         <Label fx:id="qaProfileLabel"
                                text="Building Archive"
                                styleClass="qa-review-meta"/>
 
-                        <Label text="·"
+                        <Label text="&#x2022;"
                                styleClass="qa-review-meta-separator"/>
 
                         <Label fx:id="qaProgressLabel"
@@ -198,15 +230,19 @@
                      ===================================================== -->
 
                 <VBox spacing="12"
-                      prefWidth="300"
-                      minWidth="300"
-                      maxWidth="300"
+                      prefWidth="320"
+                      minWidth="320"
+                      maxWidth="320"
                       minHeight="0"
                       maxHeight="Infinity"
                       styleClass="qa-review-left-panel">
 
-                    <Label text="Documents"
+                    <Label text="Box Structure"
                            styleClass="qa-review-panel-title"/>
+
+                    <Label fx:id="qaSidebarSubtitleLabel"
+                           text="Profile - Box"
+                           styleClass="document-tree-subtitle"/>
 
                     <ScrollPane fitToWidth="true"
                                 fitToHeight="false"
@@ -270,7 +306,7 @@
                             <Label text="View"
                                    styleClass="qa-view-label"/>
 
-                            <Button text="−"
+                            <Button text="-"
                                     onAction="#onZoomOut"
                                     focusTraversable="false"
                                     styleClass="qa-view-icon-button"/>
@@ -307,7 +343,7 @@
                               maxWidth="Infinity"
                               maxHeight="Infinity">
 
-                            <Button text="‹"
+                            <Button text="&#x2039;"
                                     onAction="#onPreviousPage"
                                     focusTraversable="false"
                                     styleClass="preview-arrow-button"/>
@@ -321,7 +357,7 @@
                                        HBox.hgrow="ALWAYS"
                                        styleClass="preview-host"/>
 
-                            <Button text="›"
+                            <Button text="&#x203A;"
                                     onAction="#onNextPage"
                                     focusTraversable="false"
                                     styleClass="preview-arrow-button"/>
@@ -329,9 +365,12 @@
                     </StackPane>
 
                     <VBox spacing="6"
-                          minHeight="111"
-                          prefHeight="111"
-                          maxHeight="111"
+                          visible="false"
+                          managed="false"
+                          minHeight="0"
+                          prefHeight="0"
+                          maxHeight="0"
+                          opacity="0"
                           maxWidth="Infinity"
                           styleClass="page-tray-shell">
 
@@ -374,16 +413,16 @@
       RIGHT QA TOOLS PANEL
       ===================================================== -->
 
-                <VBox spacing="12"
-                      prefWidth="342"
-                      minWidth="342"
-                      maxWidth="342"
+                <VBox spacing="6"
+                      prefWidth="272"
+                      minWidth="272"
+                      maxWidth="272"
                       minHeight="0"
                       maxHeight="Infinity"
                       styleClass="qa-tools-panel">
 
                     <padding>
-                        <Insets top="15" right="15" bottom="15" left="15"/>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
                     </padding>
 
                     <Label text="Page QA"
@@ -402,14 +441,14 @@
                                 styleClass="qa-tools-scroll">
 
                         <content>
-                            <VBox spacing="15"
+                            <VBox spacing="8"
                                   minWidth="0"
                                   maxWidth="Infinity"
                                   fillWidth="true"
                                   styleClass="qa-tools-content">
 
                                 <!-- Current status -->
-                                <VBox spacing="9"
+                                <VBox spacing="4"
                                       maxWidth="Infinity"
                                       styleClass="qa-tools-section-box">
 
@@ -423,7 +462,7 @@
                                 </VBox>
 
                                 <!-- Checklist -->
-                                <VBox spacing="9"
+                                <VBox spacing="4"
                                       maxWidth="Infinity"
                                       styleClass="qa-tools-section-box">
 
@@ -432,27 +471,31 @@
 
                                     <CheckBox fx:id="pageReadableCheckBox"
                                               text="Page readable"
+                                              wrapText="true"
                                               focusTraversable="false"
                                               styleClass="qa-checklist-check-box"/>
 
                                     <CheckBox fx:id="rotationCorrectCheckBox"
                                               text="Rotation correct"
+                                              wrapText="true"
                                               focusTraversable="false"
                                               styleClass="qa-checklist-check-box"/>
 
                                     <CheckBox fx:id="splitCorrectCheckBox"
                                               text="Document split correct"
+                                              wrapText="true"
                                               focusTraversable="false"
                                               styleClass="qa-checklist-check-box"/>
 
                                     <CheckBox fx:id="pageCountCorrectCheckBox"
                                               text="No missing or duplicate page"
+                                              wrapText="true"
                                               focusTraversable="false"
                                               styleClass="qa-checklist-check-box"/>
                                 </VBox>
 
                                 <!-- Comment -->
-                                <VBox spacing="9"
+                                <VBox spacing="4"
                                       maxWidth="Infinity"
                                       styleClass="qa-tools-section-box">
 
@@ -462,7 +505,7 @@
                                     <TextArea fx:id="qaCommentTextArea"
                                               promptText="Add QA note for this page..."
                                               wrapText="true"
-                                              prefRowCount="4"
+                                              prefRowCount="3"
                                               maxWidth="Infinity"
                                               styleClass="qa-comment-textarea"/>
                                 </VBox>
@@ -470,7 +513,7 @@
                                 <Region styleClass="scan-panel-divider"/>
 
                                 <!-- Decision actions -->
-                                <VBox spacing="9"
+                                <VBox spacing="4"
                                       maxWidth="Infinity">
 
                                     <Button text="Approve Page"
@@ -498,7 +541,7 @@
                                 <Region styleClass="scan-panel-divider"/>
 
                                 <!-- Page utility actions -->
-                                <HBox spacing="9"
+                                <HBox spacing="4"
                                       maxWidth="Infinity">
                                     <Button text="Rotate Left"
                                             onAction="#onRotateLeft"

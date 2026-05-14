@@ -1,16 +1,20 @@
 package easv.bll;
 
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Result;
+import com.google.zxing.ResultPoint;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import easv.be.PageImage;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.Graphics2D;
@@ -21,62 +25,75 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class BarcodeSplitService {
     private static final Map<DecodeHintType, Object> DECODE_HINTS = createDecodeHints();
+    private static final int BARCODE_DECODE_TARGET_MAX_DIMENSION = 1400;
+    private static final double MIN_SEPARATOR_SPAN_RATIO = 0.18;
+    private static final int MIN_SEPARATOR_BARCODE_COUNT = 2;
+    private static final Set<BarcodeFormat> ALLOWED_SEPARATOR_FORMATS = EnumSet.of(
+            BarcodeFormat.CODE_39,
+            BarcodeFormat.CODE_93,
+            BarcodeFormat.CODE_128,
+            BarcodeFormat.CODABAR,
+            BarcodeFormat.ITF,
+            BarcodeFormat.EAN_8,
+            BarcodeFormat.EAN_13,
+            BarcodeFormat.UPC_A,
+            BarcodeFormat.UPC_E
+    );
 
-    public DetectionResult classify(String sourceReference, String barcodeValue, String displayContent) {
+    public DetectionResult classify(String sourceReference, String barcodeValue, byte[] imageBytes) {
         if (sourceReference == null || sourceReference.isBlank()) {
             throw new IllegalArgumentException("sourceReference must not be blank");
         }
 
-        String normalized = sourceReference.toLowerCase(Locale.ROOT);
-        if (normalized.contains("barcode") || normalized.contains("separator") || normalized.startsWith("bc_")) {
-            return new DetectionResult(PageImage.PageType.BARCODE, barcodeValue == null ? "" : barcodeValue.trim());
-        }
-
-        String providedBarcodeValue = barcodeValue == null ? "" : barcodeValue.trim();
-        if (!providedBarcodeValue.isBlank()) {
-            return new DetectionResult(PageImage.PageType.BARCODE, providedBarcodeValue);
-        }
-
-        String decodedBarcodeValue = decodeBarcodeValue(displayContent);
-        if (!decodedBarcodeValue.isBlank()) {
-            return new DetectionResult(PageImage.PageType.BARCODE, decodedBarcodeValue);
+        DecodedBarcode decodedBarcode = decodeSeparatorBarcode(imageBytes);
+        if (decodedBarcode != null) {
+            return new DetectionResult(PageImage.PageType.BARCODE, decodedBarcode.value());
         }
 
         return new DetectionResult(PageImage.PageType.TIFF, "");
     }
 
-    private String decodeBarcodeValue(String displayContent) {
-        if (displayContent == null || displayContent.isBlank()) {
-            return "";
-        }
-
-        byte[] imageBytes = extractImageBytes(displayContent);
-        if (imageBytes.length == 0) {
-            return "";
+    private DecodedBarcode decodeSeparatorBarcode(byte[] imageBytes) {
+        if (imageBytes == null || imageBytes.length == 0) {
+            return null;
         }
 
         try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
             if (imageInputStream == null) {
-                return "";
+                return null;
             }
 
             var readers = ImageIO.getImageReaders(imageInputStream);
             if (!readers.hasNext()) {
-                return "";
+                return null;
             }
 
             ImageReader reader = readers.next();
             try {
                 reader.setInput(imageInputStream, true, true);
-                BufferedImage image = reader.read(0);
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+
+                ImageReadParam param = reader.getDefaultReadParam();
+                int subsampling = Math.max(
+                        1,
+                        Math.max(width, height) / BARCODE_DECODE_TARGET_MAX_DIMENSION
+                );
+                if (subsampling > 1) {
+                    param.setSourceSubsampling(subsampling, subsampling, 0, 0);
+                }
+
+                BufferedImage image = reader.read(0, param);
                 if (image == null) {
-                    return "";
+                    return null;
                 }
 
                 return tryDecodeVariants(image);
@@ -84,29 +101,118 @@ public class BarcodeSplitService {
                 reader.dispose();
             }
         } catch (Exception exception) {
-            return "";
+            return null;
         }
     }
 
-    private String tryDecodeVariants(BufferedImage image) {
+    private DecodedBarcode tryDecodeVariants(BufferedImage image) {
         for (BufferedImage variant : buildDecodeVariants(image)) {
-            String decoded = tryDecode(variant);
-            if (!decoded.isBlank()) {
-                return decoded;
+            List<DecodedBarcode> decodedBarcodes = tryDecodeAll(variant);
+            if (decodedBarcodes.isEmpty()) {
+                continue;
+            }
+
+            for (DecodedBarcode decoded : decodedBarcodes) {
+                if (looksLikeSeparatorValue(decoded.value())) {
+                    return decoded;
+                }
+            }
+
+            if (decodedBarcodes.size() >= MIN_SEPARATOR_BARCODE_COUNT) {
+                return decodedBarcodes.get(0);
             }
         }
-        return "";
+
+        return null;
     }
 
-    private String tryDecode(BufferedImage image) {
+    private List<DecodedBarcode> tryDecodeAll(BufferedImage image) {
+        List<DecodedBarcode> decodedBarcodes = new ArrayList<>();
+        collectDecodedBarcodes(image, decodedBarcodes);
+        return decodedBarcodes;
+    }
+
+    private void collectDecodedBarcodes(BufferedImage image, List<DecodedBarcode> decodedBarcodes) {
         try {
             LuminanceSource luminanceSource = new BufferedImageLuminanceSource(image);
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
-            Result result = new MultiFormatReader().decode(bitmap, DECODE_HINTS);
-            return result == null ? "" : result.getText();
+            MultiFormatReader reader = new MultiFormatReader();
+
+            Result single = reader.decode(bitmap, DECODE_HINTS);
+            addIfSeparatorLike(single, image, decodedBarcodes);
+
+            Result[] multiple = new GenericMultipleBarcodeReader(reader).decodeMultiple(bitmap, DECODE_HINTS);
+            if (multiple != null) {
+                for (Result result : multiple) {
+                    addIfSeparatorLike(result, image, decodedBarcodes);
+                }
+            }
         } catch (NotFoundException exception) {
-            return "";
+            // no barcode found in this variant
+        } catch (Exception exception) {
+            // malformed variant or unsupported result shape
         }
+    }
+
+    private void addIfSeparatorLike(Result result, BufferedImage image, List<DecodedBarcode> decodedBarcodes) {
+        if (result == null) {
+            return;
+        }
+
+        if (!ALLOWED_SEPARATOR_FORMATS.contains(result.getBarcodeFormat())) {
+            return;
+        }
+
+        if (!hasSeparatorScale(result.getResultPoints(), image.getWidth(), image.getHeight())) {
+            return;
+        }
+
+        String value = result.getText() == null ? "" : result.getText().trim();
+        if (value.isBlank()) {
+            return;
+        }
+
+        boolean alreadyPresent = decodedBarcodes.stream()
+                .anyMatch(existing -> existing.value().equals(value) && existing.format() == result.getBarcodeFormat());
+        if (!alreadyPresent) {
+            decodedBarcodes.add(new DecodedBarcode(value, result.getBarcodeFormat()));
+        }
+    }
+
+    private boolean looksLikeSeparatorValue(String value) {
+        String normalized = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+        return normalized.contains("sep") || normalized.contains("separator");
+    }
+
+    private boolean hasSeparatorScale(ResultPoint[] points, int imageWidth, int imageHeight) {
+        if (points == null || points.length < 2) {
+            return false;
+        }
+
+        float minX = Float.MAX_VALUE;
+        float maxX = Float.MIN_VALUE;
+        float minY = Float.MAX_VALUE;
+        float maxY = Float.MIN_VALUE;
+
+        for (ResultPoint point : points) {
+            if (point == null) {
+                continue;
+            }
+            minX = Math.min(minX, point.getX());
+            maxX = Math.max(maxX, point.getX());
+            minY = Math.min(minY, point.getY());
+            maxY = Math.max(maxY, point.getY());
+        }
+
+        if (minX == Float.MAX_VALUE || minY == Float.MAX_VALUE) {
+            return false;
+        }
+
+        double spanX = Math.max(0, maxX - minX);
+        double spanY = Math.max(0, maxY - minY);
+        double dominantSpan = Math.max(spanX, spanY);
+        double maxDimension = Math.max(imageWidth, imageHeight);
+        return dominantSpan >= maxDimension * MIN_SEPARATOR_SPAN_RATIO;
     }
 
     private List<BufferedImage> buildDecodeVariants(BufferedImage source) {
@@ -182,20 +288,6 @@ public class BarcodeSplitService {
         return rotated;
     }
 
-    private byte[] extractImageBytes(String displayContent) {
-        String encoded = displayContent.trim();
-        int separator = encoded.indexOf("base64,");
-        if (separator >= 0) {
-            encoded = encoded.substring(separator + 7);
-        }
-
-        try {
-            return Base64.getDecoder().decode(encoded);
-        } catch (IllegalArgumentException exception) {
-            return new byte[0];
-        }
-    }
-
     private static Map<DecodeHintType, Object> createDecodeHints() {
         Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
         hints.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.allOf(com.google.zxing.BarcodeFormat.class));
@@ -204,5 +296,8 @@ public class BarcodeSplitService {
     }
 
     public record DetectionResult(PageImage.PageType pageType, String barcodeValue) {
+    }
+
+    private record DecodedBarcode(String value, BarcodeFormat format) {
     }
 }
