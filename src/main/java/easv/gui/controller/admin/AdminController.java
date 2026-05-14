@@ -2,13 +2,17 @@ package easv.gui.controller.admin;
 
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.bll.KeyboardShortcut;
+import easv.bll.ShortcutManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -17,8 +21,10 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -79,6 +85,7 @@ public class AdminController implements AdminNavigator {
     @FXML private SVGPath darkModeToggleIcon;
 
     private final AdminManager adminManager = new AdminManager();
+    private final ShortcutManager shortcutManager = new ShortcutManager();
     private MainApp mainApp;
 
     public void setMainApp(MainApp mainApp) {
@@ -94,6 +101,7 @@ public class AdminController implements AdminNavigator {
         configureHelpButton();
         configureThemeToggle();
         configureNavigation();
+        configureGlobalHelpShortcuts();
         showPage(AdminPage.DASHBOARD);
     }
 
@@ -157,14 +165,42 @@ public class AdminController implements AdminNavigator {
 
     private void configureKeyboardShortcutsButton() {
         if (keyboardShortcutsButton != null) {
+            keyboardShortcutsButton.setTooltip(new Tooltip("Keyboard Shortcuts"));
             keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
         }
     }
 
     private void configureHelpButton() {
         if (helpButton != null) {
+            helpButton.setTooltip(new Tooltip("Help and Shortcuts"));
             helpButton.setOnAction(event -> showHelpDialog());
         }
+    }
+
+    private void configureGlobalHelpShortcuts() {
+        Platform.runLater(() -> {
+            Scene scene = appShell == null ? null : appShell.getScene();
+
+            if (scene != null) {
+                registerHelpShortcuts(scene);
+                return;
+            }
+
+            if (appShell != null) {
+                // If the scene is not ready yet, install shortcuts as soon as JavaFX attaches it.
+                appShell.sceneProperty().addListener((observable, oldScene, newScene) -> {
+                    if (newScene != null) {
+                        registerHelpShortcuts(newScene);
+                    }
+                });
+            }
+        });
+    }
+
+    private void registerHelpShortcuts(Scene scene) {
+        // Keep help reachable even when focus is inside a table, form, or child page.
+        scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showHelpDialog);
+        scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showHelpDialog);
     }
 
     private boolean isDarkModeEnabled() {
@@ -651,9 +687,10 @@ public class AdminController implements AdminNavigator {
         dialog.setTitle("Keyboard Shortcuts");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
-        VBox content = new VBox();
-        content.setMinSize(360, 180);
-        content.getStyleClass().add("admin-keyboard-shortcuts-dialog");
+        VBox content = createKeyboardShortcutsContent(
+                "Keyboard Shortcuts",
+                "Use these keys to work faster in the scan workspace."
+        );
         dialog.getDialogPane().setContent(content);
 
         if (appShell != null && appShell.getScene() != null) {
@@ -670,9 +707,10 @@ public class AdminController implements AdminNavigator {
         dialog.setTitle(HELP_SECTION);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
-        VBox content = new VBox();
-        content.setMinSize(360, 180);
-        content.getStyleClass().add("admin-keyboard-shortcuts-dialog");
+        VBox content = createKeyboardShortcutsContent(
+                "Help and Shortcuts",
+                "This help window lists the shortcuts currently available in the app."
+        );
         dialog.getDialogPane().setContent(content);
 
         if (appShell != null && appShell.getScene() != null) {
@@ -680,6 +718,41 @@ public class AdminController implements AdminNavigator {
         }
 
         dialog.showAndWait();
+    }
+
+    private VBox createKeyboardShortcutsContent(String titleText, String subtitleText) {
+        Label title = new Label(titleText);
+        title.getStyleClass().add("settings-section-heading");
+
+        Label subtitle = new Label(subtitleText);
+        subtitle.getStyleClass().add("settings-shortcut-copy");
+        subtitle.setWrapText(true);
+
+        VBox shortcutRows = new VBox(9);
+
+        for (KeyboardShortcut shortcut : shortcutManager.getShortcuts()) {
+            shortcutRows.getChildren().add(createShortcutRow(shortcut));
+        }
+
+        VBox content = new VBox(12, title, subtitle, divider(), shortcutRows);
+        content.setMinSize(420, 260);
+        content.getStyleClass().add("admin-keyboard-shortcuts-dialog");
+        return content;
+    }
+
+    private HBox createShortcutRow(KeyboardShortcut shortcut) {
+        Label keys = new Label(shortcut.getDisplayKeys());
+        keys.getStyleClass().add("settings-shortcut-key");
+
+        Label action = new Label(shortcut.getActionName() + " - " + shortcut.getDescription());
+        action.getStyleClass().add("settings-shortcut-copy");
+        action.setWrapText(true);
+        HBox.setHgrow(action, Priority.ALWAYS);
+
+        HBox row = new HBox(12, keys, action);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("settings-shortcut-row");
+        return row;
     }
 
     private void logout() {

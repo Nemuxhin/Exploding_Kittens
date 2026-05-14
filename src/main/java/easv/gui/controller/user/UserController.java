@@ -188,14 +188,24 @@ public class UserController implements UserNavigator {
         Platform.runLater(() -> {
             Scene scene = appRoot.getScene();
 
-            if (scene == null) {
+            if (scene != null) {
+                registerHelpShortcuts(scene);
                 return;
             }
 
-            // Scene accelerators work even when focus is inside a child page.
-            scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showHelpPage);
-            scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showHelpPage);
+            // If the scene is not ready yet, install shortcuts as soon as JavaFX attaches it.
+            appRoot.sceneProperty().addListener((observable, oldScene, newScene) -> {
+                if (newScene != null) {
+                    registerHelpShortcuts(newScene);
+                }
+            });
         });
+    }
+
+    private void registerHelpShortcuts(Scene scene) {
+        // Scene accelerators work even when focus is inside a child page.
+        scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showHelpPage);
+        scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showHelpPage);
     }
 
     private void showHelpPage() {
