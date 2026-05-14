@@ -2,10 +2,13 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.MetadataField;
-import easv.be.MetadataReviewRecord;
+import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
 import easv.be.User;
+import easv.dal.AuditLogDAO;
+import easv.dal.MetadataDAO;
+import easv.dal.UserDAO;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,10 +22,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class AdminManager {
+    private final UserDAO userDAO;
+    private final MetadataDAO metadataDAO;
+    private final AuditLogDAO auditLogDAO;
+
     private final List<User> users = new ArrayList<>();
     private final List<ScanProfile> profiles = new ArrayList<>();
     private final List<MetadataTemplate> metadataTemplates = new ArrayList<>();
-    private final List<MetadataReviewRecord> metadataReviewRecords = new ArrayList<>();
+    private final List<ReviewRecord> reviewRecords = new ArrayList<>();
     private final List<AuditLog> auditLogs = new ArrayList<>();
 
     private final Map<Integer, Set<Integer>> profileAssignments = new HashMap<>();
@@ -32,6 +39,21 @@ public class AdminManager {
     private int nextMetadataTemplateId = 1;
     private int nextMetadataFieldId = 1;
     private int nextAuditLogId = 1;
+
+    public AdminManager() {
+        this(new UserDAO(), new MetadataDAO(), new AuditLogDAO());
+    }
+
+    public AdminManager(UserDAO userDAO) {
+        this(userDAO, new MetadataDAO(), new AuditLogDAO());
+    }
+
+    public AdminManager(UserDAO userDAO, MetadataDAO metadataDAO, AuditLogDAO auditLogDAO) {
+        this.userDAO = userDAO == null ? new UserDAO() : userDAO;
+        this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
+        this.auditLogDAO = auditLogDAO == null ? new AuditLogDAO() : auditLogDAO;
+        loadAdminData();
+    }
 
     public List<User> getUsers() {
         return users.stream()
@@ -43,39 +65,63 @@ public class AdminManager {
         validateUserInput(input, null);
 
         User user = new User(
-                nextUserId++,
+                0,
                 input.getName(),
                 input.getUsername(),
                 input.getEmail(),
+                PasswordHasher.hash(clean(input.getPlainPassword())),
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
                 false
         );
 
-        users.add(user);
-        syncProfileAssignmentsForUser(user);
+        User savedUser = userDAO.saveUser(user, profileIdsForNames(input.getAssignedProfiles()));
+        users.add(savedUser);
+        syncProfileAssignmentsForUser(savedUser);
+        nextUserId = Math.max(nextUserId, savedUser.getId() + 1);
 
-        addAuditLog("Users", currentActor(), "Created user", user.getName(), "Success",
+        addAuditLog("Users", "Created user", savedUser.getName(), "Success",
                 "A new user account was created.");
 
-        return user;
+        return savedUser;
     }
 
     public User updateUser(int userId, UserInput input) {
         User user = findRequiredUser(userId);
         validateUserInput(input, userId);
 
-        user.setName(input.getName());
-        user.setUsername(input.getUsername());
-        user.setEmail(input.getEmail());
-        user.setRole(input.getRole());
-        user.setStatus(input.getStatus());
-        user.setAssignedProfiles(input.getAssignedProfiles());
+        String updatedPasswordHash = user.getPasswordHash();
+
+        if (!clean(input.getPlainPassword()).isBlank()) {
+            updatedPasswordHash = PasswordHasher.hash(clean(input.getPlainPassword()));
+        }
+
+        User updatedUser = new User(
+                user.getId(),
+                input.getName(),
+                input.getUsername(),
+                input.getEmail(),
+                updatedPasswordHash,
+                input.getRole(),
+                input.getStatus(),
+                input.getAssignedProfiles(),
+                user.isCurrentUser()
+        );
+
+        User savedUser = userDAO.updateUser(updatedUser, profileIdsForNames(input.getAssignedProfiles()));
+
+        user.setName(savedUser.getName());
+        user.setUsername(savedUser.getUsername());
+        user.setEmail(savedUser.getEmail());
+        user.setPasswordHash(savedUser.getPasswordHash());
+        user.setRole(savedUser.getRole());
+        user.setStatus(savedUser.getStatus());
+        user.setAssignedProfiles(savedUser.getAssignedProfiles());
 
         syncProfileAssignmentsForUser(user);
 
-        addAuditLog("Users", currentActor(), "Updated user", user.getName(), "Success",
+        addAuditLog("Users", "Updated user", user.getName(), "Success",
                 "User details were updated.");
 
         return user;
@@ -88,10 +134,11 @@ public class AdminManager {
             throw new IllegalArgumentException("The current user cannot be deleted.");
         }
 
-        users.remove(user);
+        userDAO.deleteUser(userId);
         removeUserFromAssignments(userId);
+        users.remove(user);
 
-        addAuditLog("Users", currentActor(), "Deleted user", user.getName(), "Success",
+        addAuditLog("Users", "Deleted user", user.getName(), "Success",
                 "A user account was deleted.");
     }
 
@@ -126,7 +173,7 @@ public class AdminManager {
         validateProfileInput(input, null);
 
         ScanProfile profile = new ScanProfile(
-                nextProfileId++,
+                0,
                 input.getName(),
                 input.getCode(),
                 input.getDescription(),
@@ -146,12 +193,14 @@ public class AdminManager {
                 input.isMetadataRequiredBeforeExport()
         );
 
-        profiles.add(profile);
+        ScanProfile savedProfile = metadataDAO.saveProfile(profile);
+        profiles.add(savedProfile);
+        nextProfileId = Math.max(nextProfileId, savedProfile.getId() + 1);
 
-        addAuditLog("Profiles", "Admin", "Created profile", profile.getName(), "Success",
+        addAuditLog("Profiles", "Created profile", savedProfile.getName(), "Success",
                 "A scan profile was created.");
 
-        return profile;
+        return savedProfile;
     }
 
     public ScanProfile updateProfile(int profileId, ProfileInput input) {
@@ -178,9 +227,10 @@ public class AdminManager {
         profile.setExportFormat(input.getExportFormat());
         profile.setMetadataRequiredBeforeExport(input.isMetadataRequiredBeforeExport());
 
+        metadataDAO.updateProfile(profile);
         renameAssignedProfile(previousName, profile.getName());
 
-        addAuditLog("Profiles", "Admin", "Updated profile", profile.getName(), "Success",
+        addAuditLog("Profiles", "Updated profile", profile.getName(), "Success",
                 "A scan profile was updated.");
 
         return profile;
@@ -192,7 +242,9 @@ public class AdminManager {
         profile.setStatus("Archived");
         profile.setLastUpdated("Archived just now");
 
-        addAuditLog("Profiles", "Admin", "Archived profile", profile.getName(), "Success",
+        metadataDAO.updateProfile(profile);
+
+        addAuditLog("Profiles", "Archived profile", profile.getName(), "Success",
                 "A scan profile was archived.");
     }
 
@@ -202,7 +254,9 @@ public class AdminManager {
         profile.setStatus("Active");
         profile.setLastUpdated("Restored just now");
 
-        addAuditLog("Profiles", "Admin", "Restored profile", profile.getName(), "Success",
+        metadataDAO.updateProfile(profile);
+
+        addAuditLog("Profiles", "Restored profile", profile.getName(), "Success",
                 "A scan profile was restored.");
     }
 
@@ -230,7 +284,7 @@ public class AdminManager {
         validateMetadataTemplateInput(input, null);
 
         MetadataTemplate template = new MetadataTemplate(
-                nextMetadataTemplateId++,
+                0,
                 input.getName(),
                 input.getDescription(),
                 input.getAssignedProfileNames(),
@@ -239,12 +293,14 @@ public class AdminManager {
                 "Created just now"
         );
 
-        metadataTemplates.add(template);
+        MetadataTemplate savedTemplate = metadataDAO.saveMetadataTemplate(template);
+        metadataTemplates.add(savedTemplate);
+        nextMetadataTemplateId = Math.max(nextMetadataTemplateId, savedTemplate.getId() + 1);
 
-        addAuditLog("Metadata", "Admin", "Created metadata template", template.getName(), "Success",
+        addAuditLog("Metadata", "Created metadata template", savedTemplate.getName(), "Success",
                 "A metadata template was created.");
 
-        return template;
+        return savedTemplate;
     }
 
     public MetadataTemplate updateMetadataTemplate(int templateId, MetadataTemplateInput input) {
@@ -258,7 +314,10 @@ public class AdminManager {
         template.setStatus(input.getStatus());
         template.setLastUpdated("Updated just now");
 
-        addAuditLog("Metadata", "Admin", "Updated metadata template", template.getName(), "Success",
+        MetadataTemplate savedTemplate = metadataDAO.updateMetadataTemplate(template);
+        template.setFields(savedTemplate.getFields());
+
+        addAuditLog("Metadata", "Updated metadata template", template.getName(), "Success",
                 "A metadata template was updated.");
 
         return template;
@@ -269,7 +328,9 @@ public class AdminManager {
         template.setStatus("Archived");
         template.setLastUpdated("Archived just now");
 
-        addAuditLog("Metadata", "Admin", "Archived metadata template", template.getName(), "Success",
+        metadataDAO.updateMetadataTemplate(template);
+
+        addAuditLog("Metadata", "Archived metadata template", template.getName(), "Success",
                 "A metadata template was archived.");
     }
 
@@ -278,7 +339,9 @@ public class AdminManager {
         template.setStatus("Active");
         template.setLastUpdated("Restored just now");
 
-        addAuditLog("Metadata", "Admin", "Restored metadata template", template.getName(), "Success",
+        metadataDAO.updateMetadataTemplate(template);
+
+        addAuditLog("Metadata", "Restored metadata template", template.getName(), "Success",
                 "A metadata template was restored.");
     }
 
@@ -296,36 +359,40 @@ public class AdminManager {
                 .anyMatch(existingName -> existingName.equals(normalizedName));
     }
 
-    public List<MetadataReviewRecord> getMetadataReviewRecords() {
-        return metadataReviewRecords.stream()
-                .map(this::copyMetadataReviewRecord)
+    public List<ReviewRecord> getReviewRecords() {
+        return reviewRecords.stream()
+                .map(this::copyReviewRecord)
                 .toList();
     }
 
-    public MetadataReviewRecord saveMetadataReviewRecord(MetadataReviewRecord updatedRecord) {
+    public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
         if (updatedRecord == null || clean(updatedRecord.getId()).isBlank()) {
-            throw new IllegalArgumentException("Metadata review record is required.");
+            throw new IllegalArgumentException("Review record is required.");
         }
 
-        for (int index = 0; index < metadataReviewRecords.size(); index++) {
-            MetadataReviewRecord existingRecord = metadataReviewRecords.get(index);
+        for (int index = 0; index < reviewRecords.size(); index++) {
+            ReviewRecord existingRecord = reviewRecords.get(index);
 
             if (existingRecord.getId().equals(updatedRecord.getId())) {
-                metadataReviewRecords.set(index, copyMetadataReviewRecord(updatedRecord));
+                ReviewRecord savedRecord = copyReviewRecord(updatedRecord);
+                metadataDAO.saveReviewRecord(savedRecord);
+                reviewRecords.set(index, savedRecord);
 
-                addAuditLog("Metadata", "Admin", "Updated metadata review", updatedRecord.getIdentity(), "Success",
-                        "A metadata review record was updated.");
+                addAuditLog("Review", "Updated review", updatedRecord.getIdentity(), "Success",
+                        "A review record was updated.");
 
-                return copyMetadataReviewRecord(updatedRecord);
+                return copyReviewRecord(updatedRecord);
             }
         }
 
-        metadataReviewRecords.add(copyMetadataReviewRecord(updatedRecord));
+        ReviewRecord savedRecord = copyReviewRecord(updatedRecord);
+        metadataDAO.saveReviewRecord(savedRecord);
+        reviewRecords.add(savedRecord);
 
-        addAuditLog("Metadata", "Admin", "Created metadata review", updatedRecord.getIdentity(), "Success",
-                "A metadata review record was created.");
+        addAuditLog("Review", "Created review", updatedRecord.getIdentity(), "Success",
+                "A review record was created.");
 
-        return copyMetadataReviewRecord(updatedRecord);
+        return copyReviewRecord(updatedRecord);
     }
 
     public Map<Integer, Set<Integer>> getProfileAssignments() {
@@ -347,19 +414,22 @@ public class AdminManager {
     public void saveProfileAssignments(Map<Integer, Set<Integer>> assignments) {
         profileAssignments.clear();
         profileAssignments.putAll(copyAssignments(assignments));
+        userDAO.replaceProfileAssignments(profileAssignments);
         refreshUsersFromProfileAssignments();
 
-        addAuditLog("Access", "Admin", "Updated profile access", "Assignments", "Success",
+        addAuditLog("Access", "Updated profile access", "Assignments", "Success",
                 "Profile access assignments were saved.");
     }
 
     public List<AuditLog> getAuditLogs() {
-        List<AuditLog> combinedLogs = new ArrayList<>(auditLogs);
-        combinedLogs.addAll(new AuditLogManager().getLogs());
-
-        return combinedLogs.stream()
+        return auditLogs.stream()
                 .sorted(Comparator.comparing(AuditLog::getTimestamp).reversed())
                 .toList();
+    }
+
+    public AuditLog addAuditLog(String type, String action, String target,
+                                String status, String description) {
+        return addAuditLog(type, currentActorName(), action, target, status, description);
     }
 
     public AuditLog addAuditLog(String type, String actor, String action, String target,
@@ -368,7 +438,7 @@ public class AdminManager {
                 nextAuditLogId++,
                 LocalDateTime.now(),
                 type,
-                resolveActor(actor),
+                actor,
                 action,
                 target,
                 status,
@@ -376,29 +446,10 @@ public class AdminManager {
                 List.of()
         );
 
-        auditLogs.add(log);
-        return log;
-    }
-
-    private String resolveActor(String actor) {
-        String cleanedActor = clean(actor);
-
-        if (cleanedActor.isBlank() || "Admin".equalsIgnoreCase(cleanedActor)) {
-            return currentActor();
-        }
-
-        return cleanedActor;
-    }
-
-    private String currentActor() {
-        User currentUser = UserSession.getCurrentUser();
-
-        // Admin actions should show the real logged-in admin when we have one.
-        if (currentUser != null && !clean(currentUser.getUsername()).isBlank()) {
-            return currentUser.getUsername();
-        }
-
-        return "SYSTEM";
+        AuditLog savedLog = auditLogDAO.saveAuditLog(log);
+        auditLogs.add(savedLog);
+        nextAuditLogId = Math.max(nextAuditLogId, savedLog.getId() + 1);
+        return savedLog;
     }
 
     public DashboardSummary getDashboardSummary() {
@@ -425,8 +476,8 @@ public class AdminManager {
         return new DashboardSummary(totalUsers, activeProfiles, draftProfiles, usersWithoutProfiles, failedEvents);
     }
 
-    private MetadataReviewRecord copyMetadataReviewRecord(MetadataReviewRecord record) {
-        return new MetadataReviewRecord(
+    private ReviewRecord copyReviewRecord(ReviewRecord record) {
+        return new ReviewRecord(
                 record.getId(),
                 record.getIdentity(),
                 record.getClient(),
@@ -442,6 +493,61 @@ public class AdminManager {
                 record.getDateGroup(),
                 record.hasWarning()
         );
+    }
+
+    private void loadAdminData() {
+        loadUsers();
+        loadProfiles();
+        loadMetadataTemplates();
+        loadReviewRecords();
+        loadProfileAssignments();
+        loadAuditLogs();
+        refreshUsersFromProfileAssignments();
+    }
+
+    private void loadUsers() {
+        users.clear();
+        users.addAll(userDAO.getAllUsers());
+        nextUserId = userDAO.nextUserId();
+    }
+
+    private void loadProfiles() {
+        profiles.clear();
+        profiles.addAll(metadataDAO.getProfiles());
+        nextProfileId = metadataDAO.nextProfileId();
+    }
+
+    private void loadMetadataTemplates() {
+        metadataTemplates.clear();
+        metadataTemplates.addAll(metadataDAO.getMetadataTemplates());
+        nextMetadataTemplateId = metadataDAO.nextMetadataTemplateId();
+        nextMetadataFieldId = metadataDAO.nextMetadataFieldId();
+    }
+
+    private void loadReviewRecords() {
+        reviewRecords.clear();
+        reviewRecords.addAll(metadataDAO.getReviewRecords());
+    }
+
+    private void loadProfileAssignments() {
+        profileAssignments.clear();
+        profileAssignments.putAll(copyAssignments(userDAO.getProfileAssignments()));
+    }
+
+    private void loadAuditLogs() {
+        auditLogs.clear();
+        auditLogs.addAll(auditLogDAO.getAllAuditLogs());
+        nextAuditLogId = auditLogDAO.nextAuditLogId();
+    }
+
+    private String currentActorName() {
+        User currentUser = UserSession.getCurrentUser();
+
+        if (currentUser == null || clean(currentUser.getName()).isBlank()) {
+            return "Admin";
+        }
+
+        return currentUser.getName();
     }
 
     private User findRequiredUser(int userId) {
@@ -480,6 +586,10 @@ public class AdminManager {
 
         if (usernameExists(input.getUsername(), excludedUserId)) {
             throw new IllegalArgumentException("Username must be unique.");
+        }
+
+        if (excludedUserId == null && clean(input.getPlainPassword()).isBlank()) {
+            throw new IllegalArgumentException("Temporary password is required.");
         }
 
         if (!clean(input.getEmail()).isBlank() && !isValidEmail(input.getEmail())) {
@@ -555,6 +665,26 @@ public class AdminManager {
         }
 
         return fieldsWithIds;
+    }
+
+    private List<Integer> profileIdsForNames(List<String> profileNames) {
+        if (profileNames == null || profileNames.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> profileIds = new ArrayList<>();
+
+        for (String profileName : profileNames) {
+            if (clean(profileName).isBlank()) {
+                continue;
+            }
+
+            ScanProfile profile = findProfileByName(profileName)
+                    .orElseThrow(() -> new IllegalArgumentException("Profile could not be found: " + profileName));
+            profileIds.add(profile.getId());
+        }
+
+        return profileIds;
     }
 
     private void syncProfileAssignmentsForUser(User user) {
@@ -663,15 +793,22 @@ public class AdminManager {
         private final String name;
         private final String username;
         private final String email;
+        private final String plainPassword;
         private final String role;
         private final String status;
         private final List<String> assignedProfiles;
 
         public UserInput(String name, String username, String email,
                          String role, String status, List<String> assignedProfiles) {
+            this(name, username, email, role, status, assignedProfiles, "");
+        }
+
+        public UserInput(String name, String username, String email,
+                         String role, String status, List<String> assignedProfiles, String plainPassword) {
             this.name = name;
             this.username = username;
             this.email = email;
+            this.plainPassword = plainPassword;
             this.role = role;
             this.status = status;
             this.assignedProfiles = assignedProfiles == null ? List.of() : List.copyOf(assignedProfiles);
@@ -680,6 +817,7 @@ public class AdminManager {
         public String getName() { return name; }
         public String getUsername() { return username; }
         public String getEmail() { return email; }
+        public String getPlainPassword() { return plainPassword; }
         public String getRole() { return role; }
         public String getStatus() { return status; }
         public List<String> getAssignedProfiles() { return assignedProfiles; }

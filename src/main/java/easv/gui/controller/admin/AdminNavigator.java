@@ -23,8 +23,8 @@ interface AdminNavigator {
         showPage(AdminPage.METADATA_TEMPLATES);
     }
 
-    default void showMetadataReview() {
-        showPage(AdminPage.METADATA_REVIEW);
+    default void showReview() {
+        showPage(AdminPage.REVIEW);
     }
 
     default void showActivity() {

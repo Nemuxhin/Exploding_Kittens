@@ -1,9 +1,8 @@
 package easv.bll;
 
 import easv.be.User;
+import easv.dal.DataAccessException;
 import easv.dal.UserDAO;
-
-import java.io.IOException;
 
 /**
  * This class contains the login rules.
@@ -12,7 +11,6 @@ import java.io.IOException;
 public class AuthManager {
 
     private final UserDAO userDAO;
-    private final AuthTokenManager authTokenManager = new AuthTokenManager();
 
     public AuthManager() {
         this(new UserDAO());
@@ -57,57 +55,10 @@ public class AuthManager {
 
             // After a successful login, we keep the user in memory for later actions.
             UserSession.setCurrentUser(storedUser);
-            return AuthResult.success(storedUser, authTokenManager.createToken(storedUser));
-        } catch (IOException exception) {
+            return AuthResult.success(storedUser);
+        } catch (DataAccessException exception) {
             UserSession.clearCurrentUser();
             return AuthResult.failure("The system could not read the stored accounts.");
-        }
-    }
-
-    public AuthResult createUser(String username, String password, String role, boolean active) {
-        try {
-            String safeUsername = username == null ? "" : username.trim();
-            String safePassword = password == null ? "" : password;
-            String safeRole = role == null ? "" : role.trim().toUpperCase();
-
-            // A new account needs all important fields before it can be saved.
-            if (safeUsername.isBlank() || safePassword.isBlank() || safeRole.isBlank()) {
-                return AuthResult.failure("Username, password, and role are required.");
-            }
-
-            if (userDAO.findByUsername(safeUsername) != null) {
-                return AuthResult.failure("This username already exists.");
-            }
-
-            User savedUser = new User(safeUsername, PasswordHasher.hash(safePassword), safeRole, active);
-            userDAO.saveUser(savedUser);
-
-            return AuthResult.successMessage("User account saved.", savedUser);
-        } catch (IOException exception) {
-            return AuthResult.failure("The system could not save the user account.");
-        }
-    }
-
-    public AuthResult updateUserPassword(String username, String newPassword) {
-        try {
-            String safeUsername = username == null ? "" : username.trim();
-            String safePassword = newPassword == null ? "" : newPassword;
-
-            // If a password is included in an edit form, we hash and save it.
-            if (safeUsername.isBlank() || safePassword.isBlank()) {
-                return AuthResult.failure("Username and new password are required.");
-            }
-
-            User storedUser = userDAO.findByUsername(safeUsername);
-
-            if (storedUser == null) {
-                return AuthResult.failure("User account was not found.");
-            }
-
-            User updatedUser = userDAO.updatePasswordHash(safeUsername, PasswordHasher.hash(safePassword));
-            return AuthResult.successMessage("Password updated.", updatedUser);
-        } catch (IOException exception) {
-            return AuthResult.failure("The system could not update the password.");
         }
     }
 

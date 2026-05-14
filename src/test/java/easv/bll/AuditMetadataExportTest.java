@@ -69,7 +69,7 @@ class AuditMetadataExportTest {
 
     @Test
     void metadataCanBeSavedLoadedAndLocked() {
-        MetadataManager metadataManager = new MetadataManager(new MetadataDAO(), new AuditLogManager(AuditLogDAO.inMemory()));
+        MetadataManager metadataManager = new MetadataManager(MetadataDAO.inMemory(), new AuditLogManager(AuditLogDAO.inMemory()));
 
         boolean saved = metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Ready"));
         CaseMetadata loaded = metadataManager.loadMetadataForm("CASE-1");
@@ -85,8 +85,10 @@ class AuditMetadataExportTest {
 
     @Test
     void sharedMetadataManagerKeepsMetadataAcrossControllers() {
-        MetadataManager firstControllerManager = MetadataManager.shared();
-        MetadataManager secondControllerManager = MetadataManager.shared();
+        MetadataDAO sharedMetadataDAO = MetadataDAO.inMemory();
+        AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
+        MetadataManager firstControllerManager = new MetadataManager(sharedMetadataDAO, auditLogManager);
+        MetadataManager secondControllerManager = new MetadataManager(sharedMetadataDAO, auditLogManager);
 
         firstControllerManager.saveMetadata("CASE-SHARED", "Building Archive", "BOX-2", Map.of("Notes", "Shared"));
 
@@ -99,21 +101,18 @@ class AuditMetadataExportTest {
     @Test
     void adminUserActionsUseLoggedInAdminName() {
         UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
-        AdminManager adminManager = new AdminManager();
+        AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
 
-        adminManager.createUser(new AdminManager.UserInput(
-                "New Scanner",
-                "new.scanner",
-                "scanner@example.com",
-                "User",
-                "Active",
-                List.of()
-        ));
-
-        AuditLog log = adminManager.getAuditLogs().stream()
-                .filter(item -> "Created user".equals(item.getAction()))
-                .findFirst()
-                .orElseThrow();
+        AuditLog log = auditLogManager.logUserAction(
+                AuditLogManager.PAGE_CREATED,
+                "CASE-1",
+                "DOC-1",
+                "FILE-1",
+                1,
+                "Building Archive",
+                "BOX-1",
+                "Admin-triggered action"
+        );
 
         assertEquals("jenny-admin", log.getActor());
     }

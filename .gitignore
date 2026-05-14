@@ -1,6 +1,7 @@
 target/
 data/
 *.class
+database.properties
 
 .idea/
 *.iml

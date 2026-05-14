@@ -1,6 +1,6 @@
 package easv.be;
 
-public class MetadataReviewRecord {
+public class ReviewRecord {
     private final String id;
     private String identity;
     private String client;
@@ -16,7 +16,7 @@ public class MetadataReviewRecord {
     private String dateGroup;
     private boolean warning;
 
-    public MetadataReviewRecord(
+    public ReviewRecord(
             String id,
             String identity,
             String client,

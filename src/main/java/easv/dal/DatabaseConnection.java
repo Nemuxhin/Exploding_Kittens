@@ -1,21 +1,31 @@
 package easv.dal;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Properties;
 
 public class DatabaseConnection {
+    private static final String DATABASE_PROPERTIES_FILE = "database.properties";
+    private static final String DEFAULT_JDBC_URL =
+            "jdbc:sqlserver://10.176.111.34:1433;databaseName=Exploding_Kittens;encrypt=true;trustServerCertificate=true";
+    private static final String DEFAULT_USERNAME = "";
+    private static final String DEFAULT_PASSWORD = "";
+    private static final Properties FILE_PROPERTIES = loadFileProperties();
+
     private final String jdbcUrl;
     private final String username;
     private final String password;
 
     public DatabaseConnection() {
         this(
-                readConfiguredValue("PRISMSCAN_DB_URL", "prismscan.db.url",
-                        "jdbc:h2:file:./data/prismscan;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE"),
-                readConfiguredValue("PRISMSCAN_DB_USER", "prismscan.db.user", "sa"),
-                readConfiguredValue("PRISMSCAN_DB_PASSWORD", "prismscan.db.password", "")
+                readConfiguredValue("EXPLODING_KITTENS_DB_URL", "exploding-kittens.db.url", DEFAULT_JDBC_URL),
+                readConfiguredValue("EXPLODING_KITTENS_DB_USER", "exploding-kittens.db.user", DEFAULT_USERNAME),
+                readConfiguredValue("EXPLODING_KITTENS_DB_PASSWORD", "exploding-kittens.db.password", DEFAULT_PASSWORD)
         );
     }
 
@@ -23,87 +33,10 @@ public class DatabaseConnection {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
-        initializeSchema();
     }
 
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(jdbcUrl, username, password);
-    }
-
-    public void initializeSchema() {
-        try (Connection connection = getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS clients (
-                        id VARCHAR(36) PRIMARY KEY,
-                        client_number VARCHAR(100) NOT NULL UNIQUE,
-                        name VARCHAR(255) NOT NULL
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS boxes (
-                        id VARCHAR(36) PRIMARY KEY,
-                        box_id VARCHAR(100) NOT NULL UNIQUE,
-                        description VARCHAR(255) NOT NULL
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS case_files (
-                        id VARCHAR(36) PRIMARY KEY,
-                        case_reference VARCHAR(100) NOT NULL UNIQUE,
-                        client_id VARCHAR(36) NOT NULL,
-                        box_id VARCHAR(36) NOT NULL,
-                        FOREIGN KEY (client_id) REFERENCES clients(id),
-                        FOREIGN KEY (box_id) REFERENCES boxes(id)
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS documents (
-                        id VARCHAR(36) PRIMARY KEY,
-                        source_item_id VARCHAR(100) NOT NULL UNIQUE,
-                        case_file_id VARCHAR(36) NOT NULL,
-                        FOREIGN KEY (case_file_id) REFERENCES case_files(id)
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS document_pages (
-                        id VARCHAR(36) PRIMARY KEY,
-                        document_id VARCHAR(36) NOT NULL,
-                        page_number INT NOT NULL,
-                        page_type VARCHAR(20) NOT NULL,
-                        source_reference VARCHAR(255) NOT NULL,
-                        UNIQUE (document_id, page_number),
-                        FOREIGN KEY (document_id) REFERENCES documents(id)
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS scan_sessions (
-                        id VARCHAR(36) PRIMARY KEY,
-                        started_at TIMESTAMP NOT NULL,
-                        box_id VARCHAR(36) NOT NULL,
-                        FOREIGN KEY (box_id) REFERENCES boxes(id)
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS scan_session_documents (
-                        session_id VARCHAR(36) NOT NULL,
-                        document_id VARCHAR(36) NOT NULL,
-                        PRIMARY KEY (session_id, document_id),
-                        FOREIGN KEY (session_id) REFERENCES scan_sessions(id),
-                        FOREIGN KEY (document_id) REFERENCES documents(id)
-                    )
-                    """);
-            statement.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS session_failures (
-                        id VARCHAR(36) PRIMARY KEY,
-                        session_id VARCHAR(36) NOT NULL,
-                        message VARCHAR(500) NOT NULL,
-                        FOREIGN KEY (session_id) REFERENCES scan_sessions(id)
-                    )
-                    """);
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to initialize database schema", e);
-        }
     }
 
     private static String readConfiguredValue(String envName, String propertyName, String fallback) {
@@ -111,10 +44,53 @@ public class DatabaseConnection {
         if (property != null && !property.isBlank()) {
             return property;
         }
+
+        String fileProperty = FILE_PROPERTIES.getProperty(propertyName);
+        if (fileProperty != null && !fileProperty.isBlank()) {
+            return fileProperty;
+        }
+
         String env = System.getenv(envName);
         if (env != null && !env.isBlank()) {
             return env;
         }
+
         return fallback;
+    }
+
+    private static Properties loadFileProperties() {
+        Properties properties = new Properties();
+        loadPropertiesFromProjectFile(properties);
+        loadPropertiesFromClasspath(properties);
+        return properties;
+    }
+
+    private static void loadPropertiesFromProjectFile(Properties properties) {
+        Path propertiesPath = Path.of(DATABASE_PROPERTIES_FILE);
+        if (!Files.exists(propertiesPath)) {
+            return;
+        }
+
+        try (InputStream inputStream = Files.newInputStream(propertiesPath)) {
+            properties.load(inputStream);
+        } catch (IOException exception) {
+            throw new DataAccessException("Failed to load " + DATABASE_PROPERTIES_FILE, exception);
+        }
+    }
+
+    private static void loadPropertiesFromClasspath(Properties properties) {
+        try (InputStream inputStream = DatabaseConnection.class.getClassLoader()
+                .getResourceAsStream(DATABASE_PROPERTIES_FILE)) {
+            if (inputStream == null) {
+                return;
+            }
+
+            Properties classpathProperties = new Properties();
+            classpathProperties.load(inputStream);
+            classpathProperties.forEach((key, value) ->
+                    properties.putIfAbsent(String.valueOf(key), String.valueOf(value)));
+        } catch (IOException exception) {
+            throw new DataAccessException("Failed to load classpath " + DATABASE_PROPERTIES_FILE, exception);
+        }
     }
 }

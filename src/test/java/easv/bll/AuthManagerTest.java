@@ -3,9 +3,9 @@ package easv.bll;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,9 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuthManagerTest {
 
-    @TempDir
-    Path tempDir;
-
     @AfterEach
     void clearSession() {
         UserSession.clearCurrentUser();
@@ -24,44 +21,20 @@ class AuthManagerTest {
 
     @Test
     void loginSucceedsForValidActiveUser() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        UserDAO userDAO = new FakeUserDAO();
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("admin", "admin123");
 
         assertTrue(authResult.isSuccess());
         assertNotNull(authResult.getUser());
-        assertNotNull(authResult.getToken());
         assertEquals("admin", authResult.getUser().getUsername());
         assertTrue(UserSession.hasCurrentUser());
     }
 
     @Test
-    void createUserHashesPasswordAndSavesAccount() throws Exception {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
-        AuthManager authManager = new AuthManager(userDAO);
-
-        AuthResult result = authManager.createUser("newuser", "secret123", "USER", true);
-
-        assertTrue(result.isSuccess());
-        assertNotNull(userDAO.findByUsername("newuser"));
-        assertFalse(userDAO.findByUsername("newuser").getPasswordHash().equals("secret123"));
-    }
-
-    @Test
-    void updatePasswordHashesNewPassword() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
-        AuthManager authManager = new AuthManager(userDAO);
-
-        AuthResult result = authManager.updateUserPassword("scanner", "new-secret");
-
-        assertTrue(result.isSuccess());
-        assertTrue(authManager.login("scanner", "new-secret").isSuccess());
-    }
-
-    @Test
     void loginFailsForWrongPassword() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        UserDAO userDAO = new FakeUserDAO();
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("admin", "wrong-password");
@@ -73,7 +46,7 @@ class AuthManagerTest {
 
     @Test
     void loginFailsForInactiveAccount() {
-        UserDAO userDAO = new UserDAO(tempDir.resolve("users.txt"));
+        UserDAO userDAO = new FakeUserDAO();
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("inactive", "inactive123");
@@ -81,5 +54,23 @@ class AuthManagerTest {
         assertFalse(authResult.isSuccess());
         assertEquals("This account is inactive and cannot log in.", authResult.getMessage());
         assertFalse(UserSession.hasCurrentUser());
+    }
+
+    private static class FakeUserDAO extends UserDAO {
+        private final Map<String, easv.be.User> users = new HashMap<>();
+
+        private FakeUserDAO() {
+            users.put("admin", new easv.be.User("admin", PasswordHasher.hash("admin123"), "Admin", true));
+            users.put("inactive", new easv.be.User("inactive", PasswordHasher.hash("inactive123"), "User", false));
+        }
+
+        @Override
+        public easv.be.User findByUsername(String username) {
+            if (username == null) {
+                return null;
+            }
+
+            return users.get(username.trim().toLowerCase());
+        }
     }
 }

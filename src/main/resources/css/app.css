@@ -361,8 +361,8 @@
 .profiles-page-host,
 .profiles-overview-page,
 .profile-editor-page,
-.metadata-review-page-host,
-.metadata-review-page,
+.review-page-host,
+.review-page,
 .metadata-workspace-page {
     -fx-background-color: -wl-background;
 }
@@ -443,6 +443,10 @@
 .text-field:disabled,
 .combo-box-base:disabled {
     -fx-opacity: 0.6;
+}
+
+.admin-missing-page-placeholder {
+    -fx-padding: 24;
 }
 
 .create-user-button,
@@ -604,7 +608,7 @@
 .delete-link-button,
 .metadata-action-button,
 .metadata-action-button-muted,
-.metadata-review-action-button,
+.review-action-button,
 .metadata-template-action-button,
 .metadata-icon-action-button,
 .metadata-icon-action-button-destructive {
@@ -629,7 +633,7 @@
 .edit-link-button,
 .metadata-action-button,
 .metadata-action-button-muted,
-.metadata-review-action-button,
+.review-action-button,
 .metadata-template-action-button,
 .metadata-icon-action-button {
     -fx-text-fill: -wl-text;
@@ -643,7 +647,7 @@
 .edit-link-button:hover,
 .metadata-action-button:hover,
 .metadata-action-button-muted:hover,
-.metadata-review-action-button:hover,
+.review-action-button:hover,
 .metadata-template-action-button:hover,
 .metadata-icon-action-button:hover {
     -fx-background-color: transparent;
@@ -717,7 +721,7 @@
 
 .role-filter,
 .rows-per-page-filter,
-.metadata-review-filter,
+.review-filter,
 .activity-log-filter,
 .activity-log-date-picker,
 .metadata-editor-input,
@@ -741,7 +745,7 @@
 
 .role-filter,
 .rows-per-page-filter,
-.metadata-review-filter,
+.review-filter,
 .activity-log-filter,
 .activity-log-date-picker {
     -fx-min-height: 30;
@@ -834,7 +838,7 @@
 
 .role-filter:hover,
 .rows-per-page-filter:hover,
-.metadata-review-filter:hover,
+.review-filter:hover,
 .activity-log-filter:hover,
 .activity-log-date-picker:hover,
 .metadata-editor-input:hover,
@@ -848,7 +852,7 @@
 
 .role-filter:focused,
 .rows-per-page-filter:focused,
-.metadata-review-filter:focused,
+.review-filter:focused,
 .activity-log-filter:focused,
 .activity-log-date-picker:focused,
 .metadata-editor-input:focused,
@@ -861,7 +865,7 @@
 }
 
 .search-field-shell,
-.metadata-review-search-shell {
+.review-search-shell {
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -877,20 +881,20 @@
     -fx-alignment: center-left;
 }
 
-.metadata-review-search-shell {
+.review-search-shell {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
 }
 
 .search-field-shell:hover,
-.metadata-review-search-shell:hover {
+.review-search-shell:hover {
     -fx-background-color: -wl-input-bg;
     -fx-border-color: -wl-secondary;
 }
 
 .search-field-shell-focused,
-.metadata-review-search-shell-focused {
+.review-search-shell-focused {
     -fx-background-color: -wl-input-bg;
     -fx-border-color: -wl-primary;
 }
@@ -940,7 +944,7 @@
 .combo-box-base > .arrow-button,
 .role-filter > .arrow-button,
 .rows-per-page-filter > .arrow-button,
-.metadata-review-filter > .arrow-button,
+.review-filter > .arrow-button,
 .activity-log-filter > .arrow-button,
 .activity-log-date-picker > .arrow-button,
 .metadata-workspace-input > .arrow-button,
@@ -953,7 +957,7 @@
 .combo-box-base > .arrow-button > .arrow,
 .role-filter > .arrow-button > .arrow,
 .rows-per-page-filter > .arrow-button > .arrow,
-.metadata-review-filter > .arrow-button > .arrow,
+.review-filter > .arrow-button > .arrow,
 .activity-log-filter > .arrow-button > .arrow,
 .activity-log-date-picker > .arrow-button > .arrow,
 .metadata-workspace-input > .arrow-button > .arrow,
@@ -964,7 +968,7 @@
 .combo-box-base .list-cell,
 .role-filter .list-cell,
 .rows-per-page-filter .list-cell,
-.metadata-review-filter .list-cell,
+.review-filter .list-cell,
 .activity-log-filter .list-cell,
 .activity-log-date-picker .text-field,
 .metadata-workspace-input .list-cell,
@@ -1101,7 +1105,7 @@
 .sidebar-nav-icon-profiles,
 .sidebar-nav-icon-assignments,
 .sidebar-nav-icon-metadata,
-.sidebar-nav-icon-metadata-review,
+.sidebar-nav-icon-review,
 .sidebar-nav-icon-activity,
 .sidebar-theme-icon {
     -fx-fill: -wl-sidebar-icon;
@@ -1116,7 +1120,7 @@
 .sidebar-nav-item-active .sidebar-nav-icon-profiles,
 .sidebar-nav-item-active .sidebar-nav-icon-assignments,
 .sidebar-nav-item-active .sidebar-nav-icon-metadata,
-.sidebar-nav-item-active .sidebar-nav-icon-metadata-review,
+.sidebar-nav-item-active .sidebar-nav-icon-review,
 .sidebar-nav-item-active .sidebar-nav-icon-activity {
     -fx-fill: -wl-sidebar-active-text;
 }
@@ -1126,7 +1130,7 @@
 .sidebar-nav-item:hover .sidebar-nav-icon-profiles,
 .sidebar-nav-item:hover .sidebar-nav-icon-assignments,
 .sidebar-nav-item:hover .sidebar-nav-icon-metadata,
-.sidebar-nav-item:hover .sidebar-nav-icon-metadata-review,
+.sidebar-nav-item:hover .sidebar-nav-icon-review,
 .sidebar-nav-item:hover .sidebar-nav-icon-activity,
 .sidebar-theme-row:hover .sidebar-theme-icon {
     -fx-fill: -wl-sidebar-hover-text;
@@ -1135,7 +1139,7 @@
 .sidebar-nav-icon-home,
 .sidebar-nav-icon-profiles,
 .sidebar-nav-icon-metadata,
-.sidebar-nav-icon-metadata-review,
+.sidebar-nav-icon-review,
 .sidebar-nav-icon-activity,
 .sidebar-logout-icon {
     -fx-translate-x: 2;
@@ -1293,8 +1297,8 @@
 .assignment-list-panel,
 .assignment-editor-panel,
 .metadata-editor-card,
-.metadata-review-results-card,
-.metadata-review-filter-card,
+.review-results-card,
+.review-filter-card,
 .metadata-workspace-shell,
 .activity-log-summary-card,
 .activity-log-timeline-card {
@@ -1316,8 +1320,8 @@
 .app-shell.dark .assignment-list-panel,
 .app-shell.dark .assignment-editor-panel,
 .app-shell.dark .metadata-editor-card,
-.app-shell.dark .metadata-review-results-card,
-.app-shell.dark .metadata-review-filter-card,
+.app-shell.dark .review-results-card,
+.app-shell.dark .review-filter-card,
 .app-shell.dark .metadata-workspace-shell,
 .app-shell.dark .activity-log-summary-card,
 .app-shell.dark .activity-log-timeline-card {
@@ -1358,7 +1362,7 @@
 
 .users-list-header,
 .metadata-list-header,
-.metadata-review-table-header {
+.review-table-header {
     -fx-hgap: 18;
     -fx-alignment: center-left;
     -fx-border-color: transparent transparent -wl-border transparent;
@@ -1371,12 +1375,12 @@
 }
 
 .metadata-list-header,
-.metadata-review-table-header {
+.review-table-header {
     -fx-padding: 15 24 15 24;
     -fx-background-color: -wl-card-content;
 }
 
-.metadata-review-table-header {
+.review-table-header {
     -fx-min-height: 60;
     -fx-pref-height: 60;
     -fx-padding: 0 12 0 12;
@@ -1386,19 +1390,19 @@
 
 .list-header-label,
 .list-header-label-right,
-.metadata-review-header-label {
+.review-header-label {
     -fx-text-fill: -wl-table-header-text;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
 }
 
-.metadata-review-header-label {
+.review-header-label {
     -fx-wrap-text: true;
 }
 
 .users-list,
 .metadata-list,
-.metadata-review-table-body,
+.review-table-body,
 .assignment-list,
 .assignment-checkbox-list {
     -fx-background-color: -wl-surface;
@@ -1407,7 +1411,7 @@
 
 .user-record,
 .metadata-row,
-.metadata-review-table-row {
+.review-table-row {
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
@@ -1430,7 +1434,7 @@
     -fx-cursor: hand;
 }
 
-.metadata-review-table-row {
+.review-table-row {
     -fx-min-height: 72;
     -fx-padding: 9 12 9 12;
     -fx-hgap: 9;
@@ -1438,27 +1442,27 @@
 
 .user-record:hover,
 .metadata-row:hover,
-.metadata-review-table-row:hover {
+.review-table-row:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
 .table-cell-text,
 .table-cell-text-muted,
 .metadata-table-text,
-.metadata-review-main-cell,
-.metadata-review-cell-text {
+.review-main-cell,
+.review-cell-text {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 400;
 }
 
 .metadata-table-text,
-.metadata-review-main-cell {
+.review-main-cell {
     -fx-font-weight: 600;
 }
 
-.metadata-review-main-cell,
-.metadata-review-cell-text {
+.review-main-cell,
+.review-cell-text {
     -fx-font-size: 12px;
     -fx-wrap-text: true;
 }
@@ -1496,7 +1500,7 @@
 }
 
 .empty-state-box,
-.metadata-review-empty-state,
+.review-empty-state,
 .activity-log-empty-state {
     -fx-padding: 48 24 57 24;
     -fx-spacing: 6;
@@ -1530,7 +1534,7 @@
 .profile-status-badge,
 .metadata-required-pill,
 .profile-config-chip,
-.metadata-review-status-badge,
+.review-status-badge,
 .activity-log-type-badge,
 .activity-log-status-badge,
 .profile-editor-small-badge,
@@ -1556,7 +1560,7 @@
 .metadata-status-badge,
 .profile-status-badge,
 .metadata-required-pill,
-.metadata-review-status-badge,
+.review-status-badge,
 .activity-log-type-badge,
 .activity-log-status-badge,
 .profile-editor-small-badge,
@@ -1582,7 +1586,7 @@
 .chip-blue,
 .chip-indigo,
 .chip-purple,
-.metadata-review-status-info,
+.review-status-info,
 .activity-log-status-info {
     -fx-background-color: -wl-status-info-bg;
     -fx-border-color: -wl-status-info-border;
@@ -1596,7 +1600,7 @@
 .metadata-profile-status-active,
 .profile-editor-active-badge,
 .chip-teal,
-.metadata-review-status-success,
+.review-status-success,
 .activity-log-status-success,
 .user-profiles-badge-all {
     -fx-background-color: -wl-status-success-bg;
@@ -1610,7 +1614,7 @@
 .metadata-required-no,
 .metadata-profile-status-archived,
 .chip-neutral,
-.metadata-review-status-neutral,
+.review-status-neutral,
 .activity-log-status-neutral,
 .metadata-workspace-tag,
 .user-profiles-badge {
@@ -1620,7 +1624,7 @@
 }
 
 .chip-amber,
-.metadata-review-status-warning,
+.review-status-warning,
 .activity-log-status-warning,
 .metadata-workspace-tag-warning,
 .user-profiles-badge-none {
@@ -1630,7 +1634,7 @@
 }
 
 .chip-orange,
-.metadata-review-status-danger,
+.review-status-danger,
 .activity-log-status-failed {
     -fx-background-color: -wl-status-danger-bg;
     -fx-border-color: -wl-status-danger-border;
@@ -1730,6 +1734,95 @@
     -fx-min-height: 144;
     -fx-pref-height: 144;
     -fx-padding: 18;
+}
+
+.dashboard-stat-card {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-height: 126;
+    -fx-pref-height: 126;
+    -fx-max-height: 126;
+    -fx-padding: 15 18 15 18;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.dashboard-workflow-overview-card {
+    -fx-min-height: 126;
+    -fx-pref-height: 126;
+    -fx-max-height: 126;
+}
+
+.dashboard-stat-visual {
+    -fx-min-width: 84;
+    -fx-pref-width: 84;
+    -fx-max-width: 84;
+}
+
+.dashboard-stat-title {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-stat-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-stat-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.dashboard-trend-neutral,
+.dashboard-trend-up,
+.dashboard-trend-down {
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-trend-neutral {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.dashboard-trend-up {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.dashboard-trend-down {
+    -fx-text-fill: -wl-tag-red-text;
+}
+
+.dashboard-sparkline-teal,
+.dashboard-sparkline-blue,
+.dashboard-sparkline-purple,
+.dashboard-sparkline-orange {
+    -fx-fill: transparent;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.dashboard-sparkline-teal {
+    -fx-stroke: -wl-tag-teal-text;
+}
+
+.dashboard-sparkline-blue {
+    -fx-stroke: -wl-tag-blue-text;
+}
+
+.dashboard-sparkline-purple {
+    -fx-stroke: -wl-tag-purple-text;
+}
+
+.dashboard-sparkline-orange {
+    -fx-stroke: -wl-tag-amber-text;
 }
 
 .dashboard-attention-card {
@@ -1890,6 +1983,13 @@
     -fx-border-width: 0 0 1 0;
 }
 
+.dashboard-workflow-header {
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-padding: 15 18 3 18;
+    -fx-border-width: 0;
+}
+
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
@@ -1942,6 +2042,135 @@
 .dashboard-workflow-body,
 .dashboard-actions-grid {
     -fx-padding: 18;
+}
+
+.dashboard-workflow-status-body,
+.dashboard-quick-actions-grid {
+    -fx-padding: 18;
+}
+
+.dashboard-workflow-status-body {
+    -fx-padding: 3 18 12 18;
+    -fx-alignment: center-left;
+}
+
+.dashboard-donut-chart {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-max-height: 60;
+    -fx-alignment: center;
+}
+
+.dashboard-donut-track,
+.dashboard-donut-blue,
+.dashboard-donut-amber,
+.dashboard-donut-green {
+    -fx-fill: transparent;
+    -fx-stroke-width: 9;
+    -fx-stroke-line-cap: butt;
+}
+
+.dashboard-donut-track {
+    -fx-stroke: -wl-progress-track;
+}
+
+.dashboard-donut-blue {
+    -fx-stroke: -wl-status-info-text;
+}
+
+.dashboard-donut-amber {
+    -fx-stroke: -wl-progress-amber;
+}
+
+.dashboard-donut-green {
+    -fx-stroke: -wl-status-success-text;
+}
+
+.dashboard-donut-hole {
+    -fx-fill: -wl-surface;
+}
+
+.dashboard-workflow-legend-row {
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+}
+
+.dashboard-workflow-legend {
+    -fx-fill-width: true;
+}
+
+.dashboard-workflow-marker-blue,
+.dashboard-workflow-marker-amber,
+.dashboard-workflow-marker-green {
+    -fx-min-width: 9;
+    -fx-pref-width: 9;
+    -fx-max-width: 9;
+    -fx-min-height: 9;
+    -fx-pref-height: 9;
+    -fx-max-height: 9;
+    -fx-background-radius: 3;
+}
+
+.dashboard-workflow-marker-blue {
+    -fx-background-color: -wl-status-info-text;
+}
+
+.dashboard-workflow-marker-amber {
+    -fx-background-color: -wl-progress-amber;
+}
+
+.dashboard-workflow-marker-green {
+    -fx-background-color: -wl-status-success-text;
+}
+
+.dashboard-workflow-percent {
+    -fx-min-width: 36;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: center-right;
+}
+
+.dashboard-quick-action {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-min-height: 96;
+    -fx-pref-height: 96;
+    -fx-cursor: hand;
+}
+
+.dashboard-quick-action:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+}
+
+.dashboard-quick-action-icon-box {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-background-color: -wl-status-info-bg;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.dashboard-quick-action-icon {
+    -fx-fill: -wl-status-info-text;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.dashboard-quick-action-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
 }
 
 .dashboard-progress-track,
@@ -2287,9 +2516,9 @@
     -fx-max-height: 36;
     -fx-padding: 0 15 0 15;
     -fx-background-color: transparent;
-    -fx-background-radius: 7;
+    -fx-background-radius: 6;
     -fx-border-color: transparent;
-    -fx-border-radius: 7;
+    -fx-border-radius: 6;
     -fx-text-fill: -wl-text;
 }
 
@@ -2371,8 +2600,14 @@
 }
 
 .assignment-checkbox-row > .graphic-container {
-    -fx-padding: 0 0 0 12;
+    -fx-padding: 0;
     -fx-alignment: center-left;
+}
+
+.assignment-row-content,
+.create-user-profile-content,
+.metadata-profile-row-content {
+    -fx-padding: 0 0 0 15;
 }
 
 .assignment-checkbox-row:hover {
@@ -2388,7 +2623,7 @@
 }
 
 .assignment-checkbox,
-.metadata-review-checkbox {
+.review-checkbox {
     -fx-cursor: hand;
     -fx-padding: 0;
     -fx-min-width: 24;
@@ -2403,7 +2638,7 @@
 .assignment-checkbox-row > .box,
 .create-user-profile-row > .box,
 .metadata-profile-row > .box,
-.metadata-review-checkbox > .box {
+.review-checkbox > .box {
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
@@ -2420,7 +2655,7 @@
 .assignment-checkbox-row:selected > .box,
 .create-user-profile-row:selected > .box,
 .metadata-profile-row:selected > .box,
-.metadata-review-checkbox:selected > .box {
+.review-checkbox:selected > .box {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
 }
@@ -2429,7 +2664,7 @@
 .assignment-checkbox-row:selected > .box > .mark,
 .create-user-profile-row:selected > .box > .mark,
 .metadata-profile-row:selected > .box > .mark,
-.metadata-review-checkbox:selected > .box > .mark {
+.review-checkbox:selected > .box > .mark {
     -fx-background-color: -wl-on-primary;
 }
 
@@ -2670,16 +2905,16 @@
 }
 
 /* =========================================================
-   11. METADATA REVIEW WORKSPACE
-   Project note: metadata review has a denser workspace layout, so
+   11. REVIEW WORKSPACE
+   Project note: review has a denser workspace layout, so
    workspace widths and toolbar actions are scoped to that screen.
    ========================================================= */
 
-.metadata-review-queue-grid {
+.review-queue-grid {
     -fx-alignment: center;
 }
 
-.metadata-review-queue-card {
+.review-queue-card {
     -fx-min-height: 111;
     -fx-pref-height: 111;
     -fx-max-height: 111;
@@ -2696,43 +2931,43 @@
     -fx-cursor: hand;
 }
 
-.metadata-review-queue-card:hover {
+.review-queue-card:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
-.metadata-review-queue-warning {
+.review-queue-warning {
     -fx-border-color: -wl-status-warning-border;
 }
 
-.metadata-review-queue-danger {
+.review-queue-danger {
     -fx-border-color: -wl-status-danger-border;
 }
 
-.metadata-review-queue-success {
+.review-queue-success {
     -fx-border-color: -wl-status-success-border;
 }
 
-.metadata-review-queue-neutral {
+.review-queue-neutral {
     -fx-border-color: -wl-border;
 }
 
-.metadata-review-card-title {
+.review-card-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
 }
 
-.metadata-review-card-count {
+.review-card-count {
     -fx-text-fill: -wl-text;
     -fx-font-size: 21px;
     -fx-font-weight: 700;
 }
 
-.metadata-review-card-icon-box,
-.metadata-review-card-icon-warning-box,
-.metadata-review-card-icon-danger-box,
-.metadata-review-card-icon-success-box,
-.metadata-review-card-icon-neutral-box {
+.review-card-icon-box,
+.review-card-icon-warning-box,
+.review-card-icon-danger-box,
+.review-card-icon-success-box,
+.review-card-icon-neutral-box {
     -fx-min-width: 30;
     -fx-pref-width: 30;
     -fx-max-width: 30;
@@ -2746,51 +2981,51 @@
     -fx-alignment: center;
 }
 
-.metadata-review-card-icon-warning-box {
+.review-card-icon-warning-box {
     -fx-background-color: -wl-status-warning-bg;
 }
 
-.metadata-review-card-icon-danger-box {
+.review-card-icon-danger-box {
     -fx-background-color: -wl-status-danger-bg;
 }
 
-.metadata-review-card-icon-success-box {
+.review-card-icon-success-box {
     -fx-background-color: -wl-status-success-bg;
 }
 
-.metadata-review-card-icon-neutral-box {
+.review-card-icon-neutral-box {
     -fx-background-color: -wl-card-content;
 }
 
-.metadata-review-card-icon-warning,
-.metadata-review-card-icon-danger,
-.metadata-review-card-icon-success,
-.metadata-review-card-icon-neutral {
+.review-card-icon-warning,
+.review-card-icon-danger,
+.review-card-icon-success,
+.review-card-icon-neutral {
     -fx-scale-x: 0.82;
     -fx-scale-y: 0.82;
 }
 
-.metadata-review-card-icon-warning {
+.review-card-icon-warning {
     -fx-fill: -wl-status-warning-text;
 }
 
-.metadata-review-card-icon-danger {
+.review-card-icon-danger {
     -fx-fill: -wl-status-danger-text;
 }
 
-.metadata-review-card-icon-success {
+.review-card-icon-success {
     -fx-fill: -wl-status-success-text;
 }
 
-.metadata-review-card-icon-neutral {
+.review-card-icon-neutral {
     -fx-fill: -wl-text-muted;
 }
 
-.metadata-review-filter-card {
+.review-filter-card {
     -fx-padding: 18;
 }
 
-.metadata-review-batch-bar {
+.review-batch-bar {
     -fx-padding: 12 15 12 15;
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 10;
@@ -2799,37 +3034,37 @@
     -fx-border-width: 1;
 }
 
-.metadata-review-batch-label {
+.review-batch-label {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
 }
 
-.metadata-review-page-host .metadata-workspace-header,
-.metadata-review-page-host .metadata-workspace-header-grid {
+.review-page-host .metadata-workspace-header,
+.review-page-host .metadata-workspace-header-grid {
     -fx-alignment: center-left;
     -fx-spacing: 18;
     -fx-hgap: 18;
     -fx-vgap: 3;
 }
 
-.metadata-review-page-host .metadata-workspace-header .page-heading-copy {
+.review-page-host .metadata-workspace-header .page-heading-copy {
     -fx-min-width: 0;
     -fx-pref-width: 390;
     -fx-max-width: 9999;
 }
 
-.metadata-review-page-host .metadata-workspace-header .page-title,
-.metadata-review-page-host .metadata-workspace-header .page-subtitle,
-.metadata-review-page-host .metadata-workspace-header-grid .page-title,
-.metadata-review-page-host .metadata-workspace-header-grid .page-subtitle {
+.review-page-host .metadata-workspace-header .page-title,
+.review-page-host .metadata-workspace-header .page-subtitle,
+.review-page-host .metadata-workspace-header-grid .page-title,
+.review-page-host .metadata-workspace-header-grid .page-subtitle {
     -fx-min-width: 0;
     -fx-wrap-text: false;
     -fx-text-overrun: ellipsis;
 }
 
-.metadata-review-page-host .metadata-workspace-header .metadata-header-actions,
-.metadata-review-page-host .metadata-workspace-header-grid .metadata-header-actions {
+.review-page-host .metadata-workspace-header .metadata-header-actions,
+.review-page-host .metadata-workspace-header-grid .metadata-header-actions {
     -fx-alignment: center-right;
     -fx-spacing: 12;
     -fx-min-width: 735;
@@ -2837,8 +3072,8 @@
     -fx-max-width: 735;
 }
 
-.metadata-review-page-host .metadata-workspace-header .metadata-header-actions .button,
-.metadata-review-page-host .metadata-workspace-header-grid .metadata-header-actions .button {
+.review-page-host .metadata-workspace-header .metadata-header-actions .button,
+.review-page-host .metadata-workspace-header-grid .metadata-header-actions .button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
@@ -3224,13 +3459,16 @@
 }
 
 .activity-log-summary-card > .graphic-container,
-.metadata-review-queue-card > .graphic-container,
+.review-queue-card > .graphic-container,
 .activity-log-event-summary-button > .graphic-container {
     -fx-padding: 0;
     -fx-alignment: center-left;
 }
 
 .activity-log-event-summary-button {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-border-width: 0;
@@ -3662,7 +3900,7 @@
 
 .create-user-profile-row > .graphic-container,
 .metadata-profile-row > .graphic-container {
-    -fx-padding: 0 0 0 12;
+    -fx-padding: 0;
     -fx-alignment: center-left;
 }
 
@@ -3791,10 +4029,10 @@
 .dashboard-activity-icon-qa-box,
 .dashboard-activity-icon-warning-box,
 .dashboard-activity-icon-access-box,
-.metadata-review-card-icon-warning-box,
-.metadata-review-card-icon-danger-box,
-.metadata-review-card-icon-success-box,
-.metadata-review-card-icon-neutral-box,
+.review-card-icon-warning-box,
+.review-card-icon-danger-box,
+.review-card-icon-success-box,
+.review-card-icon-neutral-box,
 .activity-log-summary-icon-shell,
 .activity-log-event-icon-shell,
 .sidebar-row-icon-shell,
@@ -4730,7 +4968,7 @@
 .mock-barcode-bars {
     -fx-text-fill: -wl-paper-line-strong;
     -fx-font-size: 21px;
-    -fx-font-weight: 900;
+    -fx-font-weight: 700;
 }
 
 .preview-warning-banner {
@@ -4769,8 +5007,8 @@
 
 .barcode-preview-bars {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 42px;
-    -fx-font-weight: 900;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
 }
 
 .barcode-preview-copy {
@@ -4921,7 +5159,7 @@
 .page-tray-barcode-mark {
     -fx-text-fill: -wl-paper-line-strong;
     -fx-font-size: 18px;
-    -fx-font-weight: 900;
+    -fx-font-weight: 700;
 }
 
 .page-tray-document-split {
@@ -6616,109 +6854,447 @@
    MERGED ADMIN TOP BAR + USER PORTAL PAGES
    ========================================================= */
 
-.admin-shell-head,
-.admin-top-bar,
-.admin-status-bar,
-.admin-breadcrumb-bar {
-    -fx-background-color: -wl-surface;
-}
-
 .admin-shell-head {
+    -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .admin-top-bar {
-    -fx-padding: 12 18;
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-padding: 9 18 9 18;
+    -fx-spacing: 18;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
 }
 
-.admin-brand-mark,
-.admin-avatar-shell {
+.admin-status-bar,
+.admin-breadcrumb-bar {
+    -fx-background-color: -wl-surface;
+}
+
+/* ---------- Brand ---------- */
+
+.admin-brand {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center-left;
+    -fx-spacing: 12;
+}
+
+.admin-brand-mark {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
     -fx-background-color: -wl-primary;
     -fx-background-radius: 6;
-    -fx-min-width: 33;
-    -fx-min-height: 33;
-    -fx-max-width: 33;
-    -fx-max-height: 33;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-alignment: center;
 }
 
-.admin-brand-icon,
-.admin-toolbar-icon,
+.admin-brand-icon {
+    -fx-fill: -wl-on-primary;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.admin-brand-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 600;
+}
+
+.admin-brand-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+/* ---------- Center Navigation ---------- */
+
+.admin-nav-bar {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center;
+    -fx-spacing: 8;
+}
+
+.admin-top-nav-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-top-nav-button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+.admin-top-nav-button:hover,
+.admin-top-nav-button:pressed,
+.admin-top-nav-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
+.admin-top-nav-button:selected,
+.admin-top-nav-button:selected:hover,
+.admin-top-nav-button:selected:pressed,
+.admin-top-nav-button:selected:focused,
+.admin-top-nav-button.active {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
 .admin-top-nav-icon {
     -fx-fill: -wl-text;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
 }
 
-.admin-brand-mark .admin-brand-icon,
-.admin-avatar-label {
-    -fx-fill: -wl-on-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.admin-brand-title,
-.admin-top-nav-label,
-.admin-account-name {
+.admin-top-nav-label {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
 }
 
-.admin-brand-subtitle,
-.admin-account-role,
+.admin-top-nav-button:selected .admin-top-nav-icon,
+.admin-top-nav-button.active .admin-top-nav-icon {
+    -fx-fill: -wl-on-primary;
+}
+
+.admin-top-nav-button:selected .admin-top-nav-label,
+.admin-top-nav-button.active .admin-top-nav-label {
+    -fx-text-fill: -wl-on-primary;
+}
+
+/* ---------- Right Account / Utility Area ---------- */
+
+.admin-account {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center-right;
+    -fx-spacing: 9;
+}
+
+.admin-toolbar-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-toolbar-button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+.admin-toolbar-button:hover,
+.admin-toolbar-button:pressed,
+.admin-toolbar-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
+.admin-toolbar-icon {
+    -fx-fill: -wl-text;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.admin-notification-dot {
+    -fx-min-width: 8;
+    -fx-pref-width: 8;
+    -fx-max-width: 8;
+    -fx-min-height: 8;
+    -fx-pref-height: 8;
+    -fx-max-height: 8;
+    -fx-background-color: -wl-error;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-surface;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 999;
+    -fx-translate-x: 2;
+    -fx-translate-y: -2;
+}
+
+/* ---------- Account Menu Button ---------- */
+
+.admin-account-menu-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-account-menu-button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+.admin-account-menu-button:hover,
+.admin-account-menu-button:pressed,
+.admin-account-menu-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
+.admin-account-menu-content {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-alignment: center-left;
+    -fx-spacing: 9;
+}
+
+.admin-avatar-shell {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-color: -wl-avatar-bg;
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+}
+
+.admin-avatar-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.admin-account-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.admin-account-role {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.admin-account-chevron {
+    -fx-fill: -wl-text-muted;
+    -fx-scale-x: 0.54;
+    -fx-scale-y: 0.54;
+}
+
+/* ---------- Account Dropdown ---------- */
+
+.admin-account-dropdown {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+    -fx-padding: 9;
+    -fx-spacing: 6;
+}
+
+.app-shell.dark .admin-account-dropdown {
+    -fx-effect: none;
+}
+
+.admin-account-dropdown-header {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+    -fx-padding: 12;
+    -fx-spacing: 3;
+}
+
+.admin-account-menu-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.admin-account-menu-detail {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.admin-account-dropdown-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.admin-account-dropdown-item {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.admin-account-dropdown-item:hover,
+.admin-account-dropdown-item:pressed,
+.admin-account-dropdown-item:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
+.admin-account-theme-toggle {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-account-theme-toggle:hover,
+.admin-account-theme-toggle:pressed,
+.admin-account-theme-toggle:focused {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.admin-account-theme-toggle:selected,
+.admin-account-theme-toggle:selected:hover,
+.admin-account-theme-toggle:selected:pressed,
+.admin-account-theme-toggle:selected:focused {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.admin-account-theme-toggle > .graphic-container {
+    -fx-padding: 0;
+}
+
+.admin-account-theme-icon {
+    -fx-fill: -wl-text;
+    -fx-scale-x: 0.66;
+    -fx-scale-y: 0.66;
+}
+
+.admin-account-theme-toggle:selected .admin-account-theme-icon {
+    -fx-fill: -wl-on-primary;
+}
+
+.admin-account-logout-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.admin-account-logout-button:hover,
+.admin-account-logout-button:pressed,
+.admin-account-logout-button:focused {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+/* ---------- Status / Breadcrumb ---------- */
+
+.admin-status-bar {
+    -fx-padding: 0 18 9 18;
+}
+
 .admin-status-label,
 .admin-breadcrumb {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 10px;
 }
 
-.admin-top-nav-button,
-.admin-toolbar-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-padding: 0 12;
-    -fx-cursor: hand;
-}
-
-.admin-toolbar-button {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-padding: 0;
-}
-
-.admin-top-nav-button:hover,
-.admin-toolbar-button:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.admin-top-nav-button.active,
-.admin-top-nav-button:selected {
-    -fx-background-color: -wl-primary;
-}
-
-.admin-top-nav-button.active .admin-top-nav-label,
-.admin-top-nav-button:selected .admin-top-nav-label {
-    -fx-text-fill: -wl-on-primary;
-}
-
-.admin-top-nav-button.active .admin-top-nav-icon,
-.admin-top-nav-button:selected .admin-top-nav-icon {
-    -fx-fill: -wl-on-primary;
-}
-
-.admin-status-bar {
-    -fx-padding: 0 18 9 18;
-}
-
 .admin-status-chip {
+    -fx-padding: 3 9 3 9;
     -fx-background-color: -wl-status-info-bg;
     -fx-border-color: -wl-status-info-border;
     -fx-background-radius: 3;
     -fx-border-radius: 3;
-    -fx-padding: 3 9;
+    -fx-border-width: 1;
     -fx-text-fill: -wl-status-info-text;
     -fx-font-size: 10px;
     -fx-font-weight: 500;
@@ -6726,6 +7302,27 @@
 
 .admin-breadcrumb-bar {
     -fx-padding: 0 18 12 18;
+}
+
+/* ---------- Small admin support pages ---------- */
+
+.admin-account-settings-page {
+    -fx-padding: 24;
+}
+
+.admin-account-section-button {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.admin-account-readonly-field {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.admin-keyboard-shortcuts-dialog {
+    -fx-background-color: -wl-surface;
+    -fx-padding: 15;
 }
 
 .portal-page-scroll,
@@ -7147,4 +7744,78 @@
 
 .portal-inline-message.success {
     -fx-text-fill: -wl-status-success-text;
+}
+
+.portal-inline-message.error {
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+/* =========================================================
+   FINAL DASHBOARD LAYOUT OVERRIDES
+   Left column: Needs Attention above Scan Workflow.
+   Right column: Recent Activity with fixed max visual height.
+   ========================================================= */
+
+.dashboard-history-attention-layout {
+    -fx-alignment: top-left;
+    -fx-fill-height: true;
+}
+
+.dashboard-balanced-column,
+.dashboard-recent-activity-card {
+    -fx-min-height: 426;
+    -fx-pref-height: 426;
+    -fx-max-height: 426;
+}
+
+.dashboard-left-stack {
+    -fx-alignment: top-left;
+}
+
+.dashboard-workflow-overview-card {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+}
+
+.dashboard-workflow-header {
+    -fx-min-height: 57;
+    -fx-pref-height: 57;
+    -fx-max-height: 57;
+    -fx-padding: 12 18 9 18;
+}
+
+.dashboard-workflow-status-body {
+    -fx-padding: 12 18 15 18;
+    -fx-spacing: 18;
+    -fx-alignment: center-left;
+}
+
+.dashboard-simple-row {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-padding: 12 18 12 18;
+}
+
+.dashboard-activity-row {
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-max-height: 72;
+    -fx-padding: 15 18 15 18;
+}
+
+.dashboard-workflow-label {
+    -fx-wrap-text: false;
+    -fx-text-overrun: clip;
+}
+
+.dashboard-workflow-value {
+    -fx-min-width: 18;
+    -fx-alignment: center-right;
+}
+
+.dashboard-workflow-percent {
+    -fx-min-width: 30;
+    -fx-alignment: center-right;
 }

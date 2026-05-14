@@ -110,7 +110,7 @@ public class ProfilesController {
     private FilteredList<ScanProfile> filteredProfiles;
     private ScanProfile currentProfile;
 
-    private AdminManager adminManager = new AdminManager();
+    private AdminManager adminManager;
     private AdminNavigator navigator = AdminNavigator.none();
 
     void setNavigator(AdminNavigator navigator) {
@@ -118,7 +118,10 @@ public class ProfilesController {
     }
 
     void setAdminManager(AdminManager adminManager) {
-        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        this.adminManager = adminManager;
+        if (this.adminManager == null) {
+            return;
+        }
         loadProfiles();
         applyFilters();
     }
@@ -130,7 +133,6 @@ public class ProfilesController {
         configureFiltering();
         configureResponsiveGrid();
 
-        loadProfiles();
         applyFilters();
         showOverviewPane();
     }
@@ -210,6 +212,12 @@ public class ProfilesController {
     }
 
     private void loadProfiles() {
+        if (adminManager == null) {
+            masterProfiles.clear();
+            refreshMetadataOptions();
+            return;
+        }
+
         masterProfiles.setAll(adminManager.getProfiles());
         refreshMetadataOptions();
     }
@@ -217,11 +225,13 @@ public class ProfilesController {
     private void refreshMetadataOptions() {
         LinkedHashSet<String> metadataNames = new LinkedHashSet<>();
 
-        adminManager.getMetadataTemplates().forEach(template -> {
-            if (!clean(template.getName()).isBlank()) {
-                metadataNames.add(template.getName());
-            }
-        });
+        if (adminManager != null) {
+            adminManager.getMetadataTemplates().forEach(template -> {
+                if (!clean(template.getName()).isBlank()) {
+                    metadataNames.add(template.getName());
+                }
+            });
+        }
 
         masterProfiles.forEach(profile -> {
             if (!clean(profile.getMetadataTemplateName()).isBlank()) {

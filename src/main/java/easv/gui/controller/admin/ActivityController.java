@@ -52,7 +52,7 @@ public class ActivityController {
 
     private final ObservableList<ActivityLogEntry> activityEntries = FXCollections.observableArrayList();
 
-    private AdminManager adminManager = new AdminManager();
+    private AdminManager adminManager;
     private String expandedEntryId;
     private boolean updatingDateControls;
     private LocalDate fromDate;
@@ -79,14 +79,15 @@ public class ActivityController {
     @FXML
     private void initialize() {
         configureFilters();
-        loadActivity();
         configureListeners();
-        updateSummaryCards();
         renderTimeline();
     }
 
     void setAdminManager(AdminManager adminManager) {
-        this.adminManager = adminManager == null ? new AdminManager() : adminManager;
+        this.adminManager = adminManager;
+        if (this.adminManager == null) {
+            return;
+        }
         loadActivity();
         updateSummaryCards();
         renderTimeline();
@@ -756,6 +757,13 @@ public class ActivityController {
     }
 
     private void loadActivity() {
+        if (adminManager == null) {
+            activityEntries.clear();
+            refreshUserFilterOptions();
+            updateSummaryCards();
+            return;
+        }
+
         activityEntries.setAll(
                 adminManager.getAuditLogs().stream()
                         .map(this::toActivityLogEntry)
@@ -763,6 +771,7 @@ public class ActivityController {
         );
 
         refreshUserFilterOptions();
+        updateSummaryCards();
     }
 
     private ActivityLogEntry toActivityLogEntry(AuditLog log) {
