@@ -9,7 +9,11 @@ import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuditMetadataExportTest {
+    @TempDir
+    Path tempDir;
+
 
     @AfterEach
     void clearSession() {
@@ -125,6 +132,14 @@ class AuditMetadataExportTest {
 
         TiffExportPlan singlePagePlan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
         TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan("", "", List.of(pageOne, pageTwo));
+        TiffExportPlan perDocumentPlan = tiffExportManager.createMultiPagePerDocumentPlan(
+                "Profile A",
+                "BOX-1",
+                Map.of(
+                        "DOC-1", List.of(pageOne),
+                        "DOC-2", List.of(pageTwo)
+                )
+        );
 
         assertEquals(2, singlePagePlan.getFileCount());
         assertEquals(2, singlePagePlan.getPageCount());
@@ -133,5 +148,22 @@ class AuditMetadataExportTest {
         assertEquals(2, multiPagePlan.getPageCount());
         assertEquals("MULTI_PAGE_TIFF_FILE", multiPagePlan.getExportType());
         assertEquals(2, multiPagePlan.getWarnings().size());
+        assertEquals(2, perDocumentPlan.getFileCount());
+        assertEquals(2, perDocumentPlan.getPageCount());
+        assertEquals("MULTI_PAGE_TIFF_PER_DOCUMENT", perDocumentPlan.getExportType());
+    }
+
+    @Test
+    void exportPlanWritesTiffFilesToFolder() throws IOException {
+        TiffExportManager tiffExportManager = new TiffExportManager();
+        PageImage pageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
+        PageImage pageTwo = new PageImage(2, PageImage.PageType.TIFF, "DOC-2");
+        TiffExportPlan plan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
+
+        List<Path> exportedFiles = tiffExportManager.exportPlanToFolder(plan, tempDir);
+
+        assertEquals(2, exportedFiles.size());
+        assertTrue(Files.exists(exportedFiles.get(0)));
+        assertTrue(Files.size(exportedFiles.get(0)) > 0);
     }
 }

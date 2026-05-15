@@ -570,6 +570,11 @@
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
+                    <Button text="Export TIFF"
+                            onAction="#onOpenScanExport"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
                     <Button text="Finish &amp; Review"
                             onAction="#onFinishReview"
                             maxWidth="Infinity"

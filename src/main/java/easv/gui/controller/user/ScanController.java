@@ -1,8 +1,12 @@
 package easv.gui.controller.user;
 
 import easv.be.CaseMetadata;
+import easv.be.PageImage;
+import easv.be.TiffExportItem;
+import easv.be.TiffExportPlan;
 import easv.bll.AuditLogManager;
 import easv.bll.MetadataManager;
+import easv.bll.TiffExportManager;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -11,13 +15,18 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -34,6 +43,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -132,6 +143,7 @@ public class ScanController {
     private UserNavigator navigator = UserNavigator.none();
     private final AuditLogManager auditLogManager = new AuditLogManager();
     private final MetadataManager metadataManager = MetadataManager.shared();
+    private final TiffExportManager tiffExportManager = new TiffExportManager();
 
     public void setNavigator(UserNavigator navigator) {
         this.navigator = navigator == null ? UserNavigator.none() : navigator;
@@ -222,6 +234,194 @@ public class ScanController {
                 // Invalid input simply keeps the current page selected.
             }
         });
+    }
+
+    @FXML
+    private void onOpenScanExport() {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("TIFF Export");
+
+        ButtonType exportButtonType = new ButtonType("Prepare Export", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(exportButtonType, ButtonType.CANCEL);
+
+        Label title = new Label("TIFF Export");
+        title.getStyleClass().add("settings-section-heading");
+
+        Label subtitle = new Label("Choose how the scanned pages should be exported.");
+        subtitle.getStyleClass().add("settings-shortcut-copy");
+        subtitle.setWrapText(true);
+
+        RadioButton singlePageOption = new RadioButton("Single-page TIFF files");
+        RadioButton multiPageOption = new RadioButton("Multi-page TIFF per document");
+        ToggleGroup exportTypeGroup = new ToggleGroup();
+        singlePageOption.setToggleGroup(exportTypeGroup);
+        multiPageOption.setToggleGroup(exportTypeGroup);
+        multiPageOption.setSelected(true);
+
+        VBox previewBox = new VBox(8);
+        previewBox.getStyleClass().add("settings-card");
+
+        Label resultLabel = new Label();
+        resultLabel.getStyleClass().add("portal-inline-message");
+        resultLabel.setWrapText(true);
+
+        VBox content = new VBox(14,
+                title,
+                subtitle,
+                new HBox(18, createExportRadioCard(singlePageOption, "Each active page becomes its own .tif file."),
+                        createExportRadioCard(multiPageOption, "Each document becomes one combined .tif file.")),
+                previewBox,
+                resultLabel
+        );
+        content.setPrefWidth(720);
+        dialog.getDialogPane().setContent(content);
+
+        Button exportButton = (Button) dialog.getDialogPane().lookupButton(exportButtonType);
+        exportButton.getStyleClass().add("portal-primary-button");
+
+        Runnable refreshPreview = () -> {
+            TiffExportPlan plan = createScanExportPlan(singlePageOption.isSelected());
+            previewBox.getChildren().setAll(createScanExportPreview(plan, singlePageOption.isSelected()));
+            exportButton.setDisable(plan.getPageCount() == 0);
+            resultLabel.setText("");
+        };
+
+        singlePageOption.setOnAction(event -> refreshPreview.run());
+        multiPageOption.setOnAction(event -> refreshPreview.run());
+
+        exportButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            TiffExportPlan plan = createScanExportPlan(singlePageOption.isSelected());
+
+            try {
+                List<Path> exportedFiles = tiffExportManager.exportPlanToFolder(plan, scanExportOutputFolder());
+                auditLogManager.logUserAction(AuditLogManager.EXPORT_PREVIEW_CREATED, buildCurrentCaseId(), null, null,
+                        null, getSelectedProfile(), getBoxId(), "TIFF export completed from the scan workspace.");
+                resultLabel.setText("Export completed: " + exportedFiles.size() + " file(s) saved in data/exports.");
+            } catch (IOException exception) {
+                resultLabel.setText("Export failed: " + exception.getMessage());
+            }
+
+            event.consume();
+        });
+
+        refreshPreview.run();
+        dialog.showAndWait();
+    }
+
+    private VBox createExportRadioCard(RadioButton option, String descriptionText) {
+        Label description = new Label(descriptionText);
+        description.getStyleClass().add("settings-shortcut-copy");
+        description.setWrapText(true);
+
+        VBox card = new VBox(6, option, description);
+        card.getStyleClass().add("settings-shortcut-row");
+        HBox.setHgrow(card, Priority.ALWAYS);
+        return card;
+    }
+
+    private TiffExportPlan createScanExportPlan(boolean singlePage) {
+        if (singlePage) {
+            return tiffExportManager.createSinglePagePlan(getSelectedProfile(), getBoxId(), createActiveExportPages());
+        }
+
+        return tiffExportManager.createMultiPagePerDocumentPlan(getSelectedProfile(), getBoxId(), createActiveExportPagesByDocument());
+    }
+
+    private List<Node> createScanExportPreview(TiffExportPlan plan, boolean singlePage) {
+        List<Node> rows = new ArrayList<>();
+
+        rows.add(exportInfoLine("Profile", getSelectedProfile()));
+        rows.add(exportInfoLine("Box ID", getBoxId()));
+        rows.add(exportInfoLine("Pages selected", String.valueOf(plan.getPageCount())));
+        rows.add(exportInfoLine("Files to create", String.valueOf(plan.getFileCount())));
+
+        if (plan.getWarnings().isEmpty()) {
+            rows.add(exportInfoLine("Warnings", "None"));
+        } else {
+            rows.add(exportInfoLine("Warnings", String.join(" ", plan.getWarnings())));
+        }
+
+        rows.add(exportSectionTitle("Documents exported"));
+        if (plan.getItems().isEmpty()) {
+            rows.add(exportInfoLine("Selection", "Scan at least one page before exporting."));
+        }
+
+        for (TiffExportItem item : plan.getItems()) {
+            rows.add(exportInfoLine(item.getDocumentId(), item.getPages().size() + " page(s)"));
+        }
+
+        rows.add(exportSectionTitle("Filename preview"));
+        for (TiffExportItem item : plan.getItems()) {
+            rows.add(exportInfoLine(singlePage ? "Single-page TIFF" : "Multi-page TIFF", item.getFileName()));
+        }
+
+        return rows;
+    }
+
+    private Label exportSectionTitle(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("settings-section-heading");
+        return label;
+    }
+
+    private HBox exportInfoLine(String labelText, String valueText) {
+        Label label = new Label(labelText + ":");
+        label.getStyleClass().add("settings-shortcut-key");
+
+        Label value = new Label(valueText == null || valueText.isBlank() ? "Missing" : valueText);
+        value.getStyleClass().add("settings-shortcut-copy");
+        value.setWrapText(true);
+        HBox.setHgrow(value, Priority.ALWAYS);
+
+        HBox row = new HBox(10, label, value);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private List<PageImage> createActiveExportPages() {
+        List<PageImage> pages = new ArrayList<>();
+
+        for (ScannedPage page : allPages) {
+            pages.add(createExportPage(page));
+        }
+
+        return pages;
+    }
+
+    private Map<String, List<PageImage>> createActiveExportPagesByDocument() {
+        Map<String, List<PageImage>> pagesByDocument = new LinkedHashMap<>();
+
+        for (ScannedPage page : allPages) {
+            String documentId = exportDocumentIdFor(page);
+            pagesByDocument.computeIfAbsent(documentId, ignored -> new ArrayList<>()).add(createExportPage(page));
+        }
+
+        return pagesByDocument;
+    }
+
+    private PageImage createExportPage(ScannedPage page) {
+        PageImage.PageType pageType = page.barcode ? PageImage.PageType.BARCODE : PageImage.PageType.TIFF;
+        return new PageImage(page.referenceId, pageType, exportDocumentIdFor(page));
+    }
+
+    private String exportDocumentIdFor(ScannedPage page) {
+        if (page.barcode) {
+            return "Barcode pages";
+        }
+
+        return documentIdFor(page);
+    }
+
+    private Path scanExportOutputFolder() {
+        return Path.of("data", "exports", safeExportFolderName(buildCurrentCaseId()));
+    }
+
+    private String safeExportFolderName(String value) {
+        if (value == null || value.isBlank()) {
+            return "scan";
+        }
+
+        return value.trim().replaceAll("[^a-zA-Z0-9-]", "_");
     }
 
     private void configureProfiles() {
