@@ -162,6 +162,8 @@ public class ScanController {
     private double previewDragStartY = 0;
     private double previewTranslateStartX = 0;
     private double previewTranslateStartY = 0;
+    private double reviewPreviewTranslateX = 0;
+    private double reviewPreviewTranslateY = 0;
 
     private StackPane currentPreviewWrapper;
     private StackPane currentReviewPreviewWrapper;
@@ -469,10 +471,7 @@ public class ScanController {
                 selectedPage == null ? -1 : selectedPage.referenceId,
                 nextReferenceId,
                 nextFileId,
-                collapsedDocuments,
-                previewZoomMultiplier.get(),
-                previewTranslateX,
-                previewTranslateY
+                collapsedDocuments
         ));
 
         while (undoStack.size() > MAX_UNDO_STEPS) {
@@ -501,10 +500,6 @@ public class ScanController {
 
         collapsedDocuments.clear();
         collapsedDocuments.addAll(snapshot.collapsedDocuments);
-
-        previewZoomMultiplier.set(snapshot.previewZoomMultiplier);
-        previewTranslateX = snapshot.previewTranslateX;
-        previewTranslateY = snapshot.previewTranslateY;
 
         rebuildDocumentsFromPages();
 
@@ -801,6 +796,7 @@ public class ScanController {
 
     private void setPreviewZoom(double zoom) {
         previewZoomMultiplier.set(clamp(zoom, MIN_PREVIEW_ZOOM, MAX_PREVIEW_ZOOM));
+        persistSelectedPreviewState();
     }
 
     @FXML
@@ -819,6 +815,8 @@ public class ScanController {
             currentPreviewWrapper.setTranslateX(0);
             currentPreviewWrapper.setTranslateY(0);
         }
+
+        persistSelectedPreviewState();
     }
 
     private void updatePreviewZoomLabel() {
@@ -891,6 +889,32 @@ public class ScanController {
 
         currentPreviewWrapper.setTranslateX(previewTranslateX);
         currentPreviewWrapper.setTranslateY(previewTranslateY);
+        persistSelectedPreviewState();
+    }
+
+    private void loadSelectedPreviewState() {
+        if (selectedPage == null) {
+            previewZoomMultiplier.set(1.0);
+            previewTranslateX = 0;
+            previewTranslateY = 0;
+            updatePreviewZoomLabel();
+            return;
+        }
+
+        previewZoomMultiplier.set(selectedPage.previewZoomMultiplier);
+        previewTranslateX = selectedPage.previewTranslateX;
+        previewTranslateY = selectedPage.previewTranslateY;
+        updatePreviewZoomLabel();
+    }
+
+    private void persistSelectedPreviewState() {
+        if (selectedPage == null) {
+            return;
+        }
+
+        selectedPage.previewZoomMultiplier = previewZoomMultiplier.get();
+        selectedPage.previewTranslateX = previewTranslateX;
+        selectedPage.previewTranslateY = previewTranslateY;
     }
 
     private double clamp(double value, double min, double max) {
@@ -913,6 +937,7 @@ public class ScanController {
 
     private void setReviewPreviewZoom(double zoom) {
         reviewZoomMultiplier.set(clamp(zoom, MIN_PREVIEW_ZOOM, MAX_PREVIEW_ZOOM));
+        persistSelectedReviewPreviewState();
     }
 
     @FXML
@@ -923,11 +948,16 @@ public class ScanController {
 
     private void resetReviewPreviewViewState() {
         reviewZoomMultiplier.set(1.0);
+        reviewPreviewTranslateX = 0;
+        reviewPreviewTranslateY = 0;
 
         if (currentReviewPreviewWrapper != null) {
             currentReviewPreviewWrapper.setTranslateX(0);
             currentReviewPreviewWrapper.setTranslateY(0);
         }
+
+        persistSelectedReviewPreviewState();
+        updateReviewZoomLabel();
     }
 
     @FXML
@@ -955,8 +985,8 @@ public class ScanController {
             return;
         }
 
-        currentReviewPreviewWrapper.setTranslateX(currentReviewPreviewWrapper.getTranslateX() + deltaX);
-        currentReviewPreviewWrapper.setTranslateY(currentReviewPreviewWrapper.getTranslateY() + deltaY);
+        reviewPreviewTranslateX += deltaX;
+        reviewPreviewTranslateY += deltaY;
         clampReviewPreviewTranslation();
     }
 
@@ -980,8 +1010,37 @@ public class ScanController {
         double maxX = Math.abs(hostWidth - scaledWidth) / 2;
         double maxY = Math.abs(hostHeight - scaledHeight) / 2;
 
-        currentReviewPreviewWrapper.setTranslateX(clamp(currentReviewPreviewWrapper.getTranslateX(), -maxX, maxX));
-        currentReviewPreviewWrapper.setTranslateY(clamp(currentReviewPreviewWrapper.getTranslateY(), -maxY, maxY));
+        reviewPreviewTranslateX = clamp(reviewPreviewTranslateX, -maxX, maxX);
+        reviewPreviewTranslateY = clamp(reviewPreviewTranslateY, -maxY, maxY);
+
+        currentReviewPreviewWrapper.setTranslateX(reviewPreviewTranslateX);
+        currentReviewPreviewWrapper.setTranslateY(reviewPreviewTranslateY);
+        persistSelectedReviewPreviewState();
+    }
+
+    private void loadSelectedReviewPreviewState() {
+        if (selectedPage == null) {
+            reviewZoomMultiplier.set(1.0);
+            reviewPreviewTranslateX = 0;
+            reviewPreviewTranslateY = 0;
+            updateReviewZoomLabel();
+            return;
+        }
+
+        reviewZoomMultiplier.set(selectedPage.previewZoomMultiplier);
+        reviewPreviewTranslateX = selectedPage.previewTranslateX;
+        reviewPreviewTranslateY = selectedPage.previewTranslateY;
+        updateReviewZoomLabel();
+    }
+
+    private void persistSelectedReviewPreviewState() {
+        if (selectedPage == null) {
+            return;
+        }
+
+        selectedPage.previewZoomMultiplier = reviewZoomMultiplier.get();
+        selectedPage.previewTranslateX = reviewPreviewTranslateX;
+        selectedPage.previewTranslateY = reviewPreviewTranslateY;
     }
 
     @FXML
@@ -1317,6 +1376,7 @@ public class ScanController {
     }
 
     private void refreshWorkspace() {
+        loadSelectedPreviewState();
         updateWorkspaceHeader();
         refreshHeaderInfoChips();
         updateRotationButtons();
@@ -1639,6 +1699,36 @@ public class ScanController {
             renderDocumentTree();
         });
 
+        documentHeader.setOnDragOver(event -> {
+            if (event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+                documentHeader.getStyleClass().add("document-tree-drop-target");
+            }
+            event.consume();
+        });
+
+        documentHeader.setOnDragExited(event ->
+                documentHeader.getStyleClass().remove("document-tree-drop-target")
+        );
+
+        documentHeader.setOnDragDropped(event -> {
+            Dragboard dragboard = event.getDragboard();
+            boolean success = false;
+
+            if (dragboard.hasString()) {
+                ScannedPage draggedPage = findPageByReferenceId(dragboard.getString());
+
+                if (draggedPage != null && !draggedPage.barcode) {
+                    movePageToDocumentEnd(draggedPage, documentNumber);
+                    success = true;
+                }
+            }
+
+            documentHeader.getStyleClass().remove("document-tree-drop-target");
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
         return documentHeader;
     }
 
@@ -1722,32 +1812,7 @@ public class ScanController {
         if (page == null || page.barcode) {
             return;
         }
-
-        DocumentGroup targetDocument = findDocument(targetDocumentNumber);
-
-        if (targetDocument == null) {
-            return;
-        }
-
-        saveUndoState();
-
-        page.splitReasonAfter = null;
-        allPages.remove(page);
-
-        ScannedPage lastTargetPage = targetDocument.pages.isEmpty()
-                ? null
-                : targetDocument.pages.get(targetDocument.pages.size() - 1);
-
-        int insertIndex = lastTargetPage == null
-                ? allPages.size()
-                : allPages.indexOf(lastTargetPage) + 1;
-
-        allPages.add(insertIndex, page);
-
-        selectedPage = page;
-
-        rebuildDocumentsFromPages();
-        refreshWorkspace();
+        movePageBetweenDocuments(page, targetDocumentNumber, null);
     }
 
     private DocumentGroup findDocument(int documentNumber) {
@@ -2315,25 +2380,104 @@ public class ScanController {
         if (draggedPage == null || targetPage == null || draggedPage == targetPage) {
             return;
         }
+        movePageBetweenDocuments(draggedPage, targetPage.documentNumber, targetPage);
+    }
+
+    private void movePageBetweenDocuments(ScannedPage draggedPage, int targetDocumentNumber, ScannedPage targetPage) {
+        if (draggedPage == null || draggedPage.barcode) {
+            return;
+        }
+
+        List<DocumentMoveGroup> groups = buildDocumentMoveGroups();
+        if (groups.isEmpty()) {
+            return;
+        }
+
+        int sourceGroupIndex = -1;
+        int targetGroupIndex = -1;
+
+        for (int index = 0; index < groups.size(); index++) {
+            DocumentMoveGroup group = groups.get(index);
+
+            if (group.pages.contains(draggedPage)) {
+                sourceGroupIndex = index;
+            }
+
+            if (group.documentNumber == targetDocumentNumber) {
+                targetGroupIndex = index;
+            }
+        }
+
+        if (sourceGroupIndex < 0 || targetGroupIndex < 0) {
+            return;
+        }
 
         saveUndoState();
 
-        int targetIndex = allPages.indexOf(targetPage);
+        DocumentMoveGroup sourceGroup = groups.get(sourceGroupIndex);
+        sourceGroup.pages.remove(draggedPage);
 
-        allPages.remove(draggedPage);
-
-        int adjustedTargetIndex = allPages.indexOf(targetPage);
-
-        if (adjustedTargetIndex < 0) {
-            adjustedTargetIndex = Math.min(targetIndex, allPages.size());
+        if (sourceGroup.pages.isEmpty()) {
+            groups.remove(sourceGroupIndex);
+            if (sourceGroupIndex < targetGroupIndex) {
+                targetGroupIndex--;
+            }
         }
 
-        allPages.add(adjustedTargetIndex, draggedPage);
+        if (targetGroupIndex < 0 || targetGroupIndex >= groups.size()) {
+            return;
+        }
 
+        DocumentMoveGroup targetGroup = groups.get(targetGroupIndex);
+        int insertIndex = targetGroup.pages.size();
+
+        if (targetPage != null) {
+            int targetPageIndex = targetGroup.pages.indexOf(targetPage);
+            if (targetPageIndex >= 0) {
+                insertIndex = targetPageIndex;
+            }
+        }
+
+        targetGroup.pages.add(insertIndex, draggedPage);
+
+        rebuildPagesFromDocumentGroups(groups);
         selectedPage = draggedPage;
-
         rebuildDocumentsFromPages();
         refreshWorkspace();
+    }
+
+    private List<DocumentMoveGroup> buildDocumentMoveGroups() {
+        List<DocumentMoveGroup> groups = new ArrayList<>();
+
+        for (DocumentGroup document : documents) {
+            groups.add(new DocumentMoveGroup(document.number, document.splitReason, document.pages, false));
+        }
+
+        if (!pendingPages.isEmpty()) {
+            groups.add(new DocumentMoveGroup(documents.size() + 1, null, pendingPages, true));
+        }
+
+        return groups;
+    }
+
+    private void rebuildPagesFromDocumentGroups(List<DocumentMoveGroup> groups) {
+        allPages.clear();
+
+        for (DocumentMoveGroup group : groups) {
+            if (group.pages.isEmpty()) {
+                continue;
+            }
+
+            for (ScannedPage page : group.pages) {
+                page.splitReasonAfter = null;
+            }
+
+            if (!group.pending && group.splitReason != null && !"Barcode split".equals(group.splitReason)) {
+                group.pages.get(group.pages.size() - 1).splitReasonAfter = group.splitReason;
+            }
+
+            allPages.addAll(group.pages);
+        }
     }
 
     private void ensureReviewSelection() {
@@ -2359,6 +2503,7 @@ public class ScanController {
     }
 
     private void refreshReviewWorkspace() {
+        loadSelectedReviewPreviewState();
         updateReviewHeader();
         updateReviewSelectionCard(
                 selectedPage == null ? null : findDocumentContainingPage(selectedPage),
@@ -3060,19 +3205,13 @@ public class ScanController {
         private final int nextReferenceId;
         private final int nextFileId;
         private final Set<Integer> collapsedDocuments = new HashSet<>();
-        private final double previewZoomMultiplier;
-        private final double previewTranslateX;
-        private final double previewTranslateY;
 
         private ScanSnapshot(
                 List<ScannedPage> pages,
                 int selectedPageReferenceId,
                 int nextReferenceId,
                 int nextFileId,
-                Set<Integer> collapsedDocuments,
-                double previewZoomMultiplier,
-                double previewTranslateX,
-                double previewTranslateY
+                Set<Integer> collapsedDocuments
         ) {
             for (ScannedPage page : pages) {
                 this.pages.add(new PageSnapshot(page));
@@ -3082,9 +3221,6 @@ public class ScanController {
             this.nextReferenceId = nextReferenceId;
             this.nextFileId = nextFileId;
             this.collapsedDocuments.addAll(collapsedDocuments);
-            this.previewZoomMultiplier = previewZoomMultiplier;
-            this.previewTranslateX = previewTranslateX;
-            this.previewTranslateY = previewTranslateY;
         }
     }
 
@@ -3099,6 +3235,9 @@ public class ScanController {
         private final String sourceReference;
         private final String displayContent;
         private final String previewContent;
+        private final double previewZoomMultiplier;
+        private final double previewTranslateX;
+        private final double previewTranslateY;
 
         private PageSnapshot(ScannedPage page) {
             this.referenceId = page.referenceId;
@@ -3111,6 +3250,9 @@ public class ScanController {
             this.sourceReference = page.sourceReference;
             this.displayContent = page.displayContent;
             this.previewContent = page.previewContent;
+            this.previewZoomMultiplier = page.previewZoomMultiplier;
+            this.previewTranslateX = page.previewTranslateX;
+            this.previewTranslateY = page.previewTranslateY;
         }
 
         private ScannedPage toScannedPage() {
@@ -3126,6 +3268,9 @@ public class ScanController {
             page.documentNumber = documentNumber;
             page.rotationDegrees = rotationDegrees;
             page.splitReasonAfter = splitReasonAfter;
+            page.previewZoomMultiplier = previewZoomMultiplier;
+            page.previewTranslateX = previewTranslateX;
+            page.previewTranslateY = previewTranslateY;
             return page;
         }
     }
@@ -3151,6 +3296,20 @@ public class ScanController {
         }
     }
 
+    private static final class DocumentMoveGroup {
+        private final int documentNumber;
+        private final String splitReason;
+        private final List<ScannedPage> pages = new ArrayList<>();
+        private final boolean pending;
+
+        private DocumentMoveGroup(int documentNumber, String splitReason, List<ScannedPage> pages, boolean pending) {
+            this.documentNumber = documentNumber;
+            this.splitReason = splitReason;
+            this.pages.addAll(pages);
+            this.pending = pending;
+        }
+    }
+
     private enum TiffExportType {
         SINGLE_PAGE,
         MULTI_PAGE
@@ -3166,6 +3325,9 @@ public class ScanController {
 
         private int documentNumber;
         private int rotationDegrees;
+        private double previewZoomMultiplier;
+        private double previewTranslateX;
+        private double previewTranslateY;
         private boolean needsRescan;
         private String splitReasonAfter;
         private transient Image cachedPreviewImage;
@@ -3191,6 +3353,7 @@ public class ScanController {
             this.displayContent = displayContent == null ? "" : displayContent;
             this.previewContent = previewContent == null ? "" : previewContent;
             this.rotationDegrees = 0;
+            this.previewZoomMultiplier = 1.0;
         }
 
         private String referenceIdLabel() {

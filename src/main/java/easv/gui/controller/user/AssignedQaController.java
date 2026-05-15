@@ -103,8 +103,6 @@ public class AssignedQaController {
     private double previewDragStartY = 0;
     private double previewTranslateStartX = 0;
     private double previewTranslateStartY = 0;
-    private int previewRotationDegrees = 0;
-
     private StackPane currentQaPreviewWrapper;
 
     private boolean syncingQaControls = false;
@@ -350,6 +348,7 @@ public class AssignedQaController {
 
     private void setQaPreviewZoom(double zoom) {
         previewZoomMultiplier.set(clamp(zoom, MIN_QA_PREVIEW_ZOOM, MAX_QA_PREVIEW_ZOOM));
+        persistSelectedQaViewState();
     }
 
     private void nudgeQaPreview(double deltaX, double deltaY) {
@@ -369,14 +368,13 @@ public class AssignedQaController {
         previewZoomMultiplier.set(1.0);
         previewTranslateX = 0;
         previewTranslateY = 0;
-        previewRotationDegrees = 0;
 
         if (currentQaPreviewWrapper != null) {
             currentQaPreviewWrapper.setTranslateX(0);
             currentQaPreviewWrapper.setTranslateY(0);
-            currentQaPreviewWrapper.setRotate(0);
         }
 
+        persistSelectedQaViewState();
         updateQaZoomLabel();
     }
 
@@ -405,12 +403,40 @@ public class AssignedQaController {
 
         currentQaPreviewWrapper.setTranslateX(previewTranslateX);
         currentQaPreviewWrapper.setTranslateY(previewTranslateY);
+        persistSelectedQaViewState();
     }
 
     private void updateQaZoomLabel() {
         if (zoomPercentLabel != null) {
             zoomPercentLabel.setText(Math.round(previewZoomMultiplier.get() * 100) + "%");
         }
+    }
+
+    private void loadSelectedQaViewState() {
+        QaPage page = getSelectedQaPage();
+        if (page == null) {
+            previewZoomMultiplier.set(1.0);
+            previewTranslateX = 0;
+            previewTranslateY = 0;
+            updateQaZoomLabel();
+            return;
+        }
+
+        previewZoomMultiplier.set(page.previewZoomMultiplier);
+        previewTranslateX = page.previewTranslateX;
+        previewTranslateY = page.previewTranslateY;
+        updateQaZoomLabel();
+    }
+
+    private void persistSelectedQaViewState() {
+        QaPage page = getSelectedQaPage();
+        if (page == null) {
+            return;
+        }
+
+        page.previewZoomMultiplier = previewZoomMultiplier.get();
+        page.previewTranslateX = previewTranslateX;
+        page.previewTranslateY = previewTranslateY;
     }
 
     private double clamp(double value, double min, double max) {
@@ -889,6 +915,7 @@ public class AssignedQaController {
 
     private void refreshQaReviewWorkspace() {
         updateSelectedAssignmentFromReview();
+        loadSelectedQaViewState();
         renderQaHeader();
         renderQaDocumentTree();
         renderQaPreview();
@@ -1066,12 +1093,13 @@ public class AssignedQaController {
     }
 
     private Node wrapQaPreviewWithAutoScale(Node previewNode) {
+        QaPage page = getSelectedQaPage();
         StackPane previewWrapper = new StackPane(previewNode);
         previewWrapper.setAlignment(Pos.CENTER);
         previewWrapper.setPickOnBounds(true);
         previewWrapper.setMaxWidth(QA_PREVIEW_PAGE_WIDTH);
         previewWrapper.setMaxHeight(QA_PREVIEW_PAGE_HEIGHT);
-        previewWrapper.setRotate(previewRotationDegrees);
+        previewWrapper.setRotate(page == null ? 0 : page.rotationDegrees);
 
         DoubleBinding scaleBinding = Bindings.createDoubleBinding(() -> {
             double availableWidth = Math.max(1, qaPreviewHost.getWidth() - QA_PREVIEW_SAFE_HORIZONTAL_PADDING);
@@ -1562,13 +1590,23 @@ public class AssignedQaController {
 
     @FXML
     private void onRotateLeft() {
-        previewRotationDegrees = normalizeRotation(previewRotationDegrees - 90);
+        QaPage page = getSelectedQaPage();
+        if (page == null) {
+            return;
+        }
+
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
         renderQaPreview();
     }
 
     @FXML
     private void onRotateRight() {
-        previewRotationDegrees = normalizeRotation(previewRotationDegrees + 90);
+        QaPage page = getSelectedQaPage();
+        if (page == null) {
+            return;
+        }
+
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
         renderQaPreview();
     }
 
@@ -2037,6 +2075,10 @@ public class AssignedQaController {
         private final int globalPageNumber;
 
         private QaPageStatus status = QaPageStatus.NOT_REVIEWED;
+        private int rotationDegrees = 0;
+        private double previewZoomMultiplier = 1.0;
+        private double previewTranslateX = 0;
+        private double previewTranslateY = 0;
         private boolean pageReadable = false;
         private boolean rotationCorrect = false;
         private boolean splitCorrect = false;
