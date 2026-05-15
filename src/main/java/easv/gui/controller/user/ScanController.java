@@ -21,6 +21,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.ClipboardContent;
@@ -559,6 +560,9 @@ public class ScanController {
 
         saveUndoState();
         scanInProgress = true;
+        selectedFileTitleLabel.setText("Scanning next file");
+        selectedFileRefLabel.setText("Please wait while we process your document.");
+        refreshWorkspace();
 
         BackgroundExecutor.io().execute(() -> {
             try {
@@ -575,6 +579,7 @@ public class ScanController {
                     selectedFileRefLabel.setText(exception.getMessage() == null || exception.getMessage().isBlank()
                             ? "Failed to import next file."
                             : exception.getMessage());
+                    refreshWorkspace();
                 });
             }
         });
@@ -586,6 +591,7 @@ public class ScanController {
         if (result == null) {
             selectedFileTitleLabel.setText("Scan failed");
             selectedFileRefLabel.setText("No scan result returned.");
+            refreshWorkspace();
             return;
         }
 
@@ -1757,6 +1763,12 @@ public class ScanController {
     private void renderPreview() {
         previewHost.getChildren().clear();
 
+        if (scanInProgress) {
+            currentPreviewWrapper = null;
+            previewHost.getChildren().add(createScanningPreview());
+            return;
+        }
+
         if (selectedPage == null) {
             currentPreviewWrapper = null;
             previewHost.getChildren().add(createEmptyPreview());
@@ -1818,6 +1830,29 @@ public class ScanController {
         emptyPreview.getChildren().addAll(title, copy);
 
         return emptyPreview;
+    }
+
+    private Node createScanningPreview() {
+        VBox scanningPreview = new VBox(20);
+        scanningPreview.setAlignment(Pos.CENTER);
+        scanningPreview.getStyleClass().add("scan-preview-loading");
+
+        ProgressIndicator indicator = new ProgressIndicator(ProgressIndicator.INDETERMINATE_PROGRESS);
+        indicator.setMaxSize(160, 160);
+        indicator.setPrefSize(160, 160);
+        indicator.getStyleClass().add("scan-progress-indicator");
+
+        Label progressCopy = new Label("Scanning");
+        progressCopy.getStyleClass().add("scan-progress-indicator-copy");
+
+        StackPane indicatorShell = new StackPane(indicator, progressCopy);
+        indicatorShell.getStyleClass().add("scan-progress-indicator-shell");
+
+        Label title = new Label("Scanning in Progress");
+        title.getStyleClass().add("scan-preview-loading-title");
+
+        scanningPreview.getChildren().addAll(indicatorShell, title);
+        return scanningPreview;
     }
 
     private Node createBarcodePreview(ScannedPage page) {
