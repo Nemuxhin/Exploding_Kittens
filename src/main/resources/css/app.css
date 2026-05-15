@@ -6668,7 +6668,7 @@
 }
 
 .qa-review-left-panel {
-    -fx-padding: 18 15 18 15;
+    -fx-padding: 12 15 15 15;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent -wl-border transparent transparent;
     -fx-border-width: 0 1 0 0;

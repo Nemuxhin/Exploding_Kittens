@@ -162,56 +162,62 @@
              ========================================================= -->
 
         <top>
-            <HBox alignment="CENTER_LEFT"
-                  spacing="18"
-                  minHeight="111"
-                  prefHeight="111"
-                  maxHeight="111"
-                  styleClass="qa-review-header">
+            <BorderPane minWidth="0"
+                        maxWidth="Infinity"
+                        styleClass="qa-review-header">
 
                 <padding>
-                    <Insets top="12" right="21" bottom="12" left="21"/>
+                    <Insets top="12" right="18" bottom="12" left="18"/>
                 </padding>
 
-                <VBox spacing="6"
-                      HBox.hgrow="ALWAYS"
-                      maxWidth="Infinity">
+                <left>
+                    <VBox spacing="6"
+                          alignment="CENTER_LEFT"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          style="-fx-padding: 0 15 0 15;">
+                        <Label text="QA Review"
+                               styleClass="qa-review-title"/>
 
-                    <Button text="Back"
-                            onAction="#onBackToAssignedQaList"
-                            focusTraversable="false"
-                            styleClass="back-button"/>
+                        <Button text="Back"
+                                onAction="#onBackToAssignedQaList"
+                                focusTraversable="false"
+                                styleClass="back-button"/>
+                    </VBox>
+                </left>
 
-                    <Label text="QA Review"
-                           styleClass="qa-review-title"/>
-
-                    <HBox alignment="CENTER_LEFT"
-                          spacing="18">
-
+                <center>
+                    <HBox spacing="9"
+                          alignment="CENTER"
+                          BorderPane.alignment="CENTER">
                         <Label fx:id="qaBoxIdLabel"
                                text="BOX-2026-007"
-                               styleClass="qa-review-meta-strong"/>
-
-                        <Label text="&#x2022;"
-                               styleClass="qa-review-meta-separator"/>
+                               styleClass="scan-session-info-chip"/>
 
                         <Label fx:id="qaProfileLabel"
                                text="Building Archive"
-                               styleClass="qa-review-meta"/>
-
-                        <Label text="&#x2022;"
-                               styleClass="qa-review-meta-separator"/>
+                               styleClass="scan-session-info-chip"/>
 
                         <Label fx:id="qaProgressLabel"
                                text="0 / 0 pages reviewed"
-                               styleClass="qa-review-meta"/>
+                               styleClass="scan-session-info-chip"/>
                     </HBox>
-                </VBox>
+                </center>
 
-                <Label fx:id="reviewStatusBadge"
-                       text="In Review"
-                       styleClass="qa-review-status-badge qa-review-status-review"/>
-            </HBox>
+                <right>
+                    <HBox alignment="CENTER_RIGHT"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          style="-fx-padding: 0 15 0 15;"
+                          BorderPane.alignment="CENTER_RIGHT">
+                        <Label fx:id="reviewStatusBadge"
+                               text="In Review"
+                               styleClass="qa-review-status-badge qa-review-status-review"/>
+                    </HBox>
+                </right>
+            </BorderPane>
         </top>
 
         <!-- =========================================================
@@ -229,7 +235,7 @@
                      LEFT DOCUMENTS PANEL
                      ===================================================== -->
 
-                <VBox spacing="12"
+                <VBox spacing="9"
                       prefWidth="320"
                       minWidth="320"
                       maxWidth="320"
@@ -239,10 +245,6 @@
 
                     <Label text="Box Structure"
                            styleClass="qa-review-panel-title"/>
-
-                    <Label fx:id="qaSidebarSubtitleLabel"
-                           text="Profile - Box"
-                           styleClass="document-tree-subtitle"/>
 
                     <ScrollPane fitToWidth="true"
                                 fitToHeight="false"
@@ -563,6 +565,12 @@
                                         maxWidth="Infinity"
                                         focusTraversable="false"
                                         styleClass="qa-complete-button"/>
+
+                                <Button text="Export Type"
+                                        onAction="#onOpenExportTypeDialog"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-neutral-button"/>
                             </VBox>
                         </content>
                     </ScrollPane>
