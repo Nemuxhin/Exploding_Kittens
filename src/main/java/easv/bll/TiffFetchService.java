@@ -1,6 +1,6 @@
 package easv.bll;
 
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,8 +55,13 @@ public class TiffFetchService {
             throw new IllegalArgumentException("Invalid API response: corrupted file");
         }
 
-        String displayContent = "data:image/tiff;base64," + Base64.getEncoder().encodeToString(page.fileData());
-        return new FetchedPage(page.pageNumber(), page.sourceReference(), displayContent, page.barcodeValue());
+        return new FetchedPage(
+                page.pageNumber(),
+                page.sourceReference(),
+                "",
+                page.barcodeValue(),
+                page.fileData()
+        );
     }
 
     private boolean isTiffContentType(String contentType) {
@@ -112,5 +117,15 @@ public class TiffFetchService {
 
     public record FetchedItem(ScannerApiClient.ApiTiffItem source, List<FetchedPage> pages) {}
 
-    public record FetchedPage(int pageNumber, String sourceReference, String displayContent, String barcodeValue) {}
+    public record FetchedPage(
+            int pageNumber,
+            String sourceReference,
+            String displayContent,
+            String barcodeValue,
+            byte[] fileData
+    ) {
+        public FetchedPage {
+            fileData = fileData == null ? new byte[0] : Arrays.copyOf(fileData, fileData.length);
+        }
+    }
 }

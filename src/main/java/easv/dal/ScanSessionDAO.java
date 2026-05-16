@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class ScanSessionDAO {
+    private static volatile boolean profileNameColumnEnsured;
+
     private final DatabaseConnection databaseConnection;
 
     public ScanSessionDAO() {
@@ -132,6 +134,19 @@ public class ScanSessionDAO {
     }
 
     private void ensureProfileNameColumn() {
+        if (profileNameColumnEnsured) {
+            return;
+        }
+        synchronized (ScanSessionDAO.class) {
+            if (profileNameColumnEnsured) {
+                return;
+            }
+            ensureProfileNameColumnInternal();
+            profileNameColumnEnsured = true;
+        }
+    }
+
+    private void ensureProfileNameColumnInternal() {
         try (Connection connection = databaseConnection.getConnection()) {
             if (DatabaseConnection.columnExists(connection, "scan_sessions", "profile_name")) {
                 return;

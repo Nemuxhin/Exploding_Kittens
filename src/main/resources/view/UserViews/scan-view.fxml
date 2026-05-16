@@ -288,7 +288,8 @@
                            styleClass="workspace-subtitle"/>
                 </VBox>
 
-                <Button text="Scan Next File"
+                <Button fx:id="scanNextFileButton"
+                        text="Scan Next File"
                         onAction="#onScanNextFile"
                         minWidth="168"
                         prefWidth="168"

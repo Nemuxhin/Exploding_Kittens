@@ -33,12 +33,11 @@ public class DocumentDAO {
         if (caseFileId == null) {
             throw new IllegalArgumentException("caseFileId must not be null");
         }
-        Optional<Document> existing = findBySourceItemId(document.getSourceItemId());
-        if (existing.isPresent()) {
-            return existing.get();
-        }
-
         try (Connection connection = databaseConnection.getConnection()) {
+            Optional<Document> existing = findBySourceItemId(connection, document.getSourceItemId());
+            if (existing.isPresent()) {
+                return existing.get();
+            }
             connection.setAutoCommit(false);
             try (PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO documents (id, source_item_id, case_file_id) VALUES (?, ?, ?)")) {
@@ -52,7 +51,7 @@ public class DocumentDAO {
             } catch (SQLException | DataAccessException e) {
                 connection.rollback();
                 if (e instanceof SQLException sqlException && isUniqueViolation(sqlException)) {
-                    return findBySourceItemId(document.getSourceItemId()).orElseThrow();
+                    return findBySourceItemId(connection, document.getSourceItemId()).orElseThrow();
                 }
                 throw e;
             }
@@ -68,22 +67,24 @@ public class DocumentDAO {
             throw new IllegalArgumentException("sourceItemId must not be blank");
         }
         try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT id, source_item_id FROM documents WHERE source_item_id = ?")) {
+             ) {
+            return findBySourceItemId(connection, sourceItemId);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch document " + sourceItemId, e);
+        }
+    }
+
+    Optional<Document> findBySourceItemId(Connection connection, String sourceItemId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT id, source_item_id FROM documents WHERE source_item_id = ?")) {
             statement.setString(1, sourceItemId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     UUID documentId = UUID.fromString(resultSet.getString("id"));
-                    return Optional.of(new Document(
-                            documentId,
-                            resultSet.getString("source_item_id"),
-                            pageImageDAO.findByDocumentId(documentId)
-                    ));
+                    return loadPersistedDocument(connection, documentId, resultSet.getString("source_item_id"));
                 }
                 return Optional.empty();
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to fetch document " + sourceItemId, e);
         }
     }
 
@@ -95,11 +96,8 @@ public class DocumentDAO {
             Collection<Document> documents = new ArrayList<>();
             while (resultSet.next()) {
                 UUID documentId = UUID.fromString(resultSet.getString("id"));
-                documents.add(new Document(
-                        documentId,
-                        resultSet.getString("source_item_id"),
-                        pageImageDAO.findByDocumentId(documentId)
-                ));
+                loadPersistedDocument(connection, documentId, resultSet.getString("source_item_id"))
+                        .ifPresent(documents::add);
             }
             return documents;
         } catch (SQLException e) {
@@ -112,23 +110,26 @@ public class DocumentDAO {
             throw new IllegalArgumentException("caseFileId must not be null");
         }
         try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT id, source_item_id FROM documents WHERE case_file_id = ? ORDER BY source_item_id")) {
+             ) {
+            return findByCaseFileId(connection, caseFileId);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch documents for case file " + caseFileId, e);
+        }
+    }
+
+    Collection<Document> findByCaseFileId(Connection connection, UUID caseFileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT id, source_item_id FROM documents WHERE case_file_id = ? ORDER BY source_item_id")) {
             statement.setString(1, caseFileId.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 Collection<Document> documents = new ArrayList<>();
                 while (resultSet.next()) {
                     UUID documentId = UUID.fromString(resultSet.getString("id"));
-                    documents.add(new Document(
-                            documentId,
-                            resultSet.getString("source_item_id"),
-                            pageImageDAO.findByDocumentId(documentId)
-                    ));
+                    loadPersistedDocument(connection, documentId, resultSet.getString("source_item_id"))
+                            .ifPresent(documents::add);
                 }
                 return documents;
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to fetch documents for case file " + caseFileId, e);
         }
     }
 
@@ -176,7 +177,11 @@ public class DocumentDAO {
         try (Connection connection = databaseConnection.getConnection()) {
             connection.setAutoCommit(false);
             try {
-                pageImageDAO.syncDocumentPages(connection, sourceDocument.getId(), sourceDocument.getAllPages());
+                if (sourceDocument.getPages().isEmpty()) {
+                    deleteDocument(connection, sourceDocument.getId());
+                } else {
+                    pageImageDAO.syncDocumentPages(connection, sourceDocument.getId(), sourceDocument.getAllPages());
+                }
                 pageImageDAO.syncDocumentPages(connection, targetDocument.getId(), targetDocument.getAllPages());
                 connection.commit();
             } catch (SQLException | RuntimeException e) {
@@ -197,14 +202,41 @@ public class DocumentDAO {
                 if (!resultSet.next()) {
                     throw new IllegalArgumentException("Document could not be found.");
                 }
-                return new Document(
+                return loadPersistedDocument(connection,
                         UUID.fromString(resultSet.getString("id")),
-                        resultSet.getString("source_item_id"),
-                        pageImageDAO.findByDocumentId(documentId)
-                );
+                        resultSet.getString("source_item_id"))
+                        .orElseThrow(() -> new IllegalArgumentException("Document could not be found."));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch document " + documentId, e);
+        }
+    }
+
+    private Optional<Document> loadPersistedDocument(Connection connection, UUID documentId, String sourceItemId) {
+        List<PageImage> pages = pageImageDAO.findByDocumentId(documentId);
+        boolean hasActivePages = pages.stream().anyMatch(page -> !page.isDeleted());
+        if (!hasActivePages) {
+            deleteDocument(connection, documentId);
+            return Optional.empty();
+        }
+        return Optional.of(new Document(documentId, sourceItemId, pages));
+    }
+
+    private void deleteDocument(Connection connection, UUID documentId) {
+        try (PreparedStatement deleteSessionLinks = connection.prepareStatement(
+                "DELETE FROM scan_session_documents WHERE document_id = ?");
+             PreparedStatement deletePages = connection.prepareStatement(
+                "DELETE FROM document_pages WHERE document_id = ?");
+             PreparedStatement deleteDocument = connection.prepareStatement(
+                     "DELETE FROM documents WHERE id = ?")) {
+            deleteSessionLinks.setString(1, documentId.toString());
+            deleteSessionLinks.executeUpdate();
+            deletePages.setString(1, documentId.toString());
+            deletePages.executeUpdate();
+            deleteDocument.setString(1, documentId.toString());
+            deleteDocument.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to delete empty document " + documentId, e);
         }
     }
 

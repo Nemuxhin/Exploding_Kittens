@@ -77,14 +77,24 @@ public class ScanManager {
     }
 
     public Optional<Document> importNextItem(ScanSession session) {
-        ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Keep barcode page in final document");
+        ScanImportResult result = scanNextItem(
+                session,
+                session.getSelectedBarcodeBehavior(),
+                "Keep barcode page in final document",
+                true
+        );
         if (!result.getImportedDocuments().isEmpty()) {
             return Optional.of(result.getImportedDocuments().get(0));
         }
         return Optional.empty();
     }
 
-    public ScanImportResult scanNextItem(ScanSession session, String barcodeBehavior, String barcodePageBehavior) {
+    public ScanImportResult scanNextItem(
+            ScanSession session,
+            String barcodeBehavior,
+            String barcodePageBehavior,
+            boolean barcodeSplittingEnabled
+    ) {
         Objects.requireNonNull(session, "session");
         session.setSelectedBarcodeBehavior(barcodeBehavior);
 
@@ -109,7 +119,14 @@ public class ScanManager {
 
         final BarcodeHandlingResult handlingResult;
         try {
-            handlingResult = splitIntoDocuments(item.itemId(), fetchedItem.pages(), session, barcodeBehavior, barcodePageBehavior);
+            handlingResult = splitIntoDocuments(
+                    item.itemId(),
+                    fetchedItem.pages(),
+                    session,
+                    barcodeBehavior,
+                    barcodePageBehavior,
+                    barcodeSplittingEnabled
+            );
         } catch (IllegalArgumentException exception) {
             session.recordFailure(exception.getMessage());
             scanSessionDAO.recordFailure(session, exception.getMessage());
@@ -137,7 +154,12 @@ public class ScanManager {
         List<Document> imported = new ArrayList<>();
         while (true) {
             int failuresBefore = session.getFailures().size();
-            ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Remove barcode page from final document");
+            ScanImportResult result = scanNextItem(
+                    session,
+                    session.getSelectedBarcodeBehavior(),
+                    "Remove barcode page from final document",
+                    true
+            );
             if (!result.getImportedDocuments().isEmpty()) {
                 imported.addAll(result.getImportedDocuments());
                 if (result.getStatus() == ScanImportResult.Status.STOPPED_ON_BARCODE) {
@@ -170,7 +192,8 @@ public class ScanManager {
             List<TiffFetchService.FetchedPage> pages,
             ScanSession session,
             String barcodeBehavior,
-            String barcodePageBehavior
+            String barcodePageBehavior,
+            boolean barcodeSplittingEnabled
     ) {
         List<Document> documents = new ArrayList<>();
         List<PageImage> scannedPages = new ArrayList<>();
@@ -179,20 +202,28 @@ public class ScanManager {
         boolean stopOnBarcode = barcodeBehavior != null && barcodeBehavior.toLowerCase().contains("stop");
 
         for (TiffFetchService.FetchedPage page : pages) {
-            BarcodeSplitService.DetectionResult detectionResult = barcodeSplitService.classify(
+            BarcodeSplitService.DetectionResult detectionResult = barcodeSplittingEnabled
+                    ? barcodeSplitService.classify(
                     page.sourceReference(),
                     page.barcodeValue(),
-                    page.displayContent()
-            );
+                    page.fileData()
+            )
+                    : new BarcodeSplitService.DetectionResult(PageImage.PageType.TIFF, "");
             PageImage.PageType pageType = detectionResult.pageType();
             PageImage pageImage = new PageImage(page.pageNumber(), pageType, page.sourceReference());
             pageImage.setReferenceId(session.allocateReferenceId());
             pageImage.setDisplayContent(page.displayContent());
+            pageImage.setPreviewSourceBytes(page.fileData());
             scannedPages.add(pageImage);
 
             if (pageType == PageImage.PageType.BARCODE) {
                 if (detectionResult.barcodeValue().isBlank()) {
                     throw new IllegalArgumentException("Unreadable barcode result.");
+                }
+
+                if (!currentPages.isEmpty()) {
+                    documents.add(new Document(itemId + "-" + documentIndex++, currentPages));
+                    currentPages = new ArrayList<>();
                 }
 
                 if ("Keep barcode page in final document".equalsIgnoreCase(barcodePageBehavior)) {
@@ -201,12 +232,11 @@ public class ScanManager {
                     documents.add(new Document(itemId + "-barcode-" + documentIndex++, List.of(pageImage)));
                 }
 
-                if (!currentPages.isEmpty()) {
-                    documents.add(new Document(itemId + "-" + documentIndex++, currentPages));
-                    currentPages = new ArrayList<>();
-                }
-
                 if (stopOnBarcode) {
+                    if (!currentPages.isEmpty()) {
+                        documents.add(new Document(itemId + "-" + documentIndex++, currentPages));
+                        currentPages = new ArrayList<>();
+                    }
                     return new BarcodeHandlingResult(documents, scannedPages, true, "Scanning stopped because a barcode was detected.");
                 }
                 continue;

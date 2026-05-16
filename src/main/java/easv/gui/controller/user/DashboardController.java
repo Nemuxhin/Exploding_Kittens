@@ -263,10 +263,11 @@ public class DashboardController {
     private void loadDashboardAsync(VBox page) {
         BackgroundExecutor.io().execute(() -> {
             try {
+                UserPortalModel.DashboardData dashboardData = portalModel.fetchDashboardData();
                 DashboardSnapshot snapshot = new DashboardSnapshot(
-                        portalModel.fetchDashboardMetrics(),
-                        portalModel.fetchRecentScans(),
-                        portalModel.fetchAccountProfile()
+                        dashboardData.metrics(),
+                        dashboardData.recentScans(),
+                        dashboardData.accountProfile()
                 );
 
                 Platform.runLater(() -> {

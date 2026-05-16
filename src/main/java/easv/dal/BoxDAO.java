@@ -25,8 +25,15 @@ public class BoxDAO {
     public Box saveOrGetExisting(String boxId, String description) {
         validateKey(boxId, "boxId");
         validateKey(description, "description");
-        return findByBoxId(boxId)
-                .orElseGet(() -> insert(boxId, description));
+        try (Connection connection = databaseConnection.getConnection()) {
+            Optional<Box> existing = findByBoxId(connection, boxId);
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+            return insert(connection, boxId, description);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to store box " + boxId, e);
+        }
     }
 
     public Optional<Box> findByBoxId(String boxId) {
@@ -43,6 +50,19 @@ public class BoxDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch box " + boxId, e);
+        }
+    }
+
+    private Optional<Box> findByBoxId(Connection connection, String boxId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT id, box_id, description FROM boxes WHERE box_id = ?")) {
+            statement.setString(1, boxId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapBox(resultSet));
+                }
+                return Optional.empty();
+            }
         }
     }
 
@@ -67,10 +87,9 @@ public class BoxDAO {
         }
     }
 
-    private Box insert(String boxId, String description) {
+    private Box insert(Connection connection, String boxId, String description) throws SQLException {
         Box box = new Box(UUID.randomUUID(), boxId, description);
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                      "INSERT INTO boxes (id, box_id, description) VALUES (?, ?, ?)")) {
             statement.setString(1, box.getId().toString());
             statement.setString(2, box.getBoxId());
@@ -79,9 +98,9 @@ public class BoxDAO {
             return box;
         } catch (SQLException e) {
             if (isUniqueViolation(e)) {
-                return findByBoxId(boxId).orElseThrow();
+                return findByBoxId(connection, boxId).orElseThrow();
             }
-            throw new DataAccessException("Failed to store box " + boxId, e);
+            throw e;
         }
     }
 

@@ -46,6 +46,7 @@ public class UserPortalModel {
 
     public record DashboardMetric(String label, String value) {}
     public record AccountProfile(String fullName, String email, String department) {}
+    public record DashboardData(List<DashboardMetric> metrics, List<RecentScanItem> recentScans, AccountProfile accountProfile) {}
     public record ScanProfileInfo(String metadataRequired, String qaRequired, String splittingMethod) {}
     public record BoxItem(String id, String description) {
         @Override
@@ -214,6 +215,42 @@ public class UserPortalModel {
         return accountProfile;
     }
 
+    public DashboardData fetchDashboardData() {
+        syncAccountFromSession();
+
+        List<ScanProfile> profiles = filteredProfilesForCurrentUser();
+        List<HistoryItem> history = loadHistoryItems();
+        List<CaseFile> caseFiles = fetchAllCaseFiles();
+
+        int documents = caseFiles.stream()
+                .mapToInt(caseFile -> caseFile.getDocuments().size())
+                .sum();
+        int pages = caseFiles.stream()
+                .flatMap(caseFile -> caseFile.getDocuments().stream())
+                .mapToInt(document -> document.getPages().size())
+                .sum();
+
+        List<DashboardMetric> metrics = List.of(
+                new DashboardMetric("Assigned Profiles", String.valueOf(profiles.size())),
+                new DashboardMetric("Batches", String.valueOf(history.size())),
+                new DashboardMetric("Documents", String.valueOf(documents)),
+                new DashboardMetric("Pages", String.valueOf(pages))
+        );
+
+        List<RecentScanItem> recentScans = history.stream()
+                .limit(4)
+                .map(item -> new RecentScanItem(
+                        item.boxId(),
+                        item.profileName(),
+                        item.status(),
+                        item.startedAt(),
+                        item.pages()
+                ))
+                .toList();
+
+        return new DashboardData(metrics, recentScans, accountProfile);
+    }
+
     public void updateAccountProfile(String fullName, String email, String department) {
         accountProfile = new AccountProfile(
                 normalizedValue(fullName, accountProfile.fullName()),
@@ -272,6 +309,49 @@ public class UserPortalModel {
     private List<ScanProfile> safeProfiles() {
         try {
             return scanProfileDAO.findAll();
+        } catch (DataAccessException exception) {
+            return List.of();
+        }
+    }
+
+    private List<ScanProfile> filteredProfilesForCurrentUser() {
+        User currentUser = UserSession.getCurrentUser();
+        List<ScanProfile> availableProfiles = safeProfiles();
+        if (availableProfiles.isEmpty()) {
+            return List.of();
+        }
+
+        LinkedHashSet<String> allowedNames = new LinkedHashSet<>();
+        if (currentUser != null && currentUser.getAssignedProfiles() != null && !currentUser.getAssignedProfiles().isEmpty()) {
+            allowedNames.addAll(currentUser.getAssignedProfiles());
+        }
+
+        List<ScanProfile> filteredProfiles = allowedNames.isEmpty()
+                ? availableProfiles.stream().filter(profile -> !profile.isArchived()).toList()
+                : availableProfiles.stream()
+                .filter(profile -> allowedNames.stream().anyMatch(assigned -> assigned.equalsIgnoreCase(profile.getName())))
+                .toList();
+
+        if (filteredProfiles.isEmpty()) {
+            return availableProfiles.stream().filter(profile -> !profile.isArchived()).toList();
+        }
+        return filteredProfiles;
+    }
+
+    private List<HistoryItem> loadHistoryItems() {
+        try {
+            return scanSessionDAO.findHistorySummaries().stream()
+                    .map(summary -> new HistoryItem(
+                            summary.boxId(),
+                            summary.profileName(),
+                            summary.documentCount(),
+                            summary.status(),
+                            formatHistoryTime(summary.startedAt()),
+                            isCompletedStatus(summary.status()) ? formatHistoryTime(summary.startedAt()) : "-",
+                            summary.pageCount(),
+                            "-"
+                    ))
+                    .toList();
         } catch (DataAccessException exception) {
             return List.of();
         }
