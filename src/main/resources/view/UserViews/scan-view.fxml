@@ -331,8 +331,26 @@
                   styleClass="scan-left-panel">
 
                 <VBox spacing="3">
-                    <Label text="Box Structure"
-                           styleClass="scan-panel-title"/>
+                    <HBox alignment="CENTER_LEFT"
+                          spacing="9"
+                          maxWidth="Infinity">
+                        <Label text="Box Structure"
+                               styleClass="scan-panel-title"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button fx:id="documentTreeGridViewButton"
+                                text="⧉"
+                                onAction="#onShowDocumentTreeGridView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+
+                        <Button fx:id="documentTreeListViewButton"
+                                text="☰"
+                                onAction="#onShowDocumentTreeListView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+                    </HBox>
 
                     <Label fx:id="boxStructureSubtitleLabel"
                            text="No profile &#183; No box ID"
@@ -573,7 +591,7 @@
                 <Region styleClass="scan-panel-divider"/>
 
                 <VBox spacing="9">
-                    <Label text="Document Tools"
+                    <Label text="Split Documents Manually"
                            styleClass="scan-tools-section-label"/>
 
                     <Button text="Split Here"
@@ -590,16 +608,6 @@
                     <Button fx:id="undoLastActionButton"
                             text="Undo Last Action"
                             onAction="#onUndoLastAction"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
-
-                    <Button text="Save Progress"
-                            onAction="#onSaveProgress"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
-
-                    <Button text="Create Metadata"
-                            onAction="#onCreateMetadata"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
@@ -703,8 +711,26 @@
                   maxHeight="Infinity"
                   styleClass="review-left-panel">
 
-                <Label text="Box Structure"
-                       styleClass="review-panel-title"/>
+                <HBox alignment="CENTER_LEFT"
+                      spacing="9"
+                      maxWidth="Infinity">
+                    <Label text="Box Structure"
+                           styleClass="review-panel-title"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="reviewDocumentGridViewButton"
+                            text="⧉"
+                            onAction="#onShowReviewDocumentGridView"
+                            focusTraversable="false"
+                            styleClass="document-tree-view-toggle-button"/>
+
+                    <Button fx:id="reviewDocumentListViewButton"
+                            text="☰"
+                            onAction="#onShowReviewDocumentListView"
+                            focusTraversable="false"
+                            styleClass="document-tree-view-toggle-button"/>
+                </HBox>
 
                 <Label fx:id="reviewSidebarSubtitleLabel"
                        text="Profile - Box"

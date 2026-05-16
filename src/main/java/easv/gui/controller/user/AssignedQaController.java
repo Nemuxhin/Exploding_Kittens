@@ -73,6 +73,8 @@ public class AssignedQaController {
     @FXML private Label qaSidebarSubtitleLabel;
 
     @FXML private VBox qaDocumentTreeContainer;
+    @FXML private Button qaDocumentGridViewButton;
+    @FXML private Button qaDocumentListViewButton;
     @FXML private Label selectedQaPageTitleLabel;
     @FXML private Label selectedQaPageSubtitleLabel;
     @FXML private StackPane qaPreviewHost;
@@ -86,6 +88,9 @@ public class AssignedQaController {
     @FXML private CheckBox splitCorrectCheckBox;
     @FXML private CheckBox pageCountCorrectCheckBox;
     @FXML private TextArea qaCommentTextArea;
+    @FXML private ComboBox<String> qaActionScopeComboBox;
+    @FXML private Button qaRotateLeftButton;
+    @FXML private Button qaRotateRightButton;
 
     private final List<QaAssignment> allAssignments = new ArrayList<>();
     private final List<QaDocument> reviewDocuments = new ArrayList<>();
@@ -106,6 +111,7 @@ public class AssignedQaController {
     private StackPane currentQaPreviewWrapper;
 
     private boolean syncingQaControls = false;
+    private boolean qaDocumentListView = false;
 
     @FXML
     private void initialize() {
@@ -145,6 +151,37 @@ public class AssignedQaController {
             qaCardListContainer.prefWidthProperty().bind(assignedQaFilterPanel.widthProperty());
             qaCardListContainer.maxWidthProperty().bind(assignedQaFilterPanel.widthProperty());
         }
+        updateQaDocumentViewToggleButtons();
+    }
+
+    @FXML
+    private void onShowQaDocumentGridView() {
+        qaDocumentListView = false;
+        updateQaDocumentViewToggleButtons();
+        renderQaDocumentTree();
+    }
+
+    @FXML
+    private void onShowQaDocumentListView() {
+        qaDocumentListView = true;
+        updateQaDocumentViewToggleButtons();
+        renderQaDocumentTree();
+    }
+
+    private void updateQaDocumentViewToggleButtons() {
+        setDocumentViewButtonActive(qaDocumentGridViewButton, !qaDocumentListView);
+        setDocumentViewButtonActive(qaDocumentListViewButton, qaDocumentListView);
+    }
+
+    private void setDocumentViewButtonActive(Button button, boolean active) {
+        if (button == null) {
+            return;
+        }
+
+        button.getStyleClass().remove("document-tree-view-toggle-button-active");
+        if (active) {
+            button.getStyleClass().add("document-tree-view-toggle-button-active");
+        }
     }
 
     // =========================================================
@@ -152,49 +189,62 @@ public class AssignedQaController {
     // =========================================================
 
     private void configureQaControls() {
-        pageReadableCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (syncingQaControls) {
-                return;
-            }
+        if (qaActionScopeComboBox != null) {
+            qaActionScopeComboBox.getItems().setAll("Selected Page", "This Document");
+            qaActionScopeComboBox.getSelectionModel().selectFirst();
+        }
 
-            QaPage page = getSelectedQaPage();
-            if (page != null) {
-                page.pageReadable = newValue;
-            }
-        });
+        if (pageReadableCheckBox != null) {
+            pageReadableCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (syncingQaControls) {
+                    return;
+                }
 
-        rotationCorrectCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (syncingQaControls) {
-                return;
-            }
+                QaPage page = getSelectedQaPage();
+                if (page != null) {
+                    page.pageReadable = newValue;
+                }
+            });
+        }
 
-            QaPage page = getSelectedQaPage();
-            if (page != null) {
-                page.rotationCorrect = newValue;
-            }
-        });
+        if (rotationCorrectCheckBox != null) {
+            rotationCorrectCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (syncingQaControls) {
+                    return;
+                }
 
-        splitCorrectCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (syncingQaControls) {
-                return;
-            }
+                QaPage page = getSelectedQaPage();
+                if (page != null) {
+                    page.rotationCorrect = newValue;
+                }
+            });
+        }
 
-            QaPage page = getSelectedQaPage();
-            if (page != null) {
-                page.splitCorrect = newValue;
-            }
-        });
+        if (splitCorrectCheckBox != null) {
+            splitCorrectCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (syncingQaControls) {
+                    return;
+                }
 
-        pageCountCorrectCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (syncingQaControls) {
-                return;
-            }
+                QaPage page = getSelectedQaPage();
+                if (page != null) {
+                    page.splitCorrect = newValue;
+                }
+            });
+        }
 
-            QaPage page = getSelectedQaPage();
-            if (page != null) {
-                page.pageCountCorrect = newValue;
-            }
-        });
+        if (pageCountCorrectCheckBox != null) {
+            pageCountCorrectCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (syncingQaControls) {
+                    return;
+                }
+
+                QaPage page = getSelectedQaPage();
+                if (page != null) {
+                    page.pageCountCorrect = newValue;
+                }
+            });
+        }
 
         qaCommentTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
             if (syncingQaControls) {
@@ -920,6 +970,7 @@ public class AssignedQaController {
         renderQaDocumentTree();
         renderQaPreview();
         renderQaTools();
+        updateQaRotationButtons();
     }
 
     private void updateSelectedAssignmentFromReview() {
@@ -992,6 +1043,26 @@ public class AssignedQaController {
         updateQaZoomLabel();
     }
 
+    private void updateQaRotationButtons() {
+        if (qaRotateLeftButton == null || qaRotateRightButton == null) {
+            return;
+        }
+
+        QaPage page = getSelectedQaPage();
+        if (page == null) {
+            qaRotateLeftButton.setText("Rotate Left (90°)");
+            qaRotateRightButton.setText("Rotate Right (90°)");
+            return;
+        }
+
+        int currentRotation = normalizeRotation(page.rotationDegrees);
+        int leftTarget = normalizeRotation(currentRotation - 90);
+        int rightTarget = normalizeRotation(currentRotation + 90);
+
+        qaRotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
+        qaRotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
+    }
+
     private String getReviewStatusStyleClass(QaStatus status) {
         return switch (status) {
             case WAITING_FOR_QA -> "qa-review-status-waiting";
@@ -1014,10 +1085,16 @@ public class AssignedQaController {
             VBox documentBlock = new VBox(12);
             documentBlock.setAlignment(Pos.TOP_LEFT);
             documentBlock.getStyleClass().add("document-tree-document-block");
+            if (qaDocumentListView) {
+                documentBlock.getStyleClass().add("document-tree-list-block");
+            }
 
             HBox documentHeader = new HBox(9);
             documentHeader.setAlignment(Pos.CENTER_LEFT);
             documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
+            if (qaDocumentListView) {
+                documentHeader.getStyleClass().add("document-tree-list-header");
+            }
 
             Region chevron = new Region();
             chevron.getStyleClass().add("document-tree-chevron-icon");
@@ -1043,15 +1120,20 @@ public class AssignedQaController {
             documentBlock.getChildren().add(documentHeader);
 
             if (document.expanded) {
-                VBox pageStack = new VBox(18);
-                pageStack.setAlignment(Pos.TOP_CENTER);
+                VBox pageStack = new VBox(qaDocumentListView ? 0 : 18);
+                pageStack.setAlignment(qaDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
                 pageStack.getStyleClass().add("document-tree-page-stack");
+                if (qaDocumentListView) {
+                    pageStack.getStyleClass().add("document-tree-list-page-stack");
+                }
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     QaPage page = document.pages.get(pageIndex);
                     final int rowDocumentIndex = documentIndex;
                     final int rowPageIndex = pageIndex;
-                    VBox pageCard = createQaEmbeddedPageCard(page, rowDocumentIndex, rowPageIndex);
-                    pageStack.getChildren().add(pageCard);
+                    Node pageNode = qaDocumentListView
+                            ? createQaPageRow(page, rowDocumentIndex, rowPageIndex)
+                            : createQaEmbeddedPageCard(page, rowDocumentIndex, rowPageIndex);
+                    pageStack.getChildren().add(pageNode);
                 }
                 documentBlock.getChildren().add(pageStack);
             }
@@ -1261,113 +1343,29 @@ public class AssignedQaController {
 
         Region pageBlock = new Region();
         pageBlock.getStyleClass().add("qa-tray-page-block");
+        thumbnail.getChildren().add(pageBlock);
 
-        Label status = new Label(getPageStatusGlyph(page.status));
-        status.getStyleClass().addAll(
-                "qa-tray-status-mark",
-                getPageStatusStyleClass(page.status)
-        );
-        StackPane.setAlignment(status, Pos.TOP_RIGHT);
-
-        thumbnail.getChildren().addAll(pageBlock, status);
-
-        Label number = new Label("Page " + page.pageNumber);
-        number.getStyleClass().add("page-tray-number");
-        number.setMaxWidth(Double.MAX_VALUE);
-        number.setAlignment(Pos.CENTER);
-
-        card.getChildren().addAll(thumbnail, number);
+        HBox labelRow = createQaPageLabelRow(page, true);
+        card.getChildren().addAll(thumbnail, labelRow);
         card.setOnMouseClicked(event -> selectQaPage(documentIndex, pageIndex));
         return card;
     }
 
-    // =========================================================
-    // QA PAGE TRAY
-    // =========================================================
+    private HBox createQaPageRow(QaPage page, int documentIndex, int pageIndex) {
+        HBox row = new HBox(9);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().addAll("document-tree-page-row", "document-tree-list-page-row");
 
-    private void renderQaPageTray() {
-        qaPageTrayContainer.getChildren().clear();
-
-        QaDocument selectedDocument = getSelectedDocument();
-
-        if (selectedDocument == null) {
-            qaTrayCountLabel.setText("0 pages");
-            return;
+        if (pageIndex == selectedPageIndex && documentIndex == selectedDocumentIndex) {
+            row.getStyleClass().add("document-tree-page-selected");
         }
 
-        qaTrayCountLabel.setText(selectedDocument.pages.size() + " pages");
+        HBox labelRow = createQaPageLabelRow(page, false);
 
-        for (int pageIndex = 0; pageIndex < selectedDocument.pages.size(); pageIndex++) {
-            QaPage page = selectedDocument.pages.get(pageIndex);
-
-            VBox card = new VBox(3);
-            card.setAlignment(Pos.CENTER);
-            card.getStyleClass().add("page-tray-item");
-
-            if (pageIndex == selectedPageIndex) {
-                card.getStyleClass().add("page-tray-item-selected");
-            }
-
-            StackPane thumbnail = new StackPane();
-            thumbnail.getStyleClass().add("page-tray-thumbnail");
-
-            Region pageBlock = new Region();
-            pageBlock.getStyleClass().add("qa-tray-page-block");
-
-            Label status = new Label(getPageStatusGlyph(page.status));
-            status.getStyleClass().addAll(
-                    "qa-tray-status-mark",
-                    getPageStatusStyleClass(page.status)
-            );
-            StackPane.setAlignment(status, Pos.TOP_RIGHT);
-
-            thumbnail.getChildren().addAll(pageBlock, status);
-
-            Label number = new Label(String.valueOf(page.pageNumber));
-            number.getStyleClass().add("page-tray-number");
-
-            card.getChildren().addAll(thumbnail, number);
-
-            final int trayPageIndex = pageIndex;
-            card.setOnMouseClicked(event -> selectQaPage(selectedDocumentIndex, trayPageIndex));
-
-            qaPageTrayContainer.getChildren().add(card);
-        }
+        row.getChildren().add(labelRow);
+        row.setOnMouseClicked(event -> selectQaPage(documentIndex, pageIndex));
+        return row;
     }
-
-    // =========================================================
-    // QA TOOLS PANEL
-    // =========================================================
-
-    private void renderQaTools() {
-        QaPage page = getSelectedQaPage();
-
-        if (page == null) {
-            return;
-        }
-
-        currentPageStatusLabel.setText(getPageStatusText(page.status));
-        currentPageStatusLabel.getStyleClass().removeAll(
-                "qa-current-status-pending",
-                "qa-current-status-approved",
-                "qa-current-status-fix"
-        );
-        currentPageStatusLabel.getStyleClass().add(getCurrentStatusStyleClass(page.status));
-
-        syncingQaControls = true;
-
-        pageReadableCheckBox.setSelected(page.pageReadable);
-        rotationCorrectCheckBox.setSelected(page.rotationCorrect);
-        splitCorrectCheckBox.setSelected(page.splitCorrect);
-        pageCountCorrectCheckBox.setSelected(page.pageCountCorrect);
-        qaCommentTextArea.setText(page.comment == null ? "" : page.comment);
-
-        syncingQaControls = false;
-    }
-
-    // =========================================================
-    // QA PAGE SELECTION
-    // =========================================================
 
     private void selectQaPage(int documentIndex, int pageIndex) {
         if (documentIndex < 0 || documentIndex >= reviewDocuments.size()) {
@@ -1383,6 +1381,28 @@ public class AssignedQaController {
 
         refreshQaReviewWorkspace();
         qaPreviewHost.requestFocus();
+    }
+
+    private HBox createQaPageLabelRow(QaPage page, boolean centered) {
+        HBox labelRow = new HBox(6);
+        labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+
+        Label pageLabel = new Label("Page " + page.pageNumber);
+        pageLabel.getStyleClass().add(centered ? "page-tray-number" : "document-tree-page-title");
+
+        labelRow.getChildren().add(pageLabel);
+
+        if (page.status != QaPageStatus.NOT_REVIEWED) {
+            Label statusLabel = new Label(page.status == QaPageStatus.APPROVED ? "Approved" : "Needs Fix");
+            statusLabel.getStyleClass().add(
+                    page.status == QaPageStatus.APPROVED
+                            ? "qa-page-status-text-approved"
+                            : "qa-page-status-text-fix"
+            );
+            labelRow.getChildren().add(statusLabel);
+        }
+
+        return labelRow;
     }
 
     private void selectPageByGlobalNumber(int globalPageNumber) {
@@ -1422,6 +1442,64 @@ public class AssignedQaController {
         }
 
         return document.pages.get(selectedPageIndex);
+    }
+
+    private List<QaPage> getQaPagesForAction() {
+        if (qaActionScopeComboBox != null
+                && "This Document".equals(qaActionScopeComboBox.getValue())) {
+            QaDocument document = getSelectedDocument();
+            if (document == null) {
+                return List.of();
+            }
+            return new ArrayList<>(document.pages);
+        }
+
+        QaPage selectedPage = getSelectedQaPage();
+        if (selectedPage == null) {
+            return List.of();
+        }
+
+        return List.of(selectedPage);
+    }
+
+    // =========================================================
+    // QA TOOLS PANEL
+    // =========================================================
+
+    private void renderQaTools() {
+        QaPage page = getSelectedQaPage();
+
+        if (page == null) {
+            return;
+        }
+
+        if (currentPageStatusLabel != null) {
+            currentPageStatusLabel.setText(getPageStatusText(page.status));
+            currentPageStatusLabel.getStyleClass().removeAll(
+                    "qa-current-status-pending",
+                    "qa-current-status-approved",
+                    "qa-current-status-fix"
+            );
+            currentPageStatusLabel.getStyleClass().add(getCurrentStatusStyleClass(page.status));
+        }
+
+        syncingQaControls = true;
+
+        if (pageReadableCheckBox != null) {
+            pageReadableCheckBox.setSelected(page.pageReadable);
+        }
+        if (rotationCorrectCheckBox != null) {
+            rotationCorrectCheckBox.setSelected(page.rotationCorrect);
+        }
+        if (splitCorrectCheckBox != null) {
+            splitCorrectCheckBox.setSelected(page.splitCorrect);
+        }
+        if (pageCountCorrectCheckBox != null) {
+            pageCountCorrectCheckBox.setSelected(page.pageCountCorrect);
+        }
+        qaCommentTextArea.setText(page.comment == null ? "" : page.comment);
+
+        syncingQaControls = false;
     }
 
     // =========================================================
@@ -1597,6 +1675,7 @@ public class AssignedQaController {
 
         page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
         renderQaPreview();
+        updateQaRotationButtons();
     }
 
     @FXML
@@ -1608,6 +1687,7 @@ public class AssignedQaController {
 
         page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
         renderQaPreview();
+        updateQaRotationButtons();
     }
 
     private int normalizeRotation(int rotationDegrees) {
@@ -1626,33 +1706,53 @@ public class AssignedQaController {
 
     @FXML
     private void onApprovePage() {
-        QaPage page = getSelectedQaPage();
-
-        if (page == null) {
+        List<QaPage> pages = getQaPagesForAction();
+        if (pages.isEmpty()) {
             return;
         }
 
-        page.status = QaPageStatus.APPROVED;
-        page.pageReadable = true;
-        page.rotationCorrect = true;
-        page.splitCorrect = true;
-        page.pageCountCorrect = true;
+        for (QaPage page : pages) {
+            page.status = QaPageStatus.APPROVED;
+            page.pageReadable = true;
+            page.rotationCorrect = true;
+            page.splitCorrect = true;
+            page.pageCountCorrect = true;
+        }
 
         refreshQaReviewWorkspace();
     }
 
     @FXML
     private void onMarkNeedsFix() {
-        QaPage page = getSelectedQaPage();
-
-        if (page == null) {
+        List<QaPage> pages = getQaPagesForAction();
+        if (pages.isEmpty()) {
             return;
         }
 
-        page.status = QaPageStatus.NEEDS_FIX;
+        for (QaPage page : pages) {
+            page.status = QaPageStatus.NEEDS_FIX;
+            if (page.comment == null || page.comment.isBlank()) {
+                page.comment = "Needs correction before QA can be completed.";
+            }
+        }
 
-        if (page.comment == null || page.comment.isBlank()) {
-            page.comment = "Needs correction before QA can be completed.";
+        refreshQaReviewWorkspace();
+    }
+
+    @FXML
+    private void onClearReviewStatus() {
+        List<QaPage> pages = getQaPagesForAction();
+        if (pages.isEmpty()) {
+            return;
+        }
+
+        for (QaPage page : pages) {
+            page.status = QaPageStatus.NOT_REVIEWED;
+            page.pageReadable = false;
+            page.rotationCorrect = false;
+            page.splitCorrect = false;
+            page.pageCountCorrect = false;
+            page.comment = "";
         }
 
         refreshQaReviewWorkspace();

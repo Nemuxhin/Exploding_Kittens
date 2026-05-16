@@ -91,6 +91,10 @@ public class ScanController {
     @FXML private Button undoLastActionButton;
     @FXML private Button rotateLeftButton;
     @FXML private Button rotateRightButton;
+    @FXML private Button documentTreeGridViewButton;
+    @FXML private Button documentTreeListViewButton;
+    @FXML private Button reviewDocumentGridViewButton;
+    @FXML private Button reviewDocumentListViewButton;
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
@@ -169,6 +173,8 @@ public class ScanController {
     private StackPane currentReviewPreviewWrapper;
 
     private ScannedPage selectedPage;
+    private boolean documentTreeListView = false;
+    private boolean reviewDocumentListView = false;
 
     private UserNavigator navigator = UserNavigator.none();
 
@@ -182,6 +188,7 @@ public class ScanController {
         configureProfileInfo();
         configureValidation();
         configureDocumentTreeScroll();
+        configureDocumentTreeViewToggle();
         configurePreviewInteractions();
         configureReviewPreviewInteractions();
         updatePreviewZoomLabel();
@@ -204,6 +211,60 @@ public class ScanController {
         if (documentTreeContainer != null) {
             documentTreeContainer.setMinHeight(Region.USE_PREF_SIZE);
             installDocumentTreeScrollHandler(documentTreeContainer);
+        }
+    }
+
+    private void configureDocumentTreeViewToggle() {
+        updateDocumentTreeViewToggleButtons();
+        updateReviewDocumentViewToggleButtons();
+    }
+
+    @FXML
+    private void onShowDocumentTreeGridView() {
+        documentTreeListView = false;
+        updateDocumentTreeViewToggleButtons();
+        renderDocumentTree();
+    }
+
+    @FXML
+    private void onShowDocumentTreeListView() {
+        documentTreeListView = true;
+        updateDocumentTreeViewToggleButtons();
+        renderDocumentTree();
+    }
+
+    private void updateDocumentTreeViewToggleButtons() {
+        setDocumentTreeViewButtonActive(documentTreeGridViewButton, !documentTreeListView);
+        setDocumentTreeViewButtonActive(documentTreeListViewButton, documentTreeListView);
+    }
+
+    @FXML
+    private void onShowReviewDocumentGridView() {
+        reviewDocumentListView = false;
+        updateReviewDocumentViewToggleButtons();
+        renderReviewDocumentList();
+    }
+
+    @FXML
+    private void onShowReviewDocumentListView() {
+        reviewDocumentListView = true;
+        updateReviewDocumentViewToggleButtons();
+        renderReviewDocumentList();
+    }
+
+    private void updateReviewDocumentViewToggleButtons() {
+        setDocumentTreeViewButtonActive(reviewDocumentGridViewButton, !reviewDocumentListView);
+        setDocumentTreeViewButtonActive(reviewDocumentListViewButton, reviewDocumentListView);
+    }
+
+    private void setDocumentTreeViewButtonActive(Button button, boolean active) {
+        if (button == null) {
+            return;
+        }
+
+        button.getStyleClass().remove("document-tree-view-toggle-button-active");
+        if (active) {
+            button.getStyleClass().add("document-tree-view-toggle-button-active");
         }
     }
 
@@ -1523,19 +1584,30 @@ public class ScanController {
             VBox documentBlock = new VBox(12);
             documentBlock.setAlignment(Pos.TOP_LEFT);
             documentBlock.getStyleClass().add("document-tree-document-block");
+            if (documentTreeListView) {
+                documentBlock.getStyleClass().add("document-tree-list-block");
+            }
 
             HBox documentHeader = createDocumentHeader(document);
             documentHeader.getStyleClass().add("document-tree-document-header-framed");
+            if (documentTreeListView) {
+                documentHeader.getStyleClass().add("document-tree-list-header");
+            }
             documentBlock.getChildren().add(documentHeader);
 
             if (!collapsedDocuments.contains(document.number)) {
-                VBox pageStack = new VBox(18);
-                pageStack.setAlignment(Pos.TOP_CENTER);
+                VBox pageStack = new VBox(documentTreeListView ? 0 : 18);
+                pageStack.setAlignment(documentTreeListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
                 pageStack.getStyleClass().add("document-tree-page-stack");
+                if (documentTreeListView) {
+                    pageStack.getStyleClass().add("document-tree-list-page-stack");
+                }
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     ScannedPage page = document.pages.get(pageIndex);
-                    VBox pageCard = createDocumentTreePageCard(page, pageIndex + 1);
-                    pageStack.getChildren().add(pageCard);
+                    Node pageNode = documentTreeListView
+                            ? createDocumentTreePageRow(page, pageIndex + 1)
+                            : createDocumentTreePageCard(page, pageIndex + 1);
+                    pageStack.getChildren().add(pageNode);
                 }
                 documentBlock.getChildren().add(pageStack);
             }
@@ -1552,19 +1624,30 @@ public class ScanController {
             VBox pendingBlock = new VBox(12);
             pendingBlock.setAlignment(Pos.TOP_LEFT);
             pendingBlock.getStyleClass().add("document-tree-document-block");
+            if (documentTreeListView) {
+                pendingBlock.getStyleClass().add("document-tree-list-block");
+            }
 
             HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, pendingPages);
             pendingHeader.getStyleClass().add("document-tree-document-header-framed");
+            if (documentTreeListView) {
+                pendingHeader.getStyleClass().add("document-tree-list-header");
+            }
             pendingBlock.getChildren().add(pendingHeader);
 
             if (!collapsedDocuments.contains(pendingDocumentNumber)) {
-                VBox pageStack = new VBox(18);
-                pageStack.setAlignment(Pos.TOP_CENTER);
+                VBox pageStack = new VBox(documentTreeListView ? 0 : 18);
+                pageStack.setAlignment(documentTreeListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
                 pageStack.getStyleClass().add("document-tree-page-stack");
+                if (documentTreeListView) {
+                    pageStack.getStyleClass().add("document-tree-list-page-stack");
+                }
                 for (int pageIndex = 0; pageIndex < pendingPages.size(); pageIndex++) {
                     ScannedPage page = pendingPages.get(pageIndex);
-                    VBox pageCard = createDocumentTreePageCard(page, pageIndex + 1);
-                    pageStack.getChildren().add(pageCard);
+                    Node pageNode = documentTreeListView
+                            ? createDocumentTreePageRow(page, pageIndex + 1)
+                            : createDocumentTreePageCard(page, pageIndex + 1);
+                    pageStack.getChildren().add(pageNode);
                 }
                 pendingBlock.getChildren().add(pageStack);
             }
@@ -1575,9 +1658,15 @@ public class ScanController {
             VBox pendingBlock = new VBox(12);
             pendingBlock.setAlignment(Pos.TOP_LEFT);
             pendingBlock.getStyleClass().add("document-tree-document-block");
+            if (documentTreeListView) {
+                pendingBlock.getStyleClass().add("document-tree-list-block");
+            }
 
             HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, List.of());
             pendingHeader.getStyleClass().add("document-tree-document-header-framed");
+            if (documentTreeListView) {
+                pendingHeader.getStyleClass().add("document-tree-list-header");
+            }
             pendingBlock.getChildren().add(pendingHeader);
 
             if (!collapsedDocuments.contains(pendingDocumentNumber)) {
@@ -1768,25 +1857,17 @@ public class ScanController {
         HBox row = new HBox(9);
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("document-tree-page-row");
+        if (documentTreeListView) {
+            row.getStyleClass().add("document-tree-list-page-row");
+        }
 
         if (page == selectedPage) {
             row.getStyleClass().add("document-tree-page-selected");
         }
 
-        Label drag = new Label("\u22EE");
-        drag.getStyleClass().add("document-tree-page-drag");
+        HBox labelRow = createScanPageLabelRow(page, "Page " + pageNumberInDocument, false);
 
-        Label name = new Label("Page " + pageNumberInDocument);
-        name.getStyleClass().add("document-tree-page-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label warning = new Label(page.needsRescan ? "!" : "");
-        warning.getStyleClass().add("document-tree-warning");
-
-        row.getChildren().addAll(drag, name, spacer, warning);
-
+        row.getChildren().add(labelRow);
         row.setOnMouseClicked(event -> {
             selectedPage = page;
             refreshWorkspace();
@@ -2622,10 +2703,16 @@ public class ScanController {
             VBox documentBlock = new VBox(12);
             documentBlock.setAlignment(Pos.TOP_LEFT);
             documentBlock.getStyleClass().add("document-tree-document-block");
+            if (reviewDocumentListView) {
+                documentBlock.getStyleClass().add("document-tree-list-block");
+            }
 
             HBox documentCard = new HBox(9);
             documentCard.setAlignment(Pos.CENTER_LEFT);
             documentCard.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
+            if (reviewDocumentListView) {
+                documentCard.getStyleClass().add("document-tree-list-header");
+            }
 
             Region chevron = new Region();
             chevron.getStyleClass().add("document-tree-chevron-icon");
@@ -2661,13 +2748,18 @@ public class ScanController {
             documentBlock.getChildren().add(documentCard);
 
             if (!collapsedDocuments.contains(document.number)) {
-                VBox pageStack = new VBox(18);
-                pageStack.setAlignment(Pos.TOP_CENTER);
+                VBox pageStack = new VBox(reviewDocumentListView ? 0 : 18);
+                pageStack.setAlignment(reviewDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
                 pageStack.getStyleClass().add("document-tree-page-stack");
+                if (reviewDocumentListView) {
+                    pageStack.getStyleClass().add("document-tree-list-page-stack");
+                }
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     ScannedPage page = document.pages.get(pageIndex);
-                    VBox pageCard = createReviewEmbeddedPageCard(page, pageIndex + 1);
-                    pageStack.getChildren().add(pageCard);
+                    Node pageNode = reviewDocumentListView
+                            ? createReviewPageRow(page, pageIndex + 1)
+                            : createReviewEmbeddedPageCard(page, pageIndex + 1);
+                    pageStack.getChildren().add(pageNode);
                 }
                 documentBlock.getChildren().add(pageStack);
             }
@@ -2750,18 +2842,52 @@ public class ScanController {
         StackPane.setAlignment(status, Pos.TOP_RIGHT);
         thumbnail.getChildren().add(status);
 
-        Label number = new Label("Page " + pageNumber);
-        number.getStyleClass().add("review-page-tray-number");
-        number.setMaxWidth(Double.MAX_VALUE);
-        number.setAlignment(Pos.CENTER);
+        HBox labelRow = createScanPageLabelRow(page, "Page " + pageNumber, true);
 
-        card.getChildren().addAll(thumbnail, number);
+        card.getChildren().addAll(thumbnail, labelRow);
         card.setOnMouseClicked(event -> {
             selectedPage = page;
             refreshReviewWorkspace();
         });
 
         return card;
+    }
+
+    private HBox createReviewPageRow(ScannedPage page, int pageNumber) {
+        HBox row = new HBox(9);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().addAll("document-tree-page-row", "document-tree-list-page-row");
+
+        if (page == selectedPage) {
+            row.getStyleClass().add("document-tree-page-selected");
+        }
+
+        HBox labelRow = createScanPageLabelRow(page, "Page " + pageNumber, false);
+
+        row.getChildren().add(labelRow);
+        row.setOnMouseClicked(event -> {
+            selectedPage = page;
+            refreshReviewWorkspace();
+        });
+
+        return row;
+    }
+
+    private HBox createScanPageLabelRow(ScannedPage page, String baseLabel, boolean centered) {
+        HBox labelRow = new HBox(6);
+        labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+
+        Label pageLabel = new Label(baseLabel);
+        pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
+        labelRow.getChildren().add(pageLabel);
+
+        if (page.needsRescan) {
+            Label statusLabel = new Label("Needs Rescan");
+            statusLabel.getStyleClass().add("qa-page-status-text-fix");
+            labelRow.getChildren().add(statusLabel);
+        }
+
+        return labelRow;
     }
 
     @FXML
@@ -3069,12 +3195,16 @@ public class ScanController {
         StackPane.setAlignment(status, Pos.TOP_RIGHT);
         thumbnail.getChildren().add(status);
 
-        Label number = new Label(labelText);
-        number.getStyleClass().add(page.barcode ? "page-tray-barcode-split-label" : "page-tray-number");
-        number.setMaxWidth(Double.MAX_VALUE);
-        number.setAlignment(Pos.CENTER);
-
-        card.getChildren().addAll(thumbnail, number);
+        if (page.barcode) {
+            Label number = new Label(labelText);
+            number.getStyleClass().add("page-tray-barcode-split-label");
+            number.setMaxWidth(Double.MAX_VALUE);
+            number.setAlignment(Pos.CENTER);
+            card.getChildren().addAll(thumbnail, number);
+        } else {
+            HBox labelRow = createScanPageLabelRow(page, labelText, true);
+            card.getChildren().addAll(thumbnail, labelRow);
+        }
         return card;
     }
 

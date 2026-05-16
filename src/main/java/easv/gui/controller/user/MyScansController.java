@@ -48,11 +48,19 @@ public class MyScansController {
         VBox page = new VBox(24);
         page.getStyleClass().addAll("portal-page", "my-scans-page", "exports-page");
 
-        Label title = new Label("My Scans");
-        title.getStyleClass().add("exports-title");
+        page.getChildren().add(buildContent(true));
+        return page;
+    }
 
-        Label subtitle = new Label("Review scan history and reopen sessions that still need attention.");
-        subtitle.getStyleClass().add("exports-subtitle");
+    public Node createEmbedded() {
+        VBox section = new VBox(24);
+        section.getStyleClass().addAll("my-scans-page", "exports-page");
+        section.getChildren().add(buildContent(false));
+        return section;
+    }
+
+    private VBox buildContent(boolean showHeader) {
+        VBox content = new VBox(24);
 
         configureFilters();
 
@@ -63,12 +71,18 @@ public class MyScansController {
 
         refreshTable();
 
-        page.getChildren().addAll(
-                new VBox(6, title, subtitle),
-                buildFilterPanel(),
-                tablePanel
-        );
-        return page;
+        if (showHeader) {
+            Label title = new Label("My Scans");
+            title.getStyleClass().add("exports-title");
+
+            Label subtitle = new Label("Review scan history and reopen sessions that still need attention.");
+            subtitle.getStyleClass().add("exports-subtitle");
+
+            content.getChildren().add(new VBox(6, title, subtitle));
+        }
+
+        content.getChildren().addAll(buildFilterPanel(), tablePanel);
+        return content;
     }
 
     private void configureFilters() {

@@ -243,8 +243,26 @@
                       maxHeight="Infinity"
                       styleClass="qa-review-left-panel">
 
-                    <Label text="Box Structure"
-                           styleClass="qa-review-panel-title"/>
+                    <HBox alignment="CENTER_LEFT"
+                          spacing="9"
+                          maxWidth="Infinity">
+                        <Label text="Box Structure"
+                               styleClass="qa-review-panel-title"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button fx:id="qaDocumentGridViewButton"
+                                text="⧉"
+                                onAction="#onShowQaDocumentGridView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+
+                        <Button fx:id="qaDocumentListViewButton"
+                                text="☰"
+                                onAction="#onShowQaDocumentListView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+                    </HBox>
 
                     <ScrollPane fitToWidth="true"
                                 fitToHeight="false"
@@ -427,153 +445,102 @@
                         <Insets top="10" right="10" bottom="10" left="10"/>
                     </padding>
 
-                    <Label text="Page QA"
-                           styleClass="qa-review-panel-title"/>
+                    <VBox spacing="8"
+                          VBox.vgrow="ALWAYS"
+                          minWidth="0"
+                          minHeight="0"
+                          maxWidth="Infinity"
+                          maxHeight="Infinity"
+                          fillWidth="true"
+                          styleClass="qa-tools-content">
 
-                    <ScrollPane fitToWidth="true"
-                                fitToHeight="false"
-                                hbarPolicy="NEVER"
-                                vbarPolicy="AS_NEEDED"
-                                pannable="true"
-                                VBox.vgrow="ALWAYS"
-                                minWidth="0"
-                                minHeight="0"
-                                maxWidth="Infinity"
-                                maxHeight="Infinity"
-                                styleClass="qa-tools-scroll">
+                        <!-- Comment -->
+                        <VBox spacing="4"
+                              maxWidth="Infinity"
+                              styleClass="qa-tools-section-box">
 
-                        <content>
-                            <VBox spacing="8"
-                                  minWidth="0"
+                            <Label text="Comment"
+                                   styleClass="qa-tools-section-title"/>
+
+                            <TextArea fx:id="qaCommentTextArea"
+                                      promptText="Add QA note for this page..."
+                                      wrapText="true"
+                                      prefRowCount="12"
+                                      maxWidth="Infinity"
+                                      styleClass="qa-comment-textarea"/>
+                        </VBox>
+
+                        <Region styleClass="scan-panel-divider"/>
+
+                        <!-- Decision actions -->
+                        <VBox spacing="4"
+                              maxWidth="Infinity">
+
+                            <VBox spacing="4"
                                   maxWidth="Infinity"
-                                  fillWidth="true"
-                                  styleClass="qa-tools-content">
+                                  styleClass="qa-tools-section-box">
+                                <Label text="Apply To"
+                                       styleClass="qa-tools-section-title"/>
 
-                                <!-- Current status -->
-                                <VBox spacing="4"
-                                      maxWidth="Infinity"
-                                      styleClass="qa-tools-section-box">
-
-                                    <Label text="Current Status"
-                                           styleClass="qa-tools-section-title"/>
-
-                                    <Label fx:id="currentPageStatusLabel"
-                                           text="Not Reviewed"
-                                           maxWidth="Infinity"
-                                           styleClass="qa-current-status-chip qa-current-status-pending"/>
-                                </VBox>
-
-                                <!-- Checklist -->
-                                <VBox spacing="4"
-                                      maxWidth="Infinity"
-                                      styleClass="qa-tools-section-box">
-
-                                    <Label text="QA Checklist"
-                                           styleClass="qa-tools-section-title"/>
-
-                                    <CheckBox fx:id="pageReadableCheckBox"
-                                              text="Page readable"
-                                              wrapText="true"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-
-                                    <CheckBox fx:id="rotationCorrectCheckBox"
-                                              text="Rotation correct"
-                                              wrapText="true"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-
-                                    <CheckBox fx:id="splitCorrectCheckBox"
-                                              text="Document split correct"
-                                              wrapText="true"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-
-                                    <CheckBox fx:id="pageCountCorrectCheckBox"
-                                              text="No missing or duplicate page"
-                                              wrapText="true"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-                                </VBox>
-
-                                <!-- Comment -->
-                                <VBox spacing="4"
-                                      maxWidth="Infinity"
-                                      styleClass="qa-tools-section-box">
-
-                                    <Label text="Comment"
-                                           styleClass="qa-tools-section-title"/>
-
-                                    <TextArea fx:id="qaCommentTextArea"
-                                              promptText="Add QA note for this page..."
-                                              wrapText="true"
-                                              prefRowCount="3"
-                                              maxWidth="Infinity"
-                                              styleClass="qa-comment-textarea"/>
-                                </VBox>
-
-                                <Region styleClass="scan-panel-divider"/>
-
-                                <!-- Decision actions -->
-                                <VBox spacing="4"
-                                      maxWidth="Infinity">
-
-                                    <Button text="Approve Page"
-                                            onAction="#onApprovePage"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-approve-button"/>
-
-                                    <Button text="Mark Needs Fix"
-                                            onAction="#onMarkNeedsFix"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-fix-button"/>
-                                </VBox>
-
-                                <Region styleClass="scan-panel-divider"/>
-
-                                <!-- Fast navigation -->
-                                <Button text="Next Unreviewed"
-                                        onAction="#onNextUnreviewed"
-                                        maxWidth="Infinity"
-                                        focusTraversable="false"
-                                        styleClass="qa-neutral-button"/>
-
-                                <Region styleClass="scan-panel-divider"/>
-
-                                <!-- Page utility actions -->
-                                <HBox spacing="4"
-                                      maxWidth="Infinity">
-                                    <Button text="Rotate Left"
-                                            onAction="#onRotateLeft"
-                                            HBox.hgrow="ALWAYS"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-neutral-button"/>
-
-                                    <Button text="Rotate Right"
-                                            onAction="#onRotateRight"
-                                            HBox.hgrow="ALWAYS"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-neutral-button"/>
-                                </HBox>
-
-                                <Button text="Complete QA"
-                                        onAction="#onCompleteQa"
-                                        maxWidth="Infinity"
-                                        focusTraversable="false"
-                                        styleClass="qa-complete-button"/>
-
-                                <Button text="Export Type"
-                                        onAction="#onOpenExportTypeDialog"
-                                        maxWidth="Infinity"
-                                        focusTraversable="false"
-                                        styleClass="qa-neutral-button"/>
+                                <ComboBox fx:id="qaActionScopeComboBox"
+                                          maxWidth="Infinity"
+                                          styleClass="exports-status-filter"/>
                             </VBox>
-                        </content>
-                    </ScrollPane>
+
+                            <Button text="Approve Page"
+                                    onAction="#onApprovePage"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-approve-button"/>
+
+                            <Button text="Mark Needs Fix"
+                                    onAction="#onMarkNeedsFix"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-fix-button"/>
+
+                            <Button text="Clear Review Status"
+                                    onAction="#onClearReviewStatus"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-neutral-button"/>
+                        </VBox>
+
+                        <Region styleClass="scan-panel-divider"/>
+
+                        <!-- Fast navigation -->
+                        <Button text="Next Unreviewed"
+                                onAction="#onNextUnreviewed"
+                                maxWidth="Infinity"
+                                focusTraversable="false"
+                                styleClass="qa-neutral-button"/>
+
+                        <Region styleClass="scan-panel-divider"/>
+
+                        <!-- Page utility actions -->
+                        <VBox spacing="4"
+                              maxWidth="Infinity">
+                            <Button text="Rotate Left"
+                                    fx:id="qaRotateLeftButton"
+                                    onAction="#onRotateLeft"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-neutral-button"/>
+
+                            <Button text="Rotate Right"
+                                    fx:id="qaRotateRightButton"
+                                    onAction="#onRotateRight"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-neutral-button"/>
+                        </VBox>
+
+                        <Button text="Export Type"
+                                onAction="#onOpenExportTypeDialog"
+                                maxWidth="Infinity"
+                                focusTraversable="false"
+                                styleClass="qa-neutral-button"/>
+                    </VBox>
                 </VBox>
             </HBox>
         </center>
