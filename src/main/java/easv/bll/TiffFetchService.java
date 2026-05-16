@@ -1,5 +1,9 @@
 package easv.bll;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -7,6 +11,7 @@ import java.util.Optional;
 public class TiffFetchService {
     private static final String TIFF_HEADER_II = "49492A00";
     private static final String TIFF_HEADER_MM = "4D4D002A";
+    private static volatile boolean imageIoPluginsLoaded;
 
     private final ScannerApiClient scannerApiClient;
 
@@ -55,8 +60,47 @@ public class TiffFetchService {
             throw new IllegalArgumentException("Invalid API response: corrupted file");
         }
 
-        String displayContent = "data:image/tiff;base64," + Base64.getEncoder().encodeToString(page.fileData());
+        String displayContent = toPreviewDisplayContent(page.fileData());
         return new FetchedPage(page.pageNumber(), page.sourceReference(), displayContent, page.barcodeValue());
+    }
+
+    private String toPreviewDisplayContent(byte[] tiffBytes) {
+        byte[] pngBytes = convertTiffToPngBytes(tiffBytes);
+        if (pngBytes.length > 0) {
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(pngBytes);
+        }
+        return "data:image/tiff;base64," + Base64.getEncoder().encodeToString(tiffBytes);
+    }
+
+    private byte[] convertTiffToPngBytes(byte[] tiffBytes) {
+        ensureImageIoPluginsLoaded();
+
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(tiffBytes);
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            BufferedImage image = ImageIO.read(inputStream);
+            if (image == null) {
+                return new byte[0];
+            }
+            if (!ImageIO.write(image, "png", outputStream)) {
+                return new byte[0];
+            }
+            return outputStream.toByteArray();
+        } catch (Exception exception) {
+            return new byte[0];
+        }
+    }
+
+    private static void ensureImageIoPluginsLoaded() {
+        if (imageIoPluginsLoaded) {
+            return;
+        }
+        synchronized (TiffFetchService.class) {
+            if (imageIoPluginsLoaded) {
+                return;
+            }
+            ImageIO.scanForPlugins();
+            imageIoPluginsLoaded = true;
+        }
     }
 
     private boolean isTiffContentType(String contentType) {

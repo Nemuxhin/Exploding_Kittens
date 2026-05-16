@@ -84,7 +84,7 @@
                         </StackPane>
 
                         <TextField fx:id="searchField"
-                                   promptText="Search name, username, email, role, or assigned profiles..."
+                                   promptText="Search name, username, email, role, status, or assigned profiles..."
                                    styleClass="search-field-input"
                                    maxWidth="Infinity"
                                    HBox.hgrow="ALWAYS"/>
@@ -97,11 +97,12 @@
                 <GridPane styleClass="users-list-header"
                           maxWidth="Infinity">
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="15"/>
-                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="18"/>
+                        <ColumnConstraints percentWidth="13"/>
+                        <ColumnConstraints percentWidth="22"/>
+                        <ColumnConstraints percentWidth="9"/>
                         <ColumnConstraints percentWidth="10"/>
-                        <ColumnConstraints percentWidth="15"/>
+                        <ColumnConstraints percentWidth="13"/>
                         <ColumnConstraints percentWidth="15"/>
                     </columnConstraints>
 
@@ -125,14 +126,19 @@
                            GridPane.columnIndex="3"
                            GridPane.halignment="CENTER"/>
 
-                    <Label text="Profiles"
+                    <Label text="Status"
                            styleClass="list-header-label"
                            GridPane.columnIndex="4"
                            GridPane.halignment="CENTER"/>
 
-                    <Label text="Actions"
+                    <Label text="Profiles"
                            styleClass="list-header-label"
                            GridPane.columnIndex="5"
+                           GridPane.halignment="CENTER"/>
+
+                    <Label text="Actions"
+                           styleClass="list-header-label"
+                           GridPane.columnIndex="6"
                            GridPane.halignment="CENTER"/>
                 </GridPane>
             </VBox>

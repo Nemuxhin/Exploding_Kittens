@@ -59,7 +59,6 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton usersNavItem;
     @FXML private ToggleButton profilesNavItem;
     @FXML private ToggleButton assignmentsNavItem;
-    @FXML private ToggleButton metadataNavItem;
     @FXML private ToggleButton reviewNavItem;
     @FXML private ToggleButton activityNavItem;
 
@@ -271,8 +270,6 @@ public class AdminController implements AdminNavigator {
             profilesController.setAdminManager(adminManager);
         } else if (controller instanceof AssignmentsController assignmentsController) {
             assignmentsController.setAdminManager(adminManager);
-        } else if (controller instanceof MetadataController metadataController) {
-            metadataController.setAdminManager(adminManager);
         } else if (controller instanceof ReviewController reviewController) {
             reviewController.setAdminManager(adminManager);
         } else if (controller instanceof ActivityController activityController) {
@@ -330,7 +327,6 @@ public class AdminController implements AdminNavigator {
                 usersNavItem,
                 profilesNavItem,
                 assignmentsNavItem,
-                metadataNavItem,
                 reviewNavItem,
                 activityNavItem
         );
@@ -342,7 +338,6 @@ public class AdminController implements AdminNavigator {
             case USERS -> usersNavItem;
             case PROFILES -> profilesNavItem;
             case ASSIGNMENTS -> assignmentsNavItem;
-            case METADATA_TEMPLATES -> metadataNavItem;
             case REVIEW -> reviewNavItem;
             case ACTIVITY -> activityNavItem;
         };
@@ -639,6 +634,7 @@ public class AdminController implements AdminNavigator {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Keyboard Shortcuts");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().getStyleClass().add("admin-dialog-pane");
 
         VBox content = new VBox();
         content.setMinSize(360, 180);
@@ -647,6 +643,11 @@ public class AdminController implements AdminNavigator {
 
         if (appShell != null && appShell.getScene() != null) {
             dialog.initOwner(appShell.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
+        }
+
+        if (isDarkModeEnabled()) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
         }
 
         dialog.showAndWait();

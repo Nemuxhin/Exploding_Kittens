@@ -465,11 +465,6 @@ public class DashboardController {
     }
 
     @FXML
-    private void createMetadataTemplate() {
-        navigator.showMetadataTemplates();
-    }
-
-    @FXML
     private void manageAccess() {
         navigator.showAssignments();
     }

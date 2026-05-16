@@ -36,16 +36,22 @@ public class AuditLogManager {
 
     public AuditLog logUserAction(String action, String caseId, String documentId, String fileId,
                                   Integer pageNumber, String profileName, String boxId, String details) {
+        return logUserAction(action, caseId, documentId, fileId, pageNumber, profileName, boxId, details, List.of());
+    }
+
+    public AuditLog logUserAction(String action, String caseId, String documentId, String fileId,
+                                  Integer pageNumber, String profileName, String boxId, String details,
+                                  List<AuditLog.AuditLogDetail> auditDetails) {
         User currentUser = UserSession.getCurrentUser();
         String username = currentUser == null ? "SYSTEM" : currentUser.getUsername();
         boolean systemAction = currentUser == null;
 
-        return saveLog(username, systemAction, action, caseId, documentId, fileId, pageNumber, profileName, boxId, details);
+        return saveLog(username, systemAction, action, caseId, documentId, fileId, pageNumber, profileName, boxId, details, auditDetails);
     }
 
     public AuditLog logSystemAction(String action, String caseId, String documentId, String fileId,
                                     Integer pageNumber, String profileName, String boxId, String details) {
-        return saveLog("SYSTEM", true, action, caseId, documentId, fileId, pageNumber, profileName, boxId, details);
+        return saveLog("SYSTEM", true, action, caseId, documentId, fileId, pageNumber, profileName, boxId, details, List.of());
     }
 
     public AuditLog logPageCreated(String caseId, String documentId, String fileId, Integer pageNumber,
@@ -65,7 +71,21 @@ public class AuditLogManager {
     }
 
     private AuditLog saveLog(String username, boolean systemAction, String action, String caseId, String documentId,
-                             String fileId, Integer pageNumber, String profileName, String boxId, String details) {
+                             String fileId, Integer pageNumber, String profileName, String boxId, String details,
+                             List<AuditLog.AuditLogDetail> auditDetails) {
+        List<AuditLog.AuditLogDetail> combinedDetails = new ArrayList<>(detailsFor(
+                caseId,
+                documentId,
+                fileId,
+                pageNumber,
+                profileName,
+                boxId
+        ));
+
+        if (auditDetails != null) {
+            combinedDetails.addAll(auditDetails);
+        }
+
         AuditLog auditLog = new AuditLog(
                 auditLogDAO.nextAuditLogId(),
                 java.time.LocalDateTime.now(),
@@ -75,7 +95,7 @@ public class AuditLogManager {
                 targetFor(caseId, documentId, fileId, pageNumber),
                 statusFor(action),
                 details,
-                detailsFor(caseId, documentId, fileId, pageNumber, profileName, boxId)
+                combinedDetails
         );
 
         return auditLogDAO.saveAuditLog(auditLog);

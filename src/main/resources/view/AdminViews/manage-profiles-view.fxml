@@ -98,9 +98,6 @@
 
                     <ComboBox fx:id="statusFilterComboBox"
                               styleClass="role-filter"/>
-
-                    <ComboBox fx:id="metadataFilterComboBox"
-                              styleClass="role-filter"/>
                 </HBox>
 
                 <HBox alignment="CENTER_LEFT"
@@ -125,7 +122,7 @@
                       styleClass="empty-state-box">
 
                     <Label text="No profiles found" styleClass="empty-state-title"/>
-                    <Label text="Try a different search, status, or metadata template filter."
+                    <Label text="Try a different search or status filter."
                            styleClass="empty-state-copy"/>
                 </VBox>
             </VBox>
@@ -194,6 +191,11 @@
                                    text="Active"
                                    styleClass="profile-status-badge"/>
 
+                            <Button text="Delete"
+                                    onAction="#deleteCurrentProfile"
+                                    focusTraversable="false"
+                                    styleClass="profile-editor-danger-button"/>
+
                             <Button text="Preview Export"
                                     onAction="#previewExport"
                                     focusTraversable="false"
@@ -220,12 +222,6 @@
                     <Button fx:id="scanRulesTabButton"
                             text="Scan Rules"
                             onAction="#showScanRulesTab"
-                            focusTraversable="false"
-                            styleClass="profile-editor-tab-button"/>
-
-                    <Button fx:id="metadataTabButton"
-                            text="Metadata"
-                            onAction="#showMetadataTab"
                             focusTraversable="false"
                             styleClass="profile-editor-tab-button"/>
 
@@ -473,103 +469,6 @@
                     </VBox>
 
 
-                    <!-- METADATA TAB -->
-                    <VBox fx:id="metadataTabPane"
-                          spacing="24"
-                          visible="false"
-                          managed="false"
-                          maxWidth="Infinity"
-                          styleClass="profile-editor-card">
-
-                        <VBox spacing="6">
-                            <Label text="Metadata Template"
-                                   styleClass="profile-editor-section-title"/>
-                            <Label text="Connect this profile to the metadata form users complete after scanning."
-                                   styleClass="profile-editor-subtitle"/>
-                        </VBox>
-
-                        <VBox spacing="6" maxWidth="Infinity">
-                            <Label text="Metadata Template"
-                                   styleClass="profile-editor-field-label"/>
-                            <ComboBox fx:id="metadataTemplateComboBox"
-                                      maxWidth="Infinity"
-                                      styleClass="profile-editor-input"/>
-                            <Label text="This metadata form will be shown to users after scanning."
-                                   styleClass="profile-editor-helper-text"/>
-                        </VBox>
-
-                        <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
-                            <Label text="Metadata must be completed before export"
-                                   styleClass="profile-editor-strong-text"/>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-
-                            <ToggleButton fx:id="metadataRequiredToggle"
-                                          selected="true"
-                                          focusTraversable="false"
-                                          styleClass="profile-editor-switch"/>
-                        </HBox>
-
-                        <VBox spacing="12" maxWidth="Infinity">
-                            <Label text="Preview field list:"
-                                   styleClass="profile-editor-helper-text"/>
-
-                            <GridPane hgap="72"
-                                      vgap="12"
-                                      maxWidth="Infinity"
-                                      styleClass="profile-editor-field-preview-card">
-
-                                <columnConstraints>
-                                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
-                                    <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
-                                </columnConstraints>
-
-                                <Label text="•  Box ID"
-                                       styleClass="profile-editor-field-preview-item"
-                                       GridPane.columnIndex="0"
-                                       GridPane.rowIndex="0"/>
-
-                                <Label text="•  Case Number"
-                                       styleClass="profile-editor-field-preview-item"
-                                       GridPane.columnIndex="1"
-                                       GridPane.rowIndex="0"/>
-
-                                <Label text="•  Building Address"
-                                       styleClass="profile-editor-field-preview-item"
-                                       GridPane.columnIndex="0"
-                                       GridPane.rowIndex="1"/>
-
-                                <Label text="•  Date Range"
-                                       styleClass="profile-editor-field-preview-item"
-                                       GridPane.columnIndex="1"
-                                       GridPane.rowIndex="1"/>
-
-                                <Label text="•  Department"
-                                       styleClass="profile-editor-field-preview-item"
-                                       GridPane.columnIndex="0"
-                                       GridPane.rowIndex="2"/>
-
-                                <Label text="•  Notes"
-                                       styleClass="profile-editor-field-preview-item"
-                                       GridPane.columnIndex="1"
-                                       GridPane.rowIndex="2"/>
-                            </GridPane>
-                        </VBox>
-
-                        <HBox spacing="15">
-                            <Button text="Preview Metadata Form"
-                                    onAction="#previewMetadataForm"
-                                    focusTraversable="false"
-                                    styleClass="profile-editor-secondary-button"/>
-
-                            <Button text="Edit Template ↗"
-                                    onAction="#editTemplate"
-                                    focusTraversable="false"
-                                    styleClass="profile-editor-link-button"/>
-                        </HBox>
-                    </VBox>
-
-
                     <!-- ACCESS TAB -->
                     <VBox fx:id="accessTabPane"
                           spacing="24"
@@ -648,14 +547,6 @@
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewBarcodeLabel"
                                        text="Enabled · Start new document · Remove barcode page"
-                                       styleClass="profile-editor-preview-value"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Metadata template:"
-                                       styleClass="profile-editor-preview-key"/>
-                                <Label fx:id="previewMetadataTemplateLabel"
-                                       text="Building Archive Metadata"
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 

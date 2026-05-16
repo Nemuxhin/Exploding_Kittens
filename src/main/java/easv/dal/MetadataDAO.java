@@ -133,6 +133,29 @@ public class MetadataDAO {
         }
     }
 
+    public void deleteProfile(int profileId) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try {
+                deleteProfileReferences(connection, profileId);
+                deleteProfileRow(connection, profileId);
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException(
+                    "Failed to delete scan profile. Archive it if scanned data still uses it.",
+                    exception
+            );
+        }
+    }
+
     public List<MetadataTemplate> getMetadataTemplates() {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
@@ -492,6 +515,37 @@ public class MetadataDAO {
         }
 
         throw new DataAccessException("Scan profile does not exist in the database: " + clean(profileName), null);
+    }
+
+    private void deleteProfileReferences(Connection connection, int profileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM metadata_template_profile_assignments
+                WHERE scan_profile_id = ?
+                """)) {
+            statement.setInt(1, profileId);
+            statement.executeUpdate();
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM user_profile_assignments
+                WHERE scan_profile_id = ?
+                """)) {
+            statement.setInt(1, profileId);
+            statement.executeUpdate();
+        }
+    }
+
+    private void deleteProfileRow(Connection connection, int profileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM scan_profiles
+                WHERE id = ?
+                """)) {
+            statement.setInt(1, profileId);
+
+            if (statement.executeUpdate() == 0) {
+                throw new SQLException("Scan profile was not found: " + profileId);
+            }
+        }
     }
 
     private boolean reviewRecordExists(Connection connection, String recordId) throws SQLException {

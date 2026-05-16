@@ -87,13 +87,40 @@ public class AuditLog {
     public static class AuditLogDetail {
         private final String label;
         private final String value;
+        private final String oldValue;
+        private final String newValue;
+        private final boolean fieldChange;
 
         public AuditLogDetail(String label, String value) {
+            this(label, value, "", "", false);
+        }
+
+        private AuditLogDetail(String label, String value, String oldValue, String newValue, boolean fieldChange) {
             this.label = clean(label);
             this.value = clean(value);
+            this.oldValue = clean(oldValue);
+            this.newValue = clean(newValue);
+            this.fieldChange = fieldChange;
+        }
+
+        public static AuditLogDetail change(String label, String oldValue, String newValue) {
+            return new AuditLogDetail(label, "", oldValue, newValue, true);
+        }
+
+        public static AuditLogDetail stored(
+                String label,
+                String value,
+                String oldValue,
+                String newValue,
+                boolean fieldChange
+        ) {
+            return new AuditLogDetail(label, value, oldValue, newValue, fieldChange);
         }
 
         public String getLabel() { return label; }
         public String getValue() { return value; }
+        public String getOldValue() { return oldValue; }
+        public String getNewValue() { return newValue; }
+        public boolean isFieldChange() { return fieldChange; }
     }
 }

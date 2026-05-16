@@ -1,10 +1,15 @@
 package easv.bll;
 
 import easv.be.CaseMetadata;
+import easv.be.AuditLog;
 import easv.dal.MetadataDAO;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * This class controls metadata rules after scanning.
@@ -30,7 +35,7 @@ public class MetadataManager {
         this(new LinkedHashMap<>(), auditLogManager);
     }
 
-    private MetadataManager(Map<String, CaseMetadata> metadataByCaseId, AuditLogManager auditLogManager) {
+    MetadataManager(Map<String, CaseMetadata> metadataByCaseId, AuditLogManager auditLogManager) {
         this.metadataByCaseId = metadataByCaseId;
         this.auditLogManager = auditLogManager == null ? SHARED_AUDIT_LOG_MANAGER : auditLogManager;
     }
@@ -49,12 +54,14 @@ public class MetadataManager {
             return false;
         }
 
+        Map<String, String> cleanedValues = cleanValues(values);
         CaseMetadata metadata = new CaseMetadata(cleanCaseId, clean(profileName), clean(boxId),
-                cleanValues(values), completed, approved);
+                cleanedValues, completed, approved);
         metadataByCaseId.put(cleanCaseId, metadata);
 
         auditLogManager.logUserAction(AuditLogManager.METADATA_SAVED, caseId, null, null,
-                null, profileName, boxId, "Metadata was saved for the scanned case.");
+                null, profileName, boxId, "Metadata was saved for the scanned case.",
+                metadataChanges(existingMetadata, metadata));
 
         return true;
     }
@@ -80,6 +87,55 @@ public class MetadataManager {
         }
 
         return cleanValues;
+    }
+
+    private List<AuditLog.AuditLogDetail> metadataChanges(CaseMetadata previousMetadata, CaseMetadata updatedMetadata) {
+        List<AuditLog.AuditLogDetail> changes = new ArrayList<>();
+
+        if (updatedMetadata == null) {
+            return changes;
+        }
+
+        addChangedValue(changes, "Case ID", previousMetadata == null ? "" : previousMetadata.getCaseId(), updatedMetadata.getCaseId());
+        addChangedValue(changes, "Profile", previousMetadata == null ? "" : previousMetadata.getProfileName(), updatedMetadata.getProfileName());
+        addChangedValue(changes, "Box", previousMetadata == null ? "" : previousMetadata.getBoxId(), updatedMetadata.getBoxId());
+        addChangedValue(changes, "Completed", previousMetadata == null ? "" : String.valueOf(previousMetadata.isCompleted()), String.valueOf(updatedMetadata.isCompleted()));
+        addChangedValue(changes, "Approved", previousMetadata == null ? "" : String.valueOf(previousMetadata.isApproved()), String.valueOf(updatedMetadata.isApproved()));
+
+        Map<String, String> previousValues = previousMetadata == null ? Map.of() : previousMetadata.getValues();
+        Map<String, String> updatedValues = updatedMetadata.getValues();
+        LinkedHashSet<String> fields = new LinkedHashSet<>();
+        fields.addAll(previousValues.keySet());
+        fields.addAll(updatedValues.keySet());
+
+        for (String field : fields) {
+            addChangedValue(changes, field, previousValues.get(field), updatedValues.get(field));
+        }
+
+        return changes;
+    }
+
+    private void addChangedValue(List<AuditLog.AuditLogDetail> changes, String label, String oldValue, String newValue) {
+        String cleanOldValue = cleanAuditValue(oldValue);
+        String cleanNewValue = cleanAuditValue(newValue);
+
+        if (!Objects.equals(cleanOldValue, cleanNewValue)) {
+            changes.add(AuditLog.AuditLogDetail.change(label, cleanOldValue, cleanNewValue));
+        }
+    }
+
+    private String cleanAuditValue(String value) {
+        String cleanedValue = clean(value);
+
+        if ("true".equalsIgnoreCase(cleanedValue)) {
+            return "Yes";
+        }
+
+        if ("false".equalsIgnoreCase(cleanedValue)) {
+            return "No";
+        }
+
+        return cleanedValue;
     }
 
     private String clean(String value) {

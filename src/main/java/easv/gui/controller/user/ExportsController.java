@@ -260,15 +260,22 @@ public class ExportsController {
             root.getStyleClass().add("dark");
         }
 
-        URL stylesheetUrl = getClass().getResource("/css/app.css");
         Scene scene = new Scene(root);
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
-        }
+
+        addStylesheet(scene, "/css/app.css");
+        addStylesheet(scene, "/css/user-portal.css");
 
         stage.setScene(scene);
         stage.sizeToScene();
         stage.showAndWait();
+    }
+
+    private void addStylesheet(Scene scene, String stylesheetPath) {
+        URL stylesheetUrl = getClass().getResource(stylesheetPath);
+
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
     }
 
     private VBox buildExportDialogContent(Stage stage, UserPortalModel.ExportItem item) {

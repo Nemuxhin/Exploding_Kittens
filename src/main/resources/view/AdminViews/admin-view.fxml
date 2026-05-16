@@ -17,7 +17,6 @@
            xmlns="http://javafx.com/javafx/21"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="easv.gui.controller.admin.AdminController"
-           stylesheets="@/css/app.css"
            styleClass="app-shell"
            maxWidth="Infinity"
            maxHeight="Infinity">
@@ -119,21 +118,6 @@
                                     <SVGPath content="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.31 0-6 1.79-6 4v2h8.1a6.48 6.48 0 0 1-.1-1.1c0-1.9.82-3.61 2.13-4.8A10.6 10.6 0 0 0 8 13zm8.5 0a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm-.5 6.7-2.1-2.1 1.06-1.06L16 17.59l2.54-2.55 1.06 1.06-3.6 3.6z"
                                              styleClass="admin-top-nav-icon"/>
                                     <Label text="Access" styleClass="admin-top-nav-label"/>
-                                </HBox>
-                            </graphic>
-                        </ToggleButton>
-
-                        <ToggleButton fx:id="metadataNavItem"
-                                      focusTraversable="false"
-                                      contentDisplay="GRAPHIC_ONLY">
-                            <styleClass>
-                                <String fx:value="admin-top-nav-button"/>
-                            </styleClass>
-                            <graphic>
-                                <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M4 4h8.8L20 11.2V20H4V4zm2 2v12h12v-5.8L11.8 6H6zm3 3h3v2H9V9zm0 4h6v2H9v-2z"
-                                             styleClass="admin-top-nav-icon"/>
-                                    <Label text="Metadata" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
                         </ToggleButton>

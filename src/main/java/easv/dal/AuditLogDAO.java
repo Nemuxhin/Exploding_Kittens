@@ -8,11 +8,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class AuditLogDAO {
+    private static final int MAX_DESCRIPTION_LENGTH = 1000;
+    private static final String DETAIL_MARKER = "\n[[AUDIT_DETAILS_V1:";
+    private static final String DETAIL_MARKER_END = "]]";
+    private static final String DETAIL_FIELD_SEPARATOR = "\u001F";
+    private static final String DETAIL_ROW_SEPARATOR = "\u001E";
+
     private final DatabaseConnection databaseConnection;
     private final List<AuditLog> inMemoryLogs;
     private int inMemoryNextId = 1;
@@ -92,7 +100,7 @@ public class AuditLogDAO {
             statement.setString(4, log.getAction());
             statement.setString(5, log.getTarget());
             statement.setString(6, log.getStatus());
-            statement.setString(7, log.getDescription());
+            statement.setString(7, serializeDescription(log));
             statement.executeUpdate();
 
             return new AuditLog(
@@ -114,6 +122,7 @@ public class AuditLogDAO {
     private AuditLog readAuditLog(ResultSet resultSet) throws SQLException {
         Timestamp timestamp = resultSet.getTimestamp("timestamp");
         LocalDateTime loggedAt = timestamp == null ? LocalDateTime.now() : timestamp.toLocalDateTime();
+        ParsedDescription parsedDescription = parseDescription(resultSet.getString("description"));
 
         return new AuditLog(
                 resultSet.getInt("id"),
@@ -123,9 +132,123 @@ public class AuditLogDAO {
                 resultSet.getString("action"),
                 resultSet.getString("target"),
                 displayStatus(resultSet.getString("status")),
-                resultSet.getString("description"),
-                List.of()
+                parsedDescription.description(),
+                parsedDescription.details()
         );
+    }
+
+    private String serializeDescription(AuditLog log) {
+        String description = limitToDatabaseDescription(clean(log.getDescription()));
+
+        if (log.getDetails().isEmpty()) {
+            return description;
+        }
+
+        List<AuditLog.AuditLogDetail> details = new ArrayList<>(log.getDetails());
+
+        while (!details.isEmpty()) {
+            String serializedDescription = description + DETAIL_MARKER + encodeDetails(details) + DETAIL_MARKER_END;
+
+            if (serializedDescription.length() <= MAX_DESCRIPTION_LENGTH) {
+                return serializedDescription;
+            }
+
+            details.remove(details.size() - 1);
+        }
+
+        return description;
+    }
+
+    private String encodeDetails(List<AuditLog.AuditLogDetail> details) {
+        StringBuilder payload = new StringBuilder();
+
+        for (AuditLog.AuditLogDetail detail : details) {
+            if (!payload.isEmpty()) {
+                payload.append(DETAIL_ROW_SEPARATOR);
+            }
+
+            payload.append(detail.isFieldChange() ? "1" : "0")
+                    .append(DETAIL_FIELD_SEPARATOR)
+                    .append(clean(detail.getLabel()))
+                    .append(DETAIL_FIELD_SEPARATOR)
+                    .append(clean(detail.getValue()))
+                    .append(DETAIL_FIELD_SEPARATOR)
+                    .append(clean(detail.getOldValue()))
+                    .append(DETAIL_FIELD_SEPARATOR)
+                    .append(clean(detail.getNewValue()));
+        }
+
+        return encode(payload.toString());
+    }
+
+    private String limitToDatabaseDescription(String value) {
+        String cleanValue = clean(value);
+        return cleanValue.length() <= MAX_DESCRIPTION_LENGTH
+                ? cleanValue
+                : cleanValue.substring(0, MAX_DESCRIPTION_LENGTH);
+    }
+
+    private ParsedDescription parseDescription(String storedDescription) {
+        String description = clean(storedDescription);
+        int markerIndex = description.indexOf(DETAIL_MARKER);
+
+        if (markerIndex < 0) {
+            return new ParsedDescription(description, List.of());
+        }
+
+        int payloadStart = markerIndex + DETAIL_MARKER.length();
+        int payloadEnd = description.indexOf(DETAIL_MARKER_END, payloadStart);
+
+        if (payloadEnd < 0) {
+            return new ParsedDescription(description.substring(0, markerIndex).trim(), List.of());
+        }
+
+        String visibleDescription = description.substring(0, markerIndex).trim();
+        String encodedPayload = description.substring(payloadStart, payloadEnd);
+
+        return new ParsedDescription(visibleDescription, parseDetails(encodedPayload));
+    }
+
+    private List<AuditLog.AuditLogDetail> parseDetails(String encodedPayload) {
+        String payload = decode(encodedPayload);
+
+        if (payload.isBlank()) {
+            return List.of();
+        }
+
+        List<AuditLog.AuditLogDetail> details = new ArrayList<>();
+
+        for (String line : payload.split(DETAIL_ROW_SEPARATOR, -1)) {
+            String[] parts = line.split(DETAIL_FIELD_SEPARATOR, -1);
+
+            if (parts.length < 5) {
+                continue;
+            }
+
+            details.add(AuditLog.AuditLogDetail.stored(
+                    parts[1],
+                    parts[2],
+                    parts[3],
+                    parts[4],
+                    "1".equals(parts[0])
+            ));
+        }
+
+        return details;
+    }
+
+    private String encode(String value) {
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(clean(value).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String decode(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+
+        return new String(Base64.getUrlDecoder().decode(value), StandardCharsets.UTF_8);
     }
 
     private int readGeneratedIntId(Statement statement) throws SQLException {
@@ -171,5 +294,8 @@ public class AuditLogDAO {
 
     private String clean(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private record ParsedDescription(String description, List<AuditLog.AuditLogDetail> details) {
     }
 }

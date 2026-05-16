@@ -352,14 +352,13 @@
                         <ComboBox fx:id="clientFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                         <ComboBox fx:id="archiveFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
                         <ComboBox fx:id="profileFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="metadataStatusFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="qaStatusFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <ComboBox fx:id="dateRangeFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <ComboBox fx:id="scannedByFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="qaStatusFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="dateRangeFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="scannedByFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                         <DatePicker fx:id="dateRangePicker"
                                     editable="false"
                                     maxWidth="Infinity"
-                                    GridPane.columnIndex="3"
+                                    GridPane.columnIndex="2"
                                     GridPane.rowIndex="1">
                             <styleClass>
                                 <String fx:value="review-filter"/>
@@ -398,16 +397,14 @@
 
                         <columnConstraints>
                             <ColumnConstraints percentWidth="4" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="17" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="20" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="14" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="14" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="12" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="6" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                             <ColumnConstraints percentWidth="12" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                             <ColumnConstraints percentWidth="10" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="12" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="11" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="10" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="4" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                             <ColumnConstraints percentWidth="8" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="7" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="5" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                         </columnConstraints>
 
                         <Region GridPane.columnIndex="0"/>
@@ -415,13 +412,11 @@
                         <Label text="Box" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="1"/>
                         <Label text="Client" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="2"/>
                         <Label text="Profile" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="3"/>
-                        <Label text="Metadata Template" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="4"/>
-                        <Label text="Metadata Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="5"/>
-                        <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6"/>
-                        <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="7"/>
-                        <Label text="Last Updated" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="8"/>
-                        <Label text="QA Assignee" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="9"/>
-                        <Label text="Review" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="10"/>
+                        <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="4"/>
+                        <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="5"/>
+                        <Label text="Last Updated" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6"/>
+                        <Label text="QA Assignee" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="7"/>
+                        <Label text="Review" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="8"/>
                     </GridPane>
 
                     <VBox fx:id="resultsRowsContainer"

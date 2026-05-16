@@ -23,7 +23,19 @@ public class MainApp extends Application {
     private static final String LOGIN_VIEW = "/view/LoginViews/login-view.fxml";
     private static final String ADMIN_VIEW = "/view/AdminViews/admin-view.fxml";
     private static final String USER_VIEW = "/view/UserViews/user-view.fxml";
-    private static final String STYLESHEET = "/css/app.css";
+    private static final String[] STYLESHEETS = {
+            "/css/app.css",
+            "/css/admin-common.css",
+            "/css/user-portal.css",
+            "/css/user-scan.css",
+            "/css/user-qa.css",
+            "/css/dashboard.css",
+            "/css/admin-profiles.css",
+            "/css/admin-review.css",
+            "/css/dialogs.css",
+            "/css/activity-log.css",
+            "/css/login.css"
+    };
 
     private static final String WINDOW_ICON =
             "/images/weblager/styleguide/Main Blue/LogoBlue_Logoicon.png";
@@ -99,18 +111,22 @@ public class MainApp extends Application {
         double height = fitToScreen(PREFERRED_HEIGHT, screen.getHeight());
 
         Scene scene = new Scene(root, width, height);
-        addStylesheet(scene);
+        addStylesheets(scene);
 
         stage.setTitle(title);
         stage.setScene(scene);
         centerStage(width, height);
     }
 
-    private void addStylesheet(Scene scene) {
-        URL stylesheetUrl = getClass().getResource(STYLESHEET);
+    private void addStylesheets(Scene scene) {
+        scene.getStylesheets().clear();
 
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().setAll(stylesheetUrl.toExternalForm());
+        for (String stylesheet : STYLESHEETS) {
+            URL stylesheetUrl = getClass().getResource(stylesheet);
+
+            if (stylesheetUrl != null) {
+                scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+            }
         }
     }
 

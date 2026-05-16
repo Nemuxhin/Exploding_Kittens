@@ -41,7 +41,6 @@ public class ReviewController {
     private static final String ALL_CLIENTS = "All Clients";
     private static final String ALL_ARCHIVES = "All Archives";
     private static final String ALL_PROFILES = "All Profiles";
-    private static final String ALL_METADATA_STATUSES = "All Metadata Statuses";
     private static final String ALL_QA_STATUSES = "All QA Statuses";
     private static final String ALL_USERS = "All Users";
     private static final String RANGE_LAST_30_DAYS = "Last 30 Days";
@@ -69,6 +68,7 @@ public class ReviewController {
     private LocalDate pendingRangeStart;
 
     private ReviewRow activeReviewRecord;
+    private ReviewQueueFilter activeQueueFilter = ReviewQueueFilter.ALL;
     private AdminManager adminManager;
 
     @FXML private VBox overviewPane;
@@ -79,7 +79,6 @@ public class ReviewController {
     @FXML private ComboBox<String> clientFilterComboBox;
     @FXML private ComboBox<String> archiveFilterComboBox;
     @FXML private ComboBox<String> profileFilterComboBox;
-    @FXML private ComboBox<String> metadataStatusFilterComboBox;
     @FXML private ComboBox<String> qaStatusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
     @FXML private DatePicker dateRangePicker;
@@ -169,17 +168,6 @@ public class ReviewController {
         );
         profileFilterComboBox.setValue(ALL_PROFILES);
 
-        metadataStatusFilterComboBox.getItems().setAll(
-                ALL_METADATA_STATUSES,
-                "Not Started",
-                "Incomplete",
-                "Missing Required Fields",
-                "Invalid",
-                "Complete",
-                "Approved"
-        );
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
-
         qaStatusFilterComboBox.getItems().setAll(
                 ALL_QA_STATUSES,
                 "Not Started",
@@ -255,7 +243,6 @@ public class ReviewController {
         clientFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         archiveFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         profileFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        metadataStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         qaStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (updatingDateControls) {
@@ -363,13 +350,11 @@ public class ReviewController {
         addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 1, HPos.LEFT);
         addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 2, HPos.LEFT);
         addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 3, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.metadataTemplate(), "review-cell-text"), 4, HPos.LEFT);
-        addCell(row, createStatusBadge(record.metadataStatus(), "metadata"), 5, HPos.LEFT);
-        addCell(row, createStatusBadge(record.qaStatus(), "qa"), 6, HPos.LEFT);
-        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 7, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 8, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 9, HPos.LEFT);
-        addCell(row, createReviewButton(record), 10, HPos.LEFT);
+        addCell(row, createStatusBadge(record.qaStatus()), 4, HPos.LEFT);
+        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 5, HPos.CENTER);
+        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 6, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 7, HPos.LEFT);
+        addCell(row, createReviewButton(record), 8, HPos.LEFT);
 
         return row;
     }
@@ -377,16 +362,14 @@ public class ReviewController {
     private List<ColumnConstraints> createTableColumns() {
         return List.of(
                 createPercentColumn(4),
-                createPercentColumn(17),
+                createPercentColumn(20),
+                createPercentColumn(14),
+                createPercentColumn(14),
+                createPercentColumn(12),
+                createPercentColumn(6),
                 createPercentColumn(12),
                 createPercentColumn(10),
-                createPercentColumn(12),
-                createPercentColumn(11),
-                createPercentColumn(10),
-                createPercentColumn(4),
-                createPercentColumn(8),
-                createPercentColumn(7),
-                createPercentColumn(5)
+                createPercentColumn(8)
         );
     }
 
@@ -422,15 +405,10 @@ public class ReviewController {
         return label;
     }
 
-    private Label createStatusBadge(String status, String type) {
+    private Label createStatusBadge(String status) {
         Label badge = new Label(status);
         badge.getStyleClass().add("review-status-badge");
-
-        if ("metadata".equals(type)) {
-            badge.getStyleClass().add(metadataStatusClass(status));
-        } else {
-            badge.getStyleClass().add(qaStatusClass(status));
-        }
+        badge.getStyleClass().add(qaStatusClass(status));
 
         badge.setWrapText(true);
         badge.setMinWidth(0);
@@ -610,8 +588,6 @@ public class ReviewController {
                 || normalize(record.client()).contains(searchText)
                 || normalize(record.archive()).contains(searchText)
                 || normalize(record.profile()).contains(searchText)
-                || normalize(record.metadataTemplate()).contains(searchText)
-                || normalize(record.metadataStatus()).contains(searchText)
                 || normalize(record.qaStatus()).contains(searchText)
                 || normalize(record.assignedTo()).contains(searchText)
                 || normalize(record.scannedBy()).contains(searchText)
@@ -624,10 +600,22 @@ public class ReviewController {
         return matchesCombo(record.client(), clientFilterComboBox.getValue(), ALL_CLIENTS)
                 && matchesCombo(record.archive(), archiveFilterComboBox.getValue(), ALL_ARCHIVES)
                 && matchesCombo(record.profile(), profileFilterComboBox.getValue(), ALL_PROFILES)
-                && matchesCombo(record.metadataStatus(), metadataStatusFilterComboBox.getValue(), ALL_METADATA_STATUSES)
+                && matchesQueueFilter(record)
                 && matchesCombo(record.qaStatus(), qaStatusFilterComboBox.getValue(), ALL_QA_STATUSES)
                 && matchesCombo(record.scannedBy(), scannedByFilterComboBox.getValue(), ALL_USERS)
                 && matchesDateRange(record);
+    }
+
+    private boolean matchesQueueFilter(ReviewRow record) {
+        return switch (activeQueueFilter) {
+            case ALL -> true;
+            case MISSING_REQUIRED -> isMissingRequired(record);
+            case EXPORT_BLOCKED -> isExportBlocked(record);
+            case FAILED_VALIDATION -> isFailedValidation(record);
+            case READY_FOR_QA -> isReadyForQa(record);
+            case QA_REJECTED -> isQaRejected(record);
+            case RECENTLY_SCANNED -> isRecentlyScanned(record);
+        };
     }
 
     private boolean matchesCombo(String value, String selectedValue, String allValue) {
@@ -748,10 +736,10 @@ public class ReviewController {
         clientFilterComboBox.setValue(ALL_CLIENTS);
         archiveFilterComboBox.setValue(ALL_ARCHIVES);
         profileFilterComboBox.setValue(ALL_PROFILES);
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
         scannedByFilterComboBox.setValue(ALL_USERS);
+        activeQueueFilter = ReviewQueueFilter.ALL;
 
         selectedRecordIds.clear();
         currentPage = 1;
@@ -760,45 +748,51 @@ public class ReviewController {
 
     @FXML
     private void showMissingRequiredQueue() {
-        metadataStatusFilterComboBox.setValue("Missing Required Fields");
+        activeQueueFilter = ReviewQueueFilter.MISSING_REQUIRED;
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showExportBlockedQueue() {
-        metadataStatusFilterComboBox.setValue("Missing Required Fields");
+        activeQueueFilter = ReviewQueueFilter.EXPORT_BLOCKED;
         qaStatusFilterComboBox.setValue("Waiting for QA");
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showFailedValidationQueue() {
-        metadataStatusFilterComboBox.setValue("Invalid");
+        activeQueueFilter = ReviewQueueFilter.FAILED_VALIDATION;
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showReadyForQaQueue() {
-        metadataStatusFilterComboBox.setValue("Complete");
+        activeQueueFilter = ReviewQueueFilter.READY_FOR_QA;
         qaStatusFilterComboBox.setValue("Ready for QA");
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showQaRejectedQueue() {
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
+        activeQueueFilter = ReviewQueueFilter.QA_REJECTED;
         qaStatusFilterComboBox.setValue("QA Rejected");
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showRecentlyScannedQueue() {
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
+        activeQueueFilter = ReviewQueueFilter.RECENTLY_SCANNED;
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         LocalDate today = LocalDate.now();
         setDateRange(RANGE_TODAY, today, today);
+        applyFilters();
     }
 
     private void applyPresetDateRange(String selectedRange) {
@@ -1197,6 +1191,16 @@ public class ReviewController {
         } else {
             comboBox.setValue(allOption);
         }
+    }
+
+    private enum ReviewQueueFilter {
+        ALL,
+        MISSING_REQUIRED,
+        EXPORT_BLOCKED,
+        FAILED_VALIDATION,
+        READY_FOR_QA,
+        QA_REJECTED,
+        RECENTLY_SCANNED
     }
 
     record ReviewRow(

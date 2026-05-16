@@ -48,18 +48,19 @@ public class ManageUsersController {
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
 
-    private static final double NAME_COLUMN_WIDTH = 20;
-    private static final double USERNAME_COLUMN_WIDTH = 15;
-    private static final double EMAIL_COLUMN_WIDTH = 25;
-    private static final double ROLE_COLUMN_WIDTH = 10;
-    private static final double PROFILES_COLUMN_WIDTH = 15;
+    private static final double NAME_COLUMN_WIDTH = 18;
+    private static final double USERNAME_COLUMN_WIDTH = 13;
+    private static final double EMAIL_COLUMN_WIDTH = 22;
+    private static final double ROLE_COLUMN_WIDTH = 9;
+    private static final double STATUS_COLUMN_WIDTH = 10;
+    private static final double PROFILES_COLUMN_WIDTH = 13;
     private static final double ACTIONS_COLUMN_WIDTH = 15;
 
     private static final String EDIT_ICON_PATH =
             "M4 17.25V20h2.75l8.12-8.12-2.75-2.75L4 17.25zm11.71-9.04a.996.996 0 0 0 0-1.41l-1.5-1.5a.996.996 0 1 0-1.41 1.41l1.5 1.5a.996.996 0 0 0 1.41 0z";
 
-    private static final String DELETE_ICON_PATH =
-            "M6 7h12l-1 13H7L6 7zm3-3h6l1 2h4v2H4V6h4l1-2z";
+    private static final String DEACTIVATE_ICON_PATH =
+            "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H7v-2h10v2z";
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> roleFilterComboBox;
@@ -470,25 +471,25 @@ public class ManageUsersController {
         }
     }
 
-    private void deleteUser(User user) {
+    private void deactivateUser(User user) {
         if (adminManager == null) {
             showUserActionMessage("User storage is not available.");
             return;
         }
 
         try {
-            adminManager.deleteUser(user.getId());
+            adminManager.deactivateUser(user.getId());
         } catch (IllegalArgumentException exception) {
             showUserActionMessage(exception.getMessage());
             return;
         } catch (DataAccessException exception) {
-            showUserActionMessage("User could not be deleted. Check the database connection.");
+            showUserActionMessage("User could not be deactivated. Check the database connection.");
             return;
         }
 
         loadUsers();
         applyFilters();
-        showUserActionMessage(user.getName() + " was deleted.");
+        showUserActionMessage(user.getName() + " was deactivated.");
     }
 
     private void applyFilters() {
@@ -569,8 +570,9 @@ public class ManageUsersController {
         addCell(row, buildCenteredTextCell(user.getUsername()), 1, HPos.CENTER);
         addCell(row, buildCenteredTextCell(user.getEmail()), 2, HPos.CENTER);
         addCell(row, buildRoleCell(user), 3, HPos.CENTER);
-        addCell(row, buildCenteredTextCell(profileAccessSummary(user)), 4, HPos.CENTER);
-        addCell(row, buildActionsCell(user), 5, HPos.CENTER);
+        addCell(row, buildStatusCell(user), 4, HPos.CENTER);
+        addCell(row, buildCenteredTextCell(profileAccessSummary(user)), 5, HPos.CENTER);
+        addCell(row, buildActionsCell(user), 6, HPos.CENTER);
 
         return row;
     }
@@ -583,6 +585,7 @@ public class ManageUsersController {
                 createPercentColumn(USERNAME_COLUMN_WIDTH),
                 createPercentColumn(EMAIL_COLUMN_WIDTH),
                 createPercentColumn(ROLE_COLUMN_WIDTH),
+                createPercentColumn(STATUS_COLUMN_WIDTH),
                 createPercentColumn(PROFILES_COLUMN_WIDTH),
                 createPercentColumn(ACTIONS_COLUMN_WIDTH)
         );
@@ -655,6 +658,20 @@ public class ManageUsersController {
         return wrapper;
     }
 
+    private StackPane buildStatusCell(User user) {
+        Label statusBadge = new Label(user.getStatus());
+        statusBadge.getStyleClass().addAll(
+                "user-status-badge",
+                user.isActive() ? "user-status-active" : "user-status-inactive"
+        );
+
+        StackPane wrapper = new StackPane(statusBadge);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
+
+        return wrapper;
+    }
+
     private HBox buildActionsCell(User user) {
         HBox actionBox = new HBox(12);
         actionBox.getStyleClass().add("inline-actions");
@@ -664,10 +681,10 @@ public class ManageUsersController {
         editButton.setOnAction(event -> showEditUserEditor(user));
         actionBox.getChildren().add(editButton);
 
-        if (!user.isCurrentUser()) {
-            Button deleteButton = createInlineActionButton("Delete", DELETE_ICON_PATH, "delete-link-button", "delete-link-icon");
-            deleteButton.setOnAction(event -> deleteUser(user));
-            actionBox.getChildren().add(deleteButton);
+        if (!user.isCurrentUser() && user.isActive()) {
+            Button deactivateButton = createInlineActionButton("Deactivate", DEACTIVATE_ICON_PATH, "deactivate-link-button", "deactivate-link-icon");
+            deactivateButton.setOnAction(event -> deactivateUser(user));
+            actionBox.getChildren().add(deactivateButton);
         }
 
         return actionBox;
