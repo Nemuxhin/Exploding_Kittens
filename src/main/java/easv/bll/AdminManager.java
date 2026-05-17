@@ -412,6 +412,7 @@ public class AdminManager {
     }
 
     public void saveProfileAssignments(Map<Integer, Set<Integer>> assignments) {
+        validateProfileAssignments(assignments);
         profileAssignments.clear();
         profileAssignments.putAll(copyAssignments(assignments));
         userDAO.replaceProfileAssignments(profileAssignments);
@@ -750,6 +751,31 @@ public class AdminManager {
     private void removeUserFromAssignments(int userId) {
         for (Set<Integer> assignedUserIds : profileAssignments.values()) {
             assignedUserIds.remove(userId);
+        }
+    }
+
+    private void validateProfileAssignments(Map<Integer, Set<Integer>> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+        }
+
+        Set<Integer> validProfileIds = profiles.stream()
+                .map(ScanProfile::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        Set<Integer> validUserIds = users.stream()
+                .map(User::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        for (Map.Entry<Integer, Set<Integer>> assignment : assignments.entrySet()) {
+            if (!validProfileIds.contains(assignment.getKey())) {
+                throw new IllegalArgumentException("Profile could not be found.");
+            }
+
+            for (Integer userId : assignment.getValue() == null ? Set.<Integer>of() : assignment.getValue()) {
+                if (userId != null && !validUserIds.contains(userId)) {
+                    throw new IllegalArgumentException("User could not be found.");
+                }
+            }
         }
     }
 
