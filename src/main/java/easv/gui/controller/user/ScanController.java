@@ -6,6 +6,7 @@ import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.be.User;
 import easv.gui.BackgroundExecutor;
+import easv.gui.StyleGuideUi;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.UserSession;
@@ -1160,6 +1161,7 @@ public class ScanController {
             List<String> profileNames = loadAvailableProfileNames();
             Platform.runLater(() -> {
                 profileComboBox.getItems().setAll(profileNames);
+                StyleGuideUi.configureSearchableComboBox(profileComboBox);
                 profileComboBox.setDisable(false);
                 profileComboBox.setPromptText(profileNames.isEmpty() ? "No profiles available" : "Select profile");
                 updateProfileInfo(profileComboBox.getValue());

@@ -2,6 +2,7 @@ package easv.gui.controller.admin;
 
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
+import easv.gui.StyleGuideUi;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -52,7 +53,7 @@ public class ReviewController {
 
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
-    private static final DateTimeFormatter DATE_RANGE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_RANGE_FORMATTER = StyleGuideUi.DATE_FORMATTER;
 
     private final ObservableList<ReviewRow> records = FXCollections.observableArrayList();
     private final Set<String> selectedRecordIds = new HashSet<>();
@@ -197,6 +198,13 @@ public class ReviewController {
                 "System Import"
         );
         scannedByFilterComboBox.setValue(ALL_USERS);
+
+        StyleGuideUi.configureSearchableComboBox(clientFilterComboBox);
+        StyleGuideUi.configureSearchableComboBox(archiveFilterComboBox);
+        StyleGuideUi.configureSearchableComboBox(profileFilterComboBox);
+        StyleGuideUi.configureSearchableComboBox(qaStatusFilterComboBox);
+        StyleGuideUi.configureSearchableComboBox(dateRangeFilterComboBox);
+        StyleGuideUi.configureSearchableComboBox(scannedByFilterComboBox);
     }
 
     private void configureWorkspaceControls() {
@@ -215,6 +223,7 @@ public class ReviewController {
                 "Legal Department"
         );
         departmentComboBox.setValue("Technical Services");
+        StyleGuideUi.configureSearchableComboBox(documentTypeComboBox);
 
         caseNumberField.setText("2026-042");
         registrationDateField.setText("Invalid date");
@@ -684,6 +693,7 @@ public class ReviewController {
     private LocalDate parseFormattedDate(String dateText) {
         List<DateTimeFormatter> dateFormatters = List.of(
                 DATE_RANGE_FORMATTER,
+                DateTimeFormatter.ofPattern("dd/MM/yyyy"),
                 DateTimeFormatter.ISO_LOCAL_DATE
         );
 
@@ -696,6 +706,7 @@ public class ReviewController {
 
         List<DateTimeFormatter> dateTimeFormatters = List.of(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+                DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm"),
                 DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
         );
 
@@ -853,6 +864,7 @@ public class ReviewController {
     }
 
     private void configureDateRangePicker() {
+        dateRangePicker.setPromptText("MM/DD/YYYY");
         dateRangePicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate value) {

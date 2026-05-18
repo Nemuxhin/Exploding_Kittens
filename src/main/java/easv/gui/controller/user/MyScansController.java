@@ -24,8 +24,8 @@ import java.util.List;
 
 public class MyScansController {
     private static final String ALL_STATUSES = "All Statuses";
-    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private static final DateTimeFormatter FILTER_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
+    private static final DateTimeFormatter LEGACY_ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final UserPortalModel portalModel;
     private final UserNavigator navigator;
@@ -361,10 +361,13 @@ public class MyScansController {
             return null;
         }
 
-        try {
-            return LocalDateTime.parse(value.trim(), ITEM_DATE_TIME).toLocalDate();
-        } catch (DateTimeParseException ignored) {
-            return null;
+        for (DateTimeFormatter formatter : List.of(ITEM_DATE_TIME, LEGACY_ITEM_DATE_TIME)) {
+            try {
+                return LocalDateTime.parse(value.trim(), formatter).toLocalDate();
+            } catch (DateTimeParseException ignored) {
+            }
         }
+
+        return null;
     }
 }

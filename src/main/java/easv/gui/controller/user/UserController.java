@@ -6,6 +6,7 @@ import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
+import easv.gui.StyleGuideUi;
 import easv.gui.UserPortalModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,7 +31,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
@@ -44,8 +44,10 @@ public class UserController implements UserNavigator {
     private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
 
-    private static final String PREFERENCES_NODE = "easv.gui.portal";
-    private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
+    private static final String THEME_PREFERENCES_NODE = "easv.gui.weblager";
+    private static final String DARK_MODE_PREFERENCE_KEY = "darkMode";
+    private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
+    private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
 
     private static final String ACCOUNT_SECTION = "Edit Profile";
 
@@ -55,23 +57,13 @@ public class UserController implements UserNavigator {
     private static final String DARK_MODE_LOGO =
             "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
 
-    private static final String MOON_ICON_PATH =
-            "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
+    private static final String MOON_ICON = "\ue9c7";
+    private static final String SUN_ICON = "\ue9c8";
 
-    private static final String SUN_ICON_PATH =
-            "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
-
-    private static final String HELP_SCAN_ICON_PATH =
-            "M4 4h5v2H6v3H4V4zm11 0h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 0h2v5h-5v-2h3v-3zM11 8h2v3h3v2h-3v3h-2v-3H8v-2h3V8z";
-
-    private static final String HELP_QA_ICON_PATH =
-            "M5 3h10l4 4v14H5V3zm2 2v14h10V8h-3V5H7zm2 5h6v1.5H9V10zm0 3h6v1.5H9V13zm0 3h4v1.5H9V16z";
-
-    private static final String HELP_EXPORT_ICON_PATH =
-            "M11 3h2v8h3l-4 4-4-4h3V3zM5 14h2v4h10v-4h2v6H5v-6z";
-
-    private static final String HELP_SETTINGS_ICON_PATH =
-            "M9 2h2l.5 2.1 1.9.8 1.8-1 1.4 1.4-1 1.8.8 1.9L18 9v2l-2.1.5-.8 1.9 1 1.8-1.4 1.4-1.8-1-.9 1.9L11 18H9l-.5-2.1-1.9-.8-1.8 1L3.4 14.7l1-1.8L3.6 11 2 10V8l2.1-.5.8-1.9-1-1.8L5.3 2.4l1.8 1 .9-1.9z M10 7a3 3 0 100 6 3 3 0 000-6z";
+    private static final String HELP_SCAN_ICON = "\ue934";
+    private static final String HELP_QA_ICON = "\uea1b";
+    private static final String HELP_EXPORT_ICON = "\ue956";
+    private static final String HELP_SETTINGS_ICON = "\ue94a";
 
     @FXML private StackPane appShell;
     @FXML private BorderPane appRoot;
@@ -100,12 +92,12 @@ public class UserController implements UserNavigator {
     @FXML private Button settingsPrivacyMenuButton;
     @FXML private Button logoutMenuButton;
     @FXML private ToggleButton darkModeToggleButton;
-    @FXML private SVGPath darkModeToggleIcon;
+    @FXML private Label darkModeToggleIcon;
 
     private final UserPortalModel portalModel = new UserPortalModel();
     private final ShortcutManager shortcutManager = new ShortcutManager();
     private final UserManager userManager = new UserManager();
-    private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
+    private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
 
     private MainApp mainApp;
 
@@ -197,7 +189,12 @@ public class UserController implements UserNavigator {
     }
 
     private boolean isDarkModeEnabled() {
-        return preferences.getBoolean(DARK_MODE_PREFERENCE_KEY, false);
+        Preferences legacyUserPreferences = Preferences.userRoot().node(LEGACY_USER_PREFERENCES_NODE);
+
+        return preferences.getBoolean(
+                DARK_MODE_PREFERENCE_KEY,
+                legacyUserPreferences.getBoolean(LEGACY_USER_DARK_MODE_KEY, false)
+        );
     }
 
     private void updateTheme(boolean isDark) {
@@ -255,7 +252,8 @@ public class UserController implements UserNavigator {
         }
 
         if (darkModeToggleIcon != null) {
-            darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
+            darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
+            StyleGuideUi.applyPrimeIconFont(darkModeToggleIcon);
         }
     }
 
@@ -305,6 +303,7 @@ public class UserController implements UserNavigator {
 
             configureLoadedController(loader.getController());
             configureLoadedPageSize(loadedPage);
+            StyleGuideUi.applyPrimeIconFont(loadedPage);
 
             contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
@@ -845,22 +844,22 @@ public class UserController implements UserNavigator {
 
         VBox gettingStartedRows = new VBox(15,
                 createHelpRow(
-                        HELP_SCAN_ICON_PATH,
+                        HELP_SCAN_ICON,
                         "Starting a Scan",
                         "Navigate to New Scan, select your scan type, choose a profile, and enter the Box ID. The system will guide you through each page for quality approval."
                 ),
                 createHelpRow(
-                        HELP_QA_ICON_PATH,
+                        HELP_QA_ICON,
                         "Quality Assurance",
                         "During scanning, review each page as it appears. Use Space to approve, F to flag for rescan, or Delete to remove. Flagged pages can be rescanned later."
                 ),
                 createHelpRow(
-                        HELP_EXPORT_ICON_PATH,
+                        HELP_EXPORT_ICON,
                         "Exporting Files",
                         "After scanning, configure your export settings including format, quality level, and OCR options. Files are available in the Exports page."
                 ),
                 createHelpRow(
-                        HELP_SETTINGS_ICON_PATH,
+                        HELP_SETTINGS_ICON,
                         "Customizing Settings",
                         "Open your account menu to access Settings and Privacy, dark mode, account details, and logout."
                 )
@@ -920,10 +919,8 @@ public class UserController implements UserNavigator {
         return section;
     }
 
-    private HBox createHelpRow(String iconPath, String titleText, String bodyText) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(iconPath);
-        icon.getStyleClass().add("weblager-help-icon");
+    private HBox createHelpRow(String iconGlyph, String titleText, String bodyText) {
+        Label icon = StyleGuideUi.createPrimeIcon(iconGlyph, "weblager-help-icon");
 
         StackPane iconShell = new StackPane(icon);
         iconShell.getStyleClass().add("weblager-help-icon-shell");

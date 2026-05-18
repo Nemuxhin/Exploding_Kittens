@@ -1,5 +1,7 @@
 package easv.gui.controller.user;
 
+import easv.gui.StyleGuideUi;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
@@ -127,6 +129,9 @@ public class AssignedQaController {
                 "Standard Scan"
         );
         profileFilterComboBox.getSelectionModel().selectFirst();
+
+        StyleGuideUi.configureSearchableComboBox(statusFilterComboBox);
+        StyleGuideUi.configureSearchableComboBox(profileFilterComboBox);
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());

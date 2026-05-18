@@ -21,8 +21,7 @@
            maxWidth="Infinity"
            maxHeight="Infinity">
 
-    <BorderPane fx:id="appRoot"
-                maxWidth="Infinity"
+    <BorderPane maxWidth="Infinity"
                 maxHeight="Infinity">
 
         <top>
@@ -70,8 +69,7 @@
                             </styleClass>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M3 10.25 12 3l9 7.25V21h-6.25v-6.25h-5.5V21H3V10.25zm2 1V19h2.25v-6.25h9.5V19H19v-7.75L12 5.6 5 11.25z"
-                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="&#xe925;" styleClass="prime-icon admin-top-nav-icon"/>
                                     <Label text="Dashboard" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
@@ -85,8 +83,7 @@
                             </styleClass>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z"
-                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="&#xe941;" styleClass="prime-icon admin-top-nav-icon"/>
                                     <Label text="Users" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
@@ -100,8 +97,7 @@
                             </styleClass>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2zm0 2v13h14v-13H5zm2.5 3h4.2a2.4 2.4 0 0 1 4.6 0h1.2v2h-1.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm6.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6zm-6.5 4.2h1.2a2.4 2.4 0 0 1 4.6 0h4.2v2h-4.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm3.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6z"
-                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="&#xe992;" styleClass="prime-icon admin-top-nav-icon"/>
                                     <Label text="Profiles" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
@@ -115,8 +111,7 @@
                             </styleClass>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.31 0-6 1.79-6 4v2h8.1a6.48 6.48 0 0 1-.1-1.1c0-1.9.82-3.61 2.13-4.8A10.6 10.6 0 0 0 8 13zm8.5 0a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm-.5 6.7-2.1-2.1 1.06-1.06L16 17.59l2.54-2.55 1.06 1.06-3.6 3.6z"
-                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="&#xe93f;" styleClass="prime-icon admin-top-nav-icon"/>
                                     <Label text="Access" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
@@ -130,8 +125,7 @@
                             </styleClass>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M5 3.5h11.5L20 7v13.5H5V3.5zm2 2v13h11V8h-3V5.5H7zm2 4h7v1.75H9V9.5zm0 3.25h5v1.75H9v-1.75zm7.1 1.25 1.1 1.1-3.4 3.4-2.1-2.1 1.1-1.1 1 1 2.3-2.3z"
-                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="&#xea1b;" styleClass="prime-icon admin-top-nav-icon"/>
                                     <Label text="Review" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
@@ -145,8 +139,7 @@
                             </styleClass>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M3 12h4l2-5 4 10 2-5h6v2h-4.7l-3.3 8-4-10-1 2H3v-2z"
-                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="&#xea0c;" styleClass="prime-icon admin-top-nav-icon"/>
                                     <Label text="Activity" styleClass="admin-top-nav-label"/>
                                 </HBox>
                             </graphic>
@@ -165,20 +158,17 @@
                                 styleClass="admin-toolbar-button">
                             <graphic>
                                 <StackPane styleClass="admin-toolbar-icon-shell">
-                                    <SVGPath content="M3 5h18v14H3V5zm2 2v10h14V7H5zm2 2h2v2H7V9zm3 0h2v2h-2V9zm3 0h2v2h-2V9zm3 0h2v2h-2V9zM7 13h2v2H7v-2zm3 0h5v2h-5v-2zm6 0h2v2h-2v-2z"
-                                             styleClass="admin-toolbar-icon"/>
+                                    <Label text="&#xe981;" styleClass="prime-icon admin-toolbar-icon"/>
                                 </StackPane>
                             </graphic>
                         </Button>
 
-                        <Button fx:id="notificationsButton"
-                                focusTraversable="false"
+                        <Button focusTraversable="false"
                                 contentDisplay="GRAPHIC_ONLY"
                                 styleClass="admin-toolbar-button">
                             <graphic>
                                 <StackPane styleClass="admin-toolbar-icon-shell">
-                                    <SVGPath content="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-5v1H5v-1l1.7-1.7V11a5.3 5.3 0 0 1 4.3-5.2V4a1 1 0 1 1 2 0v1.8A5.3 5.3 0 0 1 17.3 11v4.3L19 17zm-4-5.8a3 3 0 0 0-6 0V16h6v-4.8z"
-                                             styleClass="admin-toolbar-icon"/>
+                                    <Label text="&#xe97c;" styleClass="prime-icon admin-toolbar-icon"/>
                                     <Region styleClass="admin-notification-dot"
                                             StackPane.alignment="TOP_RIGHT"/>
                                 </StackPane>
@@ -204,8 +194,7 @@
                                            styleClass="admin-account-name"/>
 
                                     <StackPane styleClass="admin-account-chevron-shell">
-                                        <SVGPath content="M7 9.5 12 14.5l5-5 1.4 1.4L12 17.3 5.6 10.9 7 9.5z"
-                                                 styleClass="admin-account-chevron"/>
+                                        <Label text="&#xe930;" styleClass="prime-icon admin-account-chevron"/>
                                     </StackPane>
                                 </HBox>
                             </graphic>
@@ -266,9 +255,9 @@
                       focusTraversable="false"
                       styleClass="admin-account-theme-toggle">
             <graphic>
-                <SVGPath fx:id="darkModeToggleIcon"
-                         content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
-                         styleClass="admin-account-theme-icon"/>
+                <Label fx:id="darkModeToggleIcon"
+                       text="&#xe9c8;"
+                       styleClass="prime-icon admin-account-theme-icon"/>
             </graphic>
         </ToggleButton>
 

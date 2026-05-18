@@ -26,7 +26,7 @@ public class UserPortalModel {
     private static final AccountProfile DEFAULT_ACCOUNT =
             new AccountProfile("User", "", "Scanning");
     private static final DateTimeFormatter HISTORY_TIME_FORMAT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm", Locale.ENGLISH);
 
     private final ScanProfileDAO scanProfileDAO;
     private final CaseFileDAO caseFileDAO;

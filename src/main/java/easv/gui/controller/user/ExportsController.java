@@ -35,7 +35,8 @@ import java.util.Locale;
 
 public class ExportsController {
     private static final String ALL_STATUSES = "All Statuses";
-    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
+    private static final DateTimeFormatter LEGACY_ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final UserPortalModel portalModel;
     private final VBox table = new VBox();
@@ -694,11 +695,14 @@ public class ExportsController {
             return null;
         }
 
-        try {
-            return LocalDateTime.parse(value.trim(), ITEM_DATE_TIME).toLocalDate();
-        } catch (DateTimeParseException ignored) {
-            return null;
+        for (DateTimeFormatter formatter : List.of(ITEM_DATE_TIME, LEGACY_ITEM_DATE_TIME)) {
+            try {
+                return LocalDateTime.parse(value.trim(), formatter).toLocalDate();
+            } catch (DateTimeParseException ignored) {
+            }
         }
+
+        return null;
     }
 
     private enum TiffExportType {

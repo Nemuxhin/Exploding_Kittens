@@ -16,7 +16,7 @@
 
 .root {
     -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
+    -fx-font-size: 12px;
 }
 
 .root,
@@ -26,9 +26,9 @@
     -wl-card-content: #F9F9F9;
     -wl-input-bg: #FFFFFF;
 
-    -wl-text: #111827;
-    -wl-text-muted: #334155;
-    -wl-table-header-text: #1F2937;
+    -wl-text: #2D3D4F;
+    -wl-text-muted: #64748B;
+    -wl-table-header-text: #2D3D4F;
     -wl-on-primary: #FFFFFF;
     -wl-text-inverse: #FFFFFF;
 
@@ -80,24 +80,13 @@
 
     -wl-avatar-bg: #F1F5F9;
 
-    -wl-shadow-color: rgba(0, 0, 0, 0.10);
-
     -wl-sidebar-language-bg: #FFFFFF;
     -wl-sidebar-language-text: #2D3D4F;
 
-    -wl-status-info-bg: #EAF4FF;
-    -wl-status-info-border: #CFE8FF;
-    -wl-status-info-text: #0B6FAE;
-    -wl-status-success-bg: #E9FBF6;
-    -wl-status-success-border: #86EFAC;
-    -wl-status-success-text: #168A72;
-    -wl-status-warning-bg: #FFF7E6;
-    -wl-status-warning-border: #FACC15;
-    -wl-status-warning-text: #C96A00;
     -wl-status-danger-bg: #FFF1F1;
     -wl-status-danger-border: #FFB4B4;
     -wl-status-danger-strong-border: #FF7A7A;
-    -wl-status-danger-text: #DC2626;
+    -wl-status-danger-text: #FF3D32;
     -wl-status-neutral-bg: #F9F9F9;
     -wl-status-neutral-border: #E2E4E8;
     -wl-status-neutral-text: #64748B;
@@ -116,7 +105,7 @@
     -wl-tag-amber-text: #C96A00;
     -wl-tag-red-bg: #FFF1F1;
     -wl-tag-red-border: #FFB4B4;
-    -wl-tag-red-text: #DC2626;
+    -wl-tag-red-text: #FF3D32;
 
     -wl-activity-user-bg: #64748B;
     -wl-activity-profile-bg: #7C3AED;
@@ -127,7 +116,7 @@
     -wl-activity-document-bg: #A16207;
     -wl-activity-system-bg: #475569;
     -wl-activity-export-bg: #047857;
-    -wl-activity-security-bg: #B42318;
+    -wl-activity-security-bg: #EF4444;
     -wl-activity-text: #FFFFFF;
 
     -wl-date-range-between-bg: #E8F2FF;
@@ -171,7 +160,7 @@
 
     -wl-status-error-bg: #FFF1F1;
     -wl-status-error-border: #FFB4B4;
-    -wl-status-error-text: #DC2626;
+    -wl-status-error-text: #FF3D32;
     -wl-status-error-hover-bg: #FFE1E1;
 
     -wl-status-success-bg: #E9FBF6;
@@ -181,7 +170,7 @@
 
     -wl-progress-track: #E2E8F0;
     -wl-progress-review: #1D7DBA;
-    -wl-progress-issues: #D92D20;
+    -wl-progress-issues: #FF3D32;
     -wl-progress-complete: #1F9D75;
 
     -fx-background-color: -wl-background;
@@ -247,24 +236,13 @@
 
     -wl-avatar-bg: #2D3D4F;
 
-    -wl-shadow-color: rgba(0, 0, 0, 0.10);
-
     -wl-sidebar-language-bg: #FFFFFF;
     -wl-sidebar-language-text: #2D3D4F;
 
-    -wl-status-info-bg: #0D4F73;
-    -wl-status-info-border: #176B94;
-    -wl-status-info-text: #7DD3FC;
-    -wl-status-success-bg: #123E37;
-    -wl-status-success-border: #1B5A4E;
-    -wl-status-success-text: #4CD07D;
-    -wl-status-warning-bg: #4A3512;
-    -wl-status-warning-border: #B7791F;
-    -wl-status-warning-text: #FACC15;
     -wl-status-danger-bg: #4A2512;
     -wl-status-danger-border: #9A1D1B;
     -wl-status-danger-strong-border: #9A1D1B;
-    -wl-status-danger-text: #FDBA74;
+    -wl-status-danger-text: #FF3D32;
     -wl-status-neutral-bg: #2D3D4F;
     -wl-status-neutral-border: #415060;
     -wl-status-neutral-text: #BFBFBF;
@@ -283,7 +261,7 @@
     -wl-tag-amber-text: #FACC15;
     -wl-tag-red-bg: #4A2512;
     -wl-tag-red-border: #9A1D1B;
-    -wl-tag-red-text: #FDBA74;
+    -wl-tag-red-text: #FF3D32;
 
     -wl-activity-user-bg: #74849A;
     -wl-activity-profile-bg: #8B5CF6;
@@ -294,7 +272,7 @@
     -wl-activity-document-bg: #B7791F;
     -wl-activity-system-bg: #64748B;
     -wl-activity-export-bg: #059669;
-    -wl-activity-security-bg: #DC2626;
+    -wl-activity-security-bg: #EF4444;
     -wl-activity-text: #FFFFFF;
 
     -wl-date-range-between-bg: #143358;
@@ -338,7 +316,7 @@
 
     -wl-status-error-bg: #4A2512;
     -wl-status-error-border: #9A1D1B;
-    -wl-status-error-text: #FDBA74;
+    -wl-status-error-text: #FF3D32;
     -wl-status-error-hover-bg: #4A2512;
 
     -wl-status-success-bg: #123E37;
@@ -386,6 +364,50 @@
     -fx-padding: 0;
     -fx-shape: "";
     -fx-background-color: transparent;
+}
+
+/* =========================================================
+   01C. SHARED DATE CELL STATES
+   Used by admin review/activity range pickers.
+   ========================================================= */
+
+.activity-log-date-picker {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.activity-log-date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+}
+
+.activity-log-date-picker > .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.activity-log-date-picker > .arrow-button > .arrow {
+    -fx-background-color: -wl-primary;
+}
+
+.activity-log-date-disabled {
+    -fx-opacity: 0.6;
+}
+
+.activity-log-date-range-start,
+.activity-log-date-range-end {
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-date-range-between {
+    -fx-background-color: -wl-date-range-between-bg;
+    -fx-text-fill: -wl-text;
 }
 
 

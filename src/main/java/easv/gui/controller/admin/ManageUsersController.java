@@ -3,6 +3,7 @@ package easv.gui.controller.admin;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.dal.DataAccessException;
+import easv.gui.StyleGuideUi;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -26,7 +27,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -56,11 +56,8 @@ public class ManageUsersController {
     private static final double PROFILES_COLUMN_WIDTH = 13;
     private static final double ACTIONS_COLUMN_WIDTH = 15;
 
-    private static final String EDIT_ICON_PATH =
-            "M4 17.25V20h2.75l8.12-8.12-2.75-2.75L4 17.25zm11.71-9.04a.996.996 0 0 0 0-1.41l-1.5-1.5a.996.996 0 1 0-1.41 1.41l1.5 1.5a.996.996 0 0 0 1.41 0z";
-
-    private static final String DEACTIVATE_ICON_PATH =
-            "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 11H7v-2h10v2z";
+    private static final String EDIT_ICON = "\ue942";
+    private static final String DEACTIVATE_ICON = "\ue90b";
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> roleFilterComboBox;
@@ -677,12 +674,12 @@ public class ManageUsersController {
         actionBox.getStyleClass().add("inline-actions");
         actionBox.setAlignment(Pos.CENTER);
 
-        Button editButton = createInlineActionButton("Edit", EDIT_ICON_PATH, "edit-link-button", "edit-link-icon");
+        Button editButton = createInlineActionButton("Edit", EDIT_ICON, "edit-link-button", "edit-link-icon");
         editButton.setOnAction(event -> showEditUserEditor(user));
         actionBox.getChildren().add(editButton);
 
         if (!user.isCurrentUser() && user.isActive()) {
-            Button deactivateButton = createInlineActionButton("Deactivate", DEACTIVATE_ICON_PATH, "deactivate-link-button", "deactivate-link-icon");
+            Button deactivateButton = createInlineActionButton("Deactivate", DEACTIVATE_ICON, "deactivate-link-button", "deactivate-link-icon");
             deactivateButton.setOnAction(event -> deactivateUser(user));
             actionBox.getChildren().add(deactivateButton);
         }
@@ -700,12 +697,8 @@ public class ManageUsersController {
         return button;
     }
 
-    private StackPane createActionIcon(String pathData, String iconStyleClass) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(pathData);
-        icon.getStyleClass().add(iconStyleClass);
-        icon.setScaleX(0.68);
-        icon.setScaleY(0.68);
+    private StackPane createActionIcon(String glyph, String iconStyleClass) {
+        Label icon = StyleGuideUi.createPrimeIcon(glyph, iconStyleClass);
 
         StackPane shell = new StackPane(icon);
         shell.getStyleClass().add("action-icon-shell");

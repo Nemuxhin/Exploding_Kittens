@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.SVGPath?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -90,8 +89,7 @@
                                   HBox.hgrow="ALWAYS">
 
                                 <StackPane styleClass="field-icon-shell">
-                                    <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-                                             styleClass="field-icon-path"/>
+                                    <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
                                 </StackPane>
 
                                 <TextField fx:id="leftSearchField"
@@ -177,8 +175,7 @@
                                       HBox.hgrow="ALWAYS">
 
                                     <StackPane styleClass="field-icon-shell">
-                                        <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-                                                 styleClass="field-icon-path"/>
+                                        <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
                                     </StackPane>
 
                                     <TextField fx:id="rightSearchField"

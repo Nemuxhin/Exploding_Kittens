@@ -1,6 +1,7 @@
 package easv.gui.controller.user;
 
 import easv.gui.BackgroundExecutor;
+import easv.gui.StyleGuideUi;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -15,7 +16,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 
 import java.util.List;
 
@@ -72,7 +72,7 @@ public class DashboardController {
         grid.add(metricCard(
                 "dashboard-summary-icon-teal",
                 "dashboard-summary-icon-teal-path",
-                "M8 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm8 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8 9.5c-3.04 0-5.5 1.79-5.5 4V15h11v-1.5c0-2.21-2.46-4-5.5-4zm8 0c-.52 0-1.03.05-1.5.15 1.23.89 2 2.11 2 3.55V15h5v-1.5c0-2.21-2.46-4-5.5-4z",
+                "\ue941",
                 metrics.get(0).label(),
                 metrics.get(0).value(),
                 "Total sessions across your scanning workspace."
@@ -80,7 +80,7 @@ public class DashboardController {
         grid.add(metricCard(
                 "dashboard-summary-icon-blue",
                 "dashboard-summary-icon-blue-path",
-                "M5 2h7l5 5v11H5z M11 2v5h5",
+                "\ue958",
                 metrics.get(1).label(),
                 metrics.get(1).value(),
                 "Completed batches started during the current month."
@@ -88,7 +88,7 @@ public class DashboardController {
         grid.add(metricCard(
                 "dashboard-summary-icon-green",
                 "dashboard-summary-icon-green-path",
-                "M3 17.5 9.2 11.3l3.3 3.3L20 7.1V12h2V3.5h-8.5v2H18l-5.5 5.5-3.3-3.3L1.5 15.4 3 17.5z",
+                "\ue9e4",
                 metrics.get(2).label(),
                 metrics.get(2).value(),
                 "Pages scanned and staged for review or export."
@@ -96,7 +96,7 @@ public class DashboardController {
         grid.add(metricCard(
                 "dashboard-summary-icon-amber",
                 "dashboard-summary-icon-amber-path",
-                "M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z",
+                "\ue922",
                 metrics.get(3).label(),
                 metrics.get(3).value(),
                 "Successfully finished scans from your recent work."
@@ -302,13 +302,13 @@ public class DashboardController {
 
     private VBox metricCard(String iconBoxClass,
                             String iconPathClass,
-                            String iconPath,
+                            String iconGlyph,
                             String titleText,
                             String valueText,
                             String subtitleText) {
         StackPane iconBox = new StackPane();
         iconBox.getStyleClass().add(iconBoxClass);
-        iconBox.getChildren().add(createIcon(iconPath, iconPathClass));
+        iconBox.getChildren().add(createIcon(iconGlyph, iconPathClass));
 
         Label value = new Label(valueText);
         value.getStyleClass().add("dashboard-summary-value");
@@ -572,11 +572,8 @@ public class DashboardController {
         return button;
     }
 
-    private SVGPath createIcon(String content, String styleClass) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(content);
-        icon.getStyleClass().add(styleClass);
-        return icon;
+    private Label createIcon(String glyph, String styleClass) {
+        return StyleGuideUi.createPrimeIcon(glyph, styleClass);
     }
 
     private GridPane createHeaderRow(String... values) {

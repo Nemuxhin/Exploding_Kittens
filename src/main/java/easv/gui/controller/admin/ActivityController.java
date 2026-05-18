@@ -2,6 +2,9 @@ package easv.gui.controller.admin;
 
 import easv.be.AuditLog;
 import easv.bll.AdminManager;
+import easv.gui.StyleGuideUi;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,14 +21,11 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 import javafx.util.StringConverter;
 
 import java.time.LocalDate;
@@ -54,20 +54,21 @@ public class ActivityController {
     private static final String ALL_RESULTS = "All results";
     private static final String SORT_NEWEST_FIRST = "Newest first";
     private static final String SORT_OLDEST_FIRST = "Oldest first";
+    private static final double EXPANDED_RAIL_HORIZONTAL_OFFSET = 96;
 
-    private static final String UPLOAD_ICON_PATH = "M5 20h14v-2H5v2zm7-18-5.5 5.5 1.41 1.41L11 5.83V16h2V5.83l3.09 3.08 1.41-1.41L12 2z";
-    private static final String CHECK_ICON_PATH = "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z";
-    private static final String WARNING_ICON_PATH = "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z";
-    private static final String REFRESH_ICON_PATH = "M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a5 5 0 1 1-4.9 6H5.05A7 7 0 1 0 17.65 6.35z";
-    private static final String USER_ICON_PATH = "M 12 12 C 14.21 12 16 10.21 16 8 C 16 5.79 14.21 4 12 4 C 9.79 4 8 5.79 8 8 C 8 10.21 9.79 12 12 12 Z M 12 14 C 9.33 14 4 15.34 4 18 L 4 20 L 20 20 L 20 18 C 20 15.34 14.67 14 12 14 Z";
-    private static final String GEAR_ICON_PATH = "M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65-2-3.46-2.49 1a7.03 7.03 0 0 0-1.69-.98L15 3h-4l-.36 2.93c-.6.23-1.16.56-1.69.98l-2.49-1-2 3.46 2.11 1.65c-.04.32-.07.65-.07.98s.02.66.07.98l-2.11 1.65 2 3.46 2.49-1c.52.4 1.08.73 1.69.98L11 21h4l.36-2.93c.6-.23 1.16-.56 1.69-.98l2.49 1 2-3.46-2.11-1.65zM13 15.5A3.5 3.5 0 1 1 13 8a3.5 3.5 0 0 1 0 7.5z";
-    private static final String DOWNLOAD_ICON_PATH = "M5 20h14v-2H5v2zm14-9h-4V3H9v8H5l7 7 7-7z";
-    private static final String DOCUMENT_ICON_PATH = "M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM13 9V3.5L18.5 9H13z";
+    private static final String UPLOAD_ICON_PATH = "\ue934";
+    private static final String CHECK_ICON_PATH = "\ue90a";
+    private static final String WARNING_ICON_PATH = "\ue922";
+    private static final String REFRESH_ICON_PATH = "\ue938";
+    private static final String USER_ICON_PATH = "\ue939";
+    private static final String GEAR_ICON_PATH = "\ue94a";
+    private static final String DOWNLOAD_ICON_PATH = "\ue956";
+    private static final String DOCUMENT_ICON_PATH = "\ue958";
 
-    private static final String AREA_FILTER_ICON_PATH = "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5C23 14.17 18.33 13 16 13z";
-    private static final String RESULT_FILTER_ICON_PATH = "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7z";
-    private static final String DATE_FILTER_ICON_PATH = "M7 2v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-2V2h-2v2H9V2H7zm12 18H5V9h14v11z";
-    private static final String SORT_FILTER_ICON_PATH = "M3 18h6v-2H3v2zm0-5h12v-2H3v2zm0-7v2h18V6H3z";
+    private static final String AREA_FILTER_ICON_PATH = "\ue941";
+    private static final String RESULT_FILTER_ICON_PATH = "\ue90a";
+    private static final String DATE_FILTER_ICON_PATH = "\ue927";
+    private static final String SORT_FILTER_ICON_PATH = "\ue915";
 
     private static final String TARGET_ID_PATTERN_TEXT = "\\b[A-Z]{2,}(?:[-_][A-Z0-9]+)+\\b";
     private static final Pattern TARGET_ID_PATTERN = Pattern.compile(TARGET_ID_PATTERN_TEXT);
@@ -81,11 +82,7 @@ public class ActivityController {
     private static final DateTimeFormatter GROUP_DATE_FORMATTER =
             DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_RANGE_FORMATTER =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-    private static final double INLINE_PAYLOAD_WIDTH = 1110;
-    private static final double COMPARISON_WIDTH = 960;
-    private static final double INLINE_TABLE_WIDTH = 1050;
+            StyleGuideUi.DATE_FORMATTER;
 
     private final ObservableList<ActivityLogEntry> activityEntries = FXCollections.observableArrayList();
 
@@ -113,6 +110,7 @@ public class ActivityController {
     @FXML private DatePicker rangeStartDatePicker;
     @FXML private DatePicker rangeEndDatePicker;
 
+    @FXML private VBox logsPageRoot;
     @FXML private VBox timelineContainer;
     @FXML private VBox emptyStateBox;
 
@@ -224,11 +222,7 @@ public class ActivityController {
     }
 
     private HBox createFilterGraphic(String iconPath, String heading, String value) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(iconPath);
-        icon.getStyleClass().add("logs-filter-icon-path");
-
-        StackPane iconShell = new StackPane(icon);
+        StackPane iconShell = new StackPane(createPrimeIcon(iconPath, "logs-filter-icon-path"));
         iconShell.getStyleClass().add("logs-filter-icon-shell");
 
         Label headingLabel = new Label(heading);
@@ -455,66 +449,531 @@ public class ActivityController {
         content.getStyleClass().add("logs-inline-payload-content");
         content.setFillWidth(true);
         content.setMinWidth(0);
-        content.setPrefWidth(Region.USE_COMPUTED_SIZE);
         content.setMaxWidth(Double.MAX_VALUE);
-        content.getChildren().setAll(createInlinePayloadContent(entry));
+        List<Node> payloadContent = createInlinePayloadContent(entry);
+        content.getChildren().setAll(payloadContent);
+
+        bindExpandedPayloadWidth(content, payloadContent);
 
         tray.getChildren().setAll(content);
         return tray;
     }
 
-    private List<Node> createInlinePayloadContent(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        FlowPane detailStrip = createInlineDetailStrip(entry);
-
-        if (detailStrip != null && !detailStrip.getChildren().isEmpty()) {
-            nodes.add(detailStrip);
+    private void bindExpandedPayloadWidth(Region content, List<Node> payloadContent) {
+        if (logsPageRoot == null) {
+            return;
         }
 
-        return nodes;
+        NumberBinding availableWidth = Bindings.max(
+                0,
+                logsPageRoot.widthProperty().subtract(EXPANDED_RAIL_HORIZONTAL_OFFSET)
+        );
+
+        bindRegionWidth(content, availableWidth);
+
+        payloadContent.stream()
+                .filter(Region.class::isInstance)
+                .map(Region.class::cast)
+                .forEach(region -> bindRegionWidth(region, availableWidth));
     }
 
-    private FlowPane createInlineDetailStrip(ActivityLogEntry entry) {
-        List<Node> chips = createInlineDetailChips(entry);
+    private void bindRegionWidth(Region region, NumberBinding width) {
+        region.minWidthProperty().bind(width);
+        region.prefWidthProperty().bind(width);
+        region.maxWidthProperty().bind(width);
+    }
 
-        if (chips.isEmpty()) {
+    private List<Node> createInlinePayloadContent(ActivityLogEntry entry) {
+        HBox rail = createInlineRail(entry);
+
+        if (rail == null) {
+            return List.of();
+        }
+
+        StackPane railHolder = new StackPane(rail);
+        railHolder.getStyleClass().add("logs-inline-rail-holder");
+        railHolder.setAlignment(Pos.CENTER_LEFT);
+        railHolder.setMinWidth(0);
+        railHolder.setMaxWidth(Double.MAX_VALUE);
+        StackPane.setAlignment(rail, Pos.CENTER_LEFT);
+
+        return List.of(railHolder);
+    }
+
+    private Label createPrimeIcon(String glyph, String styleClass) {
+        return StyleGuideUi.createPrimeIcon(glyph, styleClass);
+    }
+
+    private Button createLoadMoreButton() {
+        Button button = new Button("Load more events");
+        button.getStyleClass().add("logs-load-more-button");
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setFocusTraversable(false);
+        button.setDisable(true);
+        return button;
+    }
+
+    private StackPane createEventIcon(ActivityLogEntry entry) {
+        Label icon = createPrimeIcon(eventIconPath(entry), "logs-event-icon-path");
+
+        StackPane shell = new StackPane(icon);
+        shell.getStyleClass().add("logs-event-icon");
+        shell.getStyleClass().add(isError(entry) ? "logs-event-icon-failed" : eventIconClass(entry));
+        return shell;
+    }
+
+    private Label createEventTimeLabel(ActivityLogEntry entry) {
+        Label time = new Label(formatEventTime(entry));
+        time.getStyleClass().add("logs-event-time");
+        return time;
+    }
+
+    private VBox createEventCopy(ActivityLogEntry entry) {
+        String sentence = eventSentence(entry);
+        String preview = eventPreview(entry);
+
+        Label title = new Label(sentence);
+        title.getStyleClass().add("logs-event-title");
+        title.setWrapText(false);
+        title.setTextOverrun(OverrunStyle.ELLIPSIS);
+        title.setTooltip(new Tooltip(sentence));
+
+        Label meta = new Label(preview);
+        meta.getStyleClass().add("logs-event-meta");
+        meta.setWrapText(false);
+        meta.setTextOverrun(OverrunStyle.ELLIPSIS);
+        meta.setTooltip(new Tooltip(preview));
+
+        VBox copy = new VBox(3, title, meta);
+        copy.setMinWidth(0);
+        copy.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+        return copy;
+    }
+
+    private HBox createInlineRail(ActivityLogEntry entry) {
+        List<Node> cells = createInlineRailCells(entry);
+
+        if (cells.isEmpty()) {
             return null;
         }
 
-        FlowPane strip = new FlowPane();
-        strip.getStyleClass().add("logs-inline-detail-strip");
+        HBox rail = new HBox(0);
+        rail.getStyleClass().add("logs-inline-rail");
 
         if (isError(entry)) {
-            strip.getStyleClass().add("logs-inline-detail-strip-failed");
+            rail.getStyleClass().add("logs-inline-rail-failed");
         }
 
-        strip.setHgap(6);
-        strip.setVgap(6);
-        strip.setAlignment(Pos.CENTER_LEFT);
-        strip.setPrefWrapLength(INLINE_TABLE_WIDTH);
-        strip.setMaxWidth(Double.MAX_VALUE);
-        strip.getChildren().setAll(chips);
-        return strip;
+        for (int index = 0; index < cells.size(); index++) {
+            if (index > 0) {
+                Region divider = new Region();
+                divider.getStyleClass().add("logs-inline-rail-divider");
+                rail.getChildren().add(divider);
+            }
+
+            Node cell = cells.get(index);
+            if (index == 0) {
+                cell.getStyleClass().add("logs-inline-rail-cell-first");
+            }
+            rail.getChildren().add(cell);
+        }
+
+        rail.setAlignment(Pos.CENTER_LEFT);
+        rail.setMinWidth(0);
+        rail.setMaxWidth(Double.MAX_VALUE);
+        return rail;
     }
 
-    private List<Node> createInlineDetailChips(ActivityLogEntry entry) {
-        List<Node> chips = new ArrayList<>();
+    private List<Node> createInlineRailCells(ActivityLogEntry entry) {
+        List<Node> cells = new ArrayList<>();
+        String area = normalize(displayArea(entry));
 
-        if (!entry.changes().isEmpty() && !isCreateEvent(entry) && !isDeleteEvent(entry)) {
-            entry.changes().stream()
-                    .filter(this::hasVisibleChange)
-                    .forEach(change -> chips.add(createInlineChangeChip(change)));
-        } else {
-            compactDetailRows(entry).forEach(row -> chips.add(createInlineDetailChip(row, entry)));
+        if (isError(entry)) {
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, primaryRailLabel(entry), primaryRailValue(entry), "logs-inline-rail-danger-cell"));
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Reason", failureReason(entry), "logs-inline-rail-wide-cell", "logs-inline-rail-danger-cell"));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Action needed", actionNeeded(entry), "logs-inline-rail-wide-cell"));
+            addLogRailCell(cells, entry);
+            return cells;
         }
 
-        String description = displayText(entry.description(), "");
-        if (chips.isEmpty() && !description.isBlank()) {
-            chips.add(createInlineDetailChip(new ActivityDetailRow("Note", description), entry));
+        if (isPasswordEvent(entry)) {
+            addRailCell(cells, createRailChangeStackCell(
+                    List.of(new ActivityChange("Password", "Existing password", "Updated")),
+                    true
+            ));
+            addLogRailCell(cells, entry);
+            return cells;
         }
 
-        chips.add(createInlineTraceChip(entry));
-        return chips;
+        List<ActivityChange> visibleChanges = visibleChanges(entry);
+        if (!visibleChanges.isEmpty() && !isCreateEvent(entry) && !isDeleteEvent(entry)) {
+            addRailCell(cells, createRailChangeStackCell(visibleChanges.stream().limit(4).toList(), false));
+            addLogRailCell(cells, entry);
+            return cells;
+        }
+
+        if (isCreateEvent(entry)) {
+            if (area.equals("users")) {
+                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Full name", firstCreatedValue(entry, "full name", "name")));
+                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Username", firstCreatedValue(entry, "username")));
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Email", firstCreatedValue(entry, "email", "email address"), "logs-inline-rail-wide-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Role", firstCreatedValue(entry, "role")));
+                addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Status", firstCreatedValue(entry, "status"), "logs-inline-rail-success-cell"));
+                addLogRailCell(cells, entry);
+                return cells;
+            }
+
+            if (area.equals("profiles")) {
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Profile", primaryRailValue(entry), "logs-inline-rail-primary-cell"));
+                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Client", firstCreatedValue(entry, "client", "customer")));
+                addRailCell(cells, createRailDetailCell(REFRESH_ICON_PATH, "Split rule", firstCreatedValue(entry, "split rule", "barcode splitting", "barcode")));
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Export label", firstCreatedValue(entry, "export label", "export naming", "export format"), "logs-inline-rail-wide-cell"));
+                addLogRailCell(cells, entry);
+                return cells;
+            }
+
+            if (area.equals("metadata")) {
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "A metadata item was created."), "logs-inline-rail-note-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", metadataCategory(entry)));
+                addLogRailCell(cells, entry);
+                return cells;
+            }
+        }
+
+        if (isDeleteEvent(entry)) {
+            if (area.equals("users")) {
+                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "User", firstDeletedValue(entry, "full name", "name", "user"), "logs-inline-rail-primary-cell"));
+                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Username", firstDeletedValue(entry, "username")));
+                addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Action", deleteActionText(entry), "logs-inline-rail-danger-cell"));
+                addLogRailCell(cells, entry);
+                return cells;
+            }
+
+            if (area.equals("profiles")) {
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Profile", firstDeletedValue(entry, "profile", "profile name", "name"), "logs-inline-rail-primary-cell"));
+                addRailCell(cells, createRailDetailCell(REFRESH_ICON_PATH, "Split rule", firstDeletedValue(entry, "split rule", "barcode splitting")));
+                addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Action", deleteActionText(entry), "logs-inline-rail-danger-cell"));
+                addLogRailCell(cells, entry);
+                return cells;
+            }
+
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, primaryRailLabel(entry), primaryRailValue(entry), "logs-inline-rail-danger-cell"));
+            compactVisibleRows(snapshotRowsForChangeEvent(entry), 3)
+                    .forEach(row -> addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, row.label(), row.value())));
+            addLogRailCell(cells, entry);
+            return cells;
+        }
+
+        if (area.equals("exports")) {
+            addRailCell(cells, createRailDetailCell(DOWNLOAD_ICON_PATH, "Note", displayText(entry.description(), "A report was exported."), "logs-inline-rail-note-cell"));
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Export mode", firstContextValue(entry, "export mode", "mode", "format")));
+            addLogRailCell(cells, entry);
+            return cells;
+        }
+
+        if (area.equals("metadata")) {
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "Metadata activity was recorded."), "logs-inline-rail-note-cell"));
+            addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", metadataCategory(entry)));
+            addLogRailCell(cells, entry);
+            return cells;
+        }
+
+        if (area.equals("qa")) {
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Document", firstContextOrTarget(entry, "document", "document id", "box", "box id"), "logs-inline-rail-primary-cell"));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Checklist", firstContextValue(entry, "checklist", "checklist count")));
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Issues", firstContextValue(entry, "issues", "issue count")));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Result", displayStatus(entry.status()), "logs-inline-rail-success-cell"));
+            addLogRailCell(cells, entry);
+            return cells;
+        }
+
+        if (isTiffActivity(entry)) {
+            List<ActivityDetailRow> tiffRows = compactVisibleRows(tiffMetricRows(entry), 5);
+            if (tiffRows.isEmpty()) {
+                tiffRows = compactVisibleRows(compactDetailRows(entry), 5);
+            }
+            tiffRows.forEach(row -> addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, row.label(), row.value())));
+            addLogRailCell(cells, entry);
+            return cells;
+        }
+
+        compactVisibleRows(compactDetailRows(entry), 5)
+                .forEach(row -> addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, row.label(), row.value())));
+
+        if (cells.isEmpty()) {
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "Activity was recorded."), "logs-inline-rail-note-cell"));
+        }
+
+        addLogRailCell(cells, entry);
+        return cells;
+    }
+
+    private List<ActivityChange> visibleChanges(ActivityLogEntry entry) {
+        return entry.changes().stream()
+                .filter(this::hasVisibleChange)
+                .toList();
+    }
+
+    private void addRailCell(List<Node> cells, Node cell) {
+        if (cell != null) {
+            cells.add(cell);
+        }
+    }
+
+    private void addLogRailCell(List<Node> cells, ActivityLogEntry entry) {
+        addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Log ID", "LOG-" + entry.id(), "logs-inline-rail-log-cell"));
+    }
+
+    private HBox createRailDetailCell(String iconPath, String label, String value, String... styleClasses) {
+        String displayValue = displayAuditValue(value);
+        if (isMissingAuditValue(displayValue) || "\u2014".equals(displayValue)) {
+            return null;
+        }
+
+        StackPane icon = createRailIcon(iconPath);
+
+        Label labelNode = new Label(displayText(label, "Detail"));
+        labelNode.getStyleClass().add("logs-inline-rail-label");
+        labelNode.setTextOverrun(OverrunStyle.ELLIPSIS);
+
+        Label valueNode = new Label(displayValue);
+        valueNode.getStyleClass().add("logs-inline-rail-value");
+        valueNode.setTextOverrun(OverrunStyle.ELLIPSIS);
+        valueNode.setTooltip(new Tooltip(displayValue));
+        valueNode.setMinWidth(0);
+        valueNode.setMaxWidth(Double.MAX_VALUE);
+
+        VBox copy = new VBox(3, labelNode, valueNode);
+        copy.setMinWidth(0);
+        copy.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        HBox cell = new HBox(9, icon, copy);
+        cell.getStyleClass().add("logs-inline-rail-cell");
+        cell.getStyleClass().addAll(styleClasses);
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMinWidth(0);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        return cell;
+    }
+
+    private HBox createRailChangeStackCell(List<ActivityChange> changes, boolean sensitive) {
+        List<ActivityChange> visibleChanges = changes.stream()
+                .filter(change -> change != null)
+                .toList();
+
+        if (visibleChanges.isEmpty()) {
+            return null;
+        }
+
+        StackPane icon = createRailIcon(sensitive ? USER_ICON_PATH : REFRESH_ICON_PATH);
+
+        VBox rows = new VBox(6);
+        rows.getStyleClass().add("logs-inline-rail-change-stack");
+        rows.setMinWidth(0);
+        rows.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(rows, Priority.ALWAYS);
+
+        for (ActivityChange change : visibleChanges) {
+            rows.getChildren().add(createRailChangeRow(change, sensitive));
+        }
+
+        HBox cell = new HBox(15, icon, rows);
+        cell.getStyleClass().add("logs-inline-rail-cell");
+        cell.getStyleClass().add("logs-inline-rail-change-stack-cell");
+        cell.getStyleClass().add(sensitive ? "logs-inline-rail-sensitive-cell" : "logs-inline-rail-change-cell");
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMinWidth(0);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        return cell;
+    }
+
+    private HBox createRailChangeRow(ActivityChange change, boolean sensitive) {
+        String beforeText = sensitive ? "Existing password" : displayAuditValue(change.oldValue());
+        String afterText = sensitive ? "Updated" : displayAuditValue(change.newValue());
+
+        Label fieldNode = new Label(displayText(change.field(), "Field"));
+        fieldNode.getStyleClass().add("logs-inline-rail-change-field");
+        fieldNode.setTextOverrun(OverrunStyle.ELLIPSIS);
+        fieldNode.setMinWidth(105);
+        fieldNode.setPrefWidth(126);
+        fieldNode.setMaxWidth(150);
+
+        Label before = createRailPill(beforeText, "logs-inline-rail-before-pill");
+        Label arrow = new Label("\u2192");
+        arrow.getStyleClass().add("logs-inline-rail-arrow");
+        Label after = createRailPill(afterText, "logs-inline-rail-after-pill");
+
+        HBox.setHgrow(before, Priority.ALWAYS);
+        HBox.setHgrow(after, Priority.ALWAYS);
+
+        HBox row = new HBox(12, fieldNode, before, arrow, after);
+        row.getStyleClass().add("logs-inline-rail-change-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setMinWidth(0);
+        row.setMaxWidth(Double.MAX_VALUE);
+        return row;
+    }
+
+    private HBox createRailChangeCell(String field, String beforeValue, String afterValue, boolean sensitive) {
+        String beforeText = displayAuditValue(beforeValue);
+        String afterText = displayAuditValue(afterValue);
+
+        if (sensitive) {
+            beforeText = "Existing password";
+            afterText = "Updated";
+        }
+
+        StackPane icon = createRailIcon(sensitive ? USER_ICON_PATH : REFRESH_ICON_PATH);
+
+        Label fieldNode = new Label(displayText(field, "Field"));
+        fieldNode.getStyleClass().add("logs-inline-rail-label");
+        fieldNode.setTextOverrun(OverrunStyle.ELLIPSIS);
+
+        Label before = createRailPill(beforeText, "logs-inline-rail-before-pill");
+        Label arrow = new Label("\u2192");
+        arrow.getStyleClass().add("logs-inline-rail-arrow");
+        Label after = createRailPill(afterText, "logs-inline-rail-after-pill");
+
+        HBox changeLine = new HBox(9, before, arrow, after);
+        changeLine.setAlignment(Pos.CENTER_LEFT);
+        changeLine.setMinWidth(0);
+        changeLine.setMaxWidth(Double.MAX_VALUE);
+
+        VBox copy = new VBox(4, fieldNode, changeLine);
+        copy.setMinWidth(0);
+        copy.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        HBox cell = new HBox(9, icon, copy);
+        cell.getStyleClass().add("logs-inline-rail-cell");
+        cell.getStyleClass().add(sensitive ? "logs-inline-rail-sensitive-cell" : "logs-inline-rail-change-cell");
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMinWidth(0);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        return cell;
+    }
+
+    private Label createRailPill(String value, String styleClass) {
+        Label pill = new Label(displayAuditValue(value));
+        pill.getStyleClass().add(styleClass);
+        pill.setTextOverrun(OverrunStyle.ELLIPSIS);
+        pill.setTooltip(new Tooltip(pill.getText()));
+        pill.setMinWidth(0);
+        pill.setMaxWidth(Double.MAX_VALUE);
+        return pill;
+    }
+
+    private StackPane createRailIcon(String iconPath) {
+        StackPane shell = new StackPane(createPrimeIcon(iconPath, "logs-inline-rail-icon"));
+        shell.getStyleClass().add("logs-inline-rail-icon-shell");
+        return shell;
+    }
+
+    private boolean isPasswordEvent(ActivityLogEntry entry) {
+        return normalize(formatAction(entry.action())).contains("password")
+                || entry.changes().stream().anyMatch(change -> normalize(change.field()).contains("password"));
+    }
+
+    private String firstCreatedValue(ActivityLogEntry entry, String... labels) {
+        String value = firstChangeValue(entry, true, labels);
+        return value.isBlank() ? firstContextOrTarget(entry, labels) : value;
+    }
+
+    private String firstDeletedValue(ActivityLogEntry entry, String... labels) {
+        String value = firstChangeValue(entry, false, labels);
+        return value.isBlank() ? firstContextOrTarget(entry, labels) : value;
+    }
+
+    private String firstChangeValue(ActivityLogEntry entry, boolean newValue, String... labels) {
+        List<String> normalizedLabels = List.of(labels).stream()
+                .map(this::normalize)
+                .toList();
+
+        String exactMatch = entry.changes().stream()
+                .filter(change -> normalizedLabels.contains(normalize(change.field())))
+                .map(change -> newValue ? change.newValue() : change.oldValue())
+                .filter(value -> !isMissingAuditValue(value))
+                .findFirst()
+                .orElse("");
+
+        if (!exactMatch.isBlank()) {
+            return exactMatch;
+        }
+
+        return entry.changes().stream()
+                .filter(change -> normalizedLabels.stream().anyMatch(label -> normalize(change.field()).contains(label)))
+                .map(change -> newValue ? change.newValue() : change.oldValue())
+                .filter(value -> !isMissingAuditValue(value))
+                .findFirst()
+                .orElse("");
+    }
+
+    private String firstContextOrTarget(ActivityLogEntry entry, String... labels) {
+        String value = firstContextValue(entry, labels);
+        return value.isBlank() ? primaryRailValue(entry) : value;
+    }
+
+    private String primaryRailLabel(ActivityLogEntry entry) {
+        String area = displayArea(entry);
+        return area.equals("Files") || area.equals("Import") ? "TIFF item" : area;
+    }
+
+    private String primaryRailValue(ActivityLogEntry entry) {
+        String target = displayTiffItem(entry);
+        return "\u2014".equals(displayAuditValue(target)) ? displayText(entry.target(), "") : target;
+    }
+
+    private String failureReason(ActivityLogEntry entry) {
+        String reason = displayText(entry.description(), "");
+        if (!reason.isBlank()) {
+            return reason;
+        }
+
+        String contextReason = firstContextValue(entry, "reason", "failure reason", "problem", "error");
+        return contextReason.isBlank() ? "Action failed." : contextReason;
+    }
+
+    private String actionNeeded(ActivityLogEntry entry) {
+        String explicitAction = firstContextValue(entry, "action needed", "next step");
+        if (!explicitAction.isBlank()) {
+            return explicitAction;
+        }
+
+        String area = normalize(displayArea(entry));
+        if (area.equals("import") || isTiffActivity(entry)) {
+            return "Review TIFF and retry";
+        }
+
+        if (area.equals("exports")) {
+            return "Resolve blocking issue";
+        }
+
+        if (area.equals("access") || area.equals("security")) {
+            return "Review account access";
+        }
+
+        return "";
+    }
+
+    private String deleteActionText(ActivityLogEntry entry) {
+        String action = normalize(formatAction(entry.action()));
+        return action.contains("deactivated") || action.contains("inactive") ? "Deactivated" : "Deleted";
+    }
+
+    private String metadataCategory(ActivityLogEntry entry) {
+        String action = normalize(formatAction(entry.action()));
+        if (action.contains("field")) {
+            return "Field";
+        }
+        if (action.contains("template")) {
+            return "Template";
+        }
+        return displayArea(entry);
     }
 
     private List<ActivityDetailRow> compactDetailRows(ActivityLogEntry entry) {
@@ -572,300 +1031,6 @@ public class ActivityController {
                 .toList();
     }
 
-    private HBox createInlineDetailChip(ActivityDetailRow row, ActivityLogEntry entry) {
-        Label label = new Label(displayText(row.label(), "Detail"));
-        label.getStyleClass().add("logs-inline-detail-label");
-        label.setMinWidth(Region.USE_PREF_SIZE);
-        label.setTextOverrun(OverrunStyle.ELLIPSIS);
-
-        String value = displayAuditValue(row.value());
-        Label valueLabel = new Label(value);
-        valueLabel.getStyleClass().add("logs-inline-detail-value");
-        valueLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        valueLabel.setTooltip(new Tooltip(value));
-        valueLabel.setWrapText(false);
-        valueLabel.setMinWidth(0);
-        valueLabel.setMaxWidth(detailValueMaxWidth(row.label()));
-
-        HBox chip = new HBox(6, label, valueLabel);
-        chip.getStyleClass().add("logs-inline-detail-chip");
-        chip.setAlignment(Pos.CENTER_LEFT);
-        chip.setMinWidth(Region.USE_PREF_SIZE);
-        chip.setMaxWidth(Region.USE_PREF_SIZE);
-
-        if (isError(entry)) {
-            chip.getStyleClass().add("logs-inline-detail-chip-failed");
-        }
-
-        String normalizedLabel = normalize(row.label());
-        if (normalizedLabel.contains("reason")
-                || normalizedLabel.contains("failed")
-                || normalizedLabel.contains("detected")
-                || normalizedLabel.contains("action")) {
-            chip.getStyleClass().add("logs-inline-detail-chip-attention");
-        }
-
-        return chip;
-    }
-
-    private double detailValueMaxWidth(String label) {
-        String normalizedLabel = normalize(label);
-
-        if (normalizedLabel.contains("action") || normalizedLabel.contains("accepted") || normalizedLabel.contains("reason")) {
-            return 300;
-        }
-
-        if (normalizedLabel.contains("email") || normalizedLabel.contains("path")) {
-            return 260;
-        }
-
-        return 210;
-    }
-
-    private HBox createInlineChangeChip(ActivityChange change) {
-        Label field = new Label(displayText(change.field(), "Field"));
-        field.getStyleClass().add("logs-inline-change-field");
-        field.setTextOverrun(OverrunStyle.ELLIPSIS);
-        field.setTooltip(new Tooltip(field.getText()));
-        field.setMinWidth(0);
-        field.setMaxWidth(135);
-
-        Label before = createInlineChangeValue(displayAuditValue(change.oldValue()), "logs-inline-change-before");
-        Label arrow = new Label("→");
-        arrow.getStyleClass().add("logs-inline-change-arrow");
-        Label after = createInlineChangeValue(displayAuditValue(change.newValue()), "logs-inline-change-after");
-
-        HBox chip = new HBox(6, field, before, arrow, after);
-        chip.getStyleClass().add("logs-inline-change-chip");
-        chip.setAlignment(Pos.CENTER_LEFT);
-        chip.setMinWidth(Region.USE_PREF_SIZE);
-        chip.setMaxWidth(Region.USE_PREF_SIZE);
-        return chip;
-    }
-
-    private Label createInlineChangeValue(String text, String styleClass) {
-        Label value = new Label(text);
-        value.getStyleClass().add(styleClass);
-        value.setTextOverrun(OverrunStyle.ELLIPSIS);
-        value.setTooltip(new Tooltip(text));
-        value.setMinWidth(0);
-        value.setMaxWidth(175);
-        return value;
-    }
-
-    private Label createInlineTraceChip(ActivityLogEntry entry) {
-        Label trace = new Label("LOG-" + entry.id());
-        trace.getStyleClass().add("logs-inline-trace-chip");
-        trace.setTooltip(new Tooltip(entry.fullTimestamp()));
-        trace.setMinWidth(Region.USE_PREF_SIZE);
-        trace.setMaxWidth(Region.USE_PREF_SIZE);
-        return trace;
-    }
-
-    private String inlinePayloadTag(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
-
-        if (isError(entry)) {
-            return area.equals("import") ? "Import failure" : "Failed";
-        }
-
-        if (area.equals("users")) {
-            return userPayloadTag(entry);
-        }
-
-        if (area.equals("qa")) {
-            return "QA";
-        }
-
-        if (area.equals("exports")) {
-            return "Export";
-        }
-
-        if (area.equals("import")) {
-            return "Import";
-        }
-
-        if (isTiffActivity(entry)) {
-            return tiffPayloadTag(entry);
-        }
-
-        return displayArea(entry);
-    }
-
-    private String inlinePayloadTagClass(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
-
-        if (isError(entry)) {
-            return "logs-payload-tag-failed";
-        }
-
-        if (area.equals("users") || area.equals("profiles") || area.equals("access") || area.equals("metadata")) {
-            return "logs-payload-tag-users";
-        }
-
-        if (area.equals("qa")) {
-            return "logs-payload-tag-qa";
-        }
-
-        if (area.equals("exports") || area.equals("import") || isTiffActivity(entry)) {
-            return "logs-payload-tag-files";
-        }
-
-        return "logs-payload-tag-generic";
-    }
-
-    private List<ActivityDetailRow> inlineDetailRows(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
-
-        if (isError(entry) && (area.equals("import") || isTiffActivity(entry))) {
-            List<ActivityDetailRow> rows = new ArrayList<>();
-            rows.add(new ActivityDetailRow("File", displayTiffItem(entry)));
-            rows.add(new ActivityDetailRow("Reason", displayText(entry.description(), "No failure reason recorded.")));
-            rows.addAll(normalizedContextRows(entry));
-
-            if (rows.stream().noneMatch(row -> normalize(row.label()).contains("accepted"))) {
-                rows.add(new ActivityDetailRow("Accepted", "LZW, PackBits, Uncompressed"));
-            }
-
-            rows.add(new ActivityDetailRow("Action needed", "Re-export TIFF using supported compression"));
-            return rows;
-        }
-
-        if (isTiffActivity(entry)) {
-            List<ActivityDetailRow> rows = new ArrayList<>(tiffMetricRows(entry));
-            if (rows.isEmpty()) {
-                rows.addAll(eventDetailRows(entry));
-            }
-            return rows;
-        }
-
-        return eventDetailRows(entry);
-    }
-
-    private String inlineDetailTitle(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
-
-        if (isError(entry)) {
-            return "Failure details";
-        }
-
-        if (isTiffActivity(entry)) {
-            return tiffSectionTitle(entry);
-        }
-
-        if (area.equals("qa")) {
-            return "QA details";
-        }
-
-        if (area.equals("exports")) {
-            return "Export details";
-        }
-
-        if (area.equals("import")) {
-            return "Import result";
-        }
-
-        return "Details";
-    }
-
-    private VBox createInlineChangeTable(ActivityLogEntry entry) {
-        VBox table = createInlineTableShell(changeSectionTitle(entry));
-        table.getChildren().add(createInlineChangeHeader());
-
-        entry.changes().stream()
-                .filter(this::hasVisibleChange)
-                .forEach(change -> table.getChildren().add(createInlineChangeRow(change)));
-
-        if (table.getChildren().size() == 1) {
-            table.getChildren().add(createInlineEmptyRow("No field-level changes were recorded for this event."));
-        }
-
-        return table;
-    }
-
-    private VBox createInlineOverviewTable(String title, List<ActivityDetailRow> rows) {
-        VBox table = createInlineTableShell(title);
-
-        List<ActivityDetailRow> visibleRows = rows.stream()
-                .filter(row -> !isMissingAuditValue(row.value()))
-                .limit(8)
-                .toList();
-
-        if (visibleRows.isEmpty()) {
-            table.getChildren().add(createInlineEmptyRow("No useful detail rows were recorded for this event."));
-            return table;
-        }
-
-        table.getChildren().add(createInlineOverviewHeaderRow(visibleRows));
-        table.getChildren().add(createInlineOverviewValueRow(visibleRows));
-        return table;
-    }
-
-    private HBox createInlineOverviewHeaderRow(List<ActivityDetailRow> rows) {
-        HBox row = new HBox(0);
-        row.getStyleClass().add("logs-inline-overview-header-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setMaxWidth(Double.MAX_VALUE);
-
-        double cellWidth = overviewCellWidth(rows);
-
-        for (int index = 0; index < rows.size(); index++) {
-            Label cell = createInlineOverviewTextCell(
-                    displayText(rows.get(index).label(), "Detail"),
-                    "logs-inline-overview-header-cell",
-                    cellWidth,
-                    index == rows.size() - 1
-            );
-            row.getChildren().add(cell);
-        }
-
-        return row;
-    }
-
-    private HBox createInlineOverviewValueRow(List<ActivityDetailRow> rows) {
-        HBox row = new HBox(0);
-        row.getStyleClass().add("logs-inline-overview-value-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setMaxWidth(Double.MAX_VALUE);
-
-        double cellWidth = overviewCellWidth(rows);
-
-        for (int index = 0; index < rows.size(); index++) {
-            String value = displayAuditValue(rows.get(index).value());
-            Label cell = createInlineOverviewTextCell(
-                    value,
-                    "logs-inline-overview-value-cell",
-                    cellWidth,
-                    index == rows.size() - 1
-            );
-            row.getChildren().add(cell);
-        }
-
-        return row;
-    }
-
-    private double overviewCellWidth(List<ActivityDetailRow> rows) {
-        return INLINE_TABLE_WIDTH / Math.max(1, rows.size());
-    }
-
-    private Label createInlineOverviewTextCell(String text, String styleClass, double width, boolean last) {
-        Label cell = new Label(text);
-        cell.getStyleClass().add(styleClass);
-
-        if (last) {
-            cell.getStyleClass().add("logs-inline-overview-cell-last");
-        }
-
-        cell.setMinWidth(0);
-        cell.setPrefWidth(width);
-        cell.setMaxWidth(Double.MAX_VALUE);
-        cell.setTextOverrun(OverrunStyle.ELLIPSIS);
-        cell.setTooltip(new Tooltip(text));
-        cell.setWrapText(false);
-        HBox.setHgrow(cell, Priority.ALWAYS);
-        return cell;
-    }
-
     private List<ActivityDetailRow> snapshotRowsForChangeEvent(ActivityLogEntry entry) {
         if (isCreateEvent(entry)) {
             return entry.changes().stream()
@@ -883,714 +1048,6 @@ public class ActivityController {
         }
 
         return List.of();
-    }
-
-    private VBox createInlineTableShell(String title) {
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("logs-inline-table-title");
-
-        VBox table = new VBox(0);
-        table.getStyleClass().add("logs-inline-table");
-        table.setFillWidth(true);
-        table.setMinWidth(0);
-        table.setPrefWidth(INLINE_TABLE_WIDTH);
-        table.setMaxWidth(Double.MAX_VALUE);
-        table.getChildren().add(titleLabel);
-        return table;
-    }
-
-    private HBox createInlineChangeHeader() {
-        Label field = createInlineHeaderLabel("Field", 210);
-        Label before = createInlineHeaderLabel("Before", 300);
-        Label spacer = createInlineHeaderLabel("", 24);
-        Label after = createInlineHeaderLabel("After", 300);
-
-        HBox row = new HBox(12, field, before, spacer, after);
-        row.getStyleClass().add("logs-inline-table-header");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private HBox createInlineChangeRow(ActivityChange change) {
-        Label field = createInlineValueLabel(displayText(change.field(), "Field"), "logs-inline-field", 210);
-        Label before = createInlineValueLabel(displayAuditValue(change.oldValue()), "logs-inline-before-pill", 300);
-        Label arrow = createInlineValueLabel("\u2192", "logs-inline-arrow", 24);
-        Label after = createInlineValueLabel(displayAuditValue(change.newValue()), "logs-inline-after-pill", 300);
-
-        HBox row = new HBox(12, field, before, arrow, after);
-        row.getStyleClass().add("logs-inline-table-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private HBox createInlineEmptyRow(String message) {
-        Label label = new Label(message);
-        label.getStyleClass().add("logs-inline-empty");
-        label.setWrapText(true);
-        HBox.setHgrow(label, Priority.ALWAYS);
-
-        HBox row = new HBox(label);
-        row.getStyleClass().add("logs-inline-table-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private Label createInlineHeaderLabel(String text, double width) {
-        Label label = new Label(text);
-        label.getStyleClass().add("logs-inline-table-heading");
-        label.setMinWidth(width);
-        label.setPrefWidth(width);
-        label.setMaxWidth(width);
-        return label;
-    }
-
-    private Label createInlineValueLabel(String text, String styleClass, double width) {
-        Label label = new Label(text);
-        label.getStyleClass().add(styleClass);
-        label.setMinWidth(width);
-        label.setPrefWidth(width);
-        label.setMaxWidth(width);
-        label.setTextOverrun(OverrunStyle.ELLIPSIS);
-        label.setTooltip(new Tooltip(text));
-        return label;
-    }
-
-    private HBox createInlineTrace(ActivityLogEntry entry) {
-        Label trace = new Label("LOG-" + entry.id() + " \u00B7 " + entry.fullTimestamp());
-        trace.getStyleClass().add("logs-inline-trace");
-
-        HBox row = new HBox(trace);
-        row.getStyleClass().add("logs-inline-trace-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPrefWidth(INLINE_TABLE_WIDTH);
-        row.setMaxWidth(Double.MAX_VALUE);
-        return row;
-    }
-
-    private StackPane createEventIcon(ActivityLogEntry entry) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(eventIconPath(entry));
-        icon.getStyleClass().add("logs-event-icon-path");
-
-        StackPane shell = new StackPane(icon);
-        shell.getStyleClass().add("logs-event-icon");
-        shell.getStyleClass().add(isError(entry) ? "logs-event-icon-failed" : eventIconClass(entry));
-        return shell;
-    }
-
-    private Label createEventTimeLabel(ActivityLogEntry entry) {
-        Label time = new Label(formatEventTime(entry));
-        time.getStyleClass().add("logs-event-time");
-        time.setMinWidth(66);
-        time.setPrefWidth(66);
-        time.setMaxWidth(66);
-        return time;
-    }
-
-    private VBox createEventCopy(ActivityLogEntry entry) {
-        String sentence = eventSentence(entry);
-        String preview = eventPreview(entry);
-
-        Label title = new Label(sentence);
-        title.getStyleClass().add("logs-event-title");
-        title.setWrapText(false);
-        title.setTextOverrun(OverrunStyle.ELLIPSIS);
-        title.setTooltip(new Tooltip(sentence));
-
-        Label meta = new Label(preview);
-        meta.getStyleClass().add("logs-event-meta");
-        meta.setWrapText(false);
-        meta.setTextOverrun(OverrunStyle.ELLIPSIS);
-        meta.setTooltip(new Tooltip(preview));
-
-        VBox copy = new VBox(3, title, meta);
-        copy.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(copy, Priority.ALWAYS);
-        return copy;
-    }
-
-    private Button createLoadMoreButton() {
-        Button button = new Button("Load more events ↓");
-        button.getStyleClass().add("logs-load-more-button");
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setFocusTraversable(false);
-        button.setDisable(true);
-        return button;
-    }
-
-    private List<Node> createPayloadContent(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-
-        String area = normalize(displayArea(entry));
-        boolean error = isError(entry);
-
-        if (error && (area.equals("import") || isTiffActivity(entry))) {
-            nodes.addAll(renderImportFailurePayload(entry));
-        } else if (area.equals("users")) {
-            nodes.addAll(renderUserPayload(entry));
-        } else if (area.equals("qa")) {
-            nodes.addAll(renderQaPayload(entry));
-        } else if (area.equals("exports")) {
-            nodes.addAll(renderExportPayload(entry));
-        } else if (area.equals("import")) {
-            nodes.addAll(renderImportSuccessPayload(entry));
-        } else if (area.equals("profiles") || area.equals("metadata") || area.equals("access") || area.equals("security")) {
-            nodes.addAll(renderChangePayload(entry));
-        } else if (isTiffActivity(entry)) {
-            nodes.addAll(renderTiffPayload(entry));
-        } else {
-            nodes.addAll(renderGenericPayload(entry));
-        }
-
-        return nodes;
-    }
-
-    private HBox createPayloadHeader() {
-        Label title = new Label("Selected payload");
-        title.getStyleClass().add("logs-payload-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label close = new Label("×");
-        close.getStyleClass().add("logs-payload-close");
-
-        HBox header = new HBox(9, title, spacer, close);
-        header.getStyleClass().add("logs-payload-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        return header;
-    }
-
-    private List<Node> renderTiffPayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag(tiffPayloadTag(entry), "logs-payload-tag-files"));
-        nodes.add(createPayloadHero(
-                DOCUMENT_ICON_PATH,
-                displayTiffItem(entry),
-                tiffActorLine(entry),
-                entry,
-                tiffPayloadMessage(entry)
-        ));
-
-        List<ActivityDetailRow> metrics = tiffMetricRows(entry);
-        if (!metrics.isEmpty()) {
-            nodes.add(createSectionTitle(tiffSectionTitle(entry)));
-            nodes.add(createMetricGrid(metrics));
-        }
-
-        List<ActivityDetailRow> traceRows = storageTraceRows(entry);
-        if (!traceRows.isEmpty()) {
-            nodes.add(createSection("Storage & trace", traceRows));
-        }
-
-        return nodes;
-    }
-
-    private List<Node> renderImportFailurePayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag("Import failure", "logs-payload-tag-failed"));
-        nodes.add(createAlertHero(
-                "Unsupported TIFF compression",
-                displayText(entry.description(), "The TIFF import could not be completed."),
-                "Please re-export the file using a supported TIFF compression."
-        ));
-
-        List<ActivityDetailRow> rows = new ArrayList<>();
-        rows.add(new ActivityDetailRow("Batch file", displayTiffItem(entry)));
-        rows.addAll(normalizedContextRows(entry));
-
-        if (rows.stream().noneMatch(row -> normalize(row.label()).contains("accepted"))) {
-            rows.add(new ActivityDetailRow("Accepted", "LZW, PackBits, Uncompressed"));
-        }
-
-        rows.add(new ActivityDetailRow("Action needed", "Re-export TIFF using supported compression"));
-        nodes.add(createSection("Failure summary", rows));
-
-        List<ActivityDetailRow> traceRows = storageTraceRows(entry);
-        if (!traceRows.isEmpty()) {
-            nodes.add(createSection("Storage & trace", traceRows));
-        }
-
-        return nodes;
-    }
-
-    private String tiffPayloadTag(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
-
-        if (isDeleteEvent(entry)) {
-            return "TIFF deletion";
-        }
-
-        if (action.contains("replaced") || action.contains("retry")) {
-            return "TIFF replacement";
-        }
-
-        if (action.contains("scan") || action.contains("upload") || action.contains("fetched")) {
-            return "TIFF Upload";
-        }
-
-        return "TIFF activity";
-    }
-
-    private String tiffActorLine(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
-        String actor = displayActor(entry.actor());
-
-        if (isDeleteEvent(entry)) {
-            return "Deleted by " + actor;
-        }
-
-        if (action.contains("replaced") || action.contains("retry")) {
-            return "Replaced by " + actor;
-        }
-
-        if (action.contains("scan") || action.contains("upload") || action.contains("fetched")) {
-            return "Uploaded by " + actor;
-        }
-
-        return "Handled by " + actor;
-    }
-
-    private String tiffPayloadMessage(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
-
-        if (!displayText(entry.description(), "").isBlank()) {
-            return entry.description();
-        }
-
-        if (isDeleteEvent(entry)) {
-            return "TIFF snapshot preserved for audit.";
-        }
-
-        if (action.contains("replaced") || action.contains("retry")) {
-            return "TIFF replacement recorded successfully.";
-        }
-
-        if (action.contains("scan") || action.contains("upload") || action.contains("fetched")) {
-            return "TIFF uploaded successfully.";
-        }
-
-        return "TIFF activity recorded successfully.";
-    }
-
-    private String tiffSectionTitle(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
-
-        if (isDeleteEvent(entry)) {
-            return "Deleted TIFF snapshot";
-        }
-
-        if (action.contains("replaced") || action.contains("retry")) {
-            return "Replacement details";
-        }
-
-        return "TIFF details";
-    }
-
-    private List<Node> renderUserPayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag(userPayloadTag(entry), "logs-payload-tag-users"));
-        nodes.add(createPayloadHero(
-                USER_ICON_PATH,
-                displayText(entry.target(), "User account"),
-                userActorLine(entry),
-                entry,
-                displayText(entry.description(), "User account updated.")
-        ));
-
-        if (!entry.changes().isEmpty()) {
-            nodes.add(createSectionTitle("Changes overview"));
-            nodes.add(createComparisonCard(entry.changes()));
-        } else {
-            nodes.add(createEmptyPayloadState("No field-level account changes were recorded for this event."));
-        }
-
-        List<ActivityDetailRow> rows = userTraceRows(entry);
-        if (!rows.isEmpty()) {
-            nodes.add(createSection("Affected account & trace", rows));
-        }
-
-        return nodes;
-    }
-
-    private String userPayloadTag(ActivityLogEntry entry) {
-        if (isCreateEvent(entry)) {
-            return "User created";
-        }
-
-        if (isDeleteEvent(entry)) {
-            return "User removed";
-        }
-
-        return "User update";
-    }
-
-    private String userActorLine(ActivityLogEntry entry) {
-        String actor = displayActor(entry.actor());
-
-        if (isCreateEvent(entry)) {
-            return "Account created by " + actor;
-        }
-
-        if (isDeleteEvent(entry)) {
-            return "Account removed by " + actor;
-        }
-
-        return "Account updated by " + actor;
-    }
-
-    private List<Node> renderQaPayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag(isError(entry) ? "QA rejection" : "QA approval", "logs-payload-tag-qa"));
-        nodes.add(createPayloadHero(
-                CHECK_ICON_PATH,
-                displayTiffItem(entry),
-                "Reviewed by " + displayActor(entry.actor()),
-                entry,
-                displayText(entry.description(), isError(entry) ? "TIFF needs correction." : "TIFF approved for workflow.")
-        ));
-
-        List<ActivityDetailRow> rows = eventDetailRows(entry);
-        if (!rows.isEmpty()) {
-            nodes.add(createSection(isError(entry) ? "QA decision" : "QA evidence", rows));
-        }
-
-        nodes.add(createSection("Trace", evidenceRows(entry)));
-        return nodes;
-    }
-
-    private List<Node> renderExportPayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag("Export", "logs-payload-tag-files"));
-        nodes.add(createPayloadHero(
-                DOWNLOAD_ICON_PATH,
-                displayTiffItem(entry),
-                "Exported by " + displayActor(entry.actor()),
-                entry,
-                displayText(entry.description(), "Export event completed.")
-        ));
-
-        List<ActivityDetailRow> rows = eventDetailRows(entry);
-        if (!rows.isEmpty()) {
-            nodes.add(createSection("Export details", rows));
-        }
-
-        nodes.add(createSection("Trace", evidenceRows(entry)));
-        return nodes;
-    }
-
-    private List<Node> renderImportSuccessPayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag("Import", "logs-payload-tag-files"));
-        nodes.add(createPayloadHero(
-                UPLOAD_ICON_PATH,
-                displayTiffItem(entry),
-                "Imported by " + displayActor(entry.actor()),
-                entry,
-                displayText(entry.description(), "TIFF import completed.")
-        ));
-
-        List<ActivityDetailRow> rows = eventDetailRows(entry);
-        if (!rows.isEmpty()) {
-            nodes.add(createSection("Import result", rows));
-        }
-
-        nodes.add(createSection("Trace", evidenceRows(entry)));
-        return nodes;
-    }
-
-    private List<Node> renderChangePayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag(displayArea(entry), "logs-payload-tag-generic"));
-        nodes.add(createPayloadHero(
-                eventIconPath(entry),
-                displayText(entry.target(), displayArea(entry)),
-                "Changed by " + displayActor(entry.actor()),
-                entry,
-                displayText(entry.description(), formatAction(entry.action()))
-        ));
-
-        if (!entry.changes().isEmpty()) {
-            nodes.add(createSectionTitle(changeSectionTitle(entry)));
-            nodes.add(createComparisonCard(entry.changes()));
-        } else {
-            List<ActivityDetailRow> rows = eventDetailRows(entry);
-            nodes.add(rows.isEmpty()
-                    ? createEmptyPayloadState("No additional audit payload was recorded for this event.")
-                    : createSection("Details", rows));
-        }
-
-        nodes.add(createSection("Trace", evidenceRows(entry)));
-        return nodes;
-    }
-
-    private List<Node> renderGenericPayload(ActivityLogEntry entry) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(createPayloadTag(displayArea(entry), "logs-payload-tag-generic"));
-        nodes.add(createPayloadHero(
-                eventIconPath(entry),
-                displayText(entry.target(), displayArea(entry)),
-                "Recorded by " + displayActor(entry.actor()),
-                entry,
-                displayText(entry.description(), formatAction(entry.action()))
-        ));
-
-        List<ActivityDetailRow> rows = eventDetailRows(entry);
-        nodes.add(rows.isEmpty()
-                ? createEmptyPayloadState("No additional audit payload was recorded for this event.")
-                : createSection("Details", rows));
-        nodes.add(createSection("Trace", evidenceRows(entry)));
-        return nodes;
-    }
-
-    private Label createPayloadTag(String text, String styleClass) {
-        Label tag = new Label(text);
-        tag.getStyleClass().add("logs-payload-tag");
-        tag.getStyleClass().add(styleClass);
-        tag.setMinWidth(Region.USE_PREF_SIZE);
-        tag.setMaxWidth(Region.USE_PREF_SIZE);
-        return tag;
-    }
-
-    private HBox createPayloadHero(String iconPath, String title, String subtitle, ActivityLogEntry entry, String message) {
-        StackPane preview = createPayloadPreview(iconPath, isError(entry));
-
-        Label titleLabel = new Label(displayText(title, "Selected event"));
-        titleLabel.getStyleClass().add("logs-payload-hero-title");
-        titleLabel.setWrapText(true);
-
-        Label subtitleLabel = new Label(displayText(subtitle, ""));
-        subtitleLabel.getStyleClass().add("logs-payload-hero-subtitle");
-        subtitleLabel.setWrapText(true);
-
-        HBox statusLine = new HBox(6, createStatusBadge(entry.status()), createHeroMessage(message));
-        statusLine.setAlignment(Pos.CENTER_LEFT);
-
-        VBox copy = new VBox(6, titleLabel, subtitleLabel, statusLine);
-        copy.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(copy, Priority.ALWAYS);
-
-        HBox hero = new HBox(15, preview, copy);
-        hero.getStyleClass().add("logs-payload-hero");
-        hero.setAlignment(Pos.CENTER_LEFT);
-        return hero;
-    }
-
-    private Label createHeroMessage(String text) {
-        Label message = new Label(displayText(text, ""));
-        message.getStyleClass().add("logs-payload-hero-message");
-        message.setWrapText(true);
-        return message;
-    }
-
-    private StackPane createPayloadPreview(String iconPath, boolean failed) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(iconPath);
-        icon.getStyleClass().add("logs-file-preview-icon");
-
-        StackPane preview = new StackPane(icon);
-        preview.getStyleClass().add("logs-file-preview");
-
-        if (USER_ICON_PATH.equals(iconPath)) {
-            preview.getStyleClass().add("logs-file-preview-user");
-        } else if (CHECK_ICON_PATH.equals(iconPath)) {
-            preview.getStyleClass().add("logs-file-preview-success");
-        }
-
-        if (failed) {
-            preview.getStyleClass().add("logs-file-preview-failed");
-        }
-
-        return preview;
-    }
-
-    private VBox createAlertHero(String title, String message, String action) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(WARNING_ICON_PATH);
-        icon.getStyleClass().add("logs-alert-icon");
-
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("logs-alert-title");
-
-        Label messageLabel = new Label(message);
-        messageLabel.getStyleClass().add("logs-alert-copy");
-        messageLabel.setWrapText(true);
-
-        Label actionLabel = new Label(action);
-        actionLabel.getStyleClass().add("logs-alert-action");
-        actionLabel.setWrapText(true);
-
-        VBox copy = new VBox(6, titleLabel, messageLabel, actionLabel);
-        copy.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(copy, Priority.ALWAYS);
-
-        HBox content = new HBox(15, icon, copy);
-        content.setAlignment(Pos.CENTER_LEFT);
-
-        VBox hero = new VBox(content);
-        hero.getStyleClass().add("logs-alert-hero");
-        return hero;
-    }
-
-    private Label createSectionTitle(String title) {
-        Label label = new Label(title);
-        label.getStyleClass().add("logs-section-title");
-        return label;
-    }
-
-    private VBox createSection(String title, List<ActivityDetailRow> rows) {
-        VBox section = new VBox(9);
-        section.getStyleClass().add("logs-summary-list");
-        section.setMaxWidth(Double.MAX_VALUE);
-        section.getChildren().add(createSectionTitle(title));
-
-        rows.stream()
-                .filter(row -> !isMissingAuditValue(row.value()))
-                .forEach(row -> section.getChildren().add(createSummaryRow(row.label(), row.value())));
-
-        return section;
-    }
-
-    private HBox createSummaryRow(String label, String value) {
-        Label labelNode = new Label(displayText(label, "Detail"));
-        labelNode.getStyleClass().add("logs-summary-label");
-        labelNode.setMinWidth(126);
-        labelNode.setPrefWidth(126);
-
-        Label valueNode = new Label(displayAuditValue(value));
-        valueNode.getStyleClass().add("logs-summary-value");
-        valueNode.setWrapText(true);
-        valueNode.setTooltip(new Tooltip(displayAuditValue(value)));
-        HBox.setHgrow(valueNode, Priority.ALWAYS);
-
-        HBox row = new HBox(12, labelNode, valueNode);
-        row.getStyleClass().add("logs-summary-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private GridPane createMetricGrid(List<ActivityDetailRow> rows) {
-        GridPane grid = new GridPane();
-        grid.getStyleClass().add("logs-metric-grid");
-        grid.setHgap(12);
-        grid.setVgap(12);
-        grid.setMaxWidth(Double.MAX_VALUE);
-
-        List<ActivityDetailRow> visibleRows = rows.stream()
-                .filter(row -> !isMissingAuditValue(row.value()))
-                .limit(6)
-                .toList();
-
-        for (int index = 0; index < visibleRows.size(); index++) {
-            ActivityDetailRow row = visibleRows.get(index);
-            grid.add(createMetricCard(row.label(), row.value()), index % 3, index / 3);
-        }
-
-        return grid;
-    }
-
-    private VBox createMetricCard(String label, String value) {
-        Label labelNode = new Label(displayText(label, "Detail"));
-        labelNode.getStyleClass().add("logs-metric-label");
-
-        Label valueNode = new Label(displayAuditValue(value));
-        valueNode.getStyleClass().add("logs-metric-value");
-        valueNode.setWrapText(true);
-        valueNode.setTooltip(new Tooltip(displayAuditValue(value)));
-
-        VBox card = new VBox(6, labelNode, valueNode);
-        card.getStyleClass().add("logs-metric-card");
-        card.setMaxWidth(Double.MAX_VALUE);
-        GridPane.setHgrow(card, Priority.ALWAYS);
-        return card;
-    }
-
-    private VBox createComparisonCard(List<ActivityChange> changes) {
-        VBox card = new VBox(0);
-        card.getStyleClass().add("logs-comparison-card");
-        card.setFillWidth(true);
-        card.setPrefWidth(COMPARISON_WIDTH);
-        card.setMaxWidth(COMPARISON_WIDTH);
-
-        List<ActivityChange> visibleChanges = changes.stream()
-                .filter(this::hasVisibleChange)
-                .toList();
-
-        if (!visibleChanges.isEmpty()) {
-            card.getChildren().add(createComparisonHeader());
-        }
-
-        visibleChanges.forEach(change -> card.getChildren().add(createComparisonRow(change)));
-
-        if (card.getChildren().isEmpty()) {
-            card.getChildren().add(createEmptyPayloadState("No field-level changes were recorded for this event."));
-        }
-
-        return card;
-    }
-
-    private HBox createComparisonHeader() {
-        Label field = new Label("Field");
-        field.getStyleClass().add("logs-comparison-heading");
-        field.setMinWidth(132);
-        field.setPrefWidth(132);
-
-        Label before = new Label("Before");
-        before.getStyleClass().addAll("logs-comparison-heading", "logs-comparison-heading-before");
-        before.setMinWidth(135);
-        before.setPrefWidth(135);
-
-        Label arrow = new Label("");
-        arrow.setMinWidth(18);
-        arrow.setPrefWidth(18);
-
-        Label after = new Label("After");
-        after.getStyleClass().addAll("logs-comparison-heading", "logs-comparison-heading-after");
-        after.setMinWidth(135);
-        after.setPrefWidth(135);
-
-        HBox row = new HBox(12, field, before, arrow, after);
-        row.getStyleClass().add("logs-comparison-header-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private HBox createComparisonRow(ActivityChange change) {
-        Label field = new Label(displayText(change.field(), "Field"));
-        field.getStyleClass().add("logs-comparison-field");
-        field.setMinWidth(132);
-        field.setPrefWidth(132);
-
-        Label before = new Label(displayAuditValue(change.oldValue()));
-        before.getStyleClass().add("logs-before-pill");
-        before.setMinWidth(135);
-        before.setPrefWidth(135);
-
-        Label arrow = new Label("→");
-        arrow.setText("\u2192");
-        arrow.getStyleClass().add("logs-comparison-arrow");
-        arrow.setMinWidth(18);
-        arrow.setPrefWidth(18);
-
-        Label after = new Label(displayAuditValue(change.newValue()));
-        after.getStyleClass().add("logs-after-pill");
-        after.setMinWidth(135);
-        after.setPrefWidth(135);
-
-        HBox row = new HBox(12, field, before, arrow, after);
-        row.getStyleClass().add("logs-comparison-row");
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private VBox createEmptyPayloadState(String message) {
-        Label label = new Label(message);
-        label.getStyleClass().add("logs-payload-empty");
-        label.setWrapText(true);
-
-        VBox state = new VBox(label);
-        state.getStyleClass().add("logs-payload-empty-box");
-        return state;
     }
 
     private Label createAreaBadge(ActivityLogEntry entry) {
@@ -1836,7 +1293,7 @@ public class ActivityController {
 
     private String displayAuditValue(String value) {
         if (isMissingAuditValue(value)) {
-            return "—";
+            return "\u2014";
         }
 
         String cleanedValue = value.trim();
@@ -2368,7 +1825,7 @@ public class ActivityController {
         if (dateFilterMode == DateFilterMode.SPECIFIC && specificDate != null) {
             displayValue = GROUP_DATE_FORMATTER.format(specificDate);
         } else if (dateFilterMode == DateFilterMode.RANGE && rangeStartDate != null && rangeEndDate != null) {
-            displayValue = DATE_RANGE_FORMATTER.format(rangeStartDate) + " – " + DATE_RANGE_FORMATTER.format(rangeEndDate);
+            displayValue = DATE_RANGE_FORMATTER.format(rangeStartDate) + " - " + DATE_RANGE_FORMATTER.format(rangeEndDate);
         } else if (dateFilterMode == DateFilterMode.RANGE && rangeStartDate != null) {
             displayValue = "From " + DATE_RANGE_FORMATTER.format(rangeStartDate);
         } else if (dateFilterMode == DateFilterMode.RANGE && rangeEndDate != null) {
@@ -2396,6 +1853,7 @@ public class ActivityController {
             return;
         }
 
+        picker.setPromptText("MM/DD/YYYY");
         picker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate value) {
@@ -2411,7 +1869,11 @@ public class ActivityController {
                 try {
                     return LocalDate.parse(value.trim(), DATE_RANGE_FORMATTER);
                 } catch (DateTimeParseException exception) {
-                    return null;
+                    try {
+                        return LocalDate.parse(value.trim(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    } catch (DateTimeParseException ignored) {
+                        return null;
+                    }
                 }
             }
         });

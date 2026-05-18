@@ -15,7 +15,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.SVGPath?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -77,8 +76,7 @@
                       maxWidth="Infinity">
 
                     <StackPane styleClass="field-icon-shell">
-                        <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-                                 styleClass="field-icon-path"/>
+                        <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
                     </StackPane>
 
                     <TextField fx:id="searchField"
@@ -121,8 +119,7 @@
                                     <String fx:value="review-card-icon-warning-box"/>
                                 </styleClass>
 
-                                <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
-                                         styleClass="review-card-icon-warning"/>
+                                <Label text="&#xe922;" styleClass="prime-icon review-card-icon-warning"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
@@ -160,8 +157,7 @@
                                     <String fx:value="review-card-icon-danger-box"/>
                                 </styleClass>
 
-                                <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.5 12.1-1.4 1.4L12 13.4l-2.1 2.1-1.4-1.4 2.1-2.1-2.1-2.1 1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1z"
-                                         styleClass="review-card-icon-danger"/>
+                                <Label text="&#xe90b;" styleClass="prime-icon review-card-icon-danger"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
@@ -199,8 +195,7 @@
                                     <String fx:value="review-card-icon-danger-box"/>
                                 </styleClass>
 
-                                <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.5 12.1-1.4 1.4L12 13.4l-2.1 2.1-1.4-1.4 2.1-2.1-2.1-2.1 1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4-2.1 2.1 2.1 2.1z"
-                                         styleClass="review-card-icon-danger"/>
+                                <Label text="&#xe90b;" styleClass="prime-icon review-card-icon-danger"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
@@ -238,8 +233,7 @@
                                     <String fx:value="review-card-icon-success-box"/>
                                 </styleClass>
 
-                                <SVGPath content="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-                                         styleClass="review-card-icon-success"/>
+                                <Label text="&#xe90a;" styleClass="prime-icon review-card-icon-success"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
@@ -277,8 +271,7 @@
                                     <String fx:value="review-card-icon-warning-box"/>
                                 </styleClass>
 
-                                <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
-                                         styleClass="review-card-icon-warning"/>
+                                <Label text="&#xe922;" styleClass="prime-icon review-card-icon-warning"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
@@ -316,8 +309,7 @@
                                     <String fx:value="review-card-icon-neutral-box"/>
                                 </styleClass>
 
-                                <SVGPath content="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2zm1 11h5v-2h-4V6h-2v7z"
-                                         styleClass="review-card-icon-neutral"/>
+                                <Label text="&#xe940;" styleClass="prime-icon review-card-icon-neutral"/>
                             </StackPane>
 
                             <Region HBox.hgrow="ALWAYS"/>
@@ -594,8 +586,7 @@
                       maxWidth="Infinity"
                       styleClass="metadata-workspace-warning-banner">
 
-                    <SVGPath content="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z"
-                             styleClass="metadata-workspace-warning-icon"/>
+                    <Label text="&#xe922;" styleClass="prime-icon metadata-workspace-warning-icon"/>
 
                     <Label fx:id="workspaceWarningLabel"
                            text="Export blocked: 2 required metadata fields are missing."
@@ -623,8 +614,7 @@
                               maxWidth="Infinity">
 
                             <StackPane styleClass="field-icon-shell">
-                                <SVGPath content="M15.78 14.36h-.75l-.26-.25a6.64 6.64 0 1 0-.66.66l.25.26v.75l4.72 4.71 1.41-1.41-4.71-4.72zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
-                                         styleClass="field-icon-path"/>
+                                <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
                             </StackPane>
 
                             <TextField promptText="Search documents..."

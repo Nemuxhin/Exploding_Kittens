@@ -156,7 +156,7 @@
                                 <Region HBox.hgrow="ALWAYS"/>
 
                                 <Button fx:id="profileInfoButton"
-                                        text="ⓘ Profile info"
+                                        text="Profile info"
                                         focusTraversable="false"
                                         styleClass="profile-info-link-button"/>
                             </HBox>

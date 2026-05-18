@@ -12,11 +12,15 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import java.net.URL?>
+<?import java.lang.String?>
 
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
-           fx:controller="easv.gui.controller.LoginController"
-           styleClass="app-shell login-page">
+           fx:controller="easv.gui.controller.LoginController">
+    <styleClass>
+        <String fx:value="app-shell" />
+        <String fx:value="login-page" />
+    </styleClass>
     <stylesheets>
         <URL value="@../../css/login.css" />
     </stylesheets>

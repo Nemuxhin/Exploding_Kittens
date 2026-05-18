@@ -4,6 +4,7 @@ import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
+import easv.gui.StyleGuideUi;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -24,12 +25,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
+import java.util.prefs.Preferences;
 
 public class AdminController implements AdminNavigator {
 
@@ -41,12 +43,14 @@ public class AdminController implements AdminNavigator {
 
     private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
+    private static final String THEME_PREFERENCES_NODE = "easv.gui.weblager";
+    private static final String DARK_MODE_PREFERENCE_KEY = "darkMode";
+    private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
+    private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
     private static final String ACCOUNT_SECTION = "Edit Profile";
     private static final String PRIVACY_SECTION = "Settings and Privacy";
-    private static final String MOON_ICON_PATH =
-            "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
-    private static final String SUN_ICON_PATH =
-            "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
+    private static final String MOON_ICON = "\ue9c7";
+    private static final String SUN_ICON = "\ue9c8";
 
     @FXML private StackPane appShell;
     @FXML private StackPane contentHost;
@@ -73,9 +77,10 @@ public class AdminController implements AdminNavigator {
     @FXML private Button logoutMenuButton;
     @FXML private Button keyboardShortcutsButton;
     @FXML private ToggleButton darkModeToggleButton;
-    @FXML private SVGPath darkModeToggleIcon;
+    @FXML private Label darkModeToggleIcon;
 
     private final AdminManager adminManager = new AdminManager();
+    private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
 
     public void setMainApp(MainApp mainApp) {
@@ -158,12 +163,18 @@ public class AdminController implements AdminNavigator {
     }
 
     private boolean isDarkModeEnabled() {
-        return darkModeToggleButton != null && darkModeToggleButton.isSelected();
+        Preferences legacyUserPreferences = Preferences.userRoot().node(LEGACY_USER_PREFERENCES_NODE);
+
+        return preferences.getBoolean(
+                DARK_MODE_PREFERENCE_KEY,
+                legacyUserPreferences.getBoolean(LEGACY_USER_DARK_MODE_KEY, false)
+        );
     }
 
     private void updateTheme(boolean isDark) {
         updateDarkModeClass(isDark);
         updateBrandLogo(isDark);
+        preferences.putBoolean(DARK_MODE_PREFERENCE_KEY, isDark);
         updateThemeControls(isDark);
     }
 
@@ -214,7 +225,8 @@ public class AdminController implements AdminNavigator {
         }
 
         if (darkModeToggleIcon != null) {
-            darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
+            darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
+            StyleGuideUi.applyPrimeIconFont(darkModeToggleIcon);
         }
     }
 
@@ -253,6 +265,7 @@ public class AdminController implements AdminNavigator {
 
             configureLoadedController(loader.getController());
             configureLoadedPageSize(loadedPage);
+            StyleGuideUi.applyPrimeIconFont(loadedPage);
             contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load page: " + page.fxmlPath(), exception);
@@ -632,13 +645,19 @@ public class AdminController implements AdminNavigator {
         hideAccountDropdown();
 
         Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setHeaderText(null);
         dialog.setTitle("Keyboard Shortcuts");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStyleClass().add("admin-dialog-pane");
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "weblager-shortcuts-dialog-pane");
 
-        VBox content = new VBox();
-        content.setMinSize(360, 180);
-        content.getStyleClass().add("admin-keyboard-shortcuts-dialog");
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        VBox content = createAdminKeyboardShortcutsContent(dialog);
         dialog.getDialogPane().setContent(content);
 
         if (appShell != null && appShell.getScene() != null) {
@@ -651,6 +670,40 @@ public class AdminController implements AdminNavigator {
         }
 
         dialog.showAndWait();
+    }
+
+    private VBox createAdminKeyboardShortcutsContent(Dialog<ButtonType> dialog) {
+        Label title = new Label("Keyboard Shortcuts");
+        title.getStyleClass().add("weblager-shortcuts-title");
+
+        Label id = new Label("SHORTCUTS");
+        id.getStyleClass().add("weblager-shortcuts-key");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeButton = new Button("X");
+        closeButton.getStyleClass().add("weblager-shortcuts-x-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        HBox header = new HBox(12, title, id, spacer, closeButton);
+        header.getStyleClass().add("weblager-shortcuts-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Label emptyText = new Label("No admin shortcuts are configured yet.");
+        emptyText.getStyleClass().add("weblager-shortcuts-footer-text");
+
+        VBox body = new VBox(18, emptyText);
+        body.getStyleClass().add("weblager-shortcuts-body");
+        body.setMinSize(360, 120);
+
+        VBox root = new VBox(header, body);
+        root.getStyleClass().add("weblager-shortcuts-root");
+        return root;
     }
 
     private void logout() {
