@@ -71,12 +71,14 @@ public class ScanController {
     private static final double PREVIEW_NUDGE_AMOUNT = 36;
 
     private static final int MAX_UNDO_STEPS = 30;
+    private static final List<String> BOX_ROTATION_OPTIONS = List.of("0°", "90°", "180°", "270°");
 
     @FXML private VBox scanSetupView;
     @FXML private BorderPane scanWorkspaceView;
     @FXML private BorderPane reviewWorkspaceView;
 
     @FXML private ComboBox<String> profileComboBox;
+    @FXML private ComboBox<String> boxRotationComboBox;
     @FXML private TextField boxIdTextField;
 
     @FXML private Button profileInfoButton;
@@ -159,6 +161,8 @@ public class ScanController {
     private int nextFileId = 1;
     private ScanSession activeScanSession;
     private boolean scanInProgress = false;
+    private int sessionRotationDegrees = 0;
+    private boolean syncingBoxRotationComboBox = false;
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -185,6 +189,7 @@ public class ScanController {
     @FXML
     private void initialize() {
         configureProfiles();
+        configureBoxRotation();
         configureProfileInfo();
         configureValidation();
         configureDocumentTreeScroll();
@@ -303,6 +308,54 @@ public class ScanController {
         profileComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 updateProfileInfo(newValue)
         );
+    }
+
+    private void configureBoxRotation() {
+        if (boxRotationComboBox == null) {
+            return;
+        }
+
+        boxRotationComboBox.getItems().setAll(BOX_ROTATION_OPTIONS);
+        syncBoxRotationComboBox();
+        boxRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null || newValue.isBlank()) {
+                return;
+            }
+
+            applyBoxRotationSelection(oldValue, newValue);
+        });
+    }
+
+    private void applyBoxRotationSelection(String oldValue, String newValue) {
+        int newRotationDegrees = parseRotationDegrees(newValue);
+
+        if (syncingBoxRotationComboBox || sessionRotationDegrees == newRotationDegrees) {
+            sessionRotationDegrees = newRotationDegrees;
+            return;
+        }
+
+        int oldRotationDegrees = oldValue == null || oldValue.isBlank()
+                ? sessionRotationDegrees
+                : parseRotationDegrees(oldValue);
+
+        sessionRotationDegrees = newRotationDegrees;
+
+        if (allPages.isEmpty()) {
+            return;
+        }
+
+        int rotationDelta = normalizeRotation(newRotationDegrees - oldRotationDegrees);
+        if (rotationDelta == 0) {
+            return;
+        }
+
+        saveUndoState();
+
+        for (ScannedPage page : allPages) {
+            page.rotationDegrees = normalizeRotation(page.rotationDegrees + rotationDelta);
+        }
+
+        refreshWorkspace();
     }
 
     private void configureProfileInfo() {
@@ -532,7 +585,8 @@ public class ScanController {
                 selectedPage == null ? -1 : selectedPage.referenceId,
                 nextReferenceId,
                 nextFileId,
-                collapsedDocuments
+                collapsedDocuments,
+                sessionRotationDegrees
         ));
 
         while (undoStack.size() > MAX_UNDO_STEPS) {
@@ -558,6 +612,8 @@ public class ScanController {
 
         nextReferenceId = snapshot.nextReferenceId;
         nextFileId = snapshot.nextFileId;
+        sessionRotationDegrees = snapshot.sessionRotationDegrees;
+        syncBoxRotationComboBox();
 
         collapsedDocuments.clear();
         collapsedDocuments.addAll(snapshot.collapsedDocuments);
@@ -604,6 +660,7 @@ public class ScanController {
         hideFinishReviewModal();
         hideSubmitConfirmationModal();
 
+        syncBoxRotationComboBox();
         refreshWorkspace();
         updateUndoButtonState();
     }
@@ -707,7 +764,7 @@ public class ScanController {
                 pageImage.getDisplayContent(),
                 pageImage.getPreviewContent()
         );
-        page.rotationDegrees = pageImage.getRotationDegrees();
+        page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees() + sessionRotationDegrees);
         nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
         nextFileId++;
         return page;
@@ -1372,6 +1429,8 @@ public class ScanController {
 
         profileComboBox.getSelectionModel().clearSelection();
         boxIdTextField.clear();
+        sessionRotationDegrees = 0;
+        syncBoxRotationComboBox();
 
         profileInfoPanel.setVisible(false);
         profileInfoPanel.setManaged(false);
@@ -1463,6 +1522,35 @@ public class ScanController {
 
         rotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
         rotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
+    }
+
+    private void syncBoxRotationComboBox() {
+        if (boxRotationComboBox != null) {
+            syncingBoxRotationComboBox = true;
+            boxRotationComboBox.setValue(formatRotationDegrees(sessionRotationDegrees));
+            syncingBoxRotationComboBox = false;
+        }
+    }
+
+    private String formatRotationDegrees(int rotationDegrees) {
+        return normalizeRotation(rotationDegrees) + "°";
+    }
+
+    private int parseRotationDegrees(String value) {
+        if (value == null) {
+            return 0;
+        }
+
+        String digitsOnly = value.replaceAll("[^0-9]", "");
+        if (digitsOnly.isBlank()) {
+            return 0;
+        }
+
+        try {
+            return normalizeRotation(Integer.parseInt(digitsOnly));
+        } catch (NumberFormatException exception) {
+            return 0;
+        }
     }
 
     private void refreshHeaderInfoChips() {
@@ -2182,6 +2270,63 @@ public class ScanController {
         return imageView;
     }
 
+    private Node createRotatedThumbnailNode(ScannedPage page, double fitWidth, double fitHeight) {
+        Image image = resolvePageImage(page);
+        if (image == null) {
+            return null;
+        }
+
+        ImageView imageView = createThumbnailImageView(image, fitWidth, fitHeight);
+        imageView.setRotate(page.rotationDegrees);
+        return imageView;
+    }
+
+    private void configureThumbnailFrame(StackPane thumbnail, ScannedPage page, double width, double height) {
+        boolean quarterTurn = isQuarterTurnRotation(page.rotationDegrees);
+        double frameWidth = quarterTurn ? height : width;
+        double frameHeight = quarterTurn ? width : height;
+
+        thumbnail.setMinWidth(frameWidth);
+        thumbnail.setPrefWidth(frameWidth);
+        thumbnail.setMaxWidth(frameWidth);
+        thumbnail.setMinHeight(frameHeight);
+        thumbnail.setPrefHeight(frameHeight);
+        thumbnail.setMaxHeight(frameHeight);
+        thumbnail.setStyle(String.format(
+                Locale.US,
+                "-fx-min-width: %.0f; -fx-pref-width: %.0f; -fx-max-width: %.0f; "
+                        + "-fx-min-height: %.0f; -fx-pref-height: %.0f; -fx-max-height: %.0f;",
+                frameWidth,
+                frameWidth,
+                frameWidth,
+                frameHeight,
+                frameHeight,
+                frameHeight
+        ));
+    }
+
+    private void configureEmbeddedPageCardFrame(VBox card, ScannedPage page, double cardWidth, double thumbnailWidth, double thumbnailHeight) {
+        double adjustedWidth = isQuarterTurnRotation(page.rotationDegrees)
+                ? cardWidth + (thumbnailHeight - thumbnailWidth)
+                : cardWidth;
+
+        card.setMinWidth(adjustedWidth);
+        card.setPrefWidth(adjustedWidth);
+        card.setMaxWidth(adjustedWidth);
+        card.setStyle(String.format(
+                Locale.US,
+                "-fx-min-width: %.0f; -fx-pref-width: %.0f; -fx-max-width: %.0f;",
+                adjustedWidth,
+                adjustedWidth,
+                adjustedWidth
+        ));
+    }
+
+    private boolean isQuarterTurnRotation(int rotationDegrees) {
+        int normalizedRotation = normalizeRotation(rotationDegrees);
+        return normalizedRotation == 90 || normalizedRotation == 270;
+    }
+
     private void applyThumbnailClip(StackPane thumbnail, double arcSize) {
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(thumbnail.widthProperty());
@@ -2305,21 +2450,27 @@ public class ScanController {
 
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("page-tray-thumbnail");
+        configureThumbnailFrame(thumbnail, page, 72, 66);
 
         if (page.barcode) {
             Label barcode = new Label("||||");
             barcode.getStyleClass().add("page-tray-barcode-mark");
             thumbnail.getChildren().add(barcode);
         } else {
-            VBox lines = new VBox(3);
-            lines.setAlignment(Pos.TOP_LEFT);
-            lines.getChildren().addAll(
-                    createLine("tray-line-dark", 27, 3),
-                    createLine("tray-line-light", 42, 3),
-                    createLine("tray-line-light", 36, 3),
-                    createLine("tray-line-light", 30, 3)
-            );
-            thumbnail.getChildren().add(lines);
+            Node imageNode = createRotatedThumbnailNode(page, 148, 214);
+            if (imageNode != null) {
+                thumbnail.getChildren().add(imageNode);
+            } else {
+                VBox lines = new VBox(3);
+                lines.setAlignment(Pos.TOP_LEFT);
+                lines.getChildren().addAll(
+                        createLine("tray-line-dark", 27, 3),
+                        createLine("tray-line-light", 42, 3),
+                        createLine("tray-line-light", 36, 3),
+                        createLine("tray-line-light", 30, 3)
+                );
+                thumbnail.getChildren().add(lines);
+            }
         }
 
         Label status = new Label(getTrayStatusText(page));
@@ -2810,6 +2961,7 @@ public class ScanController {
         VBox card = new VBox(3);
         card.setAlignment(Pos.CENTER);
         card.getStyleClass().addAll("review-page-tray-item", "review-embedded-page-card");
+        configureEmbeddedPageCardFrame(card, page, 184, 164, 218);
 
         if (page == selectedPage) {
             card.getStyleClass().add("review-page-tray-item-selected");
@@ -2821,10 +2973,11 @@ public class ScanController {
 
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("review-page-tray-thumbnail");
+        configureThumbnailFrame(thumbnail, page, 164, 218);
         applyThumbnailClip(thumbnail, 28);
-        Image image = resolvePageImage(page);
-        if (image != null) {
-            thumbnail.getChildren().add(createThumbnailImageView(image, 148, 214));
+        Node imageNode = createRotatedThumbnailNode(page, 148, 214);
+        if (imageNode != null) {
+            thumbnail.getChildren().add(imageNode);
         } else {
             VBox lines = new VBox(3);
             lines.setAlignment(Pos.TOP_LEFT);
@@ -3150,6 +3303,7 @@ public class ScanController {
     private VBox createEmbeddedPageCard(ScannedPage page, String labelText) {
         VBox card = new VBox(3);
         card.setAlignment(Pos.CENTER);
+        configureEmbeddedPageCardFrame(card, page, 184, 164, 218);
 
         if (page.barcode) {
             card.getStyleClass().add("page-tray-barcode-split-card");
@@ -3170,10 +3324,11 @@ public class ScanController {
 
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("page-tray-thumbnail");
+        configureThumbnailFrame(thumbnail, page, 164, 218);
         applyThumbnailClip(thumbnail, 28);
-        Image image = resolvePageImage(page);
-        if (image != null) {
-            thumbnail.getChildren().add(createThumbnailImageView(image, 148, 214));
+        Node imageNode = createRotatedThumbnailNode(page, 148, 214);
+        if (imageNode != null) {
+            thumbnail.getChildren().add(imageNode);
         } else if (page.barcode) {
             Label barcode = new Label("||||");
             barcode.getStyleClass().add("page-tray-barcode-mark");
@@ -3334,6 +3489,7 @@ public class ScanController {
         private final int selectedPageReferenceId;
         private final int nextReferenceId;
         private final int nextFileId;
+        private final int sessionRotationDegrees;
         private final Set<Integer> collapsedDocuments = new HashSet<>();
 
         private ScanSnapshot(
@@ -3341,7 +3497,8 @@ public class ScanController {
                 int selectedPageReferenceId,
                 int nextReferenceId,
                 int nextFileId,
-                Set<Integer> collapsedDocuments
+                Set<Integer> collapsedDocuments,
+                int sessionRotationDegrees
         ) {
             for (ScannedPage page : pages) {
                 this.pages.add(new PageSnapshot(page));
@@ -3350,6 +3507,7 @@ public class ScanController {
             this.selectedPageReferenceId = selectedPageReferenceId;
             this.nextReferenceId = nextReferenceId;
             this.nextFileId = nextFileId;
+            this.sessionRotationDegrees = sessionRotationDegrees;
             this.collapsedDocuments.addAll(collapsedDocuments);
         }
     }

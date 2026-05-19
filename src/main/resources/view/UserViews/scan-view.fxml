@@ -560,6 +560,18 @@
                     <Label text="Page Tools"
                            styleClass="scan-tools-section-label"/>
 
+                    <Label text="Default Box Rotation"
+                           styleClass="scan-tools-section-label"/>
+
+                    <ComboBox fx:id="boxRotationComboBox"
+                              maxWidth="Infinity"
+                              promptText="Select default rotation"
+                              styleClass="scan-tool-button"/>
+
+                    <Label text="Automatically applied to all pages/files scanned in this box session."
+                           wrapText="true"
+                           styleClass="helper-text"/>
+
                     <Button text="Rotate Left (90°)"
                             fx:id="rotateLeftButton"
                             onAction="#onRotateLeft"
