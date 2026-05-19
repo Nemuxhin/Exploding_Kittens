@@ -4,7 +4,9 @@ import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -226,7 +228,7 @@ public class AdminController implements AdminNavigator {
 
         if (darkModeToggleIcon != null) {
             darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
-            StyleGuideUi.applyPrimeIconFont(darkModeToggleIcon);
+            PrimeIcons.applyFont(darkModeToggleIcon);
         }
     }
 
@@ -265,7 +267,7 @@ public class AdminController implements AdminNavigator {
 
             configureLoadedController(loader.getController());
             configureLoadedPageSize(loadedPage);
-            StyleGuideUi.applyPrimeIconFont(loadedPage);
+            PrimeIcons.applyFont(loadedPage);
             contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load page: " + page.fxmlPath(), exception);

@@ -6,7 +6,9 @@ import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.be.User;
 import easv.gui.BackgroundExecutor;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.UserSession;
@@ -84,7 +86,7 @@ public class ScanController {
     @FXML private Button profileInfoButton;
     @FXML private VBox profileInfoPanel;
     @FXML private Label profileInfoTitleLabel;
-    @FXML private Label profileInfoMetadataLabel;
+    @FXML private Label profileInfoDocumentDetailsLabel;
     @FXML private Label profileInfoQaLabel;
     @FXML private Label profileInfoSplittingLabel;
     @FXML private Label profileInfoBarcodeBehaviorLabel;
@@ -209,7 +211,7 @@ public class ScanController {
 
         if (profile == null) {
             profileInfoTitleLabel.setText("No profile selected");
-            profileInfoMetadataLabel.setText("Metadata required: —");
+            profileInfoDocumentDetailsLabel.setText("Document details required: —");
             profileInfoQaLabel.setText("QA required: —");
             profileInfoSplittingLabel.setText("Splitting method: —");
             profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: —");
@@ -218,8 +220,8 @@ public class ScanController {
         }
 
         profileInfoTitleLabel.setText(profile.getName());
-        profileInfoMetadataLabel.setText("Metadata required: " + (profile.isMetadataRequiredBeforeExport() ? "Yes" : "No"));
-        profileInfoQaLabel.setText("QA required: " + (profile.isMetadataRequiredBeforeExport() ? "Yes" : "No"));
+        profileInfoDocumentDetailsLabel.setText("Document details required: " + (profile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No"));
+        profileInfoQaLabel.setText("QA required: " + (profile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No"));
         profileInfoSplittingLabel.setText("Splitting method: " + (profile.isBarcodeSplitting() ? "Barcode" : "Manual"));
         pendingBarcodeBehavior = defaultBarcodeBehavior(profile);
         profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: " + pendingBarcodeBehavior);
@@ -1161,7 +1163,7 @@ public class ScanController {
             List<String> profileNames = loadAvailableProfileNames();
             Platform.runLater(() -> {
                 profileComboBox.getItems().setAll(profileNames);
-                StyleGuideUi.configureSearchableComboBox(profileComboBox);
+                SearchableComboBoxes.configure(profileComboBox);
                 profileComboBox.setDisable(false);
                 profileComboBox.setPromptText(profileNames.isEmpty() ? "No profiles available" : "Select profile");
                 updateProfileInfo(profileComboBox.getValue());
@@ -1507,7 +1509,7 @@ public class ScanController {
     private Node createBarcodePreview(ScannedPage page) {
         VBox barcodePreview = new VBox(15);
         barcodePreview.setAlignment(Pos.CENTER);
-        barcodePreview.getStyleClass().add("mock-document-page");
+        barcodePreview.getStyleClass().add("document-preview-page");
         barcodePreview.setMinWidth(PREVIEW_PAGE_WIDTH);
         barcodePreview.setPrefWidth(PREVIEW_PAGE_WIDTH);
         barcodePreview.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1542,7 +1544,7 @@ public class ScanController {
 
         VBox documentPage = new VBox(15);
         documentPage.setAlignment(Pos.TOP_LEFT);
-        documentPage.getStyleClass().add("mock-document-page");
+        documentPage.getStyleClass().add("document-preview-page");
         documentPage.setMinWidth(PREVIEW_PAGE_WIDTH);
         documentPage.setPrefWidth(PREVIEW_PAGE_WIDTH);
         documentPage.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1556,8 +1558,8 @@ public class ScanController {
 
         VBox topLeft = new VBox(9);
         topLeft.getChildren().addAll(
-                createLine("mock-line-dark", 180, 15),
-                createLine("mock-line-medium", 126, 9)
+                createLine("document-preview-line-dark", 180, 15),
+                createLine("document-preview-line-medium", 126, 9)
         );
 
         Region topSpacer = new Region();
@@ -1566,28 +1568,28 @@ public class ScanController {
         VBox topRight = new VBox(6);
         topRight.setAlignment(Pos.TOP_RIGHT);
         topRight.getChildren().addAll(
-                createLine("mock-line-medium", 90, 9),
-                createLine("mock-line-medium", 108, 9)
+                createLine("document-preview-line-medium", 90, 9),
+                createLine("document-preview-line-medium", 108, 9)
         );
 
         topSection.getChildren().addAll(topLeft, topSpacer, topRight);
 
         VBox textLines = new VBox(6);
         textLines.getChildren().addAll(
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 372, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 318, 7)
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 372, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 318, 7)
         );
 
         VBox formArea = new VBox(9);
-        formArea.getStyleClass().add("mock-form-area");
+        formArea.getStyleClass().add("document-preview-form-area");
 
         HBox formHeading = new HBox(18);
         formHeading.getChildren().addAll(
-                createLine("mock-line-dark", 144, 12),
-                createLine("mock-line-medium", 78, 8)
+                createLine("document-preview-line-dark", 144, 12),
+                createLine("document-preview-line-medium", 78, 8)
         );
 
         HBox formInputs = new HBox(12);
@@ -1603,9 +1605,9 @@ public class ScanController {
 
         VBox bottomText = new VBox(6);
         bottomText.getChildren().addAll(
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 315, 7)
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 315, 7)
         );
 
         HBox bottomRow = new HBox();
@@ -1616,12 +1618,12 @@ public class ScanController {
 
         VBox barcode = new VBox(3);
         barcode.setAlignment(Pos.CENTER);
-        barcode.getStyleClass().add("mock-barcode-box");
+        barcode.getStyleClass().add("document-preview-barcode-box");
 
         Label bars = new Label("||||||||||||");
-        bars.getStyleClass().add("mock-barcode-bars");
+        bars.getStyleClass().add("document-preview-barcode-bars");
 
-        Region barcodeLine = createLine("mock-line-medium", 48, 6);
+        Region barcodeLine = createLine("document-preview-line-medium", 48, 6);
 
         barcode.getChildren().addAll(bars, barcodeLine);
         bottomRow.getChildren().addAll(bottomSpacer, barcode);
@@ -1662,7 +1664,7 @@ public class ScanController {
 
         StackPane preview = new StackPane(imageView);
         preview.setAlignment(Pos.CENTER);
-        preview.getStyleClass().add("mock-document-page");
+        preview.getStyleClass().add("document-preview-page");
         preview.setMinWidth(PREVIEW_PAGE_WIDTH);
         preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
         preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1683,7 +1685,7 @@ public class ScanController {
     private Node createPreviewLoadingState() {
         VBox loading = new VBox(9);
         loading.setAlignment(Pos.CENTER);
-        loading.getStyleClass().add("mock-document-page");
+        loading.getStyleClass().add("document-preview-page");
         loading.setMinWidth(PREVIEW_PAGE_WIDTH);
         loading.setPrefWidth(PREVIEW_PAGE_WIDTH);
         loading.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1705,7 +1707,7 @@ public class ScanController {
     private Node createPreviewUnavailableState(String message) {
         VBox unavailable = new VBox(9);
         unavailable.setAlignment(Pos.CENTER);
-        unavailable.getStyleClass().add("mock-document-page");
+        unavailable.getStyleClass().add("document-preview-page");
         unavailable.setMinWidth(PREVIEW_PAGE_WIDTH);
         unavailable.setPrefWidth(PREVIEW_PAGE_WIDTH);
         unavailable.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1845,7 +1847,7 @@ public class ScanController {
 
     private Region createInputSkeleton() {
         Region input = new Region();
-        input.getStyleClass().add("mock-input");
+        input.getStyleClass().add("document-preview-input");
         input.setMinHeight(30);
         input.setPrefHeight(30);
         input.setMinWidth(174);

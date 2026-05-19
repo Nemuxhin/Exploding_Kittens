@@ -254,7 +254,7 @@
                                 <Button text="Review"
                                         onAction="#manageAccess"
                                         focusTraversable="false"
-                                        styleClass="metadata-action-button"/>
+                                        styleClass="inline-action-button"/>
                             </HBox>
 
                             <HBox fx:id="failedEventsRow"
@@ -271,7 +271,7 @@
                                 <Button text="Review"
                                         onAction="#reviewFailedExports"
                                         focusTraversable="false"
-                                        styleClass="metadata-action-button"/>
+                                        styleClass="inline-action-button"/>
                             </HBox>
 
                             <HBox fx:id="draftProfilesRow"
@@ -288,7 +288,7 @@
                                 <Button text="Open"
                                         onAction="#createProfile"
                                         focusTraversable="false"
-                                        styleClass="metadata-action-button"/>
+                                        styleClass="inline-action-button"/>
                             </HBox>
                         </VBox>
                     </VBox>
@@ -399,7 +399,7 @@
                         <Button text="View All"
                                 onAction="#viewActivity"
                                 focusTraversable="false"
-                                styleClass="metadata-action-button"/>
+                                styleClass="inline-action-button"/>
                     </HBox>
 
                     <VBox fx:id="recentActivityList"

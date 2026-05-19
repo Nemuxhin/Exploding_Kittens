@@ -75,7 +75,7 @@ public class MainApp extends Application {
         this.stage = stage;
         this.screen = Screen.getPrimary().getVisualBounds();
 
-        loadStyleGuideFonts();
+        loadApplicationFonts();
         configureStage();
         showLoginView();
         stage.show();
@@ -132,7 +132,7 @@ public class MainApp extends Application {
 
         Scene scene = new Scene(root, width, height);
         addStylesheets(scene, stylesheets);
-        StyleGuideUi.applyPrimeIconFont(root);
+        PrimeIcons.applyFont(root);
 
         stage.setTitle(title);
         stage.setScene(scene);
@@ -151,7 +151,7 @@ public class MainApp extends Application {
         }
     }
 
-    private void loadStyleGuideFonts() {
+    private void loadApplicationFonts() {
         for (String fontResource : FONT_RESOURCES) {
             URL fontUrl = getClass().getResource(fontResource);
 
@@ -159,7 +159,7 @@ public class MainApp extends Application {
                 Font loadedFont = Font.loadFont(fontUrl.toExternalForm(), 12);
 
                 if ("/fonts/primeicons.ttf".equals(fontResource)) {
-                    StyleGuideUi.registerPrimeIconFont(loadedFont);
+                    PrimeIcons.registerFont(loadedFont);
                 }
             }
         }

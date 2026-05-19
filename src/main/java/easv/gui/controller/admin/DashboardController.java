@@ -3,7 +3,9 @@ package easv.gui.controller.admin;
 import easv.be.AuditLog;
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -231,7 +233,7 @@ public class DashboardController {
     }
 
     private StackPane createRecentActivityIcon(AuditLog log) {
-        Label icon = StyleGuideUi.createPrimeIcon(iconGlyphFor(log), iconPathClassFor(log));
+        Label icon = PrimeIcons.create(iconGlyphFor(log), iconPathClassFor(log));
 
         StackPane iconBox = new StackPane(icon);
         iconBox.getStyleClass().add(iconBoxClassFor(log));
@@ -288,7 +290,7 @@ public class DashboardController {
         return countReviewRecords(record ->
                 contains(record.getQaStatus(), "waiting")
                         || contains(record.getQaStatus(), "ready")
-                        || contains(record.getMetadataStatus(), "ready")
+                        || contains(record.getDocumentDetailsStatus(), "ready")
         );
     }
 

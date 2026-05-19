@@ -60,7 +60,7 @@
 
                     <VBox spacing="3" styleClass="page-heading-copy">
                         <Label text="Review Center" styleClass="page-title"/>
-                        <Label text="Track scanned boxes through metadata, QA assignment, QA review, and export readiness"
+                        <Label text="Track scanned boxes through document details, QA assignment, QA review, and export readiness"
                                styleClass="page-subtitle"/>
                     </VBox>
 
@@ -128,7 +128,7 @@
                                    styleClass="review-card-count"/>
                         </HBox>
 
-                        <Label text="Metadata Needed"
+                        <Label text="Details Needed"
                                styleClass="review-card-title"/>
 
                             </VBox>
@@ -485,7 +485,7 @@
                 <styleClass>
                     <String fx:value="admin-page"/>
                     <String fx:value="main-content"/>
-                    <String fx:value="metadata-workspace-page"/>
+                    <String fx:value="review-workspace-page"/>
                 </styleClass>
 
                 <padding>
@@ -497,12 +497,12 @@
                         <Button text="Back"
                                 onAction="#showOverview"
                                 focusTraversable="false"
-                                styleClass="metadata-back-button"/>
+                                styleClass="back-button"/>
                     </HBox>
 
                     <HBox alignment="CENTER_LEFT"
                           maxWidth="Infinity"
-                          styleClass="metadata-workspace-header">
+                          styleClass="review-workspace-header">
 
                         <VBox spacing="3"
                               minWidth="0"
@@ -511,7 +511,7 @@
 
                             <styleClass>
                                 <String fx:value="page-heading-copy"/>
-                                <String fx:value="metadata-workspace-title-area"/>
+                                <String fx:value="review-workspace-title-area"/>
                             </styleClass>
 
                             <Label fx:id="workspaceTitleLabel"
@@ -531,23 +531,23 @@
 
                         <HBox alignment="CENTER_RIGHT"
                               spacing="12"
-                              styleClass="metadata-header-actions">
+                              styleClass="header-actions">
 
                             <Button text="Save Review"
-                                    onAction="#saveMetadata"
+                                    onAction="#saveReviewDetails"
                                     focusTraversable="false">
                                 <styleClass>
-                                    <String fx:value="metadata-secondary-header-button"/>
-                                    <String fx:value="metadata-save-button"/>
+                                    <String fx:value="header-secondary-button"/>
+                                    <String fx:value="admin-save-button"/>
                                 </styleClass>
                             </Button>
 
-                            <Button text="Mark Metadata Complete"
+                            <Button text="Mark Details Complete"
                                     onAction="#markComplete"
                                     focusTraversable="false">
                                 <styleClass>
-                                    <String fx:value="metadata-secondary-header-button"/>
-                                    <String fx:value="metadata-complete-button"/>
+                                    <String fx:value="header-secondary-button"/>
+                                    <String fx:value="admin-complete-button"/>
                                 </styleClass>
                             </Button>
 
@@ -555,8 +555,8 @@
                                     onAction="#sendToQa"
                                     focusTraversable="false">
                                 <styleClass>
-                                    <String fx:value="metadata-primary-header-button"/>
-                                    <String fx:value="metadata-send-review-button"/>
+                                    <String fx:value="header-primary-button"/>
+                                    <String fx:value="admin-send-review-button"/>
                                 </styleClass>
                             </Button>
 
@@ -564,8 +564,8 @@
                                     onAction="#approveReview"
                                     focusTraversable="false">
                                 <styleClass>
-                                    <String fx:value="metadata-primary-header-button"/>
-                                    <String fx:value="metadata-approve-button"/>
+                                    <String fx:value="header-primary-button"/>
+                                    <String fx:value="admin-approve-button"/>
                                 </styleClass>
                             </Button>
 
@@ -573,8 +573,8 @@
                                     onAction="#rejectReview"
                                     focusTraversable="false">
                                 <styleClass>
-                                    <String fx:value="metadata-destructive-header-button"/>
-                                    <String fx:value="metadata-reject-button"/>
+                                    <String fx:value="header-destructive-button"/>
+                                    <String fx:value="admin-reject-button"/>
                                 </styleClass>
                             </Button>
                         </HBox>
@@ -584,30 +584,30 @@
                 <HBox spacing="12"
                       alignment="CENTER_LEFT"
                       maxWidth="Infinity"
-                      styleClass="metadata-workspace-warning-banner">
+                      styleClass="review-workspace-warning-banner">
 
-                    <Label text="&#xe922;" styleClass="prime-icon metadata-workspace-warning-icon"/>
+                    <Label text="&#xe922;" styleClass="prime-icon review-workspace-warning-icon"/>
 
                     <Label fx:id="workspaceWarningLabel"
-                           text="Export blocked: 2 required metadata fields are missing."
-                           styleClass="metadata-workspace-warning-text"/>
+                           text="Export blocked: 2 required document fields are missing."
+                           styleClass="review-workspace-warning-text"/>
                 </HBox>
 
                 <HBox spacing="0"
                       alignment="TOP_LEFT"
                       maxWidth="Infinity"
-                      styleClass="metadata-workspace-shell">
+                      styleClass="review-workspace-shell">
 
                     <VBox spacing="15"
                           prefWidth="300"
                           minWidth="270"
                           maxWidth="330"
-                          styleClass="metadata-workspace-left-panel">
+                          styleClass="review-workspace-left-panel">
 
                         <VBox spacing="3">
-                            <Label text="Scan Structure" styleClass="metadata-workspace-panel-title"/>
+                            <Label text="Scan Structure" styleClass="review-workspace-panel-title"/>
                             <Label text="Box, case, and document hierarchy"
-                                   styleClass="metadata-workspace-panel-subtitle"/>
+                                   styleClass="review-workspace-panel-subtitle"/>
                         </VBox>
 
                         <HBox styleClass="search-field-shell"
@@ -625,57 +625,57 @@
 
                         <VBox spacing="12"
                               maxWidth="Infinity"
-                              styleClass="metadata-workspace-tree">
+                              styleClass="review-workspace-tree">
 
-                            <Label text="BOX-2026-004" styleClass="metadata-workspace-tree-root"/>
+                            <Label text="BOX-2026-004" styleClass="review-workspace-tree-root"/>
 
                             <VBox spacing="6">
-                                <Label text="Case 2026-042" styleClass="metadata-workspace-tree-case"/>
+                                <Label text="Case 2026-042" styleClass="review-workspace-tree-case"/>
 
-                                <HBox alignment="CENTER_LEFT" styleClass="metadata-workspace-tree-row">
-                                    <Label text="OK" styleClass="metadata-workspace-tree-status-complete"/>
-                                    <Label text="Document 1" styleClass="metadata-workspace-tree-title"/>
+                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
+                                    <Label text="OK" styleClass="review-workspace-tree-status-complete"/>
+                                    <Label text="Document 1" styleClass="review-workspace-tree-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="complete" styleClass="metadata-workspace-tree-status-text"/>
+                                    <Label text="complete" styleClass="review-workspace-tree-status-text"/>
                                 </HBox>
 
-                                <HBox alignment="CENTER_LEFT" styleClass="metadata-workspace-tree-row">
-                                    <Label text="!" styleClass="metadata-workspace-tree-status-warning"/>
-                                    <Label text="Document 2" styleClass="metadata-workspace-tree-title"/>
+                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
+                                    <Label text="!" styleClass="review-workspace-tree-status-warning"/>
+                                    <Label text="Document 2" styleClass="review-workspace-tree-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="missing" styleClass="metadata-workspace-tree-status-text"/>
+                                    <Label text="missing" styleClass="review-workspace-tree-status-text"/>
                                 </HBox>
 
-                                <HBox alignment="CENTER_LEFT" styleClass="metadata-workspace-tree-row-active">
-                                    <Label text="!" styleClass="metadata-workspace-tree-status-warning"/>
-                                    <Label text="Document 3" styleClass="metadata-workspace-tree-title-active"/>
+                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row-active">
+                                    <Label text="!" styleClass="review-workspace-tree-status-warning"/>
+                                    <Label text="Document 3" styleClass="review-workspace-tree-title-active"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="missing required" styleClass="metadata-workspace-tree-status-text"/>
+                                    <Label text="missing required" styleClass="review-workspace-tree-status-text"/>
                                 </HBox>
 
-                                <HBox alignment="CENTER_LEFT" styleClass="metadata-workspace-tree-row">
-                                    <Label text="-" styleClass="metadata-workspace-tree-status-neutral"/>
-                                    <Label text="Document 4" styleClass="metadata-workspace-tree-title"/>
+                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
+                                    <Label text="-" styleClass="review-workspace-tree-status-neutral"/>
+                                    <Label text="Document 4" styleClass="review-workspace-tree-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="not started" styleClass="metadata-workspace-tree-status-text"/>
+                                    <Label text="not started" styleClass="review-workspace-tree-status-text"/>
                                 </HBox>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Case 2026-043" styleClass="metadata-workspace-tree-case"/>
+                                <Label text="Case 2026-043" styleClass="review-workspace-tree-case"/>
 
-                                <HBox alignment="CENTER_LEFT" styleClass="metadata-workspace-tree-row">
-                                    <Label text="OK" styleClass="metadata-workspace-tree-status-complete"/>
-                                    <Label text="Document 1" styleClass="metadata-workspace-tree-title"/>
+                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
+                                    <Label text="OK" styleClass="review-workspace-tree-status-complete"/>
+                                    <Label text="Document 1" styleClass="review-workspace-tree-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="complete" styleClass="metadata-workspace-tree-status-text"/>
+                                    <Label text="complete" styleClass="review-workspace-tree-status-text"/>
                                 </HBox>
 
-                                <HBox alignment="CENTER_LEFT" styleClass="metadata-workspace-tree-row">
-                                    <Label text="X" styleClass="metadata-workspace-tree-status-danger"/>
-                                    <Label text="Document 2" styleClass="metadata-workspace-tree-title"/>
+                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
+                                    <Label text="X" styleClass="review-workspace-tree-status-danger"/>
+                                    <Label text="Document 2" styleClass="review-workspace-tree-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="invalid" styleClass="metadata-workspace-tree-status-text"/>
+                                    <Label text="invalid" styleClass="review-workspace-tree-status-text"/>
                                 </HBox>
                             </VBox>
                         </VBox>
@@ -685,32 +685,32 @@
                           minWidth="0"
                           maxWidth="Infinity"
                           HBox.hgrow="ALWAYS"
-                          styleClass="metadata-workspace-viewer-panel">
+                          styleClass="review-workspace-viewer-panel">
 
                         <HBox alignment="CENTER_LEFT"
-                              styleClass="metadata-workspace-viewer-toolbar">
+                              styleClass="review-workspace-viewer-toolbar">
 
-                            <Label text="Page Viewer" styleClass="metadata-workspace-panel-title"/>
+                            <Label text="Page Viewer" styleClass="review-workspace-panel-title"/>
 
                             <Region HBox.hgrow="ALWAYS"/>
 
-                            <Label text="Page 3 of 12" styleClass="metadata-workspace-viewer-page-label"/>
+                            <Label text="Page 3 of 12" styleClass="review-workspace-viewer-page-label"/>
 
-                            <Button text="-" focusTraversable="false" styleClass="metadata-workspace-tool-button"/>
-                            <Button text="+" focusTraversable="false" styleClass="metadata-workspace-tool-button"/>
-                            <Button text="Fit" focusTraversable="false" styleClass="metadata-workspace-tool-button"/>
-                            <Button text="&lt;" focusTraversable="false" styleClass="metadata-workspace-tool-button"/>
-                            <Button text="&gt;" focusTraversable="false" styleClass="metadata-workspace-tool-button"/>
-                            <Button text="Barcode" focusTraversable="false" styleClass="metadata-workspace-tool-button"/>
+                            <Button text="-" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button text="+" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button text="Fit" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button text="&lt;" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button text="&gt;" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button text="Barcode" focusTraversable="false" styleClass="review-workspace-tool-button"/>
                         </HBox>
 
                         <StackPane minHeight="540"
                                    maxWidth="Infinity"
-                                   styleClass="metadata-workspace-viewer-area">
+                                   styleClass="review-workspace-viewer-area">
 
-                            <StackPane styleClass="metadata-workspace-paper-preview">
+                            <StackPane styleClass="review-workspace-paper-preview">
                                 <Label text="Document Page 3"
-                                       styleClass="metadata-workspace-paper-placeholder"/>
+                                       styleClass="review-workspace-paper-placeholder"/>
                             </StackPane>
                         </StackPane>
 
@@ -718,31 +718,31 @@
                                     fitToWidth="false"
                                     hbarPolicy="AS_NEEDED"
                                     vbarPolicy="NEVER"
-                                    styleClass="metadata-workspace-thumbnail-scroll">
+                                    styleClass="review-workspace-thumbnail-scroll">
 
                             <content>
                                 <HBox spacing="9"
-                                      styleClass="metadata-workspace-thumbnail-strip">
+                                      styleClass="review-workspace-thumbnail-strip">
 
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="1" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="2" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail-active"><Label text="3" styleClass="metadata-workspace-thumbnail-label-active"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="4" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="5" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="6" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="7" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="8" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="9" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="10" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="1" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="2" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail-active"><Label text="3" styleClass="review-workspace-thumbnail-label-active"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="4" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="5" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="6" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="7" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="8" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="9" styleClass="review-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="10" styleClass="review-workspace-thumbnail-label"/></StackPane>
 
-                                    <StackPane styleClass="metadata-workspace-thumbnail-barcode">
+                                    <StackPane styleClass="review-workspace-thumbnail-barcode">
                                         <VBox spacing="3" alignment="CENTER">
-                                            <Label text="11" styleClass="metadata-workspace-thumbnail-label"/>
-                                            <Label text="barcode" styleClass="metadata-workspace-thumbnail-note"/>
+                                            <Label text="11" styleClass="review-workspace-thumbnail-label"/>
+                                            <Label text="barcode" styleClass="review-workspace-thumbnail-note"/>
                                         </VBox>
                                     </StackPane>
 
-                                    <StackPane styleClass="metadata-workspace-thumbnail"><Label text="12" styleClass="metadata-workspace-thumbnail-label"/></StackPane>
+                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="12" styleClass="review-workspace-thumbnail-label"/></StackPane>
                                 </HBox>
                             </content>
                         </ScrollPane>
@@ -752,124 +752,124 @@
                           prefWidth="330"
                           minWidth="318"
                           maxWidth="360"
-                          styleClass="metadata-workspace-right-panel">
+                          styleClass="review-workspace-right-panel">
 
                         <VBox spacing="3">
-                            <Label text="Review Details" styleClass="metadata-workspace-panel-title"/>
-                            <Label text="Complete metadata and QA checks"
-                                   styleClass="metadata-workspace-panel-subtitle"/>
+                            <Label text="Review Details" styleClass="review-workspace-panel-title"/>
+                            <Label text="Complete document details and QA checks"
+                                   styleClass="review-workspace-panel-subtitle"/>
                         </VBox>
 
-                        <HBox spacing="6" styleClass="metadata-workspace-tabs">
-                            <Button fx:id="boxTabButton" text="Box" onAction="#showBoxTab" focusTraversable="false" styleClass="metadata-workspace-tab-button"/>
-                            <Button fx:id="caseTabButton" text="Case" onAction="#showCaseTab" focusTraversable="false" styleClass="metadata-workspace-tab-button"/>
-                            <Button fx:id="documentTabButton" text="Document" onAction="#showDocumentTab" focusTraversable="false" styleClass="metadata-workspace-tab-active"/>
-                            <Button fx:id="pageTabButton" text="Page" onAction="#showPageTab" focusTraversable="false" styleClass="metadata-workspace-tab-button"/>
+                        <HBox spacing="6" styleClass="review-workspace-tabs">
+                            <Button fx:id="boxTabButton" text="Box" onAction="#showBoxTab" focusTraversable="false" styleClass="review-workspace-tab-button"/>
+                            <Button fx:id="caseTabButton" text="Case" onAction="#showCaseTab" focusTraversable="false" styleClass="review-workspace-tab-button"/>
+                            <Button fx:id="documentTabButton" text="Document" onAction="#showDocumentTab" focusTraversable="false" styleClass="review-workspace-tab-active"/>
+                            <Button fx:id="pageTabButton" text="Page" onAction="#showPageTab" focusTraversable="false" styleClass="review-workspace-tab-button"/>
                         </HBox>
 
-                        <VBox spacing="3" styleClass="metadata-workspace-validation-summary">
-                            <Label text="Document Metadata" styleClass="metadata-workspace-validation-title"/>
-                            <Label text="2 required fields missing" styleClass="metadata-workspace-validation-copy"/>
+                        <VBox spacing="3" styleClass="review-workspace-validation-summary">
+                            <Label text="Document Details" styleClass="review-workspace-validation-title"/>
+                            <Label text="2 required fields missing" styleClass="review-workspace-validation-copy"/>
                         </VBox>
 
-                        <VBox spacing="12" styleClass="metadata-workspace-form">
+                        <VBox spacing="12" styleClass="review-workspace-form">
 
                             <VBox spacing="6">
-                                <Label text="Document Type *" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Document Type *" styleClass="review-workspace-field-label"/>
                                 <ComboBox fx:id="documentTypeComboBox"
                                           maxWidth="Infinity"
                                           promptText="Select document type"
-                                          styleClass="metadata-workspace-input-error"/>
+                                          styleClass="review-workspace-input-error"/>
                                 <Label text="Document Type is required."
-                                       styleClass="metadata-workspace-field-error"/>
+                                       styleClass="review-workspace-field-error"/>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Case Number *" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Case Number *" styleClass="review-workspace-field-label"/>
                                 <TextField fx:id="caseNumberField"
                                            text="2026-042"
-                                           styleClass="metadata-workspace-input"/>
+                                           styleClass="review-workspace-input"/>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Registration Date" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Registration Date" styleClass="review-workspace-field-label"/>
                                 <TextField fx:id="registrationDateField"
                                            text="Invalid date"
-                                           styleClass="metadata-workspace-input-error"/>
+                                           styleClass="review-workspace-input-error"/>
                                 <Label text="Enter a valid date."
-                                       styleClass="metadata-workspace-field-error"/>
+                                       styleClass="review-workspace-field-error"/>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Building Address *" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Building Address *" styleClass="review-workspace-field-label"/>
                                 <TextField fx:id="buildingAddressField"
                                            text="Skagerrakvej 16"
-                                           styleClass="metadata-workspace-input"/>
+                                           styleClass="review-workspace-input"/>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Department" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Department" styleClass="review-workspace-field-label"/>
                                 <ComboBox fx:id="departmentComboBox"
                                           maxWidth="Infinity"
-                                          styleClass="metadata-workspace-input"/>
+                                          styleClass="review-workspace-input"/>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Notes" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Notes" styleClass="review-workspace-field-label"/>
                                 <TextArea fx:id="notesTextArea"
                                           promptText="Optional notes..."
                                           prefRowCount="3"
                                           wrapText="true"
-                                          styleClass="metadata-workspace-textarea"/>
+                                          styleClass="review-workspace-textarea"/>
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Tags" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Tags" styleClass="review-workspace-field-label"/>
 
                                 <HBox spacing="6">
-                                    <Label text="Archive" styleClass="metadata-workspace-tag"/>
-                                    <Label text="Building Permit" styleClass="metadata-workspace-tag"/>
-                                    <Label text="Needs Review" styleClass="metadata-workspace-tag-warning"/>
+                                    <Label text="Archive" styleClass="review-workspace-tag"/>
+                                    <Label text="Building Permit" styleClass="review-workspace-tag"/>
+                                    <Label text="Needs Review" styleClass="review-workspace-tag-warning"/>
                                 </HBox>
                             </VBox>
 
-                            <Region styleClass="metadata-workspace-divider"/>
+                            <Region styleClass="review-workspace-divider"/>
 
                             <VBox spacing="6">
-                                <Label text="Completion Status" styleClass="metadata-workspace-field-label"/>
+                                <Label text="Completion Status" styleClass="review-workspace-field-label"/>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="OK" styleClass="metadata-workspace-check-complete"/>
-                                    <Label text="Box metadata: Complete" styleClass="metadata-workspace-check-text"/>
+                                    <Label text="OK" styleClass="review-workspace-check-complete"/>
+                                    <Label text="Box details: Complete" styleClass="review-workspace-check-text"/>
                                 </HBox>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="OK" styleClass="metadata-workspace-check-complete"/>
-                                    <Label text="Case metadata: Complete" styleClass="metadata-workspace-check-text"/>
+                                    <Label text="OK" styleClass="review-workspace-check-complete"/>
+                                    <Label text="Case details: Complete" styleClass="review-workspace-check-text"/>
                                 </HBox>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="!" styleClass="metadata-workspace-check-warning"/>
-                                    <Label text="Document metadata: Missing 2 required fields" styleClass="metadata-workspace-check-text"/>
+                                    <Label text="!" styleClass="review-workspace-check-warning"/>
+                                    <Label text="Document details: Missing 2 required fields" styleClass="review-workspace-check-text"/>
                                 </HBox>
 
                                 <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="-" styleClass="metadata-workspace-check-neutral"/>
-                                    <Label text="Page metadata: Optional" styleClass="metadata-workspace-check-text"/>
+                                    <Label text="-" styleClass="review-workspace-check-neutral"/>
+                                    <Label text="Page details: Optional" styleClass="review-workspace-check-text"/>
                                 </HBox>
                             </VBox>
                         </VBox>
 
                         <Region VBox.vgrow="ALWAYS"/>
 
-                        <VBox spacing="9" styleClass="metadata-workspace-side-actions">
+                        <VBox spacing="9" styleClass="review-workspace-side-actions">
                             <Button text="Save Review"
-                                    onAction="#saveMetadata"
+                                    onAction="#saveReviewDetails"
                                     focusTraversable="false"
                                     maxWidth="Infinity"
-                                    styleClass="metadata-secondary-header-button"/>
+                                    styleClass="header-secondary-button"/>
 
-                            <Button text="Mark Metadata Complete"
+                            <Button text="Mark Details Complete"
                                     onAction="#markComplete"
                                     focusTraversable="false"
                                     maxWidth="Infinity"

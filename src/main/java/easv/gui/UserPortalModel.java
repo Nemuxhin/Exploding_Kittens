@@ -46,7 +46,7 @@ public class UserPortalModel {
 
     public record DashboardMetric(String label, String value) {}
     public record AccountProfile(String fullName, String email, String department) {}
-    public record ScanProfileInfo(String metadataRequired, String qaRequired, String splittingMethod) {}
+    public record ScanProfileInfo(String documentDetailsRequired, String qaRequired, String splittingMethod) {}
     public record BoxItem(String id, String description) {
         @Override
         public String toString() {
@@ -203,10 +203,10 @@ public class UserPortalModel {
             return new ScanProfileInfo("-", "-", "-");
         }
 
-        String metadataRequired = scanProfile.isMetadataRequiredBeforeExport() ? "Yes" : "No";
-        String qaRequired = scanProfile.isMetadataRequiredBeforeExport() ? "Yes" : "No";
+        String documentDetailsRequired = scanProfile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No";
+        String qaRequired = scanProfile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No";
         String splittingMethod = scanProfile.isBarcodeSplitting() ? "Barcode" : "Manual";
-        return new ScanProfileInfo(metadataRequired, qaRequired, splittingMethod);
+        return new ScanProfileInfo(documentDetailsRequired, qaRequired, splittingMethod);
     }
 
     public AccountProfile fetchAccountProfile() {

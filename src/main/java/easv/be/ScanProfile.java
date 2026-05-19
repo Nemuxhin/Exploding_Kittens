@@ -83,6 +83,7 @@ public class ScanProfile {
     public boolean isDeskew() { return deskew; }
     public String getExportFormat() { return exportFormat; }
     public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+    public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
 
     public void setName(String name) { this.name = clean(name); }
     public void setCode(String code) { this.code = clean(code); }
@@ -103,6 +104,9 @@ public class ScanProfile {
     public void setExportFormat(String exportFormat) { this.exportFormat = clean(exportFormat); }
     public void setMetadataRequiredBeforeExport(boolean metadataRequiredBeforeExport) {
         this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+    }
+    public void setDocumentDetailsRequiredBeforeExport(boolean documentDetailsRequiredBeforeExport) {
+        this.metadataRequiredBeforeExport = documentDetailsRequiredBeforeExport;
     }
 
     public List<String> getConfigChipLabels() {

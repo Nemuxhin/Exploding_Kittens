@@ -129,7 +129,7 @@ public class AuditLogDAO {
                 loggedAt,
                 displayType(resultSet.getString("type")),
                 resultSet.getString("actor"),
-                resultSet.getString("action"),
+                displayAction(resultSet.getString("action")),
                 resultSet.getString("target"),
                 displayStatus(resultSet.getString("status")),
                 parsedDescription.description(),
@@ -268,7 +268,7 @@ public class AuditLogDAO {
             case "users" -> "Users";
             case "profiles" -> "Profiles";
             case "access" -> "Access";
-            case "metadata" -> "Metadata";
+            case "metadata", "documents" -> "Documents";
             case "scans" -> "Scans";
             case "documents" -> "Documents";
             case "qa" -> "QA";
@@ -281,6 +281,16 @@ public class AuditLogDAO {
 
     private String displayStatus(String status) {
         return titleCase(clean(status));
+    }
+
+    private String displayAction(String action) {
+        String cleanedAction = clean(action);
+
+        if ("METADATA_SAVED".equalsIgnoreCase(cleanedAction)) {
+            return "DOCUMENT_DETAILS_SAVED";
+        }
+
+        return cleanedAction;
     }
 
     private String titleCase(String value) {

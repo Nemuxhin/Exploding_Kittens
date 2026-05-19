@@ -140,7 +140,7 @@
 
                                 <Label fx:id="selectedStatusBadge"
                                        text="Active"
-                                       styleClass="metadata-status-badge metadata-status-active"/>
+                                       styleClass="assignment-status-badge assignment-status-active"/>
                             </HBox>
 
                             <Label fx:id="selectedSubtitleLabel"

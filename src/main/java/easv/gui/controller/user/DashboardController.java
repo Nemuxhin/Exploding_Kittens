@@ -1,7 +1,9 @@
 package easv.gui.controller.user;
 
 import easv.gui.BackgroundExecutor;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -573,7 +575,7 @@ public class DashboardController {
     }
 
     private Label createIcon(String glyph, String styleClass) {
-        return StyleGuideUi.createPrimeIcon(glyph, styleClass);
+        return PrimeIcons.create(glyph, styleClass);
     }
 
     private GridPane createHeaderRow(String... values) {

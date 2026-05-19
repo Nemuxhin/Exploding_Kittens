@@ -337,7 +337,7 @@
 
                                         <Button text="Generate"
                                                 onAction="#generateTemporaryPassword"
-                                                styleClass="metadata-secondary-header-button"
+                                                styleClass="header-secondary-button"
                                                 focusTraversable="false"/>
                                     </HBox>
                                 </VBox>
@@ -371,7 +371,7 @@
                                     onAction="#showProfileAccessForAdmin"
                                     visible="false"
                                     managed="false"
-                                    styleClass="metadata-action-button"
+                                    styleClass="inline-action-button"
                                     focusTraversable="false"/>
 
                             <VBox fx:id="profileAccessContent"

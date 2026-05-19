@@ -182,8 +182,8 @@
                                    text="No profile selected"
                                    styleClass="profile-info-title"/>
 
-                            <Label fx:id="profileInfoMetadataLabel"
-                                   text="Metadata required: —"
+                            <Label fx:id="profileInfoDocumentDetailsLabel"
+                                   text="Document details required: —"
                                    styleClass="profile-info-line"/>
 
                             <Label fx:id="profileInfoQaLabel"

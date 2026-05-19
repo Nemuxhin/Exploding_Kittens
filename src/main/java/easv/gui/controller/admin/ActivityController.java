@@ -2,7 +2,9 @@ package easv.gui.controller.admin;
 
 import easv.be.AuditLog;
 import easv.bll.AdminManager;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.collections.FXCollections;
@@ -82,7 +84,7 @@ public class ActivityController {
     private static final DateTimeFormatter GROUP_DATE_FORMATTER =
             DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_RANGE_FORMATTER =
-            StyleGuideUi.DATE_FORMATTER;
+            AppDates.FORMATTER;
 
     private final ObservableList<ActivityLogEntry> activityEntries = FXCollections.observableArrayList();
 
@@ -145,7 +147,7 @@ public class ActivityController {
                     "Users",
                     "Profiles",
                     "Access",
-                    "Metadata",
+                    "Documents",
                     "Exports",
                     "Security",
                     "System"
@@ -501,7 +503,7 @@ public class ActivityController {
     }
 
     private Label createPrimeIcon(String glyph, String styleClass) {
-        return StyleGuideUi.createPrimeIcon(glyph, styleClass);
+        return PrimeIcons.create(glyph, styleClass);
     }
 
     private Button createLoadMoreButton() {
@@ -633,9 +635,9 @@ public class ActivityController {
                 return cells;
             }
 
-            if (area.equals("metadata")) {
-                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "A metadata item was created."), "logs-inline-rail-note-cell"));
-                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", metadataCategory(entry)));
+            if (area.equals("documents")) {
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "A document detail item was created."), "logs-inline-rail-note-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", documentCategory(entry)));
                 addLogRailCell(cells, entry);
                 return cells;
             }
@@ -672,9 +674,9 @@ public class ActivityController {
             return cells;
         }
 
-        if (area.equals("metadata")) {
-            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "Metadata activity was recorded."), "logs-inline-rail-note-cell"));
-            addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", metadataCategory(entry)));
+        if (area.equals("documents")) {
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "Document detail activity was recorded."), "logs-inline-rail-note-cell"));
+            addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", documentCategory(entry)));
             addLogRailCell(cells, entry);
             return cells;
         }
@@ -965,7 +967,7 @@ public class ActivityController {
         return action.contains("deactivated") || action.contains("inactive") ? "Deactivated" : "Deleted";
     }
 
-    private String metadataCategory(ActivityLogEntry entry) {
+    private String documentCategory(ActivityLogEntry entry) {
         String action = normalize(formatAction(entry.action()));
         if (action.contains("field")) {
             return "Field";
@@ -1455,7 +1457,7 @@ public class ActivityController {
             case "access", "security" -> "logs-event-icon-access";
             case "qa" -> "logs-event-icon-qa";
             case "exports", "files", "import" -> "logs-event-icon-files";
-            case "metadata" -> "logs-event-icon-metadata";
+            case "documents" -> "logs-event-icon-documents";
             default -> "logs-event-icon-system";
         };
     }
@@ -1524,7 +1526,7 @@ public class ActivityController {
             case "users" -> "logs-area-users";
             case "profiles" -> "logs-area-profiles";
             case "access", "security" -> "logs-area-access";
-            case "metadata", "documents" -> "logs-area-metadata";
+            case "documents" -> "logs-area-documents";
             case "files", "scans", "exports" -> "logs-area-files";
             case "qa" -> "logs-area-qa";
             case "import" -> isError(entry) ? "logs-area-import-failed" : "logs-area-import";
@@ -1979,8 +1981,8 @@ public class ActivityController {
         String actionKey = cleanedAction.trim().replace(' ', '_').toUpperCase(Locale.ROOT);
 
         switch (actionKey) {
-            case "METADATA_SAVED" -> {
-                return "Saved metadata";
+            case "DOCUMENT_DETAILS_SAVED" -> {
+                return "Saved document details";
             }
             case "SCAN_STARTED" -> {
                 return "Started TIFF scan";

@@ -398,7 +398,7 @@ public class AssignmentsController {
         selectedSubtitleLabel.setText("");
         selectedCodeLabel.setText("");
         selectedStatusBadge.setText("");
-        selectedStatusBadge.getStyleClass().setAll("metadata-status-badge", "metadata-status-archived");
+        selectedStatusBadge.getStyleClass().setAll("assignment-status-badge", "assignment-status-archived");
     }
 
     private void renderAssignmentRows() {
@@ -558,12 +558,12 @@ public class AssignmentsController {
 
     private void updateSelectedStatus(String status) {
         selectedStatusBadge.setText(status);
-        selectedStatusBadge.getStyleClass().setAll("metadata-status-badge", statusClassFor(status));
+        selectedStatusBadge.getStyleClass().setAll("assignment-status-badge", statusClassFor(status));
     }
 
     private Label createStatusBadge(String status) {
         Label badge = new Label(status);
-        badge.getStyleClass().addAll("metadata-status-badge", statusClassFor(status));
+        badge.getStyleClass().addAll("assignment-status-badge", statusClassFor(status));
         return badge;
     }
 
@@ -679,10 +679,10 @@ public class AssignmentsController {
 
     private String statusClassFor(String status) {
         return switch (normalize(status)) {
-            case "active" -> "metadata-status-active";
-            case "draft" -> "metadata-status-draft";
-            case "archived", "inactive" -> "metadata-status-archived";
-            default -> "metadata-status-archived";
+            case "active" -> "assignment-status-active";
+            case "draft" -> "assignment-status-draft";
+            case "archived", "inactive" -> "assignment-status-archived";
+            default -> "assignment-status-archived";
         };
     }
 

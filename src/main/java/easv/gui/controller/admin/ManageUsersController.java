@@ -3,7 +3,9 @@ package easv.gui.controller.admin;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.dal.DataAccessException;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -339,7 +341,7 @@ public class ManageUsersController {
         boolean roleIsAdmin = ROLE_ADMIN.equals(userRoleComboBox.getValue());
 
         if (roleIsAdmin) {
-            profileHelpLabel.setText("Admins can manage users, profiles, metadata, access, and activity logs. Profile access is optional if this admin will also scan.");
+            profileHelpLabel.setText("Admins can manage users, profiles, review details, access, and activity logs. Profile access is optional if this admin will also scan.");
             setVisibleAndManaged(showProfileAccessButton, !adminProfileAccessExpanded);
             setVisibleAndManaged(profileAccessContent, adminProfileAccessExpanded);
         } else {
@@ -375,10 +377,10 @@ public class ManageUsersController {
 
         Label statusBadge = new Label(profile.getStatus());
         statusBadge.getStyleClass().addAll(
-                "metadata-profile-status",
+                "profile-assignment-status",
                 STATUS_ACTIVE.equalsIgnoreCase(profile.getStatus())
-                        ? "metadata-profile-status-active"
-                        : "metadata-profile-status-draft"
+                        ? "profile-assignment-status-active"
+                        : "profile-assignment-status-draft"
         );
 
         Region spacer = new Region();
@@ -698,7 +700,7 @@ public class ManageUsersController {
     }
 
     private StackPane createActionIcon(String glyph, String iconStyleClass) {
-        Label icon = StyleGuideUi.createPrimeIcon(glyph, iconStyleClass);
+        Label icon = PrimeIcons.create(glyph, iconStyleClass);
 
         StackPane shell = new StackPane(icon);
         shell.getStyleClass().add("action-icon-shell");

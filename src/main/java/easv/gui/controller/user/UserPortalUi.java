@@ -4,20 +4,22 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.util.StringConverter;
 
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 final class UserPortalUi {
-    private static final DateTimeFormatter FILTER_DATE = StyleGuideUi.DATE_FORMATTER;
+    private static final DateTimeFormatter FILTER_DATE = AppDates.FORMATTER;
 
     private UserPortalUi() {
     }
 
     static Label buildIcon(String key, String styleClass) {
-        return StyleGuideUi.createPrimeIcon(iconGlyph(key), styleClass);
+        return PrimeIcons.create(iconGlyph(key), styleClass);
     }
 
     static Label buildStatusChip(String status) {

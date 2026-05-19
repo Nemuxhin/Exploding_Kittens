@@ -55,6 +55,8 @@ public class ReviewRecord {
     public String getProfile() { return profile; }
     public String getMetadataTemplate() { return metadataTemplate; }
     public String getMetadataStatus() { return metadataStatus; }
+    public String getDocumentDetailsTemplate() { return metadataTemplate; }
+    public String getDocumentDetailsStatus() { return metadataStatus; }
     public String getQaStatus() { return qaStatus; }
     public int getPages() { return pages; }
     public String getLastUpdated() { return lastUpdated; }
@@ -69,6 +71,8 @@ public class ReviewRecord {
     public void setProfile(String profile) { this.profile = clean(profile); }
     public void setMetadataTemplate(String metadataTemplate) { this.metadataTemplate = clean(metadataTemplate); }
     public void setMetadataStatus(String metadataStatus) { this.metadataStatus = clean(metadataStatus); }
+    public void setDocumentDetailsTemplate(String documentDetailsTemplate) { this.metadataTemplate = clean(documentDetailsTemplate); }
+    public void setDocumentDetailsStatus(String documentDetailsStatus) { this.metadataStatus = clean(documentDetailsStatus); }
     public void setQaStatus(String qaStatus) { this.qaStatus = clean(qaStatus); }
     public void setPages(int pages) { this.pages = Math.max(0, pages); }
     public void setLastUpdated(String lastUpdated) { this.lastUpdated = clean(lastUpdated); }

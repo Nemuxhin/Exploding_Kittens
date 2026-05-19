@@ -6,7 +6,9 @@ import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import easv.gui.UserPortalModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -253,7 +255,7 @@ public class UserController implements UserNavigator {
 
         if (darkModeToggleIcon != null) {
             darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
-            StyleGuideUi.applyPrimeIconFont(darkModeToggleIcon);
+            PrimeIcons.applyFont(darkModeToggleIcon);
         }
     }
 
@@ -303,7 +305,7 @@ public class UserController implements UserNavigator {
 
             configureLoadedController(loader.getController());
             configureLoadedPageSize(loadedPage);
-            StyleGuideUi.applyPrimeIconFont(loadedPage);
+            PrimeIcons.applyFont(loadedPage);
 
             contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
@@ -920,7 +922,7 @@ public class UserController implements UserNavigator {
     }
 
     private HBox createHelpRow(String iconGlyph, String titleText, String bodyText) {
-        Label icon = StyleGuideUi.createPrimeIcon(iconGlyph, "weblager-help-icon");
+        Label icon = PrimeIcons.create(iconGlyph, "weblager-help-icon");
 
         StackPane iconShell = new StackPane(icon);
         iconShell.getStyleClass().add("weblager-help-icon-shell");

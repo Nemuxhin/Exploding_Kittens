@@ -2,7 +2,9 @@ package easv.gui.controller.admin;
 
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
-import easv.gui.StyleGuideUi;
+import easv.gui.AppDates;
+import easv.gui.PrimeIcons;
+import easv.gui.SearchableComboBoxes;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -53,7 +55,7 @@ public class ReviewController {
 
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
-    private static final DateTimeFormatter DATE_RANGE_FORMATTER = StyleGuideUi.DATE_FORMATTER;
+    private static final DateTimeFormatter DATE_RANGE_FORMATTER = AppDates.FORMATTER;
 
     private final ObservableList<ReviewRow> records = FXCollections.observableArrayList();
     private final Set<String> selectedRecordIds = new HashSet<>();
@@ -199,12 +201,12 @@ public class ReviewController {
         );
         scannedByFilterComboBox.setValue(ALL_USERS);
 
-        StyleGuideUi.configureSearchableComboBox(clientFilterComboBox);
-        StyleGuideUi.configureSearchableComboBox(archiveFilterComboBox);
-        StyleGuideUi.configureSearchableComboBox(profileFilterComboBox);
-        StyleGuideUi.configureSearchableComboBox(qaStatusFilterComboBox);
-        StyleGuideUi.configureSearchableComboBox(dateRangeFilterComboBox);
-        StyleGuideUi.configureSearchableComboBox(scannedByFilterComboBox);
+        SearchableComboBoxes.configure(clientFilterComboBox);
+        SearchableComboBoxes.configure(archiveFilterComboBox);
+        SearchableComboBoxes.configure(profileFilterComboBox);
+        SearchableComboBoxes.configure(qaStatusFilterComboBox);
+        SearchableComboBoxes.configure(dateRangeFilterComboBox);
+        SearchableComboBoxes.configure(scannedByFilterComboBox);
     }
 
     private void configureWorkspaceControls() {
@@ -223,7 +225,7 @@ public class ReviewController {
                 "Legal Department"
         );
         departmentComboBox.setValue("Technical Services");
-        StyleGuideUi.configureSearchableComboBox(documentTypeComboBox);
+        SearchableComboBoxes.configure(documentTypeComboBox);
 
         caseNumberField.setText("2026-042");
         registrationDateField.setText("Invalid date");
@@ -312,21 +314,21 @@ public class ReviewController {
     }
 
     private boolean isMissingRequired(ReviewRow record) {
-        return "Missing Required Fields".equalsIgnoreCase(record.metadataStatus());
+        return "Missing Required Fields".equalsIgnoreCase(record.documentDetailsStatus());
     }
 
     private boolean isExportBlocked(ReviewRow record) {
         return isMissingRequired(record)
-                || "Invalid".equalsIgnoreCase(record.metadataStatus())
-                || "Incomplete".equalsIgnoreCase(record.metadataStatus());
+                || "Invalid".equalsIgnoreCase(record.documentDetailsStatus())
+                || "Incomplete".equalsIgnoreCase(record.documentDetailsStatus());
     }
 
     private boolean isFailedValidation(ReviewRow record) {
-        return "Invalid".equalsIgnoreCase(record.metadataStatus());
+        return "Invalid".equalsIgnoreCase(record.documentDetailsStatus());
     }
 
     private boolean isReadyForQa(ReviewRow record) {
-        return "Complete".equalsIgnoreCase(record.metadataStatus())
+        return "Complete".equalsIgnoreCase(record.documentDetailsStatus())
                 && "Ready for QA".equalsIgnoreCase(record.qaStatus());
     }
 
@@ -720,7 +722,7 @@ public class ReviewController {
         return null;
     }
 
-    private String metadataStatusClass(String status) {
+    private String documentDetailsStatusClass(String status) {
         return switch (normalize(status)) {
             case "not started" -> "review-status-neutral";
             case "incomplete" -> "review-status-warning";
@@ -987,17 +989,17 @@ public class ReviewController {
                         + " - "
                         + record.pages()
                         + " pages - "
-                        + record.metadataStatus()
+                        + record.documentDetailsStatus()
         );
 
-        boolean isBlocked = record.metadataStatus().equalsIgnoreCase("Missing Required Fields")
-                || record.metadataStatus().equalsIgnoreCase("Invalid")
-                || record.metadataStatus().equalsIgnoreCase("Incomplete");
+        boolean isBlocked = record.documentDetailsStatus().equalsIgnoreCase("Missing Required Fields")
+                || record.documentDetailsStatus().equalsIgnoreCase("Invalid")
+                || record.documentDetailsStatus().equalsIgnoreCase("Incomplete");
 
         workspaceWarningLabel.setText(
                 isBlocked
-                        ? "Export blocked: 2 required metadata fields are missing."
-                        : "Metadata is complete. Ready for QA assignment or approval."
+                        ? "Export blocked: 2 required document fields are missing."
+                        : "Document details are complete. Ready for QA assignment or approval."
         );
 
         configureWorkspaceControls();
@@ -1023,7 +1025,7 @@ public class ReviewController {
     }
 
     @FXML
-    private void saveMetadata() {
+    private void saveReviewDetails() {
         if (activeReviewRecord == null) {
             return;
         }
@@ -1065,7 +1067,7 @@ public class ReviewController {
             return;
         }
 
-        replaceActiveRecord(activeReviewRecord.withReviewState(activeReviewRecord.metadataStatus(), "QA Rejected", true));
+        replaceActiveRecord(activeReviewRecord.withReviewState(activeReviewRecord.documentDetailsStatus(), "QA Rejected", true));
     }
 
     private void replaceActiveRecord(ReviewRow updatedRecord) {
@@ -1107,12 +1109,12 @@ public class ReviewController {
         List<Button> tabButtons = List.of(boxTabButton, caseTabButton, documentTabButton, pageTabButton);
 
         for (Button tabButton : tabButtons) {
-            tabButton.getStyleClass().removeAll("metadata-workspace-tab-active", "metadata-workspace-tab-button");
+            tabButton.getStyleClass().removeAll("review-workspace-tab-active", "review-workspace-tab-button");
 
             if (tabButton == activeButton) {
-                tabButton.getStyleClass().add("metadata-workspace-tab-active");
+                tabButton.getStyleClass().add("review-workspace-tab-active");
             } else {
-                tabButton.getStyleClass().add("metadata-workspace-tab-button");
+                tabButton.getStyleClass().add("review-workspace-tab-button");
             }
         }
     }
@@ -1143,8 +1145,8 @@ public class ReviewController {
                 record.getClient(),
                 record.getArchive(),
                 record.getProfile(),
-                record.getMetadataTemplate(),
-                record.getMetadataStatus(),
+                record.getDocumentDetailsTemplate(),
+                record.getDocumentDetailsStatus(),
                 record.getQaStatus(),
                 record.getPages(),
                 record.getLastUpdated(),
@@ -1162,8 +1164,8 @@ public class ReviewController {
                 row.client(),
                 row.archive(),
                 row.profile(),
-                row.metadataTemplate(),
-                row.metadataStatus(),
+                row.documentDetailsTemplate(),
+                row.documentDetailsStatus(),
                 row.qaStatus(),
                 row.pages(),
                 row.lastUpdated(),
@@ -1221,8 +1223,8 @@ public class ReviewController {
             String client,
             String archive,
             String profile,
-            String metadataTemplate,
-            String metadataStatus,
+            String documentDetailsTemplate,
+            String documentDetailsStatus,
             String qaStatus,
             int pages,
             String lastUpdated,
@@ -1238,8 +1240,8 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    metadataTemplate,
-                    metadataStatus,
+                    documentDetailsTemplate,
+                    documentDetailsStatus,
                     qaStatus,
                     pages,
                     updatedAt,
@@ -1257,8 +1259,8 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    metadataTemplate,
-                    metadataStatus,
+                    documentDetailsTemplate,
+                    documentDetailsStatus,
                     qaStatus,
                     pages,
                     "Updated just now",
@@ -1269,15 +1271,15 @@ public class ReviewController {
             );
         }
 
-        private ReviewRow withReviewState(String newMetadataStatus, String newQaStatus, boolean hasWarning) {
+        private ReviewRow withReviewState(String newDocumentDetailsStatus, String newQaStatus, boolean hasWarning) {
             return new ReviewRow(
                     id,
                     identity,
                     client,
                     archive,
                     profile,
-                    metadataTemplate,
-                    newMetadataStatus,
+                    documentDetailsTemplate,
+                    newDocumentDetailsStatus,
                     newQaStatus,
                     pages,
                     "Updated just now",
