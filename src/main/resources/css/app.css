@@ -158,9 +158,9 @@
     -wl-status-warning-border: #FACC15;
     -wl-status-warning-text: #C96A00;
 
-    -wl-status-error-bg: #FFF1F1;
-    -wl-status-error-border: #FFB4B4;
-    -wl-status-error-text: #FF3D32;
+    -wl-status-error-bg: -wl-status-danger-bg;
+    -wl-status-error-border: -wl-status-danger-border;
+    -wl-status-error-text: -wl-status-danger-text;
     -wl-status-error-hover-bg: #FFE1E1;
 
     -wl-status-success-bg: #E9FBF6;
@@ -314,10 +314,10 @@
     -wl-status-warning-border: #B7791F;
     -wl-status-warning-text: #FACC15;
 
-    -wl-status-error-bg: #4A2512;
-    -wl-status-error-border: #9A1D1B;
-    -wl-status-error-text: #FF3D32;
-    -wl-status-error-hover-bg: #4A2512;
+    -wl-status-error-bg: -wl-status-danger-bg;
+    -wl-status-error-border: -wl-status-danger-border;
+    -wl-status-error-text: -wl-status-danger-text;
+    -wl-status-error-hover-bg: #5A2A16;
 
     -wl-status-success-bg: #123E37;
     -wl-status-success-border: #1B5A4E;
