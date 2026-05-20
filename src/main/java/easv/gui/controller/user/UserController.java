@@ -6,9 +6,7 @@ import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
-import easv.gui.AppDates;
 import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
 import easv.gui.UserPortalModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,7 +16,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -757,22 +754,6 @@ public class UserController implements UserNavigator {
     private record ShortcutData(String label, String key) {
     }
 
-    private HBox shortcutRow(String shortcut, String description) {
-        Label shortcutLabel = new Label(shortcut);
-        shortcutLabel.getStyleClass().add("portal-section-title");
-        shortcutLabel.setMinWidth(72);
-
-        Label descriptionLabel = new Label(description);
-        descriptionLabel.getStyleClass().add("portal-muted");
-        descriptionLabel.setWrapText(true);
-
-        HBox row = new HBox(12, shortcutLabel, descriptionLabel);
-        row.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(descriptionLabel, Priority.ALWAYS);
-
-        return row;
-    }
-
     private void showHelpDialog() {
         hideAccountDropdown();
 
@@ -911,11 +892,7 @@ public class UserController implements UserNavigator {
         copy.setWrapText(true);
         copy.getStyleClass().add("weblager-help-support-copy");
 
-        Hyperlink emailLink = new Hyperlink("support@company.com");
-        emailLink.getStyleClass().add("weblager-help-support-link");
-        emailLink.setFocusTraversable(false);
-
-        VBox section = new VBox(12, title, copy, emailLink);
+        VBox section = new VBox(12, title, copy);
         section.getStyleClass().add("weblager-help-support-section");
 
         return section;

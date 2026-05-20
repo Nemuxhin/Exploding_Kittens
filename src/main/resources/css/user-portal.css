@@ -32,7 +32,7 @@
 .user-brand-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .top-nav-item,
@@ -271,14 +271,6 @@
     -fx-text-fill: -wl-status-warning-text;
 }
 
-.dashboard-summary-value {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
-}
-
-.dashboard-summary-title,
-.dashboard-section-title,
 .dashboard-simple-title,
 .admin-action-title,
 .portal-card-title,
@@ -287,8 +279,6 @@
     -fx-font-weight: 700;
 }
 
-.dashboard-summary-title,
-.dashboard-section-title,
 .portal-card-title,
 .exports-title {
     -fx-font-size: 12px;
@@ -297,6 +287,7 @@
 .dashboard-simple-title,
 .admin-action-title {
     -fx-font-size: 15px;
+    -fx-font-weight: 600;
 }
 
 .dashboard-summary-subtitle,
@@ -634,7 +625,7 @@
 }
 
 .exports-filter-panel > .exports-filter-wrap {
-    -fx-max-width: Infinity;
+    -fx-max-width: 9999;
 }
 
 .exports-filter-input,
@@ -816,7 +807,7 @@
 .exports-dialog-option-button {
     -fx-min-height: 78;
     -fx-pref-height: 78;
-    -fx-max-width: Infinity;
+    -fx-max-width: 9999;
     -fx-padding: 9 12 9 12;
     -fx-background-radius: 10;
     -fx-border-radius: 10;

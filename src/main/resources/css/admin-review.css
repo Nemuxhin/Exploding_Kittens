@@ -25,9 +25,9 @@
     -fx-border-insets: 0;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-alignment: center-left;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .review-queue-card:hover {
@@ -151,6 +151,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .review-batch-label {
@@ -184,7 +185,6 @@
 .review-page-host .review-workspace-header-grid .page-title,
 .review-page-host .review-workspace-header-grid .page-subtitle {
     -fx-min-width: 0;
-    -fx-wrap-text: false;
     -fx-text-overrun: ellipsis;
 }
 
@@ -192,9 +192,6 @@
 .review-page-host .review-workspace-header-grid .header-actions {
     -fx-alignment: center-right;
     -fx-spacing: 12;
-    -fx-min-width: 735;
-    -fx-pref-width: 735;
-    -fx-max-width: 735;
 }
 
 .review-page-host .review-workspace-header .header-actions .button,
@@ -205,7 +202,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-padding: 0 18 0 18;
-    -fx-wrap-text: false;
     -fx-alignment: center;
 }
 
@@ -294,7 +290,7 @@
 .review-workspace-tree-root {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-case {
@@ -325,10 +321,11 @@
 .review-workspace-tree-title-active {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-title-active {
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-text {
@@ -340,25 +337,25 @@
 .review-workspace-tree-status-complete {
     -fx-text-fill: -wl-status-success-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-warning {
     -fx-text-fill: -wl-status-warning-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-danger {
     -fx-text-fill: -wl-status-danger-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-neutral {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-viewer-panel {
@@ -411,7 +408,6 @@
     -fx-background-color: -wl-workspace-paper-bg;
     -fx-border-color: -wl-workspace-paper-border;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .review-workspace-paper-placeholder {
@@ -467,7 +463,7 @@
 .review-workspace-thumbnail-note {
     -fx-text-fill: -wl-status-warning-text;
     -fx-font-size: 10px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 400;
 }
 
 .review-workspace-tabs {
@@ -522,7 +518,7 @@
 .review-workspace-validation-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-workspace-validation-copy {
@@ -539,7 +535,7 @@
 .review-workspace-field-error {
     -fx-text-fill: -wl-status-danger-text;
     -fx-font-size: 10px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 400;
 }
 
 .review-workspace-check-complete {

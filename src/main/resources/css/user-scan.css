@@ -34,7 +34,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .app-shell.dark .scan-card,
@@ -56,7 +56,7 @@
 .scan-setup-primary-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .scan-setup-primary-copy {
@@ -68,7 +68,7 @@
 .scan-setup-quick-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .scan-setup-quick-copy {
@@ -104,7 +104,7 @@
 .scan-setup-step-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .scan-setup-step-copy {
@@ -243,7 +243,7 @@
 .profile-info-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .profile-info-line {
@@ -319,9 +319,9 @@
    16C. USER SCAN BUTTONS
    ========================================================= */
 
-.primary-button,
-.secondary-button,
-.tertiary-button {
+.scan-setup-primary-card .primary-button,
+.scan-setup-primary-card .secondary-button,
+.scan-setup-primary-card .tertiary-button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
@@ -339,38 +339,38 @@
     -fx-faint-focus-color: transparent;
 }
 
-.primary-button {
+.scan-setup-primary-card .primary-button {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
 }
 
-.primary-button:hover,
-.primary-button:pressed {
+.scan-setup-primary-card .primary-button:hover,
+.scan-setup-primary-card .primary-button:pressed {
     -fx-background-color: -wl-primary-hover;
     -fx-border-color: -wl-primary-hover;
 }
 
-.secondary-button {
+.scan-setup-primary-card .secondary-button {
     -fx-background-color: -wl-secondary;
     -fx-border-color: -wl-secondary;
     -fx-text-fill: -wl-on-primary;
 }
 
-.secondary-button:hover,
-.secondary-button:pressed {
+.scan-setup-primary-card .secondary-button:hover,
+.scan-setup-primary-card .secondary-button:pressed {
     -fx-background-color: -wl-secondary-hover;
     -fx-border-color: -wl-secondary-hover;
 }
 
-.tertiary-button {
+.scan-setup-primary-card .tertiary-button {
     -fx-background-color: -wl-tertiary;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 
-.tertiary-button:hover,
-.tertiary-button:pressed {
+.scan-setup-primary-card .tertiary-button:hover,
+.scan-setup-primary-card .tertiary-button:pressed {
     -fx-background-color: -wl-tertiary-hover;
     -fx-border-color: -wl-secondary;
 }
@@ -400,7 +400,7 @@
 .workspace-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .workspace-subtitle {
@@ -439,7 +439,7 @@
 .selected-file-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .selected-file-subtitle {
@@ -462,7 +462,7 @@
 .scan-panel-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .scan-panel-subtitle,
@@ -524,12 +524,13 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .document-tree-empty-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .document-tree-empty-copy {
@@ -573,7 +574,7 @@
 .document-tree-document-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .document-tree-count {
@@ -616,7 +617,7 @@
 .document-tree-page-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 600;
 }
 
 .document-tree-barcode-split-row {
@@ -635,7 +636,7 @@
     -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 10px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 400;
     -fx-alignment: center;
 }
 
@@ -780,12 +781,13 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .scan-preview-empty-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .scan-preview-empty-copy {
@@ -804,7 +806,6 @@
     -fx-border-color: -wl-paper-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .document-preview-line-dark,
@@ -911,7 +912,8 @@
    16J. BOTTOM PAGE TRAY
    ========================================================= */
 
-.page-tray-shell {
+.page-tray-shell,
+.review-page-tray-shell {
     -fx-padding: 6 18 9 18;
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border transparent transparent transparent;
@@ -925,15 +927,18 @@
 .page-tray-count {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 18px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 600;
 }
 
 .page-tray-scroll,
-.page-tray-scroll > .viewport {
+.page-tray-scroll > .viewport,
+.review-page-tray-scroll,
+.review-page-tray-scroll > .viewport {
     -fx-background-color: -wl-surface;
 }
 
-.page-tray-scroll {
+.page-tray-scroll,
+.review-page-tray-scroll {
     -fx-background: -wl-surface;
     -fx-padding: 0;
     -fx-border-color: transparent;
@@ -942,36 +947,46 @@
     -fx-max-height: 144;
 }
 
-.page-tray-scroll .scroll-bar:horizontal {
+.page-tray-scroll .scroll-bar:horizontal,
+.review-page-tray-scroll .scroll-bar:horizontal {
     -fx-background-color: transparent;
     -fx-padding: 6 0 0 0;
 }
 
-.page-tray-scroll .scroll-bar:horizontal .track {
+.page-tray-scroll .scroll-bar:horizontal .track,
+.review-page-tray-scroll .scroll-bar:horizontal .track {
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 999;
 }
 
-.page-tray-scroll .scroll-bar:horizontal .thumb {
+.page-tray-scroll .scroll-bar:horizontal .thumb,
+.review-page-tray-scroll .scroll-bar:horizontal .thumb {
     -fx-background-color: -wl-scroll-thumb;
     -fx-background-radius: 999;
 }
 
 .page-tray-scroll .scroll-bar:horizontal .thumb:hover,
-.page-tray-scroll .scroll-bar:horizontal .thumb:pressed {
+.page-tray-scroll .scroll-bar:horizontal .thumb:pressed,
+.review-page-tray-scroll .scroll-bar:horizontal .thumb:hover,
+.review-page-tray-scroll .scroll-bar:horizontal .thumb:pressed {
     -fx-background-color: -wl-secondary;
 }
 
 .page-tray-scroll .scroll-bar .increment-button,
 .page-tray-scroll .scroll-bar .decrement-button,
 .page-tray-scroll .scroll-bar .increment-arrow,
-.page-tray-scroll .scroll-bar .decrement-arrow {
+.page-tray-scroll .scroll-bar .decrement-arrow,
+.review-page-tray-scroll .scroll-bar .increment-button,
+.review-page-tray-scroll .scroll-bar .decrement-button,
+.review-page-tray-scroll .scroll-bar .increment-arrow,
+.review-page-tray-scroll .scroll-bar .decrement-arrow {
     -fx-padding: 0;
     -fx-shape: "";
     -fx-background-color: transparent;
 }
 
-.page-tray-container {
+.page-tray-container,
+.review-page-tray-container {
     -fx-padding: 0;
     -fx-background-color: -wl-surface;
     -fx-min-height: 111;
@@ -986,7 +1001,8 @@
 }
 
 .page-tray-item,
-.page-tray-barcode-split-card {
+.page-tray-barcode-split-card,
+.review-page-tray-item {
     -fx-min-width: 90;
     -fx-pref-width: 90;
     -fx-max-width: 90;
@@ -1005,7 +1021,8 @@
 }
 
 .page-tray-item:hover,
-.page-tray-barcode-split-card:hover {
+.page-tray-barcode-split-card:hover,
+.review-page-tray-item:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
@@ -1016,7 +1033,8 @@
     -fx-border-width: 2;
 }
 
-.page-tray-item-warning {
+.page-tray-item-warning,
+.review-page-tray-item-warning {
     -fx-border-color: -wl-status-warning-border;
 }
 
@@ -1031,7 +1049,8 @@
     -fx-border-width: 2;
 }
 
-.page-tray-thumbnail {
+.page-tray-thumbnail,
+.review-page-tray-thumbnail {
     -fx-min-width: 72;
     -fx-pref-width: 72;
     -fx-max-width: 72;
@@ -1047,7 +1066,8 @@
 }
 
 .page-tray-number,
-.page-tray-barcode-split-label {
+.page-tray-barcode-split-label,
+.review-page-tray-number {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
@@ -1241,7 +1261,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .finish-review-success-icon,
@@ -1273,7 +1293,7 @@
 .submit-confirmation-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 600;
 }
 
 .finish-review-summary-card,
@@ -1418,7 +1438,7 @@
 .qa-review-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-summary-label {
@@ -1443,7 +1463,7 @@
 .review-panel-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 600;
 }
 
 .review-document-scroll,
@@ -1487,7 +1507,7 @@
 .review-document-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-document-count {
@@ -1523,7 +1543,7 @@
     -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 10px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 400;
 }
 
 .review-center-panel {
@@ -1539,7 +1559,7 @@
 .review-selected-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 600;
 }
 
 .review-view-icon {
@@ -1572,7 +1592,6 @@
     -fx-background-color: -wl-paper-bg;
     -fx-background-radius: 6;
     -fx-border-color: transparent;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .review-preview-empty-icon {
@@ -1592,124 +1611,17 @@
     -fx-font-weight: 500;
 }
 
-.review-page-tray-shell {
-    -fx-padding: 6 18 9 18;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
-    -fx-min-height: 144;
-    -fx-pref-height: 144;
-    -fx-max-height: 144;
-}
-
 .review-page-tray-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.review-page-tray-scroll,
-.review-page-tray-scroll > .viewport {
-    -fx-background-color: -wl-surface;
-}
-
-.review-page-tray-scroll {
-    -fx-background: -wl-surface;
-    -fx-padding: 0;
-    -fx-border-color: transparent;
-    -fx-min-height: 144;
-    -fx-pref-height: 144;
-    -fx-max-height: 144;
-}
-
-.review-page-tray-scroll .scroll-bar:horizontal {
-    -fx-background-color: transparent;
-    -fx-padding: 6 0 0 0;
-}
-
-.review-page-tray-scroll .scroll-bar:horizontal .track {
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 999;
-}
-
-.review-page-tray-scroll .scroll-bar:horizontal .thumb {
-    -fx-background-color: -wl-scroll-thumb;
-    -fx-background-radius: 999;
-}
-
-.review-page-tray-scroll .scroll-bar:horizontal .thumb:hover,
-.review-page-tray-scroll .scroll-bar:horizontal .thumb:pressed {
-    -fx-background-color: -wl-secondary;
-}
-
-.review-page-tray-scroll .scroll-bar .increment-button,
-.review-page-tray-scroll .scroll-bar .decrement-button,
-.review-page-tray-scroll .scroll-bar .increment-arrow,
-.review-page-tray-scroll .scroll-bar .decrement-arrow {
-    -fx-padding: 0;
-    -fx-shape: "";
-    -fx-background-color: transparent;
-}
-
-.review-page-tray-container {
-    -fx-padding: 0;
-    -fx-background-color: -wl-surface;
-    -fx-min-height: 111;
-    -fx-alignment: center-left;
-}
-
-.review-page-tray-item {
-    -fx-min-width: 90;
-    -fx-pref-width: 90;
-    -fx-max-width: 90;
-    -fx-min-height: 111;
-    -fx-pref-height: 111;
-    -fx-max-height: 111;
-    -fx-padding: 6;
-    -fx-spacing: 6;
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 6;
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-    -fx-cursor: hand;
-    -fx-alignment: center;
-}
-
-.review-page-tray-item:hover {
-    -fx-background-color: -wl-surface-hover;
+    -fx-font-weight: 600;
 }
 
 .review-page-tray-item-selected,
 .review-page-tray-item-selected:hover {
     -fx-background-color: -wl-paper-bg;
-    -fx-border-color: -wl-success;
+    -fx-border-color: -wl-status-success-border;
     -fx-border-width: 2;
-}
-
-.review-page-tray-item-warning {
-    -fx-border-color: -wl-status-warning-border;
-}
-
-.review-page-tray-thumbnail {
-    -fx-min-width: 72;
-    -fx-pref-width: 72;
-    -fx-max-width: 72;
-    -fx-min-height: 66;
-    -fx-pref-height: 66;
-    -fx-max-height: 66;
-    -fx-padding: 8;
-    -fx-background-color: -wl-paper-bg;
-    -fx-background-radius: 6;
-    -fx-border-color: -wl-paper-line-light;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-}
-
-.review-page-tray-number {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-next-step-panel {
@@ -1763,7 +1675,7 @@
 .review-current-selection-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
     -fx-padding: 0 0 3 0;
 }
 
@@ -1796,7 +1708,7 @@
 .review-empty-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .review-empty-copy {
@@ -1876,13 +1788,15 @@
 }
 
 .app-shell.dark .page-tray-item,
-.app-shell.dark .page-tray-barcode-split-card {
+.app-shell.dark .page-tray-barcode-split-card,
+.app-shell.dark .review-page-tray-item {
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
 }
 
 .app-shell.dark .page-tray-item:hover,
-.app-shell.dark .page-tray-barcode-split-card:hover {
+.app-shell.dark .page-tray-barcode-split-card:hover,
+.app-shell.dark .review-page-tray-item:hover {
     -fx-background-color: -wl-surface-hover;
 }
 

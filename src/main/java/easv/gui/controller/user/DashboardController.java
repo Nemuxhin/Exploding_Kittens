@@ -1,9 +1,7 @@
 package easv.gui.controller.user;
 
 import easv.gui.BackgroundExecutor;
-import easv.gui.AppDates;
 import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -60,6 +58,10 @@ public class DashboardController {
     }
 
     private GridPane buildMetrics(List<UserPortalModel.DashboardMetric> metrics) {
+        if (metrics.size() < 4) {
+            return buildMetricsFailureState();
+        }
+
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(20);
@@ -72,32 +74,32 @@ public class DashboardController {
         );
 
         grid.add(metricCard(
-                "dashboard-summary-icon-teal",
-                "dashboard-summary-icon-teal-path",
+                "user-dashboard-summary-icon-teal",
+                "user-dashboard-summary-icon-teal-path",
                 "\ue941",
                 metrics.get(0).label(),
                 metrics.get(0).value(),
                 "Total sessions across your scanning workspace."
         ), 0, 0);
         grid.add(metricCard(
-                "dashboard-summary-icon-blue",
-                "dashboard-summary-icon-blue-path",
+                "user-dashboard-summary-icon-blue",
+                "user-dashboard-summary-icon-blue-path",
                 "\ue958",
                 metrics.get(1).label(),
                 metrics.get(1).value(),
                 "Completed batches started during the current month."
         ), 1, 0);
         grid.add(metricCard(
-                "dashboard-summary-icon-green",
-                "dashboard-summary-icon-green-path",
+                "user-dashboard-summary-icon-green",
+                "user-dashboard-summary-icon-green-path",
                 "\ue9e4",
                 metrics.get(2).label(),
                 metrics.get(2).value(),
                 "Pages scanned and staged for review or export."
         ), 2, 0);
         grid.add(metricCard(
-                "dashboard-summary-icon-amber",
-                "dashboard-summary-icon-amber-path",
+                "user-dashboard-summary-icon-amber",
+                "user-dashboard-summary-icon-amber-path",
                 "\ue922",
                 metrics.get(3).label(),
                 metrics.get(3).value(),
@@ -403,7 +405,7 @@ public class DashboardController {
 
     private VBox loadingMetricCard(String titleText) {
         StackPane iconBox = new StackPane();
-        iconBox.getStyleClass().add("dashboard-summary-icon-blue");
+        iconBox.getStyleClass().add("user-dashboard-summary-icon-blue");
         Label icon = new Label("...");
         icon.getStyleClass().add("dashboard-summary-title");
         iconBox.getChildren().add(icon);

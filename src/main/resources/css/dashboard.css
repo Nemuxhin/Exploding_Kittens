@@ -29,7 +29,6 @@
     -fx-pref-height: 126;
     -fx-max-height: 126;
     -fx-padding: 15 18 15 18;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .dashboard-workflow-overview-card {
@@ -59,14 +58,14 @@
 .dashboard-stat-subtitle {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 10px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 400;
 }
 
 .dashboard-trend-neutral,
 .dashboard-trend-up,
 .dashboard-trend-down {
     -fx-font-size: 10px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 400;
 }
 
 .dashboard-trend-neutral {
@@ -115,7 +114,7 @@
     -fx-border-color: -wl-status-danger-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .dashboard-needs-attention-card {
@@ -123,6 +122,7 @@
     -fx-border-color: -wl-border;
     -fx-background-radius: 10;
     -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .dashboard-attention-summary-row {
@@ -249,14 +249,16 @@
     -fx-text-fill: -wl-status-danger-text;
 }
 
-.dashboard-summary-title,
-.dashboard-workflow-label {
+.dashboard-summary-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
 }
 
 .dashboard-workflow-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
     -fx-wrap-text: false;
     -fx-text-overrun: clip;
 }
@@ -273,7 +275,7 @@
 
 .dashboard-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
+    -fx-font-size: 21px;
     -fx-font-weight: 700;
 }
 
@@ -296,7 +298,7 @@
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .dashboard-activity-list,
@@ -337,7 +339,7 @@
 .dashboard-simple-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .dashboard-activity-time {

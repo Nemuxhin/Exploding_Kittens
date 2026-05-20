@@ -1,5 +1,6 @@
 package easv.bll;
 
+import easv.be.AuditLog;
 import easv.be.Box;
 import easv.be.CaseFile;
 import easv.be.Client;
@@ -28,6 +29,7 @@ public class ScanManager {
     private final CaseFileDAO caseFileDAO;
     private final DocumentDAO documentDAO;
     private final ScanSessionDAO scanSessionDAO;
+    private final AuditLogManager auditLogManager;
 
     public ScanManager() {
         DatabaseConnection databaseConnection = new DatabaseConnection();
@@ -41,6 +43,7 @@ public class ScanManager {
         this.caseFileDAO = new CaseFileDAO(databaseConnection, documentDAO);
         this.documentDAO = documentDAO;
         this.scanSessionDAO = new ScanSessionDAO(databaseConnection);
+        this.auditLogManager = new AuditLogManager();
     }
 
     public ScanManager(
@@ -50,7 +53,8 @@ public class ScanManager {
             BoxDAO boxDAO,
             CaseFileDAO caseFileDAO,
             DocumentDAO documentDAO,
-            ScanSessionDAO scanSessionDAO
+            ScanSessionDAO scanSessionDAO,
+            AuditLogManager auditLogManager
     ) {
         this.scannerApiClient = Objects.requireNonNull(scannerApiClient, "scannerApiClient");
         this.tiffFetchService = new TiffFetchService(this.scannerApiClient);
@@ -60,6 +64,7 @@ public class ScanManager {
         this.caseFileDAO = Objects.requireNonNull(caseFileDAO, "caseFileDAO");
         this.documentDAO = Objects.requireNonNull(documentDAO, "documentDAO");
         this.scanSessionDAO = Objects.requireNonNull(scanSessionDAO, "scanSessionDAO");
+        this.auditLogManager = Objects.requireNonNull(auditLogManager, "auditLogManager");
     }
 
     public Client registerClient(String clientNumber, String name) {
@@ -73,6 +78,11 @@ public class ScanManager {
     public ScanSession startSession(String boxId, String profileName) {
         ScanSession session = new ScanSession(registerBox(boxId, "Scanned box"), profileName);
         scanSessionDAO.save(session);
+        try {
+            auditLogManager.logUserAction(AuditLogManager.SCAN_STARTED,
+                    null, null, null, null, profileName, boxId, "Scan session started.");
+        } catch (Exception ignored) {
+        }
         return session;
     }
 
@@ -98,6 +108,13 @@ public class ScanManager {
         if (fetchResult.isFailure()) {
             session.recordFailure(fetchResult.message());
             scanSessionDAO.recordFailure(session, fetchResult.message());
+            try {
+                auditLogManager.logUserAction(AuditLogManager.SCAN_FAILED,
+                        null, null, null, null,
+                        session.getProfileName(), session.getBox().getBoxId(),
+                        fetchResult.message());
+            } catch (Exception ignored) {
+            }
             return ScanImportResult.failed(fetchResult.message());
         }
 
@@ -113,6 +130,13 @@ public class ScanManager {
         } catch (IllegalArgumentException exception) {
             session.recordFailure(exception.getMessage());
             scanSessionDAO.recordFailure(session, exception.getMessage());
+            try {
+                auditLogManager.logUserAction(AuditLogManager.SCAN_FAILED,
+                        item.caseReference(), null, item.itemId(), null,
+                        session.getProfileName(), session.getBox().getBoxId(),
+                        exception.getMessage());
+            } catch (Exception ignored) {
+            }
             return ScanImportResult.failed(exception.getMessage());
         }
         List<Document> storedDocuments = new ArrayList<>();
@@ -126,6 +150,23 @@ public class ScanManager {
 
         session.setLastStatus(handlingResult.stoppedOnBarcode() ? "STOPPED_ON_BARCODE" : "IMPORTED");
         scanSessionDAO.updateSessionState(session);
+
+        try {
+            String firstDocId = storedDocuments.isEmpty() ? null : storedDocuments.get(0).getId().toString();
+            String action = handlingResult.stoppedOnBarcode()
+                    ? AuditLogManager.BARCODE_DETECTED
+                    : AuditLogManager.TIFF_FETCHED;
+            String desc = handlingResult.stoppedOnBarcode()
+                    ? "Barcode detected — scan split into " + storedDocuments.size() + " document(s)."
+                    : "TIFF imported as " + storedDocuments.size() + " document(s).";
+            auditLogManager.logUserAction(action,
+                    item.caseReference(), firstDocId, item.itemId(), null,
+                    session.getProfileName(), session.getBox().getBoxId(),
+                    desc,
+                    tiffAuditDetails(fetchedItem, handlingResult));
+        } catch (Exception ignored) {
+        }
+
         if (handlingResult.stoppedOnBarcode()) {
             return ScanImportResult.stoppedOnBarcode(storedDocuments, handlingResult.scannedPages(), handlingResult.message());
         }
@@ -264,6 +305,27 @@ public class ScanManager {
 
     private boolean isGeneratedClientName(String clientName) {
         return clientName == null || clientName.isBlank() || "Imported Client".equalsIgnoreCase(clientName.trim());
+    }
+
+    private List<AuditLog.AuditLogDetail> tiffAuditDetails(TiffFetchService.FetchedItem fetchedItem, BarcodeHandlingResult handlingResult) {
+        List<AuditLog.AuditLogDetail> details = new ArrayList<>();
+        int pageCount = handlingResult.scannedPages().size();
+        if (pageCount > 0) {
+            details.add(new AuditLog.AuditLogDetail("Pages", String.valueOf(pageCount)));
+        }
+        long totalBytes = fetchedItem.source().pages().stream()
+                .mapToLong(page -> page.fileData() == null ? 0L : page.fileData().length)
+                .sum();
+        if (totalBytes > 0) {
+            details.add(new AuditLog.AuditLogDetail("File size", formatFileSize(totalBytes)));
+        }
+        return details;
+    }
+
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        return String.format("%.1f MB", bytes / (1024.0 * 1024));
     }
 
     private record BarcodeHandlingResult(List<Document> documents, List<PageImage> scannedPages, boolean stoppedOnBarcode, String message) {

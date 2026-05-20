@@ -2,9 +2,8 @@ package easv.gui.controller.admin;
 
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
-import easv.gui.AppDates;
-import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
+import easv.gui.controller.utilities.AppDates;
+import easv.gui.controller.utilities.SearchableComboBoxes;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;

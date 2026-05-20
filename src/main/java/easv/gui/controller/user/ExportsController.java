@@ -101,8 +101,7 @@ public class ExportsController {
 
         rowsPerPageFilter.getItems().setAll(10, 25, 50);
         rowsPerPageFilter.setValue(10);
-        rowsPerPageFilter.getStyleClass().add("exports-status-filter");
-        rowsPerPageFilter.getStyleClass().add("pagination-rows-filter");
+        rowsPerPageFilter.getStyleClass().addAll("exports-status-filter", "pagination-rows-filter");
         rowsPerPageFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
             currentPage = 1;
             refreshTable();
@@ -351,14 +350,14 @@ public class ExportsController {
         Label outputLabel = new Label("Output:");
         outputLabel.getStyleClass().add("exports-dialog-output-label");
 
-        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size(), item.boxId()));
+        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size()));
         outputValue.getStyleClass().add("exports-dialog-output-value");
         outputValue.setWrapText(false);
         outputValue.setMinHeight(Region.USE_PREF_SIZE);
         outputValue.setPrefWidth(420);
         outputValue.setMaxWidth(420);
         selectedType.addListener((observable, oldValue, newValue) ->
-                outputValue.setText(buildOutputText(newValue, boxFiles.size(), item.boxId()))
+                outputValue.setText(buildOutputText(newValue, boxFiles.size()))
         );
 
         HBox outputBox = new HBox(9, outputLabel, outputValue);
@@ -376,7 +375,10 @@ public class ExportsController {
         Button exportButton = new Button("Export");
         exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
         exportButton.setDefaultButton(true);
-        exportButton.setOnAction(event -> stage.close());
+        exportButton.setOnAction(event -> {
+            // TODO: invoke TIFF export service with item and selectedType.get(), then close on success
+            stage.close();
+        });
 
         HBox footerActions = new HBox(9, cancelButton, exportButton);
         footerActions.getStyleClass().add("exports-dialog-footer-actions");
@@ -442,7 +444,7 @@ public class ExportsController {
                 ? "exports-dialog-option-button-selected"
                 : "exports-dialog-option-button-unselected");
         checkBadge.setVisible(selected);
-        checkBadge.setManaged(true);
+        checkBadge.setManaged(selected);
     }
 
     private void renderSelectedFiles(GridPane fileGrid, List<String> selectedFiles) {
@@ -483,19 +485,11 @@ public class ExportsController {
     }
 
     private List<String> buildBoxFiles(UserPortalModel.ExportItem item) {
-        if (item == null) {
-            return List.of();
-        }
-
-        int documentCount = Math.max(1, item.documents());
-        List<String> files = new ArrayList<>(documentCount);
-        for (int index = 1; index <= documentCount; index++) {
-            files.add("file_" + String.format(Locale.US, "%03d", index));
-        }
-        return files;
+        // TODO: fetch real document file names for this item from the database
+        return List.of();
     }
 
-    private String buildOutputText(TiffExportType type, int selectedFileCount, String boxId) {
+    private String buildOutputText(TiffExportType type, int selectedFileCount) {
         return switch (type) {
             case SINGLE_PAGE -> selectedFileCount + " separate .tiff " + pluralize(selectedFileCount, "file") + " will be generated";
             case MULTI_PAGE -> "All selected files will be combined into one .tiff file";

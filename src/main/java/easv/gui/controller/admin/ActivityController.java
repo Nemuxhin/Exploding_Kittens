@@ -2,9 +2,8 @@ package easv.gui.controller.admin;
 
 import easv.be.AuditLog;
 import easv.bll.AdminManager;
-import easv.gui.AppDates;
+import easv.gui.controller.utilities.AppDates;
 import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.collections.FXCollections;
@@ -23,6 +22,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -66,6 +66,10 @@ public class ActivityController {
     private static final String GEAR_ICON_PATH = "\ue94a";
     private static final String DOWNLOAD_ICON_PATH = "\ue956";
     private static final String DOCUMENT_ICON_PATH = "\ue958";
+    private static final String PAGES_ICON_PATH = "\ue95c";
+    private static final String CLOCK_ICON_PATH = "\ue940";
+    private static final String BOX_ICON_PATH = "\ue941";
+    private static final String CHART_ICON_PATH = "\ue9e4";
 
     private static final String AREA_FILTER_ICON_PATH = "\ue941";
     private static final String RESULT_FILTER_ICON_PATH = "\ue90a";
@@ -447,17 +451,8 @@ public class ActivityController {
         tray.setMaxWidth(Double.MAX_VALUE);
         tray.setAlignment(Pos.TOP_LEFT);
 
-        VBox content = new VBox(6);
-        content.getStyleClass().add("logs-inline-payload-content");
-        content.setFillWidth(true);
-        content.setMinWidth(0);
-        content.setMaxWidth(Double.MAX_VALUE);
-        List<Node> payloadContent = createInlinePayloadContent(entry);
-        content.getChildren().setAll(payloadContent);
-
-        bindExpandedPayloadWidth(content, payloadContent);
-
-        tray.getChildren().setAll(content);
+        VBox card = createPayloadCard(entry);
+        tray.getChildren().setAll(card);
         return tray;
     }
 
@@ -486,20 +481,533 @@ public class ActivityController {
     }
 
     private List<Node> createInlinePayloadContent(ActivityLogEntry entry) {
-        HBox rail = createInlineRail(entry);
+        return List.of(createPayloadCard(entry));
+    }
 
-        if (rail == null) {
-            return List.of();
+    // â”€â”€ Structured payload card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    private VBox createPayloadCard(ActivityLogEntry entry) {
+        VBox card = new VBox(0);
+        card.getStyleClass().add("logs-payload-card");
+        if (isError(entry)) {
+            card.getStyleClass().add("logs-payload-card-failed");
+        }
+        card.setFillWidth(true);
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        // Error banner spans full width at the top
+        if (isError(entry)) {
+            card.getChildren().add(createPayloadErrorBanner(entry));
         }
 
-        StackPane railHolder = new StackPane(rail);
-        railHolder.getStyleClass().add("logs-inline-rail-holder");
-        railHolder.setAlignment(Pos.CENTER_LEFT);
-        railHolder.setMinWidth(0);
-        railHolder.setMaxWidth(Double.MAX_VALUE);
-        StackPane.setAlignment(rail, Pos.CENTER_LEFT);
+        // ── Left column ─────────────────────────────────────────
+        VBox leftColumn = new VBox(0);
+        leftColumn.setFillWidth(true);
+        leftColumn.setMinWidth(0);
+        leftColumn.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(leftColumn, Priority.ALWAYS);
 
-        return List.of(railHolder);
+        boolean any = false;
+        String area = normalize(displayArea(entry));
+
+        // Hero section — subject + actor + status (non-error events)
+        if (!isError(entry)) {
+            leftColumn.getChildren().add(createPayloadHeroSection(entry));
+            any = true;
+        }
+
+        // TIFF metrics — scan/import success events
+        if (!isError(entry) && (isTiffActivity(entry) || area.equals("import"))) {
+            List<ActivityDetailRow> tiffRows = tiffMetricRows(entry);
+            if (!tiffRows.isEmpty()) {
+                if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+                leftColumn.getChildren().add(createPayloadTileSection("TIFF details", tiffRows));
+                any = true;
+            }
+        }
+
+        // Field changes — update events (not create/delete/password)
+        List<ActivityChange> visChanges = visibleChanges(entry);
+        if (!visChanges.isEmpty() && !isCreateEvent(entry) && !isDeleteEvent(entry) && !isPasswordEvent(entry)) {
+            if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+            leftColumn.getChildren().add(createPayloadChangesSection(changeSectionTitle(entry), visChanges));
+            any = true;
+        }
+
+        // Password security note
+        if (isPasswordEvent(entry) && !isError(entry)) {
+            if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+            leftColumn.getChildren().add(createPayloadSection("Security change",
+                    List.of(new ActivityDetailRow("Field changed", "Password"),
+                            new ActivityDetailRow("Value", "Hidden for security")), false));
+            any = true;
+        }
+
+        // Create / delete snapshot
+        if (isCreateEvent(entry) || isDeleteEvent(entry)) {
+            List<ActivityDetailRow> snap = compactVisibleRows(snapshotRowsForChangeEvent(entry), 8);
+            if (!snap.isEmpty()) {
+                if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+                leftColumn.getChildren().add(createPayloadSection(changeSectionTitle(entry), snap, false));
+                any = true;
+            }
+        }
+
+        // QA review details
+        if (area.equals("qa")) {
+            List<ActivityDetailRow> qaRows = buildQaDetailRows(entry);
+            if (!qaRows.isEmpty()) {
+                if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+                leftColumn.getChildren().add(createPayloadSection("Review details", qaRows, false));
+                any = true;
+            }
+        }
+
+        // Export details
+        if (area.equals("exports") || normalize(entry.action()).contains("export")) {
+            List<ActivityDetailRow> exportRows = buildExportDetailRows(entry);
+            if (!exportRows.isEmpty()) {
+                if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+                leftColumn.getChildren().add(createPayloadSection("Export details", exportRows, false));
+                any = true;
+            }
+        }
+
+        // Failure summary
+        if (isError(entry)) {
+            List<ActivityDetailRow> failRows = buildFailureSummaryRows(entry);
+            if (!failRows.isEmpty()) {
+                if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+                leftColumn.getChildren().add(createPayloadSection("Failure summary", failRows, true));
+                any = true;
+            }
+        }
+
+        // General context catch-all — documents, system, and any event with no dedicated section
+        List<ActivityDetailRow> contextRows = buildGeneralContextRows(entry, area, any);
+        if (!contextRows.isEmpty()) {
+            if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
+            leftColumn.getChildren().add(createPayloadSection("Event details", contextRows, false));
+        }
+
+        // ── Right sidebar — Storage & trace ─────────────────────
+        List<ActivityDetailRow> storeRows = storageTraceRows(entry);
+        if (!storeRows.isEmpty()) {
+            VBox sidebar = new VBox(0);
+            sidebar.getStyleClass().add("logs-payload-sidebar");
+            sidebar.setFillWidth(true);
+            sidebar.getChildren().add(createPayloadSection("Storage & trace", storeRows, false));
+
+            HBox body = new HBox(0, leftColumn, sidebar);
+            body.setFillHeight(true);
+            body.setMaxWidth(Double.MAX_VALUE);
+            card.getChildren().add(body);
+        } else {
+            card.getChildren().add(leftColumn);
+        }
+
+        return card;
+    }
+
+    private HBox createPayloadErrorBanner(ActivityLogEntry entry) {
+        Label icon = createPrimeIcon(WARNING_ICON_PATH, "logs-payload-error-icon");
+
+        Label titleLabel = new Label(formatAction(entry.action()));
+        titleLabel.getStyleClass().add("logs-payload-error-title");
+        titleLabel.setWrapText(true);
+
+        VBox copy = new VBox(3, titleLabel);
+        copy.setMinWidth(0);
+        copy.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        String desc = displayText(entry.description(), "");
+        if (!desc.isBlank()) {
+            Label descLabel = new Label(desc);
+            descLabel.getStyleClass().add("logs-payload-error-copy");
+            descLabel.setWrapText(true);
+            copy.getChildren().add(descLabel);
+        }
+
+        HBox banner = new HBox(12, icon, copy);
+        banner.getStyleClass().add("logs-payload-error-banner");
+        banner.setAlignment(Pos.CENTER_LEFT);
+        return banner;
+    }
+
+    private HBox createPayloadHeroSection(ActivityLogEntry entry) {
+        // Colored icon shell
+        String iconPath = heroIconFor(entry);
+        String iconBgClass = heroIconBgClassFor(entry);
+        Label iconLabel = createPrimeIcon(iconPath, "logs-payload-hero-icon");
+        StackPane iconShell = new StackPane(iconLabel);
+        iconShell.getStyleClass().addAll("logs-payload-hero-icon-shell", iconBgClass);
+
+        // Subject — the main thing this action was about
+        String subject = heroSubjectFor(entry);
+        Label subjectLabel = new Label(subject.isBlank() ? formatAction(entry.action()) : subject);
+        subjectLabel.getStyleClass().add("logs-payload-hero-subject");
+        subjectLabel.setWrapText(false);
+        subjectLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+        subjectLabel.setMinWidth(0);
+        subjectLabel.setMaxWidth(Double.MAX_VALUE);
+
+        VBox copy = new VBox(4, subjectLabel);
+        copy.setMinWidth(0);
+        copy.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        // Scan profile — for TIFF/import events (between filename and actor)
+        if (isTiffActivity(entry) || normalize(displayArea(entry)).equals("import")) {
+            String profile = firstContextValue(entry, "profile");
+            if (!profile.isBlank()) {
+                Label gearIcon = createPrimeIcon(GEAR_ICON_PATH, "logs-payload-hero-meta-icon");
+                Label profileLabel = new Label(profile);
+                profileLabel.getStyleClass().add("logs-payload-hero-meta");
+                HBox profileLine = new HBox(5, gearIcon, profileLabel);
+                profileLine.setAlignment(Pos.CENTER_LEFT);
+                copy.getChildren().add(profileLine);
+            }
+        }
+
+        // Actor line — "Uploaded by Alex Johnson" (skip if actor IS the subject)
+        if (!isSystemActor(entry.actor())) {
+            String actorName = displayActor(entry.actor());
+            boolean actorIsSubject = normalize(actorName).equals(normalize(subject));
+            if (!actorIsSubject) {
+                String prefix = heroActorPrefix(entry);
+                Label actorLabel = new Label(prefix + " " + actorName);
+                actorLabel.getStyleClass().add("logs-payload-hero-actor");
+                copy.getChildren().add(actorLabel);
+            }
+        }
+
+        // Status + description line
+        String desc = displayText(entry.description(), "");
+        if (!desc.isBlank()) {
+            Label checkIcon = createPrimeIcon(CHECK_ICON_PATH, "logs-payload-hero-status-icon");
+            Label descLabel = new Label(desc);
+            descLabel.getStyleClass().add("logs-payload-hero-status-text");
+            descLabel.setWrapText(false);
+            descLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+            HBox statusLine = new HBox(6, checkIcon, descLabel);
+            statusLine.setAlignment(Pos.CENTER_LEFT);
+            copy.getChildren().add(statusLine);
+        }
+
+        HBox hero = new HBox(15, iconShell, copy);
+        hero.getStyleClass().add("logs-payload-hero");
+        hero.setAlignment(Pos.CENTER_LEFT);
+        return hero;
+    }
+
+    private String heroSubjectFor(ActivityLogEntry entry) {
+        // TIFF / import events — use filename
+        if (isTiffActivity(entry) || normalize(displayArea(entry)).equals("import")) {
+            String file = displayTiffItem(entry);
+            if (!file.isBlank()) return file;
+        }
+        // Access / security — actor IS the subject (the person who logged in)
+        String area = normalize(displayArea(entry));
+        if (area.equals("access") || area.equals("security")) {
+            if (!isSystemActor(entry.actor())) return displayActor(entry.actor());
+        }
+        // Use target for everything else
+        String target = displayText(entry.target(), "");
+        if (!target.isBlank() && !normalize(target).equals("system")) return target;
+        return "";
+    }
+
+    private String heroActorPrefix(ActivityLogEntry entry) {
+        if (isCreateEvent(entry)) return "Created by";
+        if (isDeleteEvent(entry)) return "Deleted by";
+        if (isPasswordEvent(entry)) return "Changed by";
+        String area = normalize(displayArea(entry));
+        if (area.equals("import") || isTiffActivity(entry)) return "Imported by";
+        return "Performed by";
+    }
+
+    private String heroIconFor(ActivityLogEntry entry) {
+        String area = normalize(displayArea(entry));
+        return switch (area) {
+            case "users", "access", "security" -> USER_ICON_PATH;
+            case "profiles" -> GEAR_ICON_PATH;
+            case "qa" -> CHECK_ICON_PATH;
+            case "files", "import", "documents" -> DOCUMENT_ICON_PATH;
+            default -> CLOCK_ICON_PATH;
+        };
+    }
+
+    private String heroIconBgClassFor(ActivityLogEntry entry) {
+        String area = normalize(displayArea(entry));
+        return switch (area) {
+            case "users", "access", "security", "profiles" -> "logs-payload-hero-icon-purple";
+            case "qa" -> "logs-payload-hero-icon-teal";
+            case "files", "import", "documents" -> "logs-payload-hero-icon-blue";
+            default -> "logs-payload-hero-icon-neutral";
+        };
+    }
+
+    private VBox createPayloadSection(String title, List<ActivityDetailRow> rows, boolean failureSection) {
+        VBox section = new VBox(0);
+        section.getStyleClass().add("logs-payload-section");
+        section.setFillWidth(true);
+        section.setMaxWidth(Double.MAX_VALUE);
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("logs-payload-section-title");
+        section.getChildren().add(titleLabel);
+
+        List<ActivityDetailRow> visible = rows.stream()
+                .filter(r -> !isMissingAuditValue(r.value()))
+                .toList();
+
+        for (int i = 0; i < visible.size(); i++) {
+            if (i > 0) section.getChildren().add(createPayloadRowDivider());
+            ActivityDetailRow row = visible.get(i);
+            String valueStyle = failureSection && isPayloadDangerLabel(row.label())
+                    ? "logs-payload-kv-value-danger"
+                    : isPayloadSuccessLabel(row.label()) ? "logs-payload-kv-value-success"
+                    : isPayloadLinkLabel(row.label()) ? "logs-payload-kv-value-link"
+                    : null;
+            section.getChildren().add(
+                    createPayloadKvRow(iconForPayloadLabel(row.label()), row.label(),
+                            displayAuditValue(row.value()), valueStyle));
+        }
+
+        return section;
+    }
+
+    private VBox createPayloadTileSection(String title, List<ActivityDetailRow> rows) {
+        VBox section = new VBox(0);
+        section.getStyleClass().add("logs-payload-section");
+        section.setFillWidth(true);
+        section.setMaxWidth(Double.MAX_VALUE);
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("logs-payload-section-title");
+        section.getChildren().add(titleLabel);
+
+        List<ActivityDetailRow> visible = rows.stream()
+                .filter(r -> !isMissingAuditValue(r.value()))
+                .toList();
+
+        if (!visible.isEmpty()) {
+            FlowPane grid = new FlowPane();
+            grid.getStyleClass().add("logs-payload-tile-grid");
+            grid.setHgap(8);
+            grid.setVgap(8);
+            visible.forEach(row -> grid.getChildren().add(
+                    createMetricTile(iconForPayloadLabel(row.label()), row.label(), displayAuditValue(row.value()))
+            ));
+            section.getChildren().add(grid);
+        }
+
+        return section;
+    }
+
+    private VBox createMetricTile(String iconPath, String label, String value) {
+        StackPane iconShell = new StackPane(createPrimeIcon(iconPath, "logs-payload-tile-icon"));
+        iconShell.getStyleClass().add("logs-payload-tile-icon-shell");
+
+        Label labelNode = new Label(label);
+        labelNode.getStyleClass().add("logs-payload-tile-label");
+        labelNode.setWrapText(false);
+
+        Label valueNode = new Label(value);
+        valueNode.getStyleClass().add("logs-payload-tile-value");
+        valueNode.setWrapText(false);
+        valueNode.setTextOverrun(OverrunStyle.ELLIPSIS);
+        valueNode.setTooltip(new Tooltip(value));
+
+        VBox tile = new VBox(4, iconShell, labelNode, valueNode);
+        tile.getStyleClass().add("logs-payload-tile");
+        return tile;
+    }
+
+    private VBox createPayloadChangesSection(String title, List<ActivityChange> changes) {
+        VBox section = new VBox(0);
+        section.getStyleClass().add("logs-payload-section");
+        section.setFillWidth(true);
+        section.setMaxWidth(Double.MAX_VALUE);
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("logs-payload-section-title");
+        section.getChildren().add(titleLabel);
+
+        List<ActivityChange> visible = changes.stream().limit(6).toList();
+        for (int i = 0; i < visible.size(); i++) {
+            if (i > 0) section.getChildren().add(createPayloadRowDivider());
+            section.getChildren().add(createPayloadChangeRow(visible.get(i)));
+        }
+
+        return section;
+    }
+
+    private VBox createPayloadChangeRow(ActivityChange change) {
+        // Field name — small muted label at top
+        Label fieldLabel = new Label(change.field());
+        fieldLabel.getStyleClass().add("logs-payload-change-field-label");
+
+        // Before block — red-tinted
+        Label beforeSubtitle = new Label("Before");
+        beforeSubtitle.getStyleClass().add("logs-payload-change-subtitle");
+        Label beforeValue = new Label(displayAuditValue(change.oldValue()));
+        beforeValue.getStyleClass().add("logs-payload-change-before-value");
+        beforeValue.setTextOverrun(OverrunStyle.ELLIPSIS);
+        beforeValue.setMinWidth(0);
+        beforeValue.setMaxWidth(Double.MAX_VALUE);
+        VBox beforeBox = new VBox(2, beforeSubtitle, beforeValue);
+        beforeBox.getStyleClass().add("logs-payload-change-before");
+        beforeBox.setMinWidth(0);
+        beforeBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(beforeBox, Priority.ALWAYS);
+
+        // Arrow between blocks
+        Label arrowLabel = new Label("→");
+        arrowLabel.getStyleClass().add("logs-payload-change-center-arrow");
+
+        // After / Now block — green-tinted, bold, dominant
+        Label afterSubtitle = new Label("Now");
+        afterSubtitle.getStyleClass().add("logs-payload-change-subtitle");
+        Label afterValue = new Label(displayAuditValue(change.newValue()));
+        afterValue.getStyleClass().add("logs-payload-change-after-value");
+        afterValue.setTextOverrun(OverrunStyle.ELLIPSIS);
+        afterValue.setMinWidth(0);
+        afterValue.setMaxWidth(Double.MAX_VALUE);
+        VBox afterBox = new VBox(2, afterSubtitle, afterValue);
+        afterBox.getStyleClass().add("logs-payload-change-after");
+        afterBox.setMinWidth(0);
+        afterBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(afterBox, Priority.ALWAYS);
+
+        // Row of colored blocks with arrow between
+        HBox boxesRow = new HBox(10, beforeBox, arrowLabel, afterBox);
+        boxesRow.getStyleClass().add("logs-payload-change-boxes");
+        boxesRow.setAlignment(Pos.CENTER_LEFT);
+        boxesRow.setMinWidth(0);
+        boxesRow.setMaxWidth(Double.MAX_VALUE);
+
+        VBox card = new VBox(6, fieldLabel, boxesRow);
+        card.getStyleClass().add("logs-payload-change-card");
+        card.setMinWidth(0);
+        card.setMaxWidth(Double.MAX_VALUE);
+        return card;
+    }
+
+    private HBox createPayloadKvRow(String iconPath, String label, String value, String valueStyleClass) {
+        StackPane iconShell = createPayloadIconShell(iconPath);
+
+        Label labelNode = new Label(label);
+        labelNode.getStyleClass().add("logs-payload-kv-label");
+
+        Label valueNode = new Label(value);
+        valueNode.getStyleClass().add("logs-payload-kv-value");
+        if (valueStyleClass != null && !valueStyleClass.isBlank()) {
+            valueNode.getStyleClass().add(valueStyleClass);
+        }
+        valueNode.setTextOverrun(OverrunStyle.ELLIPSIS);
+        valueNode.setTooltip(new Tooltip(value));
+        valueNode.setMinWidth(0);
+        valueNode.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(valueNode, Priority.ALWAYS);
+
+        HBox row = new HBox(12, iconShell, labelNode, valueNode);
+        row.getStyleClass().add("logs-payload-kv-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private StackPane createPayloadIconShell(String iconPath) {
+        StackPane shell = new StackPane(createPrimeIcon(iconPath, "logs-payload-kv-icon"));
+        shell.getStyleClass().add("logs-payload-kv-icon-shell");
+        return shell;
+    }
+
+    private Region createPayloadSectionDivider() {
+        Region div = new Region();
+        div.getStyleClass().add("logs-payload-section-divider");
+        return div;
+    }
+
+    private Region createPayloadRowDivider() {
+        Region div = new Region();
+        div.getStyleClass().add("logs-payload-row-divider");
+        return div;
+    }
+
+    private List<ActivityDetailRow> buildEventOverviewRows(ActivityLogEntry entry) {
+        List<ActivityDetailRow> rows = new ArrayList<>();
+        String desc = displayText(entry.description(), "");
+        if (!desc.isBlank()) {
+            rows.add(new ActivityDetailRow("Note", desc));
+        }
+        String target = displayText(entry.target(), "");
+        if (!target.isBlank() && !normalize(target).equals("system")) {
+            rows.add(new ActivityDetailRow("Affected", target));
+        }
+        if (!isSystemActor(entry.actor())) {
+            rows.add(new ActivityDetailRow("Performed by", displayText(entry.actor(), "")));
+        }
+        return rows;
+    }
+
+    private List<ActivityDetailRow> buildFailureSummaryRows(ActivityLogEntry entry) {
+        List<ActivityDetailRow> rows = new ArrayList<>();
+
+        String file = displayTiffItem(entry);
+        if (!file.isBlank()) {
+            rows.add(new ActivityDetailRow("Batch file", file));
+        }
+
+        String desc = displayText(entry.description(), "");
+        if (!desc.isBlank()) {
+            rows.add(new ActivityDetailRow("Reason", desc));
+        }
+
+        rows.addAll(normalizedContextRows(entry));
+
+        String action = actionNeeded(entry);
+        if (!action.isBlank() && rows.stream().noneMatch(r -> normalize(r.label()).contains("action"))) {
+            rows.add(new ActivityDetailRow("Action needed", action));
+        }
+
+        return compactVisibleRows(rows, 10);
+    }
+
+    private String iconForPayloadLabel(String label) {
+        String norm = normalize(label);
+        if (norm.contains("user") || norm.contains("actor") || norm.contains("importer") || norm.equals("username")) return USER_ICON_PATH;
+        if (norm.equals("result") || norm.contains("status") || norm.contains("accepted") || norm.contains("action needed")) return CHECK_ICON_PATH;
+        if (norm.contains("checklist")) return CHECK_ICON_PATH;
+        if (norm.contains("issue") || norm.contains("reason") || norm.contains("failed") || norm.contains("warning") || norm.contains("error")) return WARNING_ICON_PATH;
+        if (norm.contains("trace") || norm.equals("log id") || norm.contains("recorded")) return CLOCK_ICON_PATH;
+        if (norm.contains("export") || norm.contains("download") || norm.contains("records")) return DOWNLOAD_ICON_PATH;
+        if (norm.contains("box")) return BOX_ICON_PATH;
+        if (norm.equals("pages") || norm.equals("page count") || norm.equals("page")) return PAGES_ICON_PATH;
+        if (norm.contains("file size") || norm.equals("size")) return CHART_ICON_PATH;
+        if (norm.contains("file") || norm.contains("tiff") || norm.contains("batch")) return UPLOAD_ICON_PATH;
+        if (norm.contains("role") || norm.contains("profile") || norm.contains("split rule") || norm.contains("setting") || norm.contains("config") || norm.equals("field changed")) return GEAR_ICON_PATH;
+        if (norm.equals("case") || norm.equals("case id")) return PAGES_ICON_PATH;
+        if (norm.contains("date") || norm.contains("time") || norm.contains("modified") || norm.contains("created at")) return CLOCK_ICON_PATH;
+        if (norm.contains("email") || norm.equals("note") || norm.equals("document") || norm.contains("client")) return DOCUMENT_ICON_PATH;
+        return DOCUMENT_ICON_PATH;
+    }
+
+    private boolean isPayloadDangerLabel(String label) {
+        String norm = normalize(label);
+        return norm.contains("failed") || norm.equals("reason") || norm.contains("records failed")
+                || norm.equals("issues found") || norm.equals("issues");
+    }
+
+    private boolean isPayloadSuccessLabel(String label) {
+        String norm = normalize(label);
+        return norm.contains("accepted") || norm.equals("result") || norm.equals("value");
+    }
+
+    private boolean isPayloadLinkLabel(String label) {
+        String norm = normalize(label);
+        return norm.equals("box") || norm.equals("case") || norm.equals("user") || norm.equals("document");
     }
 
     private Label createPrimeIcon(String glyph, String styleClass) {
@@ -1093,11 +1601,127 @@ public class ActivityController {
 
     private List<ActivityDetailRow> storageTraceRows(ActivityLogEntry entry) {
         List<ActivityDetailRow> rows = new ArrayList<>();
-        addFirstDetail(rows, entry, "Box", "box", "box id");
-        addFirstDetail(rows, entry, "File ID", "file id", "file");
-        addFirstDetail(rows, entry, "Path", "path", "storage path");
+        String area = normalize(displayArea(entry));
+
+        switch (area) {
+            case "users", "access", "security" -> {
+                // Who was affected
+                String target = displayText(entry.target(), "");
+                if (!target.isBlank() && !normalize(target).equals("system")) {
+                    rows.add(new ActivityDetailRow("User", target));
+                }
+                // Key identifiers pulled from change snapshots (works for create/delete/update)
+                String username = firstCreatedValue(entry, "username");
+                if (username.isBlank()) username = firstDeletedValue(entry, "username");
+                if (!username.isBlank()) rows.add(new ActivityDetailRow("Username", username));
+
+                String email = firstCreatedValue(entry, "email", "email address");
+                if (email.isBlank()) email = firstDeletedValue(entry, "email", "email address");
+                if (!email.isBlank()) rows.add(new ActivityDetailRow("Email", email));
+
+                String role = firstCreatedValue(entry, "role");
+                if (role.isBlank()) role = firstDeletedValue(entry, "role");
+                if (!role.isBlank()) rows.add(new ActivityDetailRow("Role", role));
+            }
+            case "profiles" -> {
+                String client = firstCreatedValue(entry, "client", "customer");
+                if (client.isBlank()) client = firstDeletedValue(entry, "client", "customer");
+                if (!client.isBlank()) rows.add(new ActivityDetailRow("Client", client));
+
+                String splitRule = firstCreatedValue(entry, "split rule", "barcode splitting", "barcode");
+                if (splitRule.isBlank()) splitRule = firstDeletedValue(entry, "split rule", "barcode splitting", "barcode");
+                if (!splitRule.isBlank()) rows.add(new ActivityDetailRow("Split rule", splitRule));
+
+                String exportLabel = firstCreatedValue(entry, "export label", "export naming", "export format");
+                if (exportLabel.isBlank()) exportLabel = firstDeletedValue(entry, "export label", "export naming", "export format");
+                if (!exportLabel.isBlank()) rows.add(new ActivityDetailRow("Export label", exportLabel));
+            }
+            case "qa" -> {
+                String document = firstContextValue(entry, "document", "document id");
+                if (!document.isBlank()) rows.add(new ActivityDetailRow("Document", document));
+                String checklist = firstContextValue(entry, "checklist", "checklist count");
+                if (!checklist.isBlank()) rows.add(new ActivityDetailRow("Checklist", checklist));
+                String issues = firstContextValue(entry, "issues", "issue count");
+                if (!issues.isBlank()) rows.add(new ActivityDetailRow("Issues", issues));
+                rows.add(new ActivityDetailRow("Result", displayStatus(entry.status())));
+            }
+            case "exports" -> {
+                String mode = firstContextValue(entry, "export mode", "mode", "format");
+                if (!mode.isBlank()) rows.add(new ActivityDetailRow("Export mode", mode));
+                String records = firstContextValue(entry, "records", "record count", "total records");
+                if (!records.isBlank()) rows.add(new ActivityDetailRow("Records", records));
+                addFirstDetail(rows, entry, "Box", "box", "box id");
+            }
+            default -> {
+                // TIFF / scan / import / documents / system
+                addFirstDetail(rows, entry, "Box", "box", "box id");
+                addFirstDetail(rows, entry, "Profile", "profile");
+                addFirstDetail(rows, entry, "Case", "case", "case id");
+                addFirstDetail(rows, entry, "File ID", "file id", "file");
+                addFirstDetail(rows, entry, "Path", "path", "storage path");
+            }
+        }
+
         rows.add(new ActivityDetailRow("Trace", "LOG-" + entry.id() + " · " + entry.fullTimestamp()));
         return rows;
+    }
+
+    private List<ActivityDetailRow> buildQaDetailRows(ActivityLogEntry entry) {
+        List<ActivityDetailRow> rows = new ArrayList<>();
+        String doc = firstContextOrTarget(entry, "document", "document id", "box", "box id");
+        if (!doc.isBlank()) rows.add(new ActivityDetailRow("Document", doc));
+        addFirstDetail(rows, entry, "Checklist items", "checklist", "checklist count");
+        addFirstDetail(rows, entry, "Issues found", "issues", "issue count");
+        String result = displayStatus(entry.status());
+        if (!result.isBlank()) rows.add(new ActivityDetailRow("Result", result));
+        String desc = displayText(entry.description(), "");
+        if (!desc.isBlank()) rows.add(new ActivityDetailRow("Note", desc));
+        return rows;
+    }
+
+    private List<ActivityDetailRow> buildExportDetailRows(ActivityLogEntry entry) {
+        List<ActivityDetailRow> rows = new ArrayList<>();
+        addFirstDetail(rows, entry, "Export mode", "export mode", "mode", "format");
+        addFirstDetail(rows, entry, "Records exported", "records", "record count", "total records");
+        addFirstDetail(rows, entry, "Box", "box", "box id");
+        String desc = displayText(entry.description(), "");
+        if (!desc.isBlank()) rows.add(new ActivityDetailRow("Note", desc));
+        return rows;
+    }
+
+    private List<ActivityDetailRow> buildGeneralContextRows(ActivityLogEntry entry, String area, boolean hasMainContent) {
+        // Skip areas that already have dedicated sections
+        if (isTiffActivity(entry) || area.equals("import") || area.equals("qa") || area.equals("exports")) {
+            return List.of();
+        }
+        // For user/profile events, only show context if there's something novel not already in hero or snapshot
+        if ((area.equals("users") || area.equals("profiles") || area.equals("access") || area.equals("security"))
+                && hasMainContent) {
+            return List.of();
+        }
+        // For events that got no main content: show description + any context details
+        if (!hasMainContent) {
+            List<ActivityDetailRow> rows = new ArrayList<>();
+            String desc = displayText(entry.description(), "");
+            if (!desc.isBlank()) rows.add(new ActivityDetailRow("Note", desc));
+            rows.addAll(normalizedContextRows(entry).stream()
+                    .filter(r -> !normalize(r.label()).contains("box")
+                            && !normalize(r.label()).contains("profile")
+                            && !normalize(r.label()).contains("file"))
+                    .limit(6)
+                    .toList());
+            return rows;
+        }
+        // For document/metadata/other events that have main content but still have context to surface
+        return normalizedContextRows(entry).stream()
+                .filter(r -> !isMissingAuditValue(r.value()))
+                .filter(r -> {
+                    String norm = normalize(r.label());
+                    return !norm.contains("box") && !norm.contains("profile")
+                            && !norm.contains("file") && !norm.contains("case");
+                })
+                .limit(4)
+                .toList();
     }
 
     private List<ActivityDetailRow> userTraceRows(ActivityLogEntry entry) {
@@ -1251,11 +1875,11 @@ public class ActivityController {
         String target = displayAuditValue(entry.target());
 
         Matcher matcher = TARGET_ID_PATTERN.matcher(target);
-        return matcher.find() ? matcher.group() : "—";
+        return matcher.find() ? matcher.group() : "â€”";
     }
 
     private boolean hasRealTargetId(String targetId) {
-        if (isMissingAuditValue(targetId) || "—".equals(targetId.trim())) {
+        if (isMissingAuditValue(targetId) || "â€”".equals(targetId.trim())) {
             return false;
         }
 
@@ -1346,7 +1970,7 @@ public class ActivityController {
         String action = lowerFirst(formatAction(entry.action()));
         String item = displayTiffItem(entry);
 
-        if (item.isBlank() || "—".equals(item)) {
+        if (item.isBlank()) {
             return "[" + area + "] " + actor + " " + action;
         }
 
@@ -1377,8 +2001,12 @@ public class ActivityController {
     }
 
     private String eventPreview(ActivityLogEntry entry) {
+        // Always surface box context on the collapsed meta line when available
+        String box = firstContextValue(entry, "box", "box id");
+
         if (isError(entry) && !displayText(entry.description(), "").isBlank()) {
-            return entry.description();
+            String desc = entry.description();
+            return box.isBlank() ? desc : "Box " + box + " · " + desc;
         }
 
         if (isTiffActivity(entry)) {
@@ -1386,6 +2014,10 @@ public class ActivityController {
             String pages = firstContextValue(entry, "pages", "page count", "page");
             String resolution = firstContextValue(entry, "resolution", "dpi");
             List<String> parts = new ArrayList<>();
+
+            if (!box.isBlank()) {
+                parts.add("Box " + box);
+            }
 
             if (!fileSize.isBlank()) {
                 parts.add(fileSize);
@@ -1405,12 +2037,14 @@ public class ActivityController {
         }
 
         if (!entry.changes().isEmpty()) {
-            return entry.changes().size() == 1
+            String changeText = entry.changes().size() == 1
                     ? entry.changes().get(0).field() + " changed"
                     : entry.changes().size() + " fields changed";
+            return box.isBlank() ? changeText : "Box " + box + " · " + changeText;
         }
 
-        return displayText(entry.description(), displayText(entry.target(), "Audit event"));
+        String fallback = displayText(entry.description(), displayText(entry.target(), "Audit event"));
+        return box.isBlank() ? fallback : "Box " + box + " · " + fallback;
     }
 
     private String rowAreaChipText(ActivityLogEntry entry) {
@@ -1469,7 +2103,12 @@ public class ActivityController {
             return fileFromDetails;
         }
 
-        String target = displayAuditValue(entry.target());
+        String rawTarget = displayText(entry.target(), "");
+        if (rawTarget.isBlank()) {
+            return "";
+        }
+
+        String target = displayAuditValue(rawTarget);
 
         for (String part : target.split("/")) {
             String cleanedPart = part.trim();
@@ -1484,7 +2123,7 @@ public class ActivityController {
             }
         }
 
-        return target;
+        return isMissingAuditValue(rawTarget) ? "" : target;
     }
 
     private String firstContextValue(ActivityLogEntry entry, String... labels) {
@@ -1973,7 +2612,8 @@ public class ActivityController {
             return "Deleted snapshot";
         }
 
-        return "Changes overview";
+        int count = (int) Math.min(visibleChanges(entry).size(), 6);
+        return count + " field" + (count == 1 ? "" : "s") + " changed";
     }
 
     private String formatAction(String action) {

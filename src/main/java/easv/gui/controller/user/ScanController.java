@@ -1,14 +1,11 @@
 package easv.gui.controller.user;
 
-import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.be.User;
 import easv.gui.BackgroundExecutor;
-import easv.gui.AppDates;
-import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
+import easv.gui.controller.utilities.SearchableComboBoxes;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.UserSession;

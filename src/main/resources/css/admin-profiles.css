@@ -48,7 +48,7 @@
 .profile-card-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .profile-card-description {
@@ -168,7 +168,7 @@
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .profile-editor-subtitle,
@@ -190,10 +190,6 @@
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
-}
-
-.profile-editor-strong-text {
-    -fx-font-size: 12px;
 }
 
 .profile-editor-switch {
@@ -417,7 +413,7 @@
 .assignment-selected-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .assignment-checkbox,
@@ -588,7 +584,7 @@
 .document-drag-handle {
     -fx-text-fill: -wl-muted-icon;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .profile-access-search,
@@ -651,7 +647,7 @@
     -fx-border-width: 1;
     -fx-alignment: center;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .profile-access-check-selected {

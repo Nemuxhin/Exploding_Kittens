@@ -268,7 +268,6 @@ public class AuditLogDAO {
             case "users" -> "Users";
             case "profiles" -> "Profiles";
             case "access" -> "Access";
-            case "metadata", "documents" -> "Documents";
             case "scans" -> "Scans";
             case "documents" -> "Documents";
             case "qa" -> "QA";

@@ -4,9 +4,8 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.util.StringConverter;
 
-import easv.gui.AppDates;
+import easv.gui.controller.utilities.AppDates;
 import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

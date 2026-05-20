@@ -1,8 +1,6 @@
 package easv.gui.controller.user;
 
-import easv.gui.AppDates;
-import easv.gui.PrimeIcons;
-import easv.gui.SearchableComboBoxes;
+import easv.gui.controller.utilities.SearchableComboBoxes;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -123,13 +121,8 @@ public class AssignedQaController {
         );
         statusFilterComboBox.getSelectionModel().selectFirst();
 
-        profileFilterComboBox.getItems().setAll(
-                "All Profiles",
-                "Court Records",
-                "Building Archive",
-                "Technical Drawings",
-                "Standard Scan"
-        );
+        // TODO: populate profile filter from real scan profiles loaded from the database
+        profileFilterComboBox.getItems().setAll("All Profiles");
         profileFilterComboBox.getSelectionModel().selectFirst();
 
         SearchableComboBoxes.configure(statusFilterComboBox);
@@ -413,52 +406,8 @@ public class AssignedQaController {
     // =========================================================
 
     private void loadMockAssignments() {
+        // TODO: replace with real assignments loaded from the database via UserPortalModel
         allAssignments.clear();
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-007",
-                "Court Records",
-                "Michael Johnson",
-                5,
-                41,
-                "Today 14:30",
-                0,
-                QaStatus.WAITING_FOR_QA
-        ));
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-008",
-                "Building Archive",
-                "Sarah Smith",
-                3,
-                24,
-                "Today 10:15",
-                12,
-                QaStatus.IN_REVIEW
-        ));
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-006",
-                "Technical Drawings",
-                "Emily Davis",
-                2,
-                18,
-                "Yesterday",
-                15,
-                QaStatus.ISSUES_FOUND,
-                2
-        ));
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-005",
-                "Standard Scan",
-                "David Wilson",
-                1,
-                12,
-                "2 days ago",
-                12,
-                QaStatus.QA_COMPLETED
-        ));
     }
 
     // =========================================================

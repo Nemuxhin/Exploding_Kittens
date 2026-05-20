@@ -158,7 +158,7 @@
 .portal-section-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 600;
 }
 
 .portal-muted,
@@ -586,6 +586,7 @@
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
+    -fx-font-weight: 600;
 }
 
 .admin-notification-dot {
@@ -693,9 +694,9 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-padding: 9;
     -fx-spacing: 6;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
 .app-shell.dark .admin-account-dropdown {
@@ -850,7 +851,7 @@
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-info-text;
     -fx-font-size: 10px;
-    -fx-font-weight: 500;
+    -fx-font-weight: 400;
 }
 
 .admin-breadcrumb-bar {
