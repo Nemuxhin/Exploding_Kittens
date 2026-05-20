@@ -51,6 +51,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -227,7 +228,7 @@ public class ScanController {
         } else if (shortcutDown && code == KeyCode.E) {
             onOpenScanExport();
             return true;
-        } else if (code == KeyCode.DELETE) {
+        } else if (code == KeyCode.DELETE || code == KeyCode.BACK_SPACE) {
             onDeleteSelectedPage();
             return true;
         } else if (code == KeyCode.R) {
@@ -290,21 +291,16 @@ public class ScanController {
 
     private void showJumpToPageDialog() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Jump to page");
-        dialog.setHeaderText("Jump to scanned page");
-        dialog.setContentText("Enter page reference number:");
+        dialog.setTitle("Search or jump");
+        dialog.setHeaderText("Search scanned pages");
+        dialog.setContentText("Enter a reference, file name, or document number:");
 
         dialog.showAndWait().ifPresent(value -> {
-            try {
-                int referenceId = Integer.parseInt(value.trim());
-                ScannedPage page = findPageByReferenceId(referenceId);
+            ScannedPage page = findPageBySearchText(value);
 
-                if (page != null) {
-                    selectedPage = page;
-                    refreshActiveWorkspace();
-                }
-            } catch (NumberFormatException ignored) {
-                // Invalid input simply keeps the current page selected.
+            if (page != null) {
+                selectedPage = page;
+                refreshActiveWorkspace();
             }
         });
     }
@@ -2132,6 +2128,43 @@ public class ScanController {
         }
 
         return null;
+    }
+
+    private ScannedPage findPageBySearchText(String searchText) {
+        String query = normalizeSearchText(searchText);
+
+        if (query.isBlank()) {
+            return null;
+        }
+
+        ScannedPage pageByReference = findPageByReferenceId(query);
+
+        if (pageByReference != null) {
+            return pageByReference;
+        }
+
+        for (ScannedPage page : allPages) {
+            if (normalizeSearchText(page.referenceIdLabel()).contains(query)
+                    || normalizeSearchText(page.fileName()).contains(query)
+                    || normalizeSearchText("document " + page.documentNumber).contains(query)
+                    || normalizeSearchText("doc " + page.documentNumber).contains(query)) {
+                return page;
+            }
+        }
+
+        return null;
+    }
+
+    private String normalizeSearchText(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text.trim()
+                .toLowerCase(Locale.ROOT)
+                .replace("ref-", "")
+                .replace("ref", "")
+                .replace("#", "");
     }
 
     private void movePageBefore(ScannedPage draggedPage, ScannedPage targetPage) {

@@ -17,6 +17,8 @@
 .root {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
+    -wl-primary-selected: #415060;
+    -wl-on-primary: #FFFFFF;
 }
 
 .app-shell {
@@ -186,163 +188,163 @@
 .app-shell.dark {
     -wl-background: #465160;
     -wl-surface: #354556;
-    -wl-card-content: #2D3D4F;
-    -wl-input-bg: #465160;
+    -wl-card-content: #2F3E4F;
+    -wl-input-bg: #3C4958;
 
-    -wl-text: #FFFFFF;
-    -wl-text-muted: #BFBFBF;
-    -wl-table-header-text: #FFFFFF;
+    -wl-text: #F8FAFC;
+    -wl-text-muted: #D5DCE6;
+    -wl-table-header-text: #F8FAFC;
     -wl-on-primary: #FFFFFF;
     -wl-text-inverse: #2D3D4F;
 
-    -wl-primary: #008FF7;
-    -wl-primary-hover: #33A9EE;
-    -wl-primary-nav-bg: #0094EA;
-    -wl-primary-nav-button: #33A9EE;
-    -wl-primary-selected: #33A9EE;
+    -wl-primary: #4F8FEA;
+    -wl-primary-hover: #6FA5F2;
+    -wl-primary-nav-bg: #4F8FEA;
+    -wl-primary-nav-button: #6FA5F2;
+    -wl-primary-selected: #6FA5F2;
 
-    -wl-secondary: #697489;
-    -wl-secondary-action: #697489;
-    -wl-secondary-hover: #2B3B4C;
-    -wl-secondary-nav-bg: #2D3D4F;
-    -wl-secondary-nav-button: #008FF7;
+    -wl-secondary: #7B8797;
+    -wl-secondary-action: #7B8797;
+    -wl-secondary-hover: #405063;
+    -wl-secondary-nav-bg: #2F3E4F;
+    -wl-secondary-nav-button: #4F8FEA;
 
-    -wl-tertiary: #4B5563;
-    -wl-tertiary-button: #4B5563;
-    -wl-tertiary-hover: #2B3B4C;
+    -wl-tertiary: #405063;
+    -wl-tertiary-button: #405063;
+    -wl-tertiary-hover: #4A596A;
 
-    -wl-border: #2B3B4C;
-    -wl-placeholder: #697489;
-    -wl-surface-hover: #2B3B4C;
+    -wl-border: #4A596A;
+    -wl-placeholder: #AAB4C2;
+    -wl-surface-hover: #405063;
 
-    -wl-destructive: #EF4444;
-    -wl-destructive-hover: #FF3D32;
-    -wl-error: #FF3D32;
-    -wl-success: #4CD07D;
+    -wl-destructive: #D9828B;
+    -wl-destructive-hover: #E59AA2;
+    -wl-error: #D9828B;
+    -wl-success: #7BD9A2;
 
     -wl-sidebar-bg: #2D3D4F;
     -wl-sidebar-text: #FFFFFF;
     -wl-sidebar-icon: #FFFFFF;
-    -wl-sidebar-hover-bg: #008FF7;
+    -wl-sidebar-hover-bg: #4F8FEA;
     -wl-sidebar-hover-text: #FFFFFF;
-    -wl-sidebar-active-bg: #008FF7;
+    -wl-sidebar-active-bg: #4F8FEA;
     -wl-sidebar-active-text: #FFFFFF;
     -wl-sidebar-divider: #2B3B4C;
 
-    -wl-logout-bg: #008FF7;
-    -wl-logout-hover-bg: #33A9EE;
+    -wl-logout-bg: #4F8FEA;
+    -wl-logout-hover-bg: #6FA5F2;
     -wl-logout-text: #FFFFFF;
     -wl-logout-icon: #FFFFFF;
 
-    -wl-switch-track: #008FF7;
-    -wl-switch-track-hover: #33A9EE;
-    -wl-switch-off-track: #697489;
-    -wl-switch-off-track-hover: #2B3B4C;
+    -wl-switch-track: #4F8FEA;
+    -wl-switch-track-hover: #6FA5F2;
+    -wl-switch-off-track: #7B8797;
+    -wl-switch-off-track-hover: #405063;
     -wl-switch-thumb: #FFFFFF;
-    -wl-switch-icon: #008FF7;
+    -wl-switch-icon: #4F8FEA;
 
-    -wl-avatar-bg: #2D3D4F;
+    -wl-avatar-bg: #2F3E4F;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
 
     -wl-sidebar-language-bg: #FFFFFF;
     -wl-sidebar-language-text: #2D3D4F;
 
-    -wl-status-info-bg: #0D4F73;
-    -wl-status-info-border: #176B94;
-    -wl-status-info-text: #7DD3FC;
-    -wl-status-success-bg: #123E37;
-    -wl-status-success-border: #1B5A4E;
-    -wl-status-success-text: #4CD07D;
-    -wl-status-warning-bg: #4A3512;
-    -wl-status-warning-border: #B7791F;
-    -wl-status-warning-text: #FACC15;
-    -wl-status-danger-bg: #4A2512;
-    -wl-status-danger-border: #9A1D1B;
-    -wl-status-danger-strong-border: #9A1D1B;
-    -wl-status-danger-text: #FDBA74;
-    -wl-status-neutral-bg: #2D3D4F;
-    -wl-status-neutral-border: #415060;
-    -wl-status-neutral-text: #BFBFBF;
+    -wl-status-info-bg: #314A66;
+    -wl-status-info-border: #5C88BF;
+    -wl-status-info-text: #AFCDF2;
+    -wl-status-success-bg: #2F5146;
+    -wl-status-success-border: #699A83;
+    -wl-status-success-text: #A8DDBF;
+    -wl-status-warning-bg: #5A4934;
+    -wl-status-warning-border: #8D7351;
+    -wl-status-warning-text: #E9C98E;
+    -wl-status-danger-bg: #5A3B42;
+    -wl-status-danger-border: #8E5D66;
+    -wl-status-danger-strong-border: #A66E78;
+    -wl-status-danger-text: #E9A8B0;
+    -wl-status-neutral-bg: #2F3E4F;
+    -wl-status-neutral-border: #556577;
+    -wl-status-neutral-text: #D5DCE6;
 
-    -wl-tag-teal-bg: #123E37;
-    -wl-tag-teal-border: #1B5A4E;
-    -wl-tag-teal-text: #4CD07D;
-    -wl-tag-blue-bg: #0D4F73;
-    -wl-tag-blue-border: #176B94;
-    -wl-tag-blue-text: #7DD3FC;
-    -wl-tag-purple-bg: #3B255A;
-    -wl-tag-purple-border: #5B3B83;
-    -wl-tag-purple-text: #D8B4FE;
-    -wl-tag-amber-bg: #4A3512;
-    -wl-tag-amber-border: #B7791F;
-    -wl-tag-amber-text: #FACC15;
-    -wl-tag-red-bg: #4A2512;
-    -wl-tag-red-border: #9A1D1B;
-    -wl-tag-red-text: #FDBA74;
+    -wl-tag-teal-bg: #2F5146;
+    -wl-tag-teal-border: #699A83;
+    -wl-tag-teal-text: #A8DDBF;
+    -wl-tag-blue-bg: #314A66;
+    -wl-tag-blue-border: #5C88BF;
+    -wl-tag-blue-text: #AFCDF2;
+    -wl-tag-purple-bg: #4B425F;
+    -wl-tag-purple-border: #71678A;
+    -wl-tag-purple-text: #D8CFF0;
+    -wl-tag-amber-bg: #5A4934;
+    -wl-tag-amber-border: #8D7351;
+    -wl-tag-amber-text: #E9C98E;
+    -wl-tag-red-bg: #5A3B42;
+    -wl-tag-red-border: #8E5D66;
+    -wl-tag-red-text: #E9A8B0;
 
     -wl-activity-user-bg: #74849A;
-    -wl-activity-profile-bg: #8B5CF6;
-    -wl-activity-metadata-bg: #3B82F6;
-    -wl-activity-qa-bg: #16A34A;
-    -wl-activity-access-bg: #0D9488;
-    -wl-activity-scan-bg: #0891B2;
-    -wl-activity-document-bg: #B7791F;
+    -wl-activity-profile-bg: #71678A;
+    -wl-activity-metadata-bg: #5C88BF;
+    -wl-activity-qa-bg: #699A83;
+    -wl-activity-access-bg: #5C8F8C;
+    -wl-activity-scan-bg: #5C88A5;
+    -wl-activity-document-bg: #8D7351;
     -wl-activity-system-bg: #64748B;
-    -wl-activity-export-bg: #059669;
-    -wl-activity-security-bg: #DC2626;
+    -wl-activity-export-bg: #699A83;
+    -wl-activity-security-bg: #8E5D66;
     -wl-activity-text: #FFFFFF;
 
-    -wl-date-range-between-bg: #143358;
-    -wl-progress-amber: #B7791F;
-    -wl-muted-icon: #697489;
-    -wl-workspace-viewer-bg: #2D3D4F;
+    -wl-date-range-between-bg: #314A66;
+    -wl-progress-amber: #8D7351;
+    -wl-muted-icon: #AAB4C2;
+    -wl-workspace-viewer-bg: #2F3E4F;
     -wl-workspace-paper-bg: #FFFFFF;
     -wl-workspace-paper-border: #415060;
     -wl-workspace-placeholder: #697489;
 
-    -wl-role-admin-bg: #0D4F73;
-    -wl-role-admin-text: #7DD3FC;
-    -wl-role-admin-border: #176B94;
+    -wl-role-admin-bg: #314A66;
+    -wl-role-admin-text: #AFCDF2;
+    -wl-role-admin-border: #5C88BF;
 
-    -wl-role-user-bg: #123E37;
-    -wl-role-user-text: #4CD07D;
-    -wl-role-user-border: #1B5A4E;
+    -wl-role-user-bg: #2F5146;
+    -wl-role-user-text: #A8DDBF;
+    -wl-role-user-border: #699A83;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
 
-    -wl-preview-bg: #2D3D4F;
+    -wl-preview-bg: #2F3E4F;
     -wl-paper-bg: #FFFFFF;
     -wl-paper-muted-bg: #F9F9F9;
     -wl-paper-border: #CBD5E1;
     -wl-paper-line-strong: #2D3D4F;
     -wl-paper-line-medium: #94A3B8;
     -wl-paper-line-light: #CBD5E1;
-    -wl-muted-control-bg: #2D3D4F;
+    -wl-muted-control-bg: #2F3E4F;
 
-    -wl-status-info-bg: #0D4F73;
-    -wl-status-info-border: #176B94;
-    -wl-status-info-text: #7DD3FC;
+    -wl-status-info-bg: #314A66;
+    -wl-status-info-border: #5C88BF;
+    -wl-status-info-text: #AFCDF2;
 
-    -wl-status-warning-bg: #4A3512;
-    -wl-status-warning-border: #B7791F;
-    -wl-status-warning-text: #FACC15;
+    -wl-status-warning-bg: #5A4934;
+    -wl-status-warning-border: #8D7351;
+    -wl-status-warning-text: #E9C98E;
 
-    -wl-status-error-bg: #4A2512;
-    -wl-status-error-border: #9A1D1B;
-    -wl-status-error-text: #FDBA74;
-    -wl-status-error-hover-bg: #4A2512;
+    -wl-status-error-bg: #5A3B42;
+    -wl-status-error-border: #8E5D66;
+    -wl-status-error-text: #E9A8B0;
+    -wl-status-error-hover-bg: #65444B;
 
-    -wl-status-success-bg: #123E37;
-    -wl-status-success-border: #1B5A4E;
-    -wl-status-success-text: #4CD07D;
-    -wl-status-success-hover-bg: #123E37;
+    -wl-status-success-bg: #2F5146;
+    -wl-status-success-border: #699A83;
+    -wl-status-success-text: #A8DDBF;
+    -wl-status-success-hover-bg: #395E52;
 
     -wl-progress-track: #415060;
-    -wl-progress-review: #7DD3FC;
-    -wl-progress-issues: #FDBA74;
-    -wl-progress-complete: #4CD07D;
+    -wl-progress-review: #AFCDF2;
+    -wl-progress-issues: #E9A8B0;
+    -wl-progress-complete: #A8DDBF;
 
     -fx-background-color: -wl-background;
 }
@@ -7053,7 +7055,8 @@
 
 .admin-toolbar-button:hover,
 .admin-toolbar-button:pressed,
-.admin-toolbar-button:focused {
+.admin-toolbar-button:focused,
+.admin-toolbar-button:selected {
     -fx-background-color: -wl-surface-hover;
     -fx-border-color: transparent;
 }
@@ -7386,7 +7389,7 @@
 }
 
 .shortcut-help-header {
-    -fx-padding: 24 24 24 24;
+    -fx-padding: 15 18 15 18;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -7397,13 +7400,13 @@
     -fx-background-radius: 12;
     -fx-border-radius: 12;
     -fx-text-fill: -wl-status-info-text;
-    -fx-font-size: 12px;
+    -fx-font-size: 20px;
     -fx-font-weight: 800;
     -fx-alignment: center;
-    -fx-min-width: 54;
-    -fx-min-height: 54;
-    -fx-max-width: 54;
-    -fx-max-height: 54;
+    -fx-min-width: 42;
+    -fx-min-height: 42;
+    -fx-max-width: 42;
+    -fx-max-height: 42;
 }
 
 .shortcut-help-header-help {
@@ -7423,12 +7426,12 @@
 
 .shortcut-help-main-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 28px;
+    -fx-font-size: 23px;
     -fx-font-weight: 800;
 }
 
 .shortcut-help-body {
-    -fx-padding: 24;
+    -fx-padding: 15 18 18 18;
 }
 
 .shortcut-help-grid {
@@ -7441,8 +7444,8 @@
     -fx-border-color: -wl-border;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
-    -fx-padding: 18 20 18 20;
-    -fx-min-height: 88;
+    -fx-padding: 10 12 10 12;
+    -fx-min-height: 58;
 }
 
 .shortcut-help-icon {
@@ -7451,18 +7454,18 @@
     -fx-background-radius: 10;
     -fx-border-radius: 10;
     -fx-text-fill: -wl-status-info-text;
-    -fx-font-size: 11px;
+    -fx-font-size: 17px;
     -fx-font-weight: 800;
     -fx-alignment: center;
-    -fx-min-width: 52;
-    -fx-min-height: 52;
-    -fx-max-width: 52;
-    -fx-max-height: 52;
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-max-width: 38;
+    -fx-max-height: 38;
 }
 
 .shortcut-help-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
+    -fx-font-size: 13px;
     -fx-font-weight: 800;
 }
 
@@ -7470,14 +7473,14 @@
     -fx-background-color: -wl-primary;
     -fx-background-radius: 6;
     -fx-text-fill: white;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
     -fx-font-weight: 800;
-    -fx-padding: 5 10 5 10;
+    -fx-padding: 3 8 3 8;
 }
 
 .settings-shortcut-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 14px;
+    -fx-font-size: 11px;
 }
 
 .settings-shortcut-row {
@@ -7530,8 +7533,8 @@
 .exports-table-panel {
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
 }
 
 .admin-panel-card {

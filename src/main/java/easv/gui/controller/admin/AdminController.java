@@ -123,6 +123,7 @@ public class AdminController implements AdminNavigator {
         updateTheme(isDarkModeEnabled());
 
         if (darkModeToggleButton != null) {
+            darkModeToggleButton.setTooltip(new Tooltip("Toggle light or dark mode"));
             darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
                     updateTheme(isDark)
             );
@@ -875,8 +876,8 @@ public class AdminController implements AdminNavigator {
     private ScrollPane createKeyboardShortcutsContent(String titleText) {
         ScrollPane scrollPane = new ScrollPane(createShortcutHelpShell(titleText));
         scrollPane.setFitToWidth(true);
-        scrollPane.setPrefViewportWidth(900);
-        scrollPane.setPrefViewportHeight(620);
+        scrollPane.setPrefViewportWidth(860);
+        scrollPane.setPrefViewportHeight(560);
         scrollPane.getStyleClass().add("shortcut-help-scroll");
         return scrollPane;
     }
@@ -890,12 +891,12 @@ public class AdminController implements AdminNavigator {
         body.getStyleClass().add("shortcut-help-body");
 
         content.getChildren().addAll(header, body);
-        content.setPrefSize(900, 620);
+        content.setPrefSize(860, 560);
         return content;
     }
 
     private HBox createShortcutHelpHeader(String titleText) {
-        Label keyboardIcon = new Label("KBD");
+        Label keyboardIcon = new Label("⌨");
         keyboardIcon.getStyleClass().add("shortcut-help-header-icon");
 
         Label title = new Label(titleText);
@@ -912,8 +913,8 @@ public class AdminController implements AdminNavigator {
 
     private GridPane createShortcutGrid() {
         GridPane grid = new GridPane();
-        grid.setHgap(22);
-        grid.setVgap(14);
+        grid.setHgap(16);
+        grid.setVgap(9);
         grid.getStyleClass().add("shortcut-help-grid");
 
         ColumnConstraints leftColumn = new ColumnConstraints();
@@ -961,16 +962,18 @@ public class AdminController implements AdminNavigator {
 
     private String shortcutIcon(KeyboardShortcut shortcut) {
         return switch (shortcut.getActionName()) {
-            case "Next page", "Previous page" -> "NAV";
-            case "Rotate" -> "ROT";
-            case "Delete" -> "DEL";
-            case "Undo" -> "UNDO";
-            case "Save" -> "SAVE";
-            case "Search / jump" -> "FIND";
-            case "Export" -> "EXP";
-            case "Zoom in", "Zoom out" -> "ZOOM";
-            case "Escape" -> "ESC";
-            default -> "HELP";
+            case "Next page" -> "→";
+            case "Previous page" -> "←";
+            case "Rotate" -> "↻";
+            case "Delete" -> "⌫";
+            case "Undo" -> "↶";
+            case "Save" -> "✓";
+            case "Search / jump" -> "⌕";
+            case "Export" -> "⇩";
+            case "Zoom in" -> "+";
+            case "Zoom out" -> "-";
+            case "Escape" -> "×";
+            default -> "?";
         };
     }
 

@@ -43,6 +43,7 @@ class ShortcutManagerTest {
         assertEquals(13, shortcuts.size());
         assertTrue(shortcuts.stream().anyMatch(shortcut -> "F1".equals(shortcut.getDisplayKeys())));
         assertTrue(shortcuts.stream().anyMatch(shortcut -> "?".equals(shortcut.getDisplayKeys())));
+        assertTrue(shortcuts.stream().anyMatch(shortcut -> shortcut.getDisplayKeys().contains("Backspace")));
     }
 
     @Test

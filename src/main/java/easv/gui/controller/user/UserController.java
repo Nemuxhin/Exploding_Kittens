@@ -194,7 +194,16 @@ public class UserController implements UserNavigator {
 
             if (navItem != null) {
                 installCloseIcon(navItem);
-                navItem.setOnAction(event -> showPage(page));
+                navItem.setOnAction(event -> {
+                    if (page == UserPage.HELP) {
+                        // Help is a dialog so users can open it from any page without losing context.
+                        showKeyboardShortcutsDialog();
+                        navItem.setSelected(false);
+                        return;
+                    }
+
+                    showPage(page);
+                });
             }
         }
     }
@@ -371,6 +380,7 @@ public class UserController implements UserNavigator {
                 || event.getCode() == KeyCode.LEFT
                 || event.getCode() == KeyCode.R
                 || event.getCode() == KeyCode.DELETE
+                || event.getCode() == KeyCode.BACK_SPACE
                 || event.getCode() == KeyCode.PLUS
                 || event.getCode() == KeyCode.ADD
                 || event.getCode() == KeyCode.EQUALS
@@ -485,13 +495,13 @@ public class UserController implements UserNavigator {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> new ExportsController(portalModel).create();
-            case HELP -> createHelpPage();
+            case HELP -> createShortcutHelpFallbackPage();
             case SETTINGS -> new SettingsController(portalModel).create();
             default -> createMissingPagePlaceholder(page.title());
         };
     }
 
-    private VBox createHelpPage() {
+    private VBox createShortcutHelpFallbackPage() {
         VBox page = createShortcutHelpContent(
                 "Keyboard Shortcuts",
                 true
@@ -504,8 +514,8 @@ public class UserController implements UserNavigator {
     private ScrollPane createShortcutHelpDialogContent(String titleText, boolean fullPage) {
         ScrollPane scrollPane = new ScrollPane(createShortcutHelpContent(titleText, fullPage));
         scrollPane.setFitToWidth(true);
-        scrollPane.setPrefViewportWidth(900);
-        scrollPane.setPrefViewportHeight(620);
+        scrollPane.setPrefViewportWidth(860);
+        scrollPane.setPrefViewportHeight(560);
         scrollPane.getStyleClass().add("shortcut-help-scroll");
         return scrollPane;
     }
@@ -526,14 +536,14 @@ public class UserController implements UserNavigator {
         if (fullPage) {
             content.setMaxWidth(Double.MAX_VALUE);
         } else {
-            content.setPrefSize(900, 620);
+            content.setPrefSize(860, 560);
         }
 
         return content;
     }
 
     private HBox createShortcutHelpHeader(String titleText) {
-        Label keyboardIcon = new Label("KBD");
+        Label keyboardIcon = new Label("⌨");
         keyboardIcon.getStyleClass().add("shortcut-help-header-icon");
 
         Label title = new Label(titleText);
@@ -550,8 +560,9 @@ public class UserController implements UserNavigator {
 
     private GridPane createShortcutGrid() {
         GridPane grid = new GridPane();
-        grid.setHgap(22);
-        grid.setVgap(14);
+        grid.setHgap(16);
+        grid.setVgap(9);
+        grid.getStyleClass().add("shortcut-help-grid");
 
         ColumnConstraints leftColumn = new ColumnConstraints();
         leftColumn.setPercentWidth(50);
@@ -598,16 +609,18 @@ public class UserController implements UserNavigator {
 
     private String shortcutIcon(KeyboardShortcut shortcut) {
         return switch (shortcut.getActionName()) {
-            case "Next page", "Previous page" -> "NAV";
-            case "Rotate" -> "ROT";
-            case "Delete" -> "DEL";
-            case "Undo" -> "UNDO";
-            case "Save" -> "SAVE";
-            case "Search / jump" -> "FIND";
-            case "Export" -> "EXP";
-            case "Zoom in", "Zoom out" -> "ZOOM";
-            case "Escape" -> "ESC";
-            default -> "HELP";
+            case "Next page" -> "→";
+            case "Previous page" -> "←";
+            case "Rotate" -> "↻";
+            case "Delete" -> "⌫";
+            case "Undo" -> "↶";
+            case "Save" -> "✓";
+            case "Search / jump" -> "⌕";
+            case "Export" -> "⇩";
+            case "Zoom in" -> "+";
+            case "Zoom out" -> "-";
+            case "Escape" -> "×";
+            default -> "?";
         };
     }
 
