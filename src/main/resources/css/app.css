@@ -1,7 +1,7 @@
 /* =========================================================
    WEBLAGER ADMIN CSS
    Exam project UI system:
-   - Montserrat only
+   - Segoe UI for calmer desktop readability
    - 3px spacing scale
    - 30px default controls / 33px primary header actions
    - 10px cards, 6px controls, 3px chips
@@ -15,7 +15,7 @@
    ========================================================= */
 
 .root {
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
 }
 
@@ -430,7 +430,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -472,7 +472,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-wrap-text: false;
@@ -574,7 +574,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -622,7 +622,7 @@
     -fx-border-insets: 0;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -2442,7 +2442,7 @@
 
 .profile-editor-code-preview {
     -fx-text-fill: -wl-text;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 600;
 }
@@ -3693,7 +3693,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
 }
 
 .admin-dialog-pane > .content {
@@ -4106,7 +4106,7 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-border-width: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -4486,7 +4486,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -5232,7 +5232,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -5397,7 +5397,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -5775,7 +5775,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 700;
     -fx-effect: none;
@@ -6204,7 +6204,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 600;
     -fx-effect: none;
@@ -6585,7 +6585,7 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
+    -fx-font-family: "Segoe UI";
     -fx-font-size: 12px;
     -fx-font-weight: 500;
     -fx-effect: none;
@@ -6920,18 +6920,19 @@
 /* ---------- Center Navigation ---------- */
 
 .admin-nav-bar {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
     -fx-alignment: center;
-    -fx-spacing: 8;
+    -fx-spacing: 5;
 }
 
 .admin-top-nav-button {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-    -fx-padding: 0 15 0 15;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-min-width: 0;
+    -fx-padding: 0 9 0 9;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-background-radius: 6;
@@ -6967,14 +6968,16 @@
 
 .admin-top-nav-icon {
     -fx-fill: -wl-text;
-    -fx-scale-x: 0.72;
-    -fx-scale-y: 0.72;
+    -fx-scale-x: 0.68;
+    -fx-scale-y: 0.68;
 }
 
 .admin-top-nav-label {
     -fx-text-fill: -wl-text;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
+    -fx-text-overrun: clip;
+    -fx-wrap-text: false;
 }
 
 .admin-top-nav-button:selected .admin-top-nav-icon,
@@ -6987,23 +6990,48 @@
     -fx-text-fill: -wl-on-primary;
 }
 
+.admin-nav-close-icon {
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-alignment: center;
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.admin-nav-close-icon:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-border-color: rgba(255, 255, 255, 0.45);
+    -fx-text-fill: -wl-status-danger-border;
+}
+
 /* ---------- Right Account / Utility Area ---------- */
 
 .admin-account {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
     -fx-alignment: center-right;
-    -fx-spacing: 9;
+    -fx-spacing: 6;
 }
 
 .admin-toolbar-button {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -7058,6 +7086,7 @@
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
+    -fx-max-width: 210;
     -fx-padding: 0 6 0 6;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -7089,7 +7118,7 @@
     -fx-pref-height: 33;
     -fx-max-height: 33;
     -fx-alignment: center-left;
-    -fx-spacing: 9;
+    -fx-spacing: 6;
 }
 
 .admin-avatar-shell {
@@ -7119,6 +7148,8 @@
     -fx-font-weight: 500;
     -fx-padding: 0;
     -fx-alignment: center-left;
+    -fx-max-width: 130;
+    -fx-text-overrun: ellipsis;
 }
 
 .admin-account-role {
@@ -7322,7 +7353,139 @@
 
 .admin-keyboard-shortcuts-dialog {
     -fx-background-color: -wl-surface;
-    -fx-padding: 15;
+    -fx-padding: 24;
+}
+
+.shortcut-help-dialog-pane,
+.shortcut-help-dialog-pane > .content,
+.shortcut-help-scroll,
+.shortcut-help-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.shortcut-help-dialog-pane {
+    -fx-padding: 0;
+}
+
+.shortcut-help-dialog-pane .button-bar {
+    -fx-padding: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+}
+
+.shortcut-help-scroll {
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.shortcut-help-shell {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+}
+
+.shortcut-help-header {
+    -fx-padding: 24 24 24 24;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.shortcut-help-header-icon {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-text-fill: -wl-status-info-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-alignment: center;
+    -fx-min-width: 54;
+    -fx-min-height: 54;
+    -fx-max-width: 54;
+    -fx-max-height: 54;
+}
+
+.shortcut-help-header-help {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-alignment: center;
+    -fx-min-width: 42;
+    -fx-min-height: 42;
+    -fx-max-width: 42;
+    -fx-max-height: 42;
+}
+
+.shortcut-help-main-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+}
+
+.shortcut-help-body {
+    -fx-padding: 24;
+}
+
+.shortcut-help-grid {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.shortcut-help-card {
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 18 20 18 20;
+    -fx-min-height: 88;
+}
+
+.shortcut-help-icon {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-text-fill: -wl-status-info-text;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-alignment: center;
+    -fx-min-width: 52;
+    -fx-min-height: 52;
+    -fx-max-width: 52;
+    -fx-max-height: 52;
+}
+
+.shortcut-help-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+}
+
+.settings-shortcut-key {
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 5 10 5 10;
+}
+
+.settings-shortcut-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 14px;
+}
+
+.settings-shortcut-row {
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 10;
 }
 
 .portal-page-scroll,

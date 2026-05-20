@@ -25,6 +25,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -47,6 +52,7 @@ public class AdminController implements AdminNavigator {
 
     private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
+    private static final double COMPACT_NAV_WIDTH = 1180;
     private static final String ACCOUNT_SECTION = "Edit Profile";
     private static final String PRIVACY_SECTION = "Settings and Privacy";
     private static final String HELP_SECTION = "Help and Support";
@@ -87,6 +93,9 @@ public class AdminController implements AdminNavigator {
     private final AdminManager adminManager = new AdminManager();
     private final ShortcutManager shortcutManager = new ShortcutManager();
     private MainApp mainApp;
+    private Scene shortcutScene;
+    private boolean rootShortcutFiltersRegistered;
+    private AdminPage currentPage = AdminPage.DASHBOARD;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -101,6 +110,7 @@ public class AdminController implements AdminNavigator {
         configureHelpButton();
         configureThemeToggle();
         configureNavigation();
+        configureResponsiveNavigation();
         configureGlobalHelpShortcuts();
         showPage(AdminPage.DASHBOARD);
     }
@@ -172,12 +182,15 @@ public class AdminController implements AdminNavigator {
 
     private void configureHelpButton() {
         if (helpButton != null) {
-            helpButton.setTooltip(new Tooltip("Help and Shortcuts"));
-            helpButton.setOnAction(event -> showHelpDialog());
+            // The keyboard icon is the single visible entry point for the shortcut legend.
+            helpButton.setVisible(false);
+            helpButton.setManaged(false);
         }
     }
 
     private void configureGlobalHelpShortcuts() {
+        registerRootShortcutFilters();
+
         Platform.runLater(() -> {
             Scene scene = appShell == null ? null : appShell.getScene();
 
@@ -197,10 +210,58 @@ public class AdminController implements AdminNavigator {
         });
     }
 
+    private void registerRootShortcutFilters() {
+        if (appShell == null || rootShortcutFiltersRegistered) {
+            return;
+        }
+
+        // The root filter keeps help available even when a child page owns focus.
+        appShell.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
+        appShell.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+        rootShortcutFiltersRegistered = true;
+    }
+
     private void registerHelpShortcuts(Scene scene) {
+        if (scene == shortcutScene) {
+            return;
+        }
+
+        if (shortcutScene != null) {
+            shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
+            shortcutScene.removeEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+        }
+
+        shortcutScene = scene;
+
         // Keep help reachable even when focus is inside a table, form, or child page.
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
+        scene.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
         scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showHelpDialog);
         scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showHelpDialog);
+    }
+
+    private void handleGlobalShortcut(KeyEvent event) {
+        if (event.isConsumed()) {
+            return;
+        }
+
+        if (event.getCode() == KeyCode.F1
+                || (event.isShiftDown() && event.getCode() == KeyCode.SLASH)
+                || "?".equals(event.getText())) {
+            showHelpDialog();
+            event.consume();
+        }
+    }
+
+    private void handleGlobalTypedShortcut(KeyEvent event) {
+        if (event.isConsumed()) {
+            return;
+        }
+
+        if ("?".equals(event.getCharacter())) {
+            showHelpDialog();
+            event.consume();
+        }
     }
 
     private boolean isDarkModeEnabled() {
@@ -266,8 +327,65 @@ public class AdminController implements AdminNavigator {
 
     private void configureNavigation() {
         for (AdminPage page : AdminPage.values()) {
-            setNavigationAction(getNavItem(page), () -> showPage(page));
+            ToggleButton navItem = getNavItem(page);
+
+            if (navItem != null) {
+                installCloseIcon(navItem);
+                setNavigationAction(navItem, () -> showPage(page));
+            }
         }
+    }
+
+    private void configureResponsiveNavigation() {
+        if (appShell == null) {
+            return;
+        }
+
+        appShell.widthProperty().addListener((observable, oldWidth, newWidth) ->
+                updateNavigationLabelVisibility(newWidth.doubleValue())
+        );
+
+        // JavaFX knows the real window width only after the scene is visible.
+        Platform.runLater(() -> updateNavigationLabelVisibility(appShell.getWidth()));
+    }
+
+    private void updateNavigationLabelVisibility(double width) {
+        boolean showLabels = width <= 0 || width >= COMPACT_NAV_WIDTH;
+
+        for (ToggleButton navItem : getNavigationItems()) {
+            updateNavLabelVisibility(navItem, showLabels);
+        }
+    }
+
+    private void updateNavLabelVisibility(ToggleButton navItem, boolean visible) {
+        if (navItem == null || !(navItem.getGraphic() instanceof HBox graphicBox)) {
+            return;
+        }
+
+        for (Node child : graphicBox.getChildren()) {
+            if (child.getStyleClass().contains("admin-top-nav-label")) {
+                child.setVisible(visible);
+                child.setManaged(visible);
+            }
+        }
+    }
+
+    private void installCloseIcon(ToggleButton navItem) {
+        if (!(navItem.getGraphic() instanceof HBox graphicBox)) {
+            return;
+        }
+
+        Label closeIcon = new Label("x");
+        closeIcon.getStyleClass().add("admin-nav-close-icon");
+        closeIcon.setVisible(false);
+        closeIcon.setManaged(false);
+        closeIcon.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> event.consume());
+        closeIcon.setOnMouseClicked(event -> {
+            showPage(AdminPage.DASHBOARD);
+            event.consume();
+        });
+
+        graphicBox.getChildren().add(closeIcon);
     }
 
     private void setNavigationAction(ToggleButton navItem, Runnable action) {
@@ -280,6 +398,7 @@ public class AdminController implements AdminNavigator {
 
     @Override
     public void showPage(AdminPage page) {
+        currentPage = page;
         hideAccountDropdown();
         loadPage(page);
         setActiveNavItem(getNavItem(page));
@@ -366,6 +485,21 @@ public class AdminController implements AdminNavigator {
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
+        }
+
+        updateNavCloseIcon(navItem, active && currentPage != AdminPage.DASHBOARD);
+    }
+
+    private void updateNavCloseIcon(ToggleButton navItem, boolean visible) {
+        if (!(navItem.getGraphic() instanceof HBox graphicBox)) {
+            return;
+        }
+
+        for (Node child : graphicBox.getChildren()) {
+            if (child.getStyleClass().contains("admin-nav-close-icon")) {
+                child.setVisible(visible);
+                child.setManaged(visible);
+            }
         }
     }
 
@@ -686,12 +820,17 @@ public class AdminController implements AdminNavigator {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Keyboard Shortcuts");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "shortcut-help-dialog-pane");
 
-        VBox content = createKeyboardShortcutsContent(
-                "Keyboard Shortcuts",
-                "Use these keys to work faster in the scan workspace."
-        );
+        if (appShell != null && appShell.getStyleClass().contains(DARK_MODE_CLASS)) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
+
+        addAppStylesheet(dialog);
+
+        ScrollPane content = createKeyboardShortcutsContent("Keyboard Shortcuts");
         dialog.getDialogPane().setContent(content);
+        dialog.setResizable(true);
 
         if (appShell != null && appShell.getScene() != null) {
             dialog.initOwner(appShell.getScene().getWindow());
@@ -706,12 +845,17 @@ public class AdminController implements AdminNavigator {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(HELP_SECTION);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "shortcut-help-dialog-pane");
 
-        VBox content = createKeyboardShortcutsContent(
-                "Help and Shortcuts",
-                "This help window lists the shortcuts currently available in the app."
-        );
+        if (appShell != null && appShell.getStyleClass().contains(DARK_MODE_CLASS)) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
+
+        addAppStylesheet(dialog);
+
+        ScrollPane content = createKeyboardShortcutsContent("Keyboard Shortcuts");
         dialog.getDialogPane().setContent(content);
+        dialog.setResizable(true);
 
         if (appShell != null && appShell.getScene() != null) {
             dialog.initOwner(appShell.getScene().getWindow());
@@ -720,39 +864,114 @@ public class AdminController implements AdminNavigator {
         dialog.showAndWait();
     }
 
-    private VBox createKeyboardShortcutsContent(String titleText, String subtitleText) {
-        Label title = new Label(titleText);
-        title.getStyleClass().add("settings-section-heading");
+    private void addAppStylesheet(Dialog<?> dialog) {
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
 
-        Label subtitle = new Label(subtitleText);
-        subtitle.getStyleClass().add("settings-shortcut-copy");
-        subtitle.setWrapText(true);
-
-        VBox shortcutRows = new VBox(9);
-
-        for (KeyboardShortcut shortcut : shortcutManager.getShortcuts()) {
-            shortcutRows.getChildren().add(createShortcutRow(shortcut));
+        if (stylesheetUrl != null) {
+            dialog.getDialogPane().getStylesheets().add(stylesheetUrl.toExternalForm());
         }
+    }
 
-        VBox content = new VBox(12, title, subtitle, divider(), shortcutRows);
-        content.setMinSize(420, 260);
-        content.getStyleClass().add("admin-keyboard-shortcuts-dialog");
+    private ScrollPane createKeyboardShortcutsContent(String titleText) {
+        ScrollPane scrollPane = new ScrollPane(createShortcutHelpShell(titleText));
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportWidth(900);
+        scrollPane.setPrefViewportHeight(620);
+        scrollPane.getStyleClass().add("shortcut-help-scroll");
+        return scrollPane;
+    }
+
+    private VBox createShortcutHelpShell(String titleText) {
+        VBox content = new VBox(0);
+        content.getStyleClass().add("shortcut-help-shell");
+
+        HBox header = createShortcutHelpHeader(titleText);
+        VBox body = new VBox(createShortcutGrid());
+        body.getStyleClass().add("shortcut-help-body");
+
+        content.getChildren().addAll(header, body);
+        content.setPrefSize(900, 620);
         return content;
     }
 
-    private HBox createShortcutRow(KeyboardShortcut shortcut) {
+    private HBox createShortcutHelpHeader(String titleText) {
+        Label keyboardIcon = new Label("KBD");
+        keyboardIcon.getStyleClass().add("shortcut-help-header-icon");
+
+        Label title = new Label(titleText);
+        title.getStyleClass().add("shortcut-help-main-title");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, keyboardIcon, title, spacer);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("shortcut-help-header");
+        return header;
+    }
+
+    private GridPane createShortcutGrid() {
+        GridPane grid = new GridPane();
+        grid.setHgap(22);
+        grid.setVgap(14);
+        grid.getStyleClass().add("shortcut-help-grid");
+
+        ColumnConstraints leftColumn = new ColumnConstraints();
+        leftColumn.setPercentWidth(50);
+        ColumnConstraints rightColumn = new ColumnConstraints();
+        rightColumn.setPercentWidth(50);
+        grid.getColumnConstraints().addAll(leftColumn, rightColumn);
+
+        List<KeyboardShortcut> shortcuts = shortcutManager.getShortcuts();
+
+        for (int index = 0; index < shortcuts.size(); index++) {
+            int column = index % 2;
+            int row = index / 2;
+            grid.add(createShortcutCard(shortcuts.get(index)), column, row);
+        }
+
+        return grid;
+    }
+
+    private HBox createShortcutCard(KeyboardShortcut shortcut) {
+        Label icon = new Label(shortcutIcon(shortcut));
+        icon.getStyleClass().add("shortcut-help-icon");
+
         Label keys = new Label(shortcut.getDisplayKeys());
         keys.getStyleClass().add("settings-shortcut-key");
 
-        Label action = new Label(shortcut.getActionName() + " - " + shortcut.getDescription());
+        Label actionName = new Label(shortcut.getActionName());
+        actionName.getStyleClass().add("shortcut-help-title");
+
+        HBox heading = new HBox(8, keys, actionName);
+        heading.setAlignment(Pos.CENTER_LEFT);
+
+        Label action = new Label(shortcut.getDescription());
         action.getStyleClass().add("settings-shortcut-copy");
         action.setWrapText(true);
-        HBox.setHgrow(action, Priority.ALWAYS);
 
-        HBox row = new HBox(12, keys, action);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.getStyleClass().add("settings-shortcut-row");
-        return row;
+        VBox copy = new VBox(4, heading, action);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        HBox card = new HBox(12, icon, copy);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.getStyleClass().add("shortcut-help-card");
+        return card;
+    }
+
+    private String shortcutIcon(KeyboardShortcut shortcut) {
+        return switch (shortcut.getActionName()) {
+            case "Next page", "Previous page" -> "NAV";
+            case "Rotate" -> "ROT";
+            case "Delete" -> "DEL";
+            case "Undo" -> "UNDO";
+            case "Save" -> "SAVE";
+            case "Search / jump" -> "FIND";
+            case "Export" -> "EXP";
+            case "Zoom in", "Zoom out" -> "ZOOM";
+            case "Escape" -> "ESC";
+            default -> "HELP";
+        };
     }
 
     private void logout() {

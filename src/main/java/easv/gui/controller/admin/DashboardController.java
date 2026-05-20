@@ -5,14 +5,15 @@ import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.ArcType;
-import javafx.scene.shape.Circle;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.SVGPath;
 
 import java.time.LocalDate;
@@ -25,8 +26,9 @@ public class DashboardController {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
+    private static final double DONUT_SIZE = 60;
     private static final double DONUT_RADIUS = 22;
-    private static final double DONUT_HOLE_RADIUS = 15;
+    private static final double DONUT_STROKE_WIDTH = 9;
 
     private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
 
@@ -339,38 +341,54 @@ public class DashboardController {
 
         workflowDonutChart.getChildren().clear();
 
-        Circle track = new Circle(DONUT_RADIUS);
-        track.getStyleClass().add("dashboard-donut-track");
-        workflowDonutChart.getChildren().add(track);
+        Canvas canvas = new Canvas(DONUT_SIZE, DONUT_SIZE);
+        GraphicsContext graphics = canvas.getGraphicsContext2D();
+
+        graphics.setLineWidth(DONUT_STROKE_WIDTH);
+        graphics.setLineCap(StrokeLineCap.BUTT);
+        graphics.setStroke(Color.web("#DCE3EC"));
+        graphics.strokeOval(
+                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
+                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
+                DONUT_RADIUS * 2,
+                DONUT_RADIUS * 2
+        );
 
         int total = inProgress + waitingForQa + exported;
 
         if (total > 0) {
             double startAngle = 90;
-            startAngle = addDonutSegment(inProgress, total, startAngle, "dashboard-donut-blue");
-            startAngle = addDonutSegment(waitingForQa, total, startAngle, "dashboard-donut-amber");
-            addDonutSegment(exported, total, startAngle, "dashboard-donut-green");
+            startAngle = drawDonutSegment(graphics, inProgress, total, startAngle, "#0B6FAE");
+            startAngle = drawDonutSegment(graphics, waitingForQa, total, startAngle, "#F59E0B");
+            drawDonutSegment(graphics, exported, total, startAngle, "#168A72");
         }
 
-        Circle hole = new Circle(DONUT_HOLE_RADIUS);
-        hole.getStyleClass().add("dashboard-donut-hole");
-        workflowDonutChart.getChildren().add(hole);
+        workflowDonutChart.getChildren().add(canvas);
     }
 
-    private double addDonutSegment(int value, int total, double startAngle, String styleClass) {
+    private double drawDonutSegment(GraphicsContext graphics, int value, int total, double startAngle, String color) {
         if (value <= 0) {
             return startAngle;
         }
 
         double length = -360.0 * value / total;
 
-        Arc segment = new Arc(0, 0, DONUT_RADIUS, DONUT_RADIUS, startAngle, length);
-        segment.setType(ArcType.OPEN);
-        segment.getStyleClass().add(styleClass);
-
-        workflowDonutChart.getChildren().add(segment);
+        graphics.setStroke(Color.web(color));
+        graphics.strokeArc(
+                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
+                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
+                DONUT_RADIUS * 2,
+                DONUT_RADIUS * 2,
+                startAngle,
+                length,
+                javafx.scene.shape.ArcType.OPEN
+        );
 
         return startAngle + length;
+    }
+
+    private double centerToTopLeft(double size, double radius) {
+        return (size - radius * 2) / 2;
     }
 
     private void setAttentionRowState(HBox row, boolean shouldShow) {

@@ -17,6 +17,10 @@ public class ShortcutManager {
                 new KeyboardShortcut("Ctrl + Z", "CTRL+Z", "Undo", "Undo the last supported action."),
                 new KeyboardShortcut("Ctrl + S", "CTRL+S", "Save", "Save the current work."),
                 new KeyboardShortcut("Ctrl + F", "CTRL+F", "Search / jump", "Jump to a scanned page by reference number."),
+                new KeyboardShortcut("Ctrl + E", "CTRL+E", "Export", "Open the TIFF export window."),
+                new KeyboardShortcut("+", "PLUS", "Zoom in", "Zoom in on the current page."),
+                new KeyboardShortcut("-", "MINUS", "Zoom out", "Zoom out from the current page."),
+                new KeyboardShortcut("Esc", "ESCAPE", "Escape", "Close modals or cancel the current action."),
                 new KeyboardShortcut("F1", "F1", "Shortcut help", "Open the keyboard shortcuts help page."),
                 new KeyboardShortcut("?", "SHIFT+SLASH", "Shortcut help", "Open the keyboard shortcuts help page.")
         );

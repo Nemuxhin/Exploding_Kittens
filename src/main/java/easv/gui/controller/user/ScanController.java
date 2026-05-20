@@ -178,41 +178,114 @@ public class ScanController {
     }
 
     private void handleWorkspaceShortcut(KeyEvent event) {
-        // Text fields must keep normal typing behavior.
-        if (event.getTarget() instanceof TextInputControl) {
+        if (event.isConsumed()) {
             return;
         }
 
-        if (event.getCode() == KeyCode.RIGHT) {
+        if (handleGlobalShortcut(event)) {
+            event.consume();
+        }
+    }
+
+    public boolean handleGlobalShortcut(KeyEvent event) {
+        if (event.isConsumed()) {
+            return false;
+        }
+
+        // Text fields must keep normal typing behavior.
+        if (event.getTarget() instanceof TextInputControl) {
+            return false;
+        }
+
+        return runShortcut(event.getCode(), event.isShortcutDown(), event.getText());
+    }
+
+    public boolean runShortcut(KeyCode code, boolean shortcutDown, String typedText) {
+        if (code == KeyCode.RIGHT) {
             if (isReviewWorkspaceVisible()) {
                 onNextReviewPage();
             } else {
                 onNextFile();
             }
-            event.consume();
-        } else if (event.getCode() == KeyCode.LEFT) {
+            return true;
+        } else if (code == KeyCode.LEFT) {
             if (isReviewWorkspaceVisible()) {
                 onPreviousReviewPage();
             } else {
                 onPreviousFile();
             }
-            event.consume();
-        } else if (event.isControlDown() && event.getCode() == KeyCode.Z) {
+            return true;
+        } else if (shortcutDown && code == KeyCode.Z) {
             onUndoLastAction();
-            event.consume();
-        } else if (event.isControlDown() && event.getCode() == KeyCode.S) {
+            return true;
+        } else if (shortcutDown && code == KeyCode.S) {
             onSaveProgress();
-            event.consume();
-        } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
+            return true;
+        } else if (shortcutDown && code == KeyCode.F) {
             showJumpToPageDialog();
-            event.consume();
-        } else if (event.getCode() == KeyCode.DELETE) {
+            return true;
+        } else if (shortcutDown && code == KeyCode.E) {
+            onOpenScanExport();
+            return true;
+        } else if (code == KeyCode.DELETE) {
             onDeleteSelectedPage();
-            event.consume();
-        } else if (event.getCode() == KeyCode.R) {
+            return true;
+        } else if (code == KeyCode.R) {
             onRotateRight();
-            event.consume();
+            return true;
+        } else if (isZoomInShortcut(code, typedText)) {
+            onZoomIn();
+            return true;
+        } else if (isZoomOutShortcut(code, typedText)) {
+            onZoomOut();
+            return true;
+        } else if (code == KeyCode.ESCAPE) {
+            return closeVisibleModal();
         }
+
+        return false;
+    }
+
+    public boolean runTypedShortcut(String character) {
+        if ("+".equals(character)) {
+            onZoomIn();
+            return true;
+        }
+
+        if ("-".equals(character)) {
+            onZoomOut();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isZoomInShortcut(KeyCode code, String typedText) {
+        return code == KeyCode.PLUS
+                || code == KeyCode.ADD
+                || code == KeyCode.EQUALS
+                || "+".equals(typedText);
+    }
+
+    private boolean isZoomOutShortcut(KeyCode code, String typedText) {
+        return code == KeyCode.MINUS
+                || code == KeyCode.SUBTRACT
+                || "-".equals(typedText);
+    }
+
+    private boolean closeVisibleModal() {
+        // Escape should close the simple scan overlays before doing anything else.
+        if (finishReviewOverlay != null && finishReviewOverlay.isVisible()) {
+            hideFinishReviewModal();
+            return true;
+        }
+
+        if (submitConfirmationOverlay != null && submitConfirmationOverlay.isVisible()) {
+            hideSubmitConfirmationModal();
+            return true;
+        }
+
+        return false;
     }
 
     private void showJumpToPageDialog() {
