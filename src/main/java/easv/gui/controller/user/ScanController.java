@@ -1,10 +1,12 @@
 package easv.gui.controller.user;
 
+import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanSession;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.gui.BackgroundExecutor;
+import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -188,6 +190,22 @@ public class ScanController {
 
     public void setNavigator(UserNavigator navigator) {
         this.navigator = navigator == null ? UserNavigator.none() : navigator;
+    }
+
+    public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
+        if (item == null) {
+            return;
+        }
+
+        openScanSession(item.boxId(), item.profileName());
+    }
+
+    public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
+        if (item == null) {
+            return;
+        }
+
+        openScanSession(item.boxId(), item.profileName());
     }
 
     @FXML
@@ -407,6 +425,74 @@ public class ScanController {
         }
 
         boxRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
+    }
+
+    private void openScanSession(String boxId, String profileName) {
+        if (boxIdTextField != null) {
+            boxIdTextField.setText(boxId == null ? "" : boxId);
+        }
+        if (profileComboBox != null) {
+            profileComboBox.setValue(profileName);
+            updateProfileInfo(profileName);
+        }
+
+        updateStartScanningState();
+        showWorkspaceView();
+        selectedFileTitleLabel.setText("Loading scan session");
+        selectedFileRefLabel.setText("Please wait while we open the saved box session.");
+        refreshWorkspace();
+
+        String selectedBoxId = getBoxId();
+        String selectedProfile = getSelectedProfile();
+        BackgroundExecutor.io().execute(() -> {
+            ScanManager.ResumedSession resumedSession = scanManager.resumeLatestSession(selectedBoxId, selectedProfile)
+                    .orElse(null);
+            Platform.runLater(() -> {
+                if (!selectedBoxId.equals(getBoxId()) || !selectedProfile.equals(getSelectedProfile())) {
+                    return;
+                }
+
+                if (resumedSession == null) {
+                    beginScanSession();
+                } else {
+                    restoreScanSession(resumedSession);
+                }
+            });
+        });
+    }
+
+    private void restoreScanSession(ScanManager.ResumedSession resumedSession) {
+        allPages.clear();
+        pendingPages.clear();
+        documents.clear();
+        collapsedDocuments.clear();
+        undoStack.clear();
+
+        nextReferenceId = 1;
+        nextFileId = 1;
+        activeScanSession = resumedSession.session();
+        scanInProgress = false;
+        sessionRotationDegrees = 0;
+
+        for (Document document : resumedSession.documents()) {
+            for (PageImage pageImage : document.getPages()) {
+                allPages.add(mapStoredPage(pageImage));
+            }
+        }
+
+        rebuildDocumentsFromPages();
+        selectedPage = allPages.stream()
+                .filter(page -> !page.barcode)
+                .findFirst()
+                .orElseGet(() -> allPages.isEmpty() ? null : allPages.get(0));
+
+        resetPreviewViewState();
+        hideFinishReviewModal();
+        hideSubmitConfirmationModal();
+
+        syncBoxRotationComboBox();
+        refreshWorkspace();
+        updateUndoButtonState();
     }
 
     private void commitCustomPageRotation() {
@@ -880,6 +966,23 @@ public class ScanController {
                 pageImage.getPreviewContent()
         );
         page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees() + sessionRotationDegrees);
+        nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
+        nextFileId++;
+        return page;
+    }
+
+    private ScannedPage mapStoredPage(PageImage pageImage) {
+        boolean barcode = pageImage.getPageType() == PageImage.PageType.BARCODE;
+        ScannedPage page = new ScannedPage(
+                Math.max(pageImage.getReferenceId(), nextReferenceId),
+                nextFileId,
+                barcode,
+                false,
+                pageImage.getSourceReference(),
+                pageImage.getDisplayContent(),
+                pageImage.getPreviewContent()
+        );
+        page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees());
         nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
         nextFileId++;
         return page;

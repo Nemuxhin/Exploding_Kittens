@@ -199,6 +199,38 @@ public class DocumentDAO {
         }
     }
 
+    public Collection<Document> findBySessionId(UUID sessionId) {
+        if (sessionId == null) {
+            throw new IllegalArgumentException("sessionId must not be null");
+        }
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT d.id, d.source_item_id
+                     FROM scan_session_documents ssd
+                     JOIN documents d ON d.id = ssd.document_id
+                     LEFT JOIN document_pages dp ON dp.document_id = d.id
+                     WHERE ssd.session_id = ?
+                     GROUP BY d.id, d.source_item_id
+                     ORDER BY COALESCE(MIN(dp.reference_id), 2147483647), d.source_item_id
+                     """)) {
+            statement.setString(1, sessionId.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                Collection<Document> documents = new ArrayList<>();
+                while (resultSet.next()) {
+                    UUID documentId = UUID.fromString(resultSet.getString("id"));
+                    documents.add(new Document(
+                            documentId,
+                            resultSet.getString("source_item_id"),
+                            pageImageDAO.findByDocumentId(documentId)
+                    ));
+                }
+                return documents;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch documents for session " + sessionId, e);
+        }
+    }
+
     public Document synchronizePages(Document document) {
         try (Connection connection = databaseConnection.getConnection()) {
             pageImageDAO.syncDocumentPages(connection, document.getId(), document.getAllPages());

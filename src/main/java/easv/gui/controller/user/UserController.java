@@ -90,6 +90,8 @@ public class UserController implements UserNavigator {
     private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
 
     private MainApp mainApp;
+    private UserPortalModel.RecentScanItem pendingRecentScanItem;
+    private UserPortalModel.HistoryItem pendingHistoryScanItem;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -253,11 +255,15 @@ public class UserController implements UserNavigator {
 
     @Override
     public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
+        pendingRecentScanItem = item;
+        pendingHistoryScanItem = null;
         showPage(UserPage.SCAN);
     }
 
     @Override
     public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
+        pendingHistoryScanItem = item;
+        pendingRecentScanItem = null;
         showPage(UserPage.SCAN);
     }
 
@@ -322,6 +328,14 @@ public class UserController implements UserNavigator {
     private void configureLoadedController(Object controller) {
         if (controller instanceof ScanController scanController) {
             scanController.setNavigator(this);
+            if (pendingHistoryScanItem != null) {
+                scanController.resumeHistoryScan(pendingHistoryScanItem);
+                pendingHistoryScanItem = null;
+                pendingRecentScanItem = null;
+            } else if (pendingRecentScanItem != null) {
+                scanController.resumeRecentScan(pendingRecentScanItem);
+                pendingRecentScanItem = null;
+            }
         }
     }
 

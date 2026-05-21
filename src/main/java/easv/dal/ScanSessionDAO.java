@@ -166,6 +166,43 @@ public class ScanSessionDAO {
         }
     }
 
+    public java.util.Optional<StoredScanSession> findLatestSession(String boxId, String profileName) {
+        if (boxId == null || boxId.isBlank()) {
+            throw new IllegalArgumentException("boxId must not be blank");
+        }
+        ensureProfileNameColumn();
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT TOP 1 s.id,
+                                  s.started_at,
+                                  s.profile_name,
+                                  s.selected_barcode_behavior,
+                                  s.last_status
+                     FROM scan_sessions s
+                     JOIN boxes b ON b.id = s.box_id
+                     WHERE b.box_id = ?
+                       AND LOWER(COALESCE(s.profile_name, '')) = LOWER(COALESCE(?, ''))
+                     ORDER BY s.started_at DESC
+                     """)) {
+            statement.setString(1, boxId);
+            statement.setString(2, profileName);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return java.util.Optional.empty();
+                }
+                return java.util.Optional.of(new StoredScanSession(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getTimestamp("started_at").toInstant(),
+                        resultSet.getString("profile_name"),
+                        resultSet.getString("selected_barcode_behavior"),
+                        resultSet.getString("last_status")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch stored scan session for box " + boxId, e);
+        }
+    }
+
     private void ensureProfileNameColumn() {
         if (profileNameColumnChecked) {
             return;
@@ -222,6 +259,15 @@ public class ScanSessionDAO {
             String status,
             int documentCount,
             int pageCount
+    ) {
+    }
+
+    public record StoredScanSession(
+            UUID sessionId,
+            Instant startedAt,
+            String profileName,
+            String selectedBarcodeBehavior,
+            String lastStatus
     ) {
     }
 }

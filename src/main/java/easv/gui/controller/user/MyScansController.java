@@ -141,7 +141,7 @@ public class MyScansController {
     }
 
     private void refreshTable() {
-        table.getChildren().setAll(createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS"));
+        table.getChildren().setAll(createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS", "ACTION"));
 
         List<UserPortalModel.HistoryItem> visibleItems = portalModel.fetchScanHistory().stream()
                 .filter(this::matchesFilters)
@@ -205,12 +205,20 @@ public class MyScansController {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("exports-table-row");
 
+        Button editButton = new Button("Edit");
+        editButton.getStyleClass().addAll("portal-row-button", "my-scans-action-button");
+        editButton.setOnAction(event -> navigator.resumeHistoryScan(item));
+
+        HBox editBox = new HBox(editButton);
+        editBox.getStyleClass().add("exports-action-box");
+
         row.add(primaryCell(item.boxId()), 0, 0);
         row.add(dataCell(item.profileName()), 1, 0);
         row.add(dataCell(String.valueOf(item.pages())), 2, 0);
         row.add(dataCell(item.size()), 3, 0);
         row.add(dataCell(item.startedAt()), 4, 0);
         row.add(statusCell(item.status()), 5, 0);
+        row.add(editBox, 6, 0);
 
         return row;
     }
@@ -254,12 +262,13 @@ public class MyScansController {
         row.setMaxWidth(Double.MAX_VALUE);
         row.setHgap(12);
         row.getColumnConstraints().setAll(
+                percentColumn(16),
                 percentColumn(18),
-                percentColumn(20),
                 percentColumn(10),
                 percentColumn(12),
-                percentColumn(24),
-                percentColumn(16)
+                percentColumn(18),
+                percentColumn(14),
+                percentColumn(12)
         );
         return row;
     }

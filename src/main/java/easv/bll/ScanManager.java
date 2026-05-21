@@ -81,6 +81,42 @@ public class ScanManager {
         return session;
     }
 
+    public Optional<ResumedSession> resumeLatestSession(String boxId, String profileName) {
+        Objects.requireNonNull(boxId, "boxId");
+        Objects.requireNonNull(profileName, "profileName");
+
+        Optional<ScanSessionDAO.StoredScanSession> storedSession = scanSessionDAO.findLatestSession(boxId, profileName);
+        if (storedSession.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Box box = boxDAO.findByBoxId(boxId)
+                .orElseGet(() -> registerBox(boxId, "Scanned box"));
+        ScanSessionDAO.StoredScanSession stored = storedSession.get();
+
+        ScanSession resumedSession = new ScanSession(
+                stored.sessionId(),
+                stored.startedAt(),
+                box,
+                stored.profileName()
+        );
+        resumedSession.setSelectedBarcodeBehavior(stored.selectedBarcodeBehavior());
+        resumedSession.setLastStatus(stored.lastStatus());
+
+        List<Document> linkedDocuments = new ArrayList<>(documentDAO.findBySessionId(stored.sessionId()));
+        int nextReferenceId = 1;
+        for (Document document : linkedDocuments) {
+            resumedSession.addImportedDocument(document);
+            for (PageImage page : document.getPages()) {
+                nextReferenceId = Math.max(nextReferenceId, page.getReferenceId() + 1);
+            }
+        }
+        resumedSession.seedNextReferenceId(nextReferenceId);
+        resumedSession.seedNextImportedItemNumber(Math.max(1, linkedDocuments.size() + 1));
+
+        return Optional.of(new ResumedSession(resumedSession, linkedDocuments));
+    }
+
     public Optional<Document> importNextItem(ScanSession session) {
         ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Keep barcode page in final document");
         if (!result.getImportedDocuments().isEmpty()) {
@@ -358,5 +394,8 @@ public class ScanManager {
     }
 
     private record NormalizedItem(String itemId, String caseReference, String clientNumber, String clientName) {
+    }
+
+    public record ResumedSession(ScanSession session, List<Document> documents) {
     }
 }
