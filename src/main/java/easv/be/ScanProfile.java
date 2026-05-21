@@ -1,8 +1,5 @@
 package easv.be;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ScanProfile {
     private final int id;
     private String name;
@@ -83,6 +80,7 @@ public class ScanProfile {
     public boolean isDeskew() { return deskew; }
     public String getExportFormat() { return exportFormat; }
     public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+    public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
 
     public void setName(String name) { this.name = clean(name); }
     public void setCode(String code) { this.code = clean(code); }
@@ -104,22 +102,8 @@ public class ScanProfile {
     public void setMetadataRequiredBeforeExport(boolean metadataRequiredBeforeExport) {
         this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
     }
-
-    public List<String> getConfigChipLabels() {
-        List<String> chips = new ArrayList<>();
-
-        chips.add(barcodeSplitting ? "Barcode Split On" : "Barcode Split Off");
-        chips.add(deskew ? "Deskew" : "Deskew Off");
-
-        if (name.toLowerCase().contains("drawing")) {
-            chips.add("OCR Enabled");
-        }
-
-        if (!brightness.equalsIgnoreCase("Normal")) {
-            chips.add("Brightness Correction");
-        }
-
-        return chips;
+    public void setDocumentDetailsRequiredBeforeExport(boolean documentDetailsRequiredBeforeExport) {
+        this.metadataRequiredBeforeExport = documentDetailsRequiredBeforeExport;
     }
 
     private static String clean(String value) {

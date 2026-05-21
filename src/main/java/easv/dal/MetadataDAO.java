@@ -1,10 +1,10 @@
 package easv.dal;
 
-import easv.be.CaseMetadata;
 import easv.be.MetadataField;
 import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
+import easv.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,14 +12,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MetadataDAO {
     private final DatabaseConnection databaseConnection;
-    private final Map<String, CaseMetadata> memoryCaseMetadata;
 
     public MetadataDAO() {
         this(new DatabaseConnection());
@@ -27,16 +25,6 @@ public class MetadataDAO {
 
     public MetadataDAO(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
-        this.memoryCaseMetadata = null;
-    }
-
-    private MetadataDAO(Map<String, CaseMetadata> memoryCaseMetadata) {
-        this.databaseConnection = null;
-        this.memoryCaseMetadata = memoryCaseMetadata;
-    }
-
-    public static MetadataDAO inMemory() {
-        return new MetadataDAO(new HashMap<>());
     }
 
     public List<ScanProfile> getProfiles() {
@@ -143,6 +131,29 @@ public class MetadataDAO {
             statement.executeUpdate();
         } catch (SQLException exception) {
             throw new DataAccessException("Failed to update scan profile " + profile.getName(), exception);
+        }
+    }
+
+    public void deleteProfile(int profileId) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try {
+                deleteProfileReferences(connection, profileId);
+                deleteProfileRow(connection, profileId);
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException(
+                    "Failed to delete scan profile. Archive it if scanned data still uses it.",
+                    exception
+            );
         }
     }
 
@@ -290,77 +301,6 @@ public class MetadataDAO {
         } catch (SQLException exception) {
             throw new DataAccessException("Failed to save review record " + record.getId(), exception);
         }
-    }
-
-    public CaseMetadata findByCaseId(String caseId) {
-        String cleanedCaseId = clean(caseId);
-
-        if (cleanedCaseId.isBlank()) {
-            return null;
-        }
-
-        if (memoryCaseMetadata != null) {
-            return memoryCaseMetadata.get(cleanedCaseId);
-        }
-
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, identity_value, profile_name, metadata_status, qa_status
-                     FROM metadata_review_records
-                     WHERE id = ? OR identity_value = ?
-                     """)) {
-            statement.setString(1, cleanedCaseId);
-            statement.setString(2, cleanedCaseId);
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (!resultSet.next()) {
-                    return null;
-                }
-
-                Map<String, String> values = new LinkedHashMap<>();
-                values.put("Metadata status", resultSet.getString("metadata_status"));
-                values.put("QA status", resultSet.getString("qa_status"));
-
-                return new CaseMetadata(
-                        resultSet.getString("id"),
-                        resultSet.getString("profile_name"),
-                        "",
-                        values,
-                        isComplete(resultSet.getString("metadata_status")),
-                        isComplete(resultSet.getString("qa_status"))
-                );
-            }
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to read case metadata " + cleanedCaseId, exception);
-        }
-    }
-
-    public void save(CaseMetadata metadata) {
-        if (metadata == null || clean(metadata.getCaseId()).isBlank()) {
-            return;
-        }
-
-        if (memoryCaseMetadata != null) {
-            memoryCaseMetadata.put(metadata.getCaseId(), metadata);
-            return;
-        }
-
-        saveReviewRecord(new ReviewRecord(
-                metadata.getCaseId(),
-                metadata.getCaseId(),
-                "Scanned case",
-                metadata.getBoxId(),
-                metadata.getProfileName(),
-                "Scan metadata",
-                metadata.isCompleted() ? "Complete" : "In Progress",
-                metadata.isApproved() ? "Approved" : "Pending QA",
-                0,
-                "Updated just now",
-                "",
-                "",
-                "Today",
-                false
-        ));
     }
 
     private ScanProfile readScanProfile(ResultSet resultSet) throws SQLException {
@@ -566,7 +506,7 @@ public class MetadataDAO {
                 FROM scan_profiles
                 WHERE LOWER(name) = LOWER(?)
                 """)) {
-            statement.setString(1, clean(profileName));
+            statement.setString(1, Strings.clean(profileName));
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -575,7 +515,38 @@ public class MetadataDAO {
             }
         }
 
-        throw new DataAccessException("Scan profile does not exist in the database: " + clean(profileName), null);
+        throw new DataAccessException("Scan profile does not exist in the database: " + Strings.clean(profileName), null);
+    }
+
+    private void deleteProfileReferences(Connection connection, int profileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM metadata_template_profile_assignments
+                WHERE scan_profile_id = ?
+                """)) {
+            statement.setInt(1, profileId);
+            statement.executeUpdate();
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM user_profile_assignments
+                WHERE scan_profile_id = ?
+                """)) {
+            statement.setInt(1, profileId);
+            statement.executeUpdate();
+        }
+    }
+
+    private void deleteProfileRow(Connection connection, int profileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM scan_profiles
+                WHERE id = ?
+                """)) {
+            statement.setInt(1, profileId);
+
+            if (statement.executeUpdate() == 0) {
+                throw new SQLException("Scan profile was not found: " + profileId);
+            }
+        }
     }
 
     private boolean reviewRecordExists(Connection connection, String recordId) throws SQLException {
@@ -716,17 +687,8 @@ public class MetadataDAO {
         );
     }
 
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
-    private boolean isComplete(String value) {
-        String normalizedValue = clean(value).toLowerCase(java.util.Locale.ROOT);
-        return normalizedValue.equals("complete") || normalizedValue.equals("approved");
-    }
-
     private String displayStatus(String status) {
-        String cleanedStatus = clean(status);
+        String cleanedStatus = Strings.clean(status);
 
         if (cleanedStatus.isBlank()) {
             return "";

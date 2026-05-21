@@ -3,8 +3,12 @@ package easv.gui.controller.user;
 import easv.be.User;
 import easv.bll.KeyboardShortcut;
 import easv.bll.ShortcutManager;
+import easv.bll.UserManager;
 import easv.bll.UserSession;
+import easv.gui.MainApp;
+import easv.gui.PrimeIcons;
 import easv.gui.UserPortalModel;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,40 +16,51 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 public class UserController implements UserNavigator {
 
     private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
-    private static final double COMPACT_NAV_WIDTH = 1180;
-    private static final String PREFERENCES_NODE = "easv.gui.portal";
-    private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
+
+    private static final String THEME_PREFERENCES_NODE = "easv.gui.weblager";
+    private static final String DARK_MODE_PREFERENCE_KEY = "darkMode";
+    private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
+    private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
+
+    private static final String ACCOUNT_SECTION = "Edit Profile";
 
     private static final String LIGHT_MODE_LOGO =
             "/images/weblager/styleguide/Main Blue/LogoBlueH.png";
@@ -53,73 +68,150 @@ public class UserController implements UserNavigator {
     private static final String DARK_MODE_LOGO =
             "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
 
-    private static final String MOON_ICON_PATH =
-            "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
+    private static final String MOON_ICON = "\ue9c7";
+    private static final String SUN_ICON = "\ue9c8";
 
-    private static final String SUN_ICON_PATH =
-            "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
+    private static final String HELP_SCAN_ICON = "\ue934";
+    private static final String HELP_QA_ICON = "\uea1b";
+    private static final String HELP_EXPORT_ICON = "\ue956";
+    private static final String HELP_SETTINGS_ICON = "\ue94a";
 
+    @FXML private StackPane appShell;
     @FXML private BorderPane appRoot;
     @FXML private StackPane contentHost;
 
     @FXML private StackPane brandMark;
     @FXML private Label brandLogoFallbackLabel;
     @FXML private ImageView brandLogoImageView;
-    @FXML private Label accountNameLabel;
-    @FXML private Label accountRoleLabel;
-    @FXML private Label avatarInitialsLabel;
 
     @FXML private ToggleButton dashboardNavItem;
     @FXML private ToggleButton scanNavItem;
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
     @FXML private ToggleButton exportsNavItem;
-    @FXML private ToggleButton helpNavItem;
-    @FXML private ToggleButton settingsNavItem;
 
+    @FXML private Button keyboardShortcutsButton;
+    @FXML private Button helpButton;
+    @FXML private Button backNavigationButton;
+    @FXML private Button homeNavigationButton;
+
+    @FXML private Button accountMenuButton;
+    @FXML private Label accountNameLabel;
+    @FXML private Label accountInitialsLabel;
+    @FXML private VBox accountDropdownPane;
+    @FXML private Label accountDropdownNameLabel;
+    @FXML private Label accountDropdownDetailLabel;
+    @FXML private Button editProfileMenuButton;
+    @FXML private Button settingsPrivacyMenuButton;
+    @FXML private Button logoutMenuButton;
     @FXML private ToggleButton darkModeToggleButton;
-    @FXML private SVGPath darkModeToggleIcon;
+    @FXML private Label darkModeToggleIcon;
 
     private final UserPortalModel portalModel = new UserPortalModel();
     private final ShortcutManager shortcutManager = new ShortcutManager();
-    private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
+    private final UserManager userManager = new UserManager();
+    private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
+
+    private MainApp mainApp;
     private Object activePageController;
+    private final Map<UserPage, Node> pageCache = new EnumMap<>(UserPage.class);
+    private final Map<UserPage, Object> controllerCache = new EnumMap<>(UserPage.class);
+    private final Deque<UserPage> pageHistory = new ArrayDeque<>();
+    private UserPage currentPage;
+    private boolean movingThroughHistory;
     private Scene shortcutScene;
     private boolean rootShortcutFiltersRegistered;
-    private UserPage currentPage = UserPage.DASHBOARD;
+
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
 
     @FXML
     private void initialize() {
-        configureShell();
+        configureAccount();
+        configureAccountMenu();
+        configureBrowserNavigationButtons();
+        configureKeyboardShortcutsButton();
+        configureHelpButton();
         configureThemeToggle();
         configureNavigation();
-        configureResponsiveNavigation();
-        configureGlobalHelpShortcuts();
+        configureGlobalShortcuts();
         showPage(UserPage.DASHBOARD);
     }
 
-    private void configureShell() {
+    private void configureBrowserNavigationButtons() {
+        if (backNavigationButton != null) {
+            backNavigationButton.setTooltip(new Tooltip("Go back"));
+            backNavigationButton.setOnAction(event -> goBack());
+        }
+
+        if (homeNavigationButton != null) {
+            homeNavigationButton.setTooltip(new Tooltip("Go to dashboard"));
+            homeNavigationButton.setOnAction(event -> showPage(UserPage.DASHBOARD));
+        }
+
+        updateBrowserNavigationButtons();
+    }
+
+    private void configureAccount() {
         UserPortalModel.AccountProfile fallbackProfile = portalModel.fetchAccountProfile();
         User currentUser = UserSession.getCurrentUser();
 
-        String accountName = currentUser == null || currentUser.getName().isBlank()
-                ? fallbackProfile.fullName()
-                : currentUser.getName();
-
-        String accountRole = currentUser == null || currentUser.getRole().isBlank()
-                ? "User Portal"
-                : currentUser.getRole();
+        String displayName = displayNameFor(currentUser, fallbackProfile);
+        String accountDetail = accountDetailFor(currentUser);
 
         if (accountNameLabel != null) {
-            accountNameLabel.setText(accountName);
+            accountNameLabel.setText(displayName);
         }
 
-        if (accountRoleLabel != null) {
-            accountRoleLabel.setText(accountRole);
+        if (accountInitialsLabel != null) {
+            accountInitialsLabel.setText(Strings.initials(displayName, "U"));
         }
 
-        if (avatarInitialsLabel != null) {
-            avatarInitialsLabel.setText(initialsFor(accountName));
+        if (accountDropdownNameLabel != null) {
+            accountDropdownNameLabel.setText(displayName);
+        }
+
+        if (accountDropdownDetailLabel != null) {
+            accountDropdownDetailLabel.setText(accountDetail);
+        }
+    }
+
+    private void configureAccountMenu() {
+        if (accountDropdownPane != null) {
+            accountDropdownPane.setMaxHeight(Region.USE_PREF_SIZE);
+            accountDropdownPane.setVisible(false);
+        }
+
+        if (accountMenuButton != null) {
+            accountMenuButton.setOnAction(event -> toggleAccountDropdown());
+        }
+
+        if (editProfileMenuButton != null) {
+            editProfileMenuButton.setOnAction(event -> showAccountSettingsPage());
+        }
+
+        if (settingsPrivacyMenuButton != null) {
+            settingsPrivacyMenuButton.setOnAction(event -> {
+                hideAccountDropdown();
+                showPage(UserPage.SETTINGS);
+            });
+        }
+
+        if (logoutMenuButton != null) {
+            logoutMenuButton.setOnAction(event -> logout());
+        }
+    }
+
+    private void configureKeyboardShortcutsButton() {
+        if (keyboardShortcutsButton != null) {
+            keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
+        }
+    }
+
+    private void configureHelpButton() {
+        if (helpButton != null) {
+            helpButton.setOnAction(event -> showHelpDialog());
         }
     }
 
@@ -134,7 +226,12 @@ public class UserController implements UserNavigator {
     }
 
     private boolean isDarkModeEnabled() {
-        return preferences.getBoolean(DARK_MODE_PREFERENCE_KEY, false);
+        Preferences legacyUserPreferences = Preferences.userRoot().node(LEGACY_USER_PREFERENCES_NODE);
+
+        return preferences.getBoolean(
+                DARK_MODE_PREFERENCE_KEY,
+                legacyUserPreferences.getBoolean(LEGACY_USER_DARK_MODE_KEY, false)
+        );
     }
 
     private void updateTheme(boolean isDark) {
@@ -145,10 +242,14 @@ public class UserController implements UserNavigator {
     }
 
     private void updateDarkModeClass(boolean isDark) {
-        appRoot.getStyleClass().remove(DARK_MODE_CLASS);
+        if (appShell == null) {
+            return;
+        }
+
+        appShell.getStyleClass().remove(DARK_MODE_CLASS);
 
         if (isDark) {
-            appRoot.getStyleClass().add(DARK_MODE_CLASS);
+            appShell.getStyleClass().add(DARK_MODE_CLASS);
         }
     }
 
@@ -179,12 +280,17 @@ public class UserController implements UserNavigator {
     }
 
     private void updateThemeControls(boolean isDark) {
-        if (darkModeToggleButton != null && darkModeToggleButton.isSelected() != isDark) {
-            darkModeToggleButton.setSelected(isDark);
+        if (darkModeToggleButton != null) {
+            if (darkModeToggleButton.isSelected() != isDark) {
+                darkModeToggleButton.setSelected(isDark);
+            }
+
+            darkModeToggleButton.setText(isDark ? "Dark Mode" : "Light Mode");
         }
 
         if (darkModeToggleIcon != null) {
-            darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
+            darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
+            PrimeIcons.applyFont(darkModeToggleIcon);
         }
     }
 
@@ -193,105 +299,44 @@ public class UserController implements UserNavigator {
             ToggleButton navItem = getNavItem(page);
 
             if (navItem != null) {
-                installCloseIcon(navItem);
-                navItem.setOnAction(event -> {
-                    if (page == UserPage.HELP) {
-                        // Help is a dialog so users can open it from any page without losing context.
-                        showKeyboardShortcutsDialog();
-                        navItem.setSelected(false);
-                        return;
-                    }
-
-                    showPage(page);
-                });
+                navItem.setOnAction(event -> showPage(page));
             }
         }
     }
 
-    private void configureResponsiveNavigation() {
-        if (appRoot == null) {
-            return;
-        }
-
-        appRoot.widthProperty().addListener((observable, oldWidth, newWidth) ->
-                updateNavigationLabelVisibility(newWidth.doubleValue())
-        );
-
-        // JavaFX knows the real window width only after the scene is visible.
-        Platform.runLater(() -> updateNavigationLabelVisibility(appRoot.getWidth()));
-    }
-
-    private void updateNavigationLabelVisibility(double width) {
-        boolean showLabels = width <= 0 || width >= COMPACT_NAV_WIDTH;
-
-        for (ToggleButton navItem : getNavigationItems()) {
-            updateNavLabelVisibility(navItem, showLabels);
-        }
-    }
-
-    private void updateNavLabelVisibility(ToggleButton navItem, boolean visible) {
-        if (navItem == null || !(navItem.getGraphic() instanceof HBox graphicBox)) {
-            return;
-        }
-
-        for (Node child : graphicBox.getChildren()) {
-            if (child.getStyleClass().contains("admin-top-nav-label")) {
-                child.setVisible(visible);
-                child.setManaged(visible);
-            }
-        }
-    }
-
-    private void installCloseIcon(ToggleButton navItem) {
-        if (!(navItem.getGraphic() instanceof HBox graphicBox)) {
-            return;
-        }
-
-        Label closeIcon = new Label("x");
-        closeIcon.getStyleClass().add("admin-nav-close-icon");
-        closeIcon.setVisible(false);
-        closeIcon.setManaged(false);
-        closeIcon.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> event.consume());
-        closeIcon.setOnMouseClicked(event -> {
-            showPage(UserPage.DASHBOARD);
-            event.consume();
-        });
-
-        graphicBox.getChildren().add(closeIcon);
-    }
-
-    private void configureGlobalHelpShortcuts() {
+    private void configureGlobalShortcuts() {
         registerRootShortcutFilters();
 
         Platform.runLater(() -> {
-            Scene scene = appRoot.getScene();
+            Scene scene = appShell == null ? null : appShell.getScene();
 
             if (scene != null) {
-                registerHelpShortcuts(scene);
+                registerSceneShortcuts(scene);
                 return;
             }
 
-            // If the scene is not ready yet, install shortcuts as soon as JavaFX attaches it.
-            appRoot.sceneProperty().addListener((observable, oldScene, newScene) -> {
-                if (newScene != null) {
-                    registerHelpShortcuts(newScene);
-                }
-            });
+            if (appShell != null) {
+                appShell.sceneProperty().addListener((observable, oldScene, newScene) -> {
+                    if (newScene != null) {
+                        registerSceneShortcuts(newScene);
+                    }
+                });
+            }
         });
     }
 
     private void registerRootShortcutFilters() {
-        if (appRoot == null || rootShortcutFiltersRegistered) {
+        if (appShell == null || rootShortcutFiltersRegistered) {
             return;
         }
 
-        // The root filter is a safety net when JavaFX focus is inside a child control.
-        appRoot.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
-        appRoot.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+        // Root filters keep scan shortcuts reachable even when focus is inside child pages.
+        appShell.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
+        appShell.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
         rootShortcutFiltersRegistered = true;
     }
 
-    private void registerHelpShortcuts(Scene scene) {
+    private void registerSceneShortcuts(Scene scene) {
         if (scene == shortcutScene) {
             return;
         }
@@ -302,8 +347,6 @@ public class UserController implements UserNavigator {
         }
 
         shortcutScene = scene;
-
-        // The scene receives key presses from every user page, not only the focused panel.
         scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
         scene.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
         scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showKeyboardShortcutsDialog);
@@ -321,13 +364,18 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        if (event.isShortcutDown() && event.getCode() == KeyCode.E) {
+            showPage(UserPage.EXPORTS);
+            event.consume();
+            return;
+        }
+
         if (activePageController instanceof ScanController scanController
                 && scanController.handleGlobalShortcut(event)) {
             event.consume();
             return;
         }
 
-        // Scan shortcuts are still reachable from other user pages: open scan, then run the same shortcut.
         if (!(event.getTarget() instanceof TextInputControl) && isScanShortcut(event)) {
             KeyCode code = event.getCode();
             boolean shortcutDown = event.isShortcutDown();
@@ -340,11 +388,7 @@ public class UserController implements UserNavigator {
     }
 
     private void handleGlobalTypedShortcut(KeyEvent event) {
-        if (event.isConsumed()) {
-            return;
-        }
-
-        if (event.getTarget() instanceof TextInputControl) {
+        if (event.isConsumed() || event.getTarget() instanceof TextInputControl) {
             return;
         }
 
@@ -386,14 +430,13 @@ public class UserController implements UserNavigator {
                 || event.getCode() == KeyCode.EQUALS
                 || event.getCode() == KeyCode.MINUS
                 || event.getCode() == KeyCode.SUBTRACT
+                || event.getCode() == KeyCode.ESCAPE
                 || "+".equals(event.getText())
                 || "-".equals(event.getText())
-                || event.getCode() == KeyCode.ESCAPE
                 || (event.isShortcutDown() && (
                 event.getCode() == KeyCode.Z
                         || event.getCode() == KeyCode.S
                         || event.getCode() == KeyCode.F
-                        || event.getCode() == KeyCode.E
         ));
     }
 
@@ -409,47 +452,46 @@ public class UserController implements UserNavigator {
         }
     }
 
-    private void showHelpPage() {
-        showPage(UserPage.HELP);
-    }
-
-    private void showKeyboardShortcutsDialog() {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Keyboard Shortcuts");
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStyleClass().addAll("app-shell", "shortcut-help-dialog-pane");
-
-        if (appRoot != null && appRoot.getStyleClass().contains(DARK_MODE_CLASS)) {
-            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
-        }
-
-        addAppStylesheet(dialog);
-        dialog.getDialogPane().setContent(createShortcutHelpDialogContent(
-                "Keyboard Shortcuts",
-                false
-        ));
-        dialog.setResizable(true);
-
-        if (appRoot != null && appRoot.getScene() != null) {
-            dialog.initOwner(appRoot.getScene().getWindow());
-        }
-
-        dialog.showAndWait();
-    }
-
-    private void addAppStylesheet(Dialog<?> dialog) {
-        URL stylesheetUrl = getClass().getResource("/css/app.css");
-
-        if (stylesheetUrl != null) {
-            dialog.getDialogPane().getStylesheets().add(stylesheetUrl.toExternalForm());
-        }
-    }
-
     @Override
     public void showPage(UserPage page) {
-        currentPage = page;
+        hideAccountDropdown();
+        rememberCurrentPageBeforeOpening(page);
         loadPage(page);
+        currentPage = page;
         setActiveNavItem(getNavItem(page));
+        updateBrowserNavigationButtons();
+    }
+
+    private void rememberCurrentPageBeforeOpening(UserPage nextPage) {
+        if (movingThroughHistory || currentPage == null || currentPage == nextPage) {
+            return;
+        }
+
+        pageHistory.push(currentPage);
+    }
+
+    private void goBack() {
+        if (pageHistory.isEmpty()) {
+            return;
+        }
+
+        UserPage previousPage = pageHistory.pop();
+        movingThroughHistory = true;
+        try {
+            showPage(previousPage);
+        } finally {
+            movingThroughHistory = false;
+        }
+    }
+
+    private void updateBrowserNavigationButtons() {
+        if (backNavigationButton != null) {
+            backNavigationButton.setDisable(pageHistory.isEmpty());
+        }
+
+        if (homeNavigationButton != null) {
+            homeNavigationButton.setDisable(currentPage == null || currentPage == UserPage.DASHBOARD);
+        }
     }
 
     @Override
@@ -463,9 +505,14 @@ public class UserController implements UserNavigator {
     }
 
     private void loadPage(UserPage page) {
+        if (showCachedPage(page)) {
+            return;
+        }
+
         if (!page.hasFxml()) {
             activePageController = null;
-            contentHost.getChildren().setAll(wrapScrollable(createProgrammaticPage(page)));
+            Node programmaticPage = wrapScrollable(createProgrammaticPage(page));
+            showAndRememberPage(page, programmaticPage, null);
             return;
         }
 
@@ -483,11 +530,32 @@ public class UserController implements UserNavigator {
             activePageController = loader.getController();
             configureLoadedController(activePageController);
             configureLoadedPageSize(loadedPage);
+            PrimeIcons.applyFont(loadedPage);
 
-            contentHost.getChildren().setAll(loadedPage);
+            showAndRememberPage(page, loadedPage, activePageController);
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load page: " + page.fxmlPath(), exception);
         }
+    }
+
+    private boolean showCachedPage(UserPage page) {
+        Node cachedPage = pageCache.get(page);
+        if (cachedPage == null) {
+            return false;
+        }
+
+        activePageController = controllerCache.get(page);
+        contentHost.getChildren().setAll(cachedPage);
+        return true;
+    }
+
+    private void showAndRememberPage(UserPage page, Node pageNode, Object controller) {
+        activePageController = controller;
+        contentHost.getChildren().setAll(pageNode);
+
+        // Keep visited pages ready, so navigation feels instant after the first load.
+        pageCache.put(page, pageNode);
+        controllerCache.put(page, controller);
     }
 
     private Node createProgrammaticPage(UserPage page) {
@@ -495,132 +563,8 @@ public class UserController implements UserNavigator {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> new ExportsController(portalModel).create();
-            case HELP -> createShortcutHelpFallbackPage();
             case SETTINGS -> new SettingsController(portalModel).create();
             default -> createMissingPagePlaceholder(page.title());
-        };
-    }
-
-    private VBox createShortcutHelpFallbackPage() {
-        VBox page = createShortcutHelpContent(
-                "Keyboard Shortcuts",
-                true
-        );
-        page.getStyleClass().add("page-content");
-        page.setMaxWidth(Double.MAX_VALUE);
-        return page;
-    }
-
-    private ScrollPane createShortcutHelpDialogContent(String titleText, boolean fullPage) {
-        ScrollPane scrollPane = new ScrollPane(createShortcutHelpContent(titleText, fullPage));
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefViewportWidth(860);
-        scrollPane.setPrefViewportHeight(560);
-        scrollPane.getStyleClass().add("shortcut-help-scroll");
-        return scrollPane;
-    }
-
-    private VBox createShortcutHelpContent(String titleText, boolean fullPage) {
-        VBox content = new VBox(0);
-        content.getStyleClass().add("shortcut-help-shell");
-
-        HBox header = createShortcutHelpHeader(titleText);
-
-        GridPane shortcutGrid = createShortcutGrid();
-
-        VBox body = new VBox(shortcutGrid);
-        body.getStyleClass().add("shortcut-help-body");
-
-        content.getChildren().addAll(header, body);
-
-        if (fullPage) {
-            content.setMaxWidth(Double.MAX_VALUE);
-        } else {
-            content.setPrefSize(860, 560);
-        }
-
-        return content;
-    }
-
-    private HBox createShortcutHelpHeader(String titleText) {
-        Label keyboardIcon = new Label("⌨");
-        keyboardIcon.getStyleClass().add("shortcut-help-header-icon");
-
-        Label title = new Label(titleText);
-        title.getStyleClass().add("shortcut-help-main-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox header = new HBox(18, keyboardIcon, title, spacer);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.getStyleClass().add("shortcut-help-header");
-        return header;
-    }
-
-    private GridPane createShortcutGrid() {
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(9);
-        grid.getStyleClass().add("shortcut-help-grid");
-
-        ColumnConstraints leftColumn = new ColumnConstraints();
-        leftColumn.setPercentWidth(50);
-        ColumnConstraints rightColumn = new ColumnConstraints();
-        rightColumn.setPercentWidth(50);
-        grid.getColumnConstraints().addAll(leftColumn, rightColumn);
-
-        List<KeyboardShortcut> shortcuts = shortcutManager.getShortcuts();
-
-        for (int index = 0; index < shortcuts.size(); index++) {
-            int column = index % 2;
-            int row = index / 2;
-            grid.add(createShortcutCard(shortcuts.get(index)), column, row);
-        }
-
-        return grid;
-    }
-
-    private HBox createShortcutCard(KeyboardShortcut shortcut) {
-        Label icon = new Label(shortcutIcon(shortcut));
-        icon.getStyleClass().add("shortcut-help-icon");
-
-        Label keys = new Label(shortcut.getDisplayKeys());
-        keys.getStyleClass().add("settings-shortcut-key");
-
-        Label actionName = new Label(shortcut.getActionName());
-        actionName.getStyleClass().add("shortcut-help-title");
-
-        HBox heading = new HBox(8, keys, actionName);
-        heading.setAlignment(Pos.CENTER_LEFT);
-
-        Label action = new Label(shortcut.getDescription());
-        action.getStyleClass().add("settings-shortcut-copy");
-        action.setWrapText(true);
-
-        VBox copy = new VBox(4, heading, action);
-        HBox.setHgrow(copy, Priority.ALWAYS);
-
-        HBox card = new HBox(12, icon, copy);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.getStyleClass().add("shortcut-help-card");
-        return card;
-    }
-
-    private String shortcutIcon(KeyboardShortcut shortcut) {
-        return switch (shortcut.getActionName()) {
-            case "Next page" -> "→";
-            case "Previous page" -> "←";
-            case "Rotate" -> "↻";
-            case "Delete" -> "⌫";
-            case "Undo" -> "↶";
-            case "Save" -> "✓";
-            case "Search / jump" -> "⌕";
-            case "Export" -> "⇩";
-            case "Zoom in" -> "+";
-            case "Zoom out" -> "-";
-            case "Escape" -> "×";
-            default -> "?";
         };
     }
 
@@ -655,7 +599,7 @@ public class UserController implements UserNavigator {
         Label titleLabel = new Label(pageTitle);
         titleLabel.getStyleClass().add("page-title");
 
-        Label subtitleLabel = new Label("This page has not been created yet.");
+        Label subtitleLabel = new Label("No content is available for this section.");
         subtitleLabel.getStyleClass().add("page-subtitle");
 
         VBox placeholder = new VBox(6, titleLabel, subtitleLabel);
@@ -678,39 +622,33 @@ public class UserController implements UserNavigator {
     private void setNavItemActive(ToggleButton navItem, boolean active) {
         navItem.setSelected(active);
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
+        removeNavCloseButton(navItem);
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
+            addNavCloseButton(navItem);
         }
-
-        updateNavCloseIcon(navItem, active && currentPage != UserPage.DASHBOARD);
     }
 
-    private void updateNavCloseIcon(ToggleButton navItem, boolean visible) {
-        if (!(navItem.getGraphic() instanceof HBox graphicBox)) {
+    private void addNavCloseButton(ToggleButton navItem) {
+        if (navItem == null || navItem == dashboardNavItem || !(navItem.getGraphic() instanceof HBox graphic)) {
             return;
         }
 
-        for (Node child : graphicBox.getChildren()) {
-            if (child.getStyleClass().contains("admin-nav-close-icon")) {
-                child.setVisible(visible);
-                child.setManaged(visible);
-            }
-        }
+        Label closeLabel = new Label("x");
+        closeLabel.getStyleClass().add("admin-top-nav-close");
+        closeLabel.setOnMouseClicked(event -> {
+            event.consume();
+            showPage(UserPage.DASHBOARD);
+        });
+
+        graphic.getChildren().add(closeLabel);
     }
 
-    private String initialsFor(String name) {
-        if (name == null || name.isBlank()) {
-            return "U";
+    private void removeNavCloseButton(ToggleButton navItem) {
+        if (navItem != null && navItem.getGraphic() instanceof HBox graphic) {
+            graphic.getChildren().removeIf(node -> node.getStyleClass().contains("admin-top-nav-close"));
         }
-
-        String[] parts = name.trim().split("\\s+");
-
-        if (parts.length == 1) {
-            return parts[0].substring(0, 1).toUpperCase();
-        }
-
-        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
     }
 
     private List<ToggleButton> getNavigationItems() {
@@ -719,9 +657,7 @@ public class UserController implements UserNavigator {
                 scanNavItem,
                 myScansNavItem,
                 assignedQANavItem,
-                exportsNavItem,
-                helpNavItem,
-                settingsNavItem
+                exportsNavItem
         );
     }
 
@@ -732,8 +668,634 @@ public class UserController implements UserNavigator {
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
             case EXPORTS -> exportsNavItem;
-            case HELP -> helpNavItem;
-            case SETTINGS -> settingsNavItem;
+            case EDIT_PROFILE -> null;
+            case SETTINGS -> null;
         };
     }
+
+    private void toggleAccountDropdown() {
+        if (accountDropdownPane == null) {
+            return;
+        }
+
+        boolean shouldShow = !accountDropdownPane.isVisible();
+        accountDropdownPane.setVisible(shouldShow);
+
+        if (shouldShow) {
+            accountDropdownPane.toFront();
+        }
+    }
+
+    private void hideAccountDropdown() {
+        if (accountDropdownPane != null) {
+            accountDropdownPane.setVisible(false);
+        }
+    }
+
+    private void showAccountSettingsPage() {
+        hideAccountDropdown();
+        setActiveNavItem(null);
+        contentHost.getChildren().setAll(wrapScrollable(createAccountSettingsPage()));
+    }
+
+    private VBox createAccountSettingsPage() {
+        Label titleLabel = new Label(ACCOUNT_SECTION);
+        titleLabel.getStyleClass().add("page-title");
+
+        Label subtitleLabel = new Label("Manage your account information and password.");
+        subtitleLabel.getStyleClass().add("page-subtitle");
+
+        VBox intro = new VBox(3, titleLabel, subtitleLabel);
+        intro.getStyleClass().add("page-heading-copy");
+
+        VBox detailsPanel = new VBox(20);
+        detailsPanel.getStyleClass().addAll("portal-card", "settings-panel");
+        detailsPanel.setMaxWidth(Double.MAX_VALUE);
+        detailsPanel.getChildren().setAll(buildAccountProfileSection());
+
+        VBox page = new VBox(18, intro, detailsPanel);
+        page.getStyleClass().addAll("portal-page", "main-content");
+        page.setMaxWidth(Double.MAX_VALUE);
+        page.setMaxHeight(Double.MAX_VALUE);
+
+        return page;
+    }
+
+    private Node buildAccountProfileSection() {
+        User account = currentAccountUser();
+        UserPortalModel.AccountProfile fallbackProfile = portalModel.fetchAccountProfile();
+
+        Label heading = new Label("Account Information");
+        heading.getStyleClass().add("settings-section-heading");
+
+        TextField nameField = createAccountTextField(displayNameFor(account, fallbackProfile));
+        TextField usernameField = createAccountTextField(account == null ? "" : Strings.clean(account.getUsername()));
+        TextField emailField = createAccountTextField(account == null ? "" : Strings.clean(account.getEmail()));
+        TextField roleField = createAccountTextField(account == null ? "User" : Strings.clean(account.getRole()));
+        TextField statusField = createAccountTextField(account == null ? "Active" : Strings.clean(account.getStatus()));
+
+        roleField.setEditable(false);
+        statusField.setEditable(false);
+        roleField.getStyleClass().add("admin-account-readonly-field");
+        statusField.getStyleClass().add("admin-account-readonly-field");
+
+        PasswordField newPasswordField = createAccountPasswordField("New password");
+        PasswordField confirmPasswordField = createAccountPasswordField("Confirm new password");
+
+        Label saveMessage = new Label();
+        saveMessage.getStyleClass().add("portal-inline-message");
+        saveMessage.setVisible(false);
+        saveMessage.setManaged(false);
+
+        Button saveButton = new Button("Save Changes");
+        saveButton.getStyleClass().add("portal-primary-button");
+        saveButton.setOnAction(event -> saveAccountProfile(
+                account,
+                nameField,
+                usernameField,
+                emailField,
+                newPasswordField,
+                confirmPasswordField,
+                saveMessage
+        ));
+
+        VBox accountForm = new VBox(14,
+                formField("Full Name", nameField),
+                formField("Username", usernameField),
+                formField("Email Address", emailField),
+                formField("Role", roleField),
+                formField("Status", statusField)
+        );
+        accountForm.getStyleClass().add("settings-form");
+
+        VBox passwordForm = new VBox(14,
+                sectionLabel("Password"),
+                formField("New Password", newPasswordField),
+                formField("Confirm Password", confirmPasswordField)
+        );
+        passwordForm.getStyleClass().add("settings-form");
+
+        HBox actions = new HBox(12, saveButton, saveMessage);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox content = new VBox(20,
+                heading,
+                accountForm,
+                divider(),
+                passwordForm,
+                divider(),
+                actions
+        );
+        content.getStyleClass().add("settings-form");
+
+        return content;
+    }
+
+    private void saveAccountProfile(User account,
+                                    TextField nameField,
+                                    TextField usernameField,
+                                    TextField emailField,
+                                    PasswordField newPasswordField,
+                                    PasswordField confirmPasswordField,
+                                    Label saveMessage) {
+        if (account == null) {
+            showInlineMessage(saveMessage, "Could not find the current account.", false);
+            return;
+        }
+
+        String newPassword = newPasswordField.getText() == null ? "" : newPasswordField.getText();
+        String confirmPassword = confirmPasswordField.getText() == null ? "" : confirmPasswordField.getText();
+
+        if (!newPassword.isBlank() || !confirmPassword.isBlank()) {
+            if (!newPassword.equals(confirmPassword)) {
+                showInlineMessage(saveMessage, "Passwords do not match.", false);
+                return;
+            }
+        }
+
+        try {
+            User updatedUser = userManager.updateCurrentAccount(
+                    new UserManager.AccountInput(
+                            nameField.getText(),
+                            usernameField.getText(),
+                            emailField.getText(),
+                            newPassword
+                    )
+            );
+
+            UserSession.setCurrentUser(updatedUser);
+            configureAccount();
+
+            newPasswordField.clear();
+            confirmPasswordField.clear();
+
+            showInlineMessage(saveMessage, "Changes saved.", true);
+        } catch (RuntimeException exception) {
+            showInlineMessage(saveMessage, exception.getMessage(), false);
+        }
+    }
+
+    private User currentAccountUser() {
+        return userManager.getCurrentAccount();
+    }
+
+    private VBox formField(String labelText, Node field) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("form-label");
+        return new VBox(8, label, field);
+    }
+
+    private Label sectionLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("portal-section-title");
+        return label;
+    }
+
+    private TextField createAccountTextField(String value) {
+        TextField field = new TextField(value);
+        field.getStyleClass().add("portal-text-field");
+        field.setMaxWidth(Double.MAX_VALUE);
+        return field;
+    }
+
+    private PasswordField createAccountPasswordField(String promptText) {
+        PasswordField field = new PasswordField();
+        field.setPromptText(promptText);
+        field.getStyleClass().add("portal-text-field");
+        field.setMaxWidth(Double.MAX_VALUE);
+        return field;
+    }
+
+    private Region divider() {
+        Region divider = new Region();
+        divider.getStyleClass().add("portal-divider");
+        return divider;
+    }
+
+    private void showInlineMessage(Label messageLabel, String message, boolean success) {
+        messageLabel.getStyleClass().removeAll("success", "error");
+        messageLabel.getStyleClass().add(success ? "success" : "error");
+        messageLabel.setText(Strings.clean(message).isBlank() ? "Something went wrong." : message);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
+    private void showKeyboardShortcutsDialog() {
+        hideAccountDropdown();
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setHeaderText(null);
+        dialog.setTitle("Keyboard Shortcuts");
+
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        dialog.getDialogPane().getStyleClass().addAll(
+                "app-shell",
+                "weblager-shortcuts-dialog-pane"
+        );
+
+        if (isDarkModeEnabled()) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
+
+        if (appShell != null && appShell.getScene() != null) {
+            dialog.initOwner(appShell.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
+        }
+
+        dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
+        dialog.showAndWait();
+    }
+
+    private VBox createKeyboardShortcutsContent(Dialog<ButtonType> dialog) {
+        VBox root = new VBox();
+        root.getStyleClass().add("weblager-shortcuts-root");
+
+        root.getChildren().addAll(
+                createKeyboardShortcutsHeader(dialog),
+                createKeyboardShortcutsBody(dialog)
+        );
+
+        return root;
+    }
+
+    private HBox createKeyboardShortcutsHeader(Dialog<ButtonType> dialog) {
+        Label keyboardIcon = new Label("\ue981");
+        keyboardIcon.getStyleClass().addAll("prime-icon", "weblager-shortcuts-title-icon");
+        PrimeIcons.applyFont(keyboardIcon);
+
+        StackPane iconShell = new StackPane(keyboardIcon);
+        iconShell.getStyleClass().add("weblager-shortcuts-title-icon-shell");
+
+        Label title = new Label("Keyboard Shortcuts");
+        title.getStyleClass().add("weblager-shortcuts-title");
+
+        Label subtitle = new Label("Common actions for scanning and review.");
+        subtitle.getStyleClass().add("weblager-shortcuts-subtitle");
+
+        VBox copy = new VBox(3, title, subtitle);
+        copy.getStyleClass().add("weblager-shortcuts-header-copy");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("weblager-shortcuts-x-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        HBox header = new HBox(18, iconShell, copy, spacer, closeButton);
+        header.getStyleClass().add("weblager-shortcuts-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private VBox createKeyboardShortcutsBody(Dialog<ButtonType> dialog) {
+        GridPane grid = new GridPane();
+        grid.getStyleClass().add("weblager-shortcuts-grid");
+        grid.setHgap(18);
+        grid.setVgap(14);
+
+        List<ShortcutData> shortcuts = shortcutManager.getShortcuts().stream()
+                .map(this::shortcutData)
+                .toList();
+
+        for (int index = 0; index < shortcuts.size(); index++) {
+            int column = index % 2;
+            int row = index / 2;
+            grid.add(createKeyboardShortcutRow(shortcuts.get(index)), column, row);
+        }
+
+        Label footerText = new Label("Open this dialog anytime from the keyboard button, F1, or ?.");
+        footerText.getStyleClass().add("weblager-shortcuts-footer-text");
+
+        Button closeButton = new Button("Close");
+        closeButton.getStyleClass().add("weblager-shortcuts-close-button");
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        VBox body = new VBox(18, grid, footerText, closeButton);
+        body.getStyleClass().add("weblager-shortcuts-body");
+        body.setAlignment(Pos.TOP_CENTER);
+
+        return body;
+    }
+
+    private HBox createKeyboardShortcutRow(ShortcutData shortcut) {
+        Label icon = new Label(shortcut.icon());
+        icon.getStyleClass().addAll("prime-icon", "weblager-shortcuts-row-icon");
+        PrimeIcons.applyFont(icon);
+
+        StackPane iconShell = new StackPane(icon);
+        iconShell.getStyleClass().add("weblager-shortcuts-row-icon-shell");
+
+        Label key = new Label(shortcut.key());
+        key.getStyleClass().add("weblager-shortcuts-key");
+
+        Label label = new Label(shortcut.label());
+        label.getStyleClass().add("weblager-shortcuts-action-label");
+
+        Label description = new Label(shortcut.description());
+        description.getStyleClass().add("weblager-shortcuts-action-description");
+        description.setWrapText(true);
+
+        HBox titleRow = new HBox(10, key, label);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox text = new VBox(4, titleRow, description);
+        text.getStyleClass().add("weblager-shortcuts-row-copy");
+
+        HBox row = new HBox(16, iconShell, text);
+        row.getStyleClass().add("weblager-shortcuts-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        return row;
+    }
+
+    private ShortcutData shortcutData(KeyboardShortcut shortcut) {
+        return new ShortcutData(
+                shortcutIcon(shortcut.getActionName()),
+                shortcut.getActionName(),
+                shortcut.getDisplayKeys(),
+                shortcut.getDescription()
+        );
+    }
+
+    private String shortcutIcon(String actionName) {
+        return switch (actionName) {
+            case "Next page" -> "\ue933";
+            case "Previous page" -> "\ue932";
+            case "Rotate" -> "\ue914";
+            case "Delete" -> "\ue90b";
+            case "Undo" -> "\ue931";
+            case "Save" -> "\ue962";
+            case "Search / jump" -> "\ue908";
+            case "Export" -> "\ue956";
+            case "Zoom in" -> "\ue9dd";
+            case "Zoom out" -> "\ue9de";
+            case "Escape" -> "\ue90b";
+            case "Shortcut help" -> "\ue981";
+            default -> "\ue981";
+        };
+    }
+
+    private record ShortcutData(String icon, String label, String key, String description) {
+    }
+
+    private void showHelpDialog() {
+        hideAccountDropdown();
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setHeaderText(null);
+
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        dialog.getDialogPane().getStyleClass().addAll(
+                "app-shell",
+                "weblager-help-dialog-pane"
+        );
+
+        if (isDarkModeEnabled()) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
+
+        if (appShell != null && appShell.getScene() != null) {
+            dialog.initOwner(appShell.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
+        }
+
+        dialog.getDialogPane().setContent(createHelpDialogContent(dialog));
+        dialog.showAndWait();
+    }
+
+    private VBox createHelpDialogContent(Dialog<ButtonType> dialog) {
+        VBox root = new VBox();
+        root.getStyleClass().add("weblager-help-root");
+
+        root.getChildren().addAll(
+                createHelpDialogHeader(dialog),
+                createHelpDialogBody()
+        );
+
+        return root;
+    }
+
+    private HBox createHelpDialogHeader(Dialog<ButtonType> dialog) {
+        Label title = new Label("Help & Documentation");
+        title.getStyleClass().add("weblager-help-title");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("weblager-help-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        HBox header = new HBox(12, title, spacer, closeButton);
+        header.getStyleClass().add("weblager-help-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private ScrollPane createHelpDialogBody() {
+        VBox content = new VBox(18);
+        content.getStyleClass().add("weblager-help-content");
+
+        VBox gettingStartedRows = new VBox(15,
+                createHelpRow(
+                        HELP_SCAN_ICON,
+                        "Starting a Scan",
+                        "Navigate to New Scan, select your scan type, choose a profile, and enter the Box ID. The system will guide you through each page for quality approval."
+                ),
+                createHelpRow(
+                        HELP_QA_ICON,
+                        "Quality Assurance",
+                        "During scanning, review each page as it appears. Use Space to approve, F to flag for rescan, or Delete to remove. Flagged pages can be rescanned later."
+                ),
+                createHelpRow(
+                        HELP_EXPORT_ICON,
+                        "Exporting Files",
+                        "After scanning, configure your export settings including format, quality level, and OCR options. Files are available in the Exports page."
+                ),
+                createHelpRow(
+                        HELP_SETTINGS_ICON,
+                        "Customizing Settings",
+                        "Open your account menu to access Settings and Privacy, dark mode, account details, and logout."
+                )
+        );
+
+        VBox commonQuestions = new VBox(6,
+                createHelpSectionTitle("Common Questions"),
+                createQuestion(
+                        "What's the difference between single and multi scan?",
+                        "Single scan is for one document with multiple pages. Multi scan allows you to scan multiple separate documents in one session."
+                ),
+                createQuestion(
+                        "Can I edit a scan after completion?",
+                        "Once completed, you can view and export scans but cannot modify them. You can flag pages for rescan or delete unwanted pages during the scanning process."
+                ),
+                createQuestion(
+                        "How long are exports stored?",
+                        "Exports are stored for 30 days. Download important files promptly to avoid data loss."
+                )
+        );
+        commonQuestions.getStyleClass().add("weblager-help-questions");
+
+        content.getChildren().addAll(
+                createHelpSectionTitle("Getting Started"),
+                gettingStartedRows,
+                createHelpDivider(),
+                commonQuestions,
+                createHelpDivider(),
+                createHelpSupportSection()
+        );
+
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false);
+        scrollPane.setPrefViewportWidth(690);
+        scrollPane.setPrefViewportHeight(510);
+        scrollPane.getStyleClass().add("weblager-help-scroll");
+
+        return scrollPane;
+    }
+
+    private VBox createHelpSupportSection() {
+        Label title = new Label("Need More Help?");
+        title.getStyleClass().add("weblager-help-section-title");
+
+        Label copy = new Label("Contact your system administrator or IT support team for additional assistance.");
+        copy.setWrapText(true);
+        copy.getStyleClass().add("weblager-help-support-copy");
+
+        VBox section = new VBox(12, title, copy);
+        section.getStyleClass().add("weblager-help-support-section");
+
+        return section;
+    }
+
+    private HBox createHelpRow(String iconGlyph, String titleText, String bodyText) {
+        Label icon = PrimeIcons.create(iconGlyph, "weblager-help-icon");
+
+        StackPane iconShell = new StackPane(icon);
+        iconShell.getStyleClass().add("weblager-help-icon-shell");
+
+        Label title = new Label(titleText);
+        title.getStyleClass().add("weblager-help-row-title");
+
+        Label body = new Label(bodyText);
+        body.setWrapText(true);
+        body.getStyleClass().add("weblager-help-row-copy");
+
+        VBox textBox = new VBox(4, title, body);
+        textBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        HBox row = new HBox(15, iconShell, textBox);
+        row.setAlignment(Pos.TOP_LEFT);
+        row.getStyleClass().add("weblager-help-row");
+
+        return row;
+    }
+
+    private TitledPane createQuestion(String questionText, String answerText) {
+        Label answer = new Label(answerText);
+        answer.setWrapText(true);
+        answer.getStyleClass().add("weblager-help-answer");
+
+        TitledPane question = new TitledPane(questionText, answer);
+        question.setExpanded(false);
+        question.setAnimated(false);
+        question.setFocusTraversable(false);
+        question.getStyleClass().add("weblager-help-question");
+
+        return question;
+    }
+
+    private Label createHelpSectionTitle(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("weblager-help-section-title");
+        return label;
+    }
+
+    private Region createHelpDivider() {
+        Region divider = new Region();
+        divider.getStyleClass().add("weblager-help-divider");
+        return divider;
+    }
+
+    private void logout() {
+        UserSession.clearCurrentUser();
+        hideAccountDropdown();
+
+        if (mainApp == null) {
+            return;
+        }
+
+        try {
+            mainApp.showLoginView();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not return to login.", exception);
+        }
+    }
+
+    private String displayNameFor(User user, UserPortalModel.AccountProfile fallbackProfile) {
+        if (user != null) {
+            if (!Strings.clean(user.getName()).isBlank()) {
+                return Strings.clean(user.getName());
+            }
+
+            if (!Strings.clean(user.getUsername()).isBlank()) {
+                return Strings.clean(user.getUsername());
+            }
+        }
+
+        if (fallbackProfile != null && !Strings.clean(fallbackProfile.fullName()).isBlank()) {
+            return Strings.clean(fallbackProfile.fullName());
+        }
+
+        return "User";
+    }
+
+    private String accountDetailFor(User user) {
+        if (user == null) {
+            return "User account";
+        }
+
+        if (!Strings.clean(user.getEmail()).isBlank()) {
+            return Strings.clean(user.getEmail());
+        }
+
+        if (!Strings.clean(user.getUsername()).isBlank()) {
+            return Strings.clean(user.getUsername());
+        }
+
+        return Strings.clean(user.getRole()).isBlank() ? "User account" : Strings.clean(user.getRole()) + " account";
+    }
+
 }

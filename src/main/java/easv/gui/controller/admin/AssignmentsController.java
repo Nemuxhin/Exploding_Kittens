@@ -3,6 +3,7 @@ package easv.gui.controller.admin;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,7 +23,6 @@ import javafx.scene.layout.VBox;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -251,7 +251,7 @@ public class AssignmentsController {
     }
 
     private void renderProfileList() {
-        String searchText = normalize(leftSearchField.getText());
+        String searchText = Strings.normalize(leftSearchField.getText());
         String selectedStatus = leftFilterComboBox.getValue();
 
         leftListContainer.getChildren().setAll(
@@ -264,7 +264,7 @@ public class AssignmentsController {
     }
 
     private void renderUserList() {
-        String searchText = normalize(leftSearchField.getText());
+        String searchText = Strings.normalize(leftSearchField.getText());
         String selectedRole = leftFilterComboBox.getValue();
 
         leftListContainer.getChildren().setAll(
@@ -284,7 +284,7 @@ public class AssignmentsController {
         textBox.getChildren().addAll(
                 createLabel(profile.getName(), "assignment-list-title"),
                 createLabel(formatAssignedUsers(getAssignedUserIds(profile.getId()).size()), "assignment-list-subtitle"),
-                createLabel("Export: " + displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-list-subtitle")
+                createLabel("Export: " + Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-list-subtitle")
         );
 
         content.getChildren().addAll(
@@ -315,7 +315,7 @@ public class AssignmentsController {
         VBox textBox = new VBox(6);
         textBox.getChildren().addAll(
                 createLabel(user.getName(), "assignment-list-title"),
-                createLabel(displayText(user.getEmail(), "No email"), "assignment-list-subtitle"),
+                createLabel(Strings.displayText(user.getEmail(), "No email"), "assignment-list-subtitle"),
                 createLabel(formatAssignedProfiles(getAssignedProfileIds(user.getId()).size()), "assignment-list-subtitle")
         );
 
@@ -376,8 +376,8 @@ public class AssignmentsController {
         }
 
         selectedTitleLabel.setText(selectedProfile.getName());
-        selectedSubtitleLabel.setText(displayText(selectedProfile.getDescription(), "No description"));
-        selectedCodeLabel.setText(displayText(selectedProfile.getExportNaming(), "{profileCode}_{boxId}"));
+        selectedSubtitleLabel.setText(Strings.displayText(selectedProfile.getDescription(), "No description"));
+        selectedCodeLabel.setText(Strings.displayText(selectedProfile.getExportNaming(), "{profileCode}_{boxId}"));
         updateSelectedStatus(displayProfileStatus(selectedProfile));
     }
 
@@ -388,7 +388,7 @@ public class AssignmentsController {
         }
 
         selectedTitleLabel.setText(selectedUser.getName());
-        selectedSubtitleLabel.setText(displayText(selectedUser.getEmail(), "No email"));
+        selectedSubtitleLabel.setText(Strings.displayText(selectedUser.getEmail(), "No email"));
         selectedCodeLabel.setText(selectedUser.getRole() + " account");
         updateSelectedStatus(selectedUser.getStatus());
     }
@@ -398,7 +398,7 @@ public class AssignmentsController {
         selectedSubtitleLabel.setText("");
         selectedCodeLabel.setText("");
         selectedStatusBadge.setText("");
-        selectedStatusBadge.getStyleClass().setAll("metadata-status-badge", "metadata-status-archived");
+        selectedStatusBadge.getStyleClass().setAll("assignment-status-badge", "assignment-status-archived");
     }
 
     private void renderAssignmentRows() {
@@ -415,7 +415,7 @@ public class AssignmentsController {
             return;
         }
 
-        String searchText = normalize(rightSearchField.getText());
+        String searchText = Strings.normalize(rightSearchField.getText());
         String selectedRole = rightFilterComboBox.getValue();
 
         assignmentRowsContainer.getChildren().setAll(
@@ -433,7 +433,7 @@ public class AssignmentsController {
             return;
         }
 
-        String searchText = normalize(rightSearchField.getText());
+        String searchText = Strings.normalize(rightSearchField.getText());
         String selectedStatus = rightFilterComboBox.getValue();
 
         assignmentRowsContainer.getChildren().setAll(
@@ -450,12 +450,12 @@ public class AssignmentsController {
 
         VBox textBox = createAssignmentTextBox(
                 user.getName(),
-                displayText(user.getEmail(), "No email")
+                Strings.displayText(user.getEmail(), "No email")
         );
 
         HBox content = createAssignmentRowContent(row);
         content.getChildren().addAll(
-                createAvatar(initialsFor(user.getName())),
+                createAvatar(Strings.initials(user.getName(), "")),
                 textBox,
                 createRoleBadge(user.getRole()),
                 createStatusBadge(user.getStatus())
@@ -472,12 +472,12 @@ public class AssignmentsController {
 
         VBox textBox = createAssignmentTextBox(
                 profile.getName(),
-                displayText(profile.getExportNaming(), "{profileCode}_{boxId}")
+                Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}")
         );
 
         HBox content = createAssignmentRowContent(row);
         content.getChildren().addAll(
-                createAvatar(initialsFor(profile.getName())),
+                createAvatar(Strings.initials(profile.getName(), "")),
                 textBox,
                 createStatusBadge(displayProfileStatus(profile))
         );
@@ -558,12 +558,12 @@ public class AssignmentsController {
 
     private void updateSelectedStatus(String status) {
         selectedStatusBadge.setText(status);
-        selectedStatusBadge.getStyleClass().setAll("metadata-status-badge", statusClassFor(status));
+        selectedStatusBadge.getStyleClass().setAll("assignment-status-badge", statusClassFor(status));
     }
 
     private Label createStatusBadge(String status) {
         Label badge = new Label(status);
-        badge.getStyleClass().addAll("metadata-status-badge", statusClassFor(status));
+        badge.getStyleClass().addAll("assignment-status-badge", statusClassFor(status));
         return badge;
     }
 
@@ -644,10 +644,10 @@ public class AssignmentsController {
             return true;
         }
 
-        return normalize(profile.getName()).contains(searchText)
-                || normalize(profile.getDescription()).contains(searchText)
-                || normalize(profile.getExportNaming()).contains(searchText)
-                || normalize(displayProfileStatus(profile)).contains(searchText);
+        return Strings.normalize(profile.getName()).contains(searchText)
+                || Strings.normalize(profile.getDescription()).contains(searchText)
+                || Strings.normalize(profile.getExportNaming()).contains(searchText)
+                || Strings.normalize(displayProfileStatus(profile)).contains(searchText);
     }
 
     private boolean matchesUserSearch(User user, String searchText) {
@@ -655,10 +655,10 @@ public class AssignmentsController {
             return true;
         }
 
-        return normalize(user.getName()).contains(searchText)
-                || normalize(user.getEmail()).contains(searchText)
-                || normalize(user.getRole()).contains(searchText)
-                || normalize(user.getStatus()).contains(searchText);
+        return Strings.normalize(user.getName()).contains(searchText)
+                || Strings.normalize(user.getEmail()).contains(searchText)
+                || Strings.normalize(user.getRole()).contains(searchText)
+                || Strings.normalize(user.getStatus()).contains(searchText);
     }
 
     private boolean matchesStatus(String status, String selectedStatus) {
@@ -678,11 +678,11 @@ public class AssignmentsController {
     }
 
     private String statusClassFor(String status) {
-        return switch (normalize(status)) {
-            case "active" -> "metadata-status-active";
-            case "draft" -> "metadata-status-draft";
-            case "archived", "inactive" -> "metadata-status-archived";
-            default -> "metadata-status-archived";
+        return switch (Strings.normalize(status)) {
+            case "active" -> "assignment-status-active";
+            case "draft" -> "assignment-status-draft";
+            case "archived", "inactive" -> "assignment-status-archived";
+            default -> "assignment-status-archived";
         };
     }
 
@@ -714,108 +714,9 @@ public class AssignmentsController {
                 .findFirst();
     }
 
-    private String displayText(String value, String fallback) {
-        String cleanedValue = value == null ? "" : value.trim();
-        return cleanedValue.isBlank() ? fallback : cleanedValue;
-    }
-
-    private String initialsFor(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
-        }
-
-        String[] parts = value.trim().split("\\s+");
-
-        if (parts.length == 1) {
-            return parts[0]
-                    .substring(0, Math.min(2, parts[0].length()))
-                    .toUpperCase(Locale.ROOT);
-        }
-
-        return (parts[0].substring(0, 1) + parts[1].substring(0, 1))
-                .toUpperCase(Locale.ROOT);
-    }
-
-    private String normalize(String value) {
-        return value == null
-                ? ""
-                : value.trim().toLowerCase(Locale.ROOT);
-    }
 
     private enum AssignmentMode {
         BY_PROFILE,
         BY_USER
-    }
-
-    static final class ProfileAccessModel {
-        private final int id;
-        private final String name;
-        private final String description;
-        private final String exportNaming;
-        private final String status;
-
-        ProfileAccessModel(int id, String name, String description, String exportNaming, String status) {
-            this.id = id;
-            this.name = name;
-            this.description = description;
-            this.exportNaming = exportNaming;
-            this.status = status;
-        }
-
-        int id() {
-            return id;
-        }
-
-        String name() {
-            return name;
-        }
-
-        String description() {
-            return description;
-        }
-
-        String exportNaming() {
-            return exportNaming;
-        }
-
-        String status() {
-            return status;
-        }
-    }
-
-    static final class UserAccessModel {
-        private final int id;
-        private final String name;
-        private final String email;
-        private final String role;
-        private final String status;
-
-        UserAccessModel(int id, String name, String email, String role, String status) {
-            this.id = id;
-            this.name = name;
-            this.email = email;
-            this.role = role;
-            this.status = status;
-        }
-
-        int id() {
-            return id;
-        }
-
-        String name() {
-            return name;
-        }
-
-        String email() {
-            return email;
-        }
-
-        String role() {
-            return role;
-        }
-
-        String status() {
-            return status;
-        }
     }
 }

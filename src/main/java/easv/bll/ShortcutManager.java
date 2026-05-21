@@ -17,7 +17,7 @@ public class ShortcutManager {
                 new KeyboardShortcut("Ctrl + Z", "CTRL+Z", "Undo", "Undo the last supported action."),
                 new KeyboardShortcut("Ctrl + S", "CTRL+S", "Save", "Save progress when the current page supports it."),
                 new KeyboardShortcut("Ctrl + F", "CTRL+F", "Search / jump", "Find a page by reference, file name, or document number."),
-                new KeyboardShortcut("Ctrl + E", "CTRL+E", "Export", "Open the TIFF export window."),
+                new KeyboardShortcut("Ctrl + E", "CTRL+E", "Export", "Open the Exports section."),
                 new KeyboardShortcut("+", "PLUS", "Zoom in", "Zoom in on the current page."),
                 new KeyboardShortcut("-", "MINUS", "Zoom out", "Zoom out from the current page."),
                 new KeyboardShortcut("Esc", "ESCAPE", "Escape", "Close modals or cancel the current action."),

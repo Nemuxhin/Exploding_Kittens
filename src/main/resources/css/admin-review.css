@@ -1,0 +1,573 @@
+/* =========================================================
+   WEBLAGER ADMIN REVIEW WORKSPACE
+   Review center and review workspace styles.
+   ========================================================= */
+
+/* =========================================================
+   REVIEW WORKSPACE
+   Project note: review has a denser workspace layout, so
+   workspace widths and toolbar actions are scoped to that screen.
+   ========================================================= */
+
+.review-queue-grid {
+    -fx-alignment: center;
+}
+
+.review-queue-card {
+    -fx-min-height: 111;
+    -fx-pref-height: 111;
+    -fx-max-height: 111;
+    -fx-padding: 18 21 18 21;
+    -fx-spacing: 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-insets: 0;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.review-queue-card:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-queue-warning {
+    -fx-border-color: -wl-status-warning-border;
+}
+
+.review-queue-danger {
+    -fx-border-color: -wl-status-danger-border;
+}
+
+.review-queue-success {
+    -fx-border-color: -wl-status-success-border;
+}
+
+.review-queue-neutral {
+    -fx-border-color: -wl-border;
+}
+
+.review-card-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.review-card-count {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.review-card-icon-box,
+.review-card-icon-warning-box,
+.review-card-icon-danger-box,
+.review-card-icon-success-box,
+.review-card-icon-neutral-box {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+}
+
+.review-card-icon-warning-box {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.review-card-icon-danger-box {
+    -fx-background-color: -wl-status-danger-bg;
+}
+
+.review-card-icon-success-box {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.review-card-icon-neutral-box {
+    -fx-background-color: -wl-card-content;
+}
+
+.review-card-icon-warning,
+.review-card-icon-danger,
+.review-card-icon-success,
+.review-card-icon-neutral {
+    -fx-font-size: 15px;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.review-card-icon-warning {
+    -fx-fill: -wl-status-warning-text;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-card-icon-warning.prime-icon-vector {
+    -fx-fill: -wl-status-warning-text;
+}
+
+.review-card-icon-danger {
+    -fx-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-card-icon-danger.prime-icon-vector {
+    -fx-fill: -wl-status-danger-text;
+}
+
+.review-card-icon-success {
+    -fx-fill: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.review-card-icon-success.prime-icon-vector {
+    -fx-fill: -wl-status-success-text;
+}
+
+.review-card-icon-neutral {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-card-icon-neutral.prime-icon-vector {
+    -fx-fill: -wl-text-muted;
+}
+
+.review-filter-card {
+    -fx-padding: 18;
+}
+
+.review-batch-bar {
+    -fx-padding: 12 15 12 15;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.review-batch-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.review-page-host .review-workspace-header,
+.review-page-host .review-workspace-header-grid {
+    -fx-alignment: center-left;
+    -fx-spacing: 18;
+    -fx-hgap: 18;
+    -fx-vgap: 3;
+}
+
+.review-page-host .review-workspace-header .page-heading-copy {
+    -fx-min-width: 0;
+    -fx-pref-width: 390;
+    -fx-max-width: 9999;
+}
+
+.review-page-host .review-workspace-title-area,
+.review-workspace-title-area {
+    -fx-min-width: 0;
+    -fx-max-width: 9999;
+}
+
+.review-page-host .review-workspace-header .page-title,
+.review-page-host .review-workspace-header .page-subtitle,
+.review-page-host .review-workspace-header-grid .page-title,
+.review-page-host .review-workspace-header-grid .page-subtitle {
+    -fx-min-width: 0;
+    -fx-text-overrun: ellipsis;
+}
+
+.review-page-host .review-workspace-header .header-actions,
+.review-page-host .review-workspace-header-grid .header-actions {
+    -fx-alignment: center-right;
+    -fx-spacing: 12;
+}
+
+.review-page-host .review-workspace-header .header-actions .button,
+.review-page-host .review-workspace-header-grid .header-actions .button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 0 18 0 18;
+    -fx-alignment: center;
+}
+
+.review-workspace-header .admin-save-button,
+.review-workspace-header-grid .admin-save-button,
+.review-workspace-header .admin-complete-button,
+.review-workspace-header-grid .admin-complete-button {
+    -fx-min-width: 150;
+    -fx-pref-width: 150;
+    -fx-max-width: 150;
+}
+
+.review-workspace-header .admin-send-review-button,
+.review-workspace-header-grid .admin-send-review-button {
+    -fx-min-width: 126;
+    -fx-pref-width: 126;
+    -fx-max-width: 126;
+}
+
+.review-workspace-header .admin-approve-button,
+.review-workspace-header-grid .admin-approve-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+    -fx-max-width: 108;
+}
+
+.review-workspace-header .admin-reject-button,
+.review-workspace-header-grid .admin-reject-button {
+    -fx-min-width: 105;
+    -fx-pref-width: 105;
+    -fx-max-width: 105;
+}
+
+.review-workspace-warning-banner {
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.review-workspace-warning-icon {
+    -fx-fill: -wl-status-warning-text;
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 15px;
+    -fx-scale-x: 0.78;
+    -fx-scale-y: 0.78;
+}
+
+.review-workspace-warning-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-left-panel,
+.review-workspace-right-panel {
+    -fx-padding: 18;
+    -fx-background-color: -wl-surface;
+}
+
+.review-workspace-left-panel {
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-background-radius: 10 0 0 10;
+}
+
+.review-workspace-form {
+    -fx-spacing: 12;
+    -fx-fill-width: true;
+}
+
+.review-workspace-right-panel {
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+    -fx-background-radius: 0 10 10 0;
+}
+
+.review-workspace-tree {
+    -fx-padding: 9 0 0 0;
+}
+
+.review-workspace-tree-root {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tree-case {
+    -fx-padding: 0 0 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-tree-row,
+.review-workspace-tree-row-active {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 9 0 24;
+    -fx-spacing: 9;
+    -fx-background-radius: 6;
+}
+
+.review-workspace-tree-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-workspace-tree-row-active {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.review-workspace-tree-title,
+.review-workspace-tree-title-active {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tree-status-text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tree-status-complete {
+    -fx-text-fill: -wl-status-success-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tree-status-warning {
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tree-status-danger {
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tree-status-neutral {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-viewer-panel {
+    -fx-background-color: -wl-card-content;
+}
+
+.review-workspace-viewer-toolbar {
+    -fx-min-height: 57;
+    -fx-pref-height: 57;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.review-workspace-viewer-page-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-tool-button {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-tool-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.review-workspace-viewer-area {
+    -fx-padding: 36;
+    -fx-background-color: -wl-workspace-viewer-bg;
+}
+
+.review-workspace-paper-preview {
+    -fx-min-width: 360;
+    -fx-pref-width: 360;
+    -fx-max-width: 360;
+    -fx-min-height: 510;
+    -fx-pref-height: 510;
+    -fx-max-height: 510;
+    -fx-background-color: -wl-workspace-paper-bg;
+    -fx-border-color: -wl-workspace-paper-border;
+    -fx-border-width: 1;
+}
+
+.review-workspace-paper-placeholder {
+    -fx-text-fill: -wl-workspace-placeholder;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-thumbnail-strip {
+    -fx-padding: 12 18 12 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.review-workspace-thumbnail,
+.review-workspace-thumbnail-active,
+.review-workspace-thumbnail-barcode {
+    -fx-min-width: 54;
+    -fx-pref-width: 54;
+    -fx-max-width: 54;
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-max-height: 72;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.review-workspace-thumbnail-active {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-text;
+    -fx-border-width: 2;
+}
+
+.review-workspace-thumbnail-barcode {
+    -fx-border-color: -wl-progress-amber;
+}
+
+.review-workspace-thumbnail-label,
+.review-workspace-thumbnail-label-active {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-thumbnail-label-active {
+    -fx-font-weight: 700;
+}
+
+.review-workspace-thumbnail-note {
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.review-workspace-tabs {
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+}
+
+.review-workspace-tab-button,
+.review-workspace-tab-active {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: transparent;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-tab-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-workspace-tab-button:hover,
+.review-workspace-tab-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.review-workspace-tab-active,
+.review-workspace-tab-active:hover,
+.review-workspace-tab-active:pressed {
+    -fx-background-color: -wl-primary-selected;
+    -fx-border-color: -wl-primary-selected;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-validation-summary {
+    -fx-padding: 12;
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.review-workspace-validation-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.review-workspace-validation-copy {
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-workspace-input-error {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-strong-border;
+}
+
+.review-workspace-field-error {
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.review-workspace-check-complete {
+    -fx-text-fill: -wl-status-success-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.review-workspace-check-warning {
+    -fx-text-fill: -wl-status-warning-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.review-workspace-check-neutral {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.review-workspace-check-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.review-workspace-side-actions {
+    -fx-padding: 15 0 0 0;
+}
+
+/* =========================================================
+   REVIEW QUEUE GUARDS
+   Project note: queue row graphics stay aligned with review rows.
+   ========================================================= */
+
+.review-queue-card > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}

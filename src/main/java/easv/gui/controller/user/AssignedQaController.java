@@ -1,5 +1,7 @@
 package easv.gui.controller.user;
 
+import easv.gui.controller.utilities.SearchableComboBoxes;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
@@ -119,14 +121,12 @@ public class AssignedQaController {
         );
         statusFilterComboBox.getSelectionModel().selectFirst();
 
-        profileFilterComboBox.getItems().setAll(
-                "All Profiles",
-                "Court Records",
-                "Building Archive",
-                "Technical Drawings",
-                "Standard Scan"
-        );
+        // TODO: populate profile filter from real scan profiles loaded from the database
+        profileFilterComboBox.getItems().setAll("All Profiles");
         profileFilterComboBox.getSelectionModel().selectFirst();
+
+        SearchableComboBoxes.configure(statusFilterComboBox);
+        SearchableComboBoxes.configure(profileFilterComboBox);
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
@@ -406,52 +406,8 @@ public class AssignedQaController {
     // =========================================================
 
     private void loadMockAssignments() {
+        // TODO: replace with real assignments loaded from the database via UserPortalModel
         allAssignments.clear();
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-007",
-                "Court Records",
-                "Michael Johnson",
-                5,
-                41,
-                "Today 14:30",
-                0,
-                QaStatus.WAITING_FOR_QA
-        ));
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-008",
-                "Building Archive",
-                "Sarah Smith",
-                3,
-                24,
-                "Today 10:15",
-                12,
-                QaStatus.IN_REVIEW
-        ));
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-006",
-                "Technical Drawings",
-                "Emily Davis",
-                2,
-                18,
-                "Yesterday",
-                15,
-                QaStatus.ISSUES_FOUND,
-                2
-        ));
-
-        allAssignments.add(new QaAssignment(
-                "BOX-2026-005",
-                "Standard Scan",
-                "David Wilson",
-                1,
-                12,
-                "2 days ago",
-                12,
-                QaStatus.QA_COMPLETED
-        ));
     }
 
     // =========================================================
@@ -1063,8 +1019,8 @@ public class AssignedQaController {
             return;
         }
 
-        Node mockPage = createMockDocumentPage(document, page);
-        qaPreviewHost.getChildren().add(wrapQaPreviewWithAutoScale(mockPage));
+        Node documentPreviewPage = createDocumentPreviewPage(document, page);
+        qaPreviewHost.getChildren().add(wrapQaPreviewWithAutoScale(documentPreviewPage));
     }
 
     private Node wrapQaPreviewWithAutoScale(Node previewNode) {
@@ -1102,10 +1058,10 @@ public class AssignedQaController {
         return previewWrapper;
     }
 
-    private Node createMockDocumentPage(QaDocument document, QaPage page) {
+    private Node createDocumentPreviewPage(QaDocument document, QaPage page) {
         VBox documentPage = new VBox(15);
         documentPage.setAlignment(Pos.TOP_LEFT);
-        documentPage.getStyleClass().add("mock-document-page");
+        documentPage.getStyleClass().add("document-preview-page");
         documentPage.setMinWidth(QA_PREVIEW_PAGE_WIDTH);
         documentPage.setPrefWidth(QA_PREVIEW_PAGE_WIDTH);
         documentPage.setMaxWidth(QA_PREVIEW_PAGE_WIDTH);
@@ -1118,8 +1074,8 @@ public class AssignedQaController {
 
         VBox topLeft = new VBox(9);
         topLeft.getChildren().addAll(
-                createLine("mock-line-dark", 180, 15),
-                createLine("mock-line-medium", 126, 9)
+                createLine("document-preview-line-dark", 180, 15),
+                createLine("document-preview-line-medium", 126, 9)
         );
 
         Region topSpacer = new Region();
@@ -1128,28 +1084,28 @@ public class AssignedQaController {
         VBox topRight = new VBox(6);
         topRight.setAlignment(Pos.TOP_RIGHT);
         topRight.getChildren().addAll(
-                createLine("mock-line-medium", 90, 9),
-                createLine("mock-line-medium", 108, 9)
+                createLine("document-preview-line-medium", 90, 9),
+                createLine("document-preview-line-medium", 108, 9)
         );
 
         topSection.getChildren().addAll(topLeft, topSpacer, topRight);
 
         VBox textLines = new VBox(6);
         textLines.getChildren().addAll(
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 372, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 318, 7)
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 372, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 318, 7)
         );
 
         VBox formArea = new VBox(9);
-        formArea.getStyleClass().add("mock-form-area");
+        formArea.getStyleClass().add("document-preview-form-area");
 
         HBox formHeading = new HBox(18);
         formHeading.getChildren().addAll(
-                createLine("mock-line-dark", 144, 12),
-                createLine("mock-line-medium", 78, 8)
+                createLine("document-preview-line-dark", 144, 12),
+                createLine("document-preview-line-medium", 78, 8)
         );
 
         HBox formInputs = new HBox(12);
@@ -1165,9 +1121,9 @@ public class AssignedQaController {
 
         VBox bottomText = new VBox(6);
         bottomText.getChildren().addAll(
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 315, 7)
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 315, 7)
         );
 
         Label pageLabel = new Label(document.name + " · Page " + page.pageNumber);
@@ -1200,7 +1156,7 @@ public class AssignedQaController {
 
     private Region createInputSkeleton() {
         Region input = new Region();
-        input.getStyleClass().add("mock-input");
+        input.getStyleClass().add("document-preview-input");
         input.setMinHeight(30);
         input.setPrefHeight(30);
         input.setMinWidth(174);

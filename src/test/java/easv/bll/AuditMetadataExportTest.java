@@ -2,20 +2,24 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.CaseMetadata;
+import easv.be.MetadataTemplate;
 import easv.be.PageImage;
+import easv.be.ReviewRecord;
+import easv.be.ScanProfile;
 import easv.be.TiffExportPlan;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
+import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,9 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuditMetadataExportTest {
-    @TempDir
-    Path tempDir;
-
 
     @AfterEach
     void clearSession() {
@@ -76,7 +77,7 @@ class AuditMetadataExportTest {
 
     @Test
     void metadataCanBeSavedLoadedAndLocked() {
-        MetadataManager metadataManager = new MetadataManager(MetadataDAO.inMemory(), new AuditLogManager(AuditLogDAO.inMemory()));
+        MetadataManager metadataManager = new MetadataManager(new MetadataDAO(), new AuditLogManager(AuditLogDAO.inMemory()));
 
         boolean saved = metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Ready"));
         CaseMetadata loaded = metadataManager.loadMetadataForm("CASE-1");
@@ -92,10 +93,10 @@ class AuditMetadataExportTest {
 
     @Test
     void sharedMetadataManagerKeepsMetadataAcrossControllers() {
-        MetadataDAO sharedMetadataDAO = MetadataDAO.inMemory();
+        Map<String, CaseMetadata> sharedMetadata = new LinkedHashMap<>();
         AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
-        MetadataManager firstControllerManager = new MetadataManager(sharedMetadataDAO, auditLogManager);
-        MetadataManager secondControllerManager = new MetadataManager(sharedMetadataDAO, auditLogManager);
+        MetadataManager firstControllerManager = new MetadataManager(sharedMetadata, auditLogManager);
+        MetadataManager secondControllerManager = new MetadataManager(sharedMetadata, auditLogManager);
 
         firstControllerManager.saveMetadata("CASE-SHARED", "Building Archive", "BOX-2", Map.of("Notes", "Shared"));
 
@@ -108,20 +109,150 @@ class AuditMetadataExportTest {
     @Test
     void adminUserActionsUseLoggedInAdminName() {
         UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
-        AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
-
-        AuditLog log = auditLogManager.logUserAction(
-                AuditLogManager.PAGE_CREATED,
-                "CASE-1",
-                "DOC-1",
-                "FILE-1",
-                1,
-                "Building Archive",
-                "BOX-1",
-                "Admin-triggered action"
+        AdminManager adminManager = new AdminManager(
+                new FakeUserDAO(),
+                new FakeMetadataDAO(),
+                AuditLogDAO.inMemory()
         );
 
+        adminManager.createUser(new AdminManager.UserInput(
+                "New Scanner",
+                "new.scanner",
+                "scanner@example.com",
+                "User",
+                "Active",
+                List.of(),
+                "scanner123"
+        ));
+
+        AuditLog log = adminManager.getAuditLogs().stream()
+                .filter(item -> "Created user".equals(item.getAction()))
+                .findFirst()
+                .orElseThrow();
+
         assertEquals("jenny-admin", log.getActor());
+    }
+
+    @Test
+    void createUserAuditLogRecordsCreatedValues() {
+        AdminManager adminManager = new AdminManager(
+                new FakeUserDAO(),
+                new FakeMetadataDAO(),
+                AuditLogDAO.inMemory()
+        );
+
+        adminManager.createUser(new AdminManager.UserInput(
+                "New Scanner",
+                "new.scanner",
+                "scanner@example.com",
+                "User",
+                "Active",
+                List.of(),
+                "scanner123"
+        ));
+
+        AuditLog log = adminManager.getAuditLogs().stream()
+                .filter(item -> "Created user".equals(item.getAction()))
+                .findFirst()
+                .orElseThrow();
+
+        assertTrue(log.getDetails().stream().allMatch(AuditLog.AuditLogDetail::isFieldChange));
+        assertTrue(hasChange(log, "Full name", "", "New Scanner"));
+        assertTrue(hasChange(log, "Username", "", "new.scanner"));
+        assertTrue(hasChange(log, "Status", "", "Active"));
+    }
+
+    @Test
+    void updateUserAuditLogRecordsOnlyChangedFields() {
+        AdminManager adminManager = new AdminManager(
+                new FakeUserDAO(),
+                new FakeMetadataDAO(),
+                AuditLogDAO.inMemory()
+        );
+
+        User user = adminManager.createUser(new AdminManager.UserInput(
+                "New Scanner",
+                "new.scanner",
+                "scanner@example.com",
+                "User",
+                "Active",
+                List.of(),
+                "scanner123"
+        ));
+
+        adminManager.updateUser(user.getId(), new AdminManager.UserInput(
+                "New Scanner",
+                "new.scanner",
+                "scanner.renamed@example.com",
+                "User",
+                "Active",
+                List.of()
+        ));
+
+        AuditLog log = adminManager.getAuditLogs().stream()
+                .filter(item -> "Updated user".equals(item.getAction()))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(1, log.getDetails().size());
+        assertTrue(hasChange(log, "Email", "scanner@example.com", "scanner.renamed@example.com"));
+    }
+
+    @Test
+    void deleteProfileAuditLogRecordsDeletedSnapshot() {
+        AdminManager adminManager = new AdminManager(
+                new FakeUserDAO(),
+                new FakeMetadataDAO(),
+                AuditLogDAO.inMemory()
+        );
+
+        ScanProfile profile = adminManager.createProfile(new AdminManager.ProfileInput(
+                "New Profile 2",
+                "NewProfile2",
+                "Used for test scanning.",
+                "Active",
+                "Metadata Form",
+                "{profileCode}_{boxId}",
+                true,
+                "Start new document",
+                "Remove barcode page from final document",
+                "0 deg",
+                "Normal",
+                "Normal",
+                true,
+                "PDF",
+                true
+        ));
+
+        adminManager.deleteProfile(profile.getId());
+
+        AuditLog log = adminManager.getAuditLogs().stream()
+                .filter(item -> "Deleted profile".equals(item.getAction()))
+                .findFirst()
+                .orElseThrow();
+
+        assertTrue(hasChange(log, "Profile state", "Existing", "Deleted"));
+        assertTrue(hasChange(log, "Profile name", "New Profile 2", ""));
+        assertTrue(hasChange(log, "Export format", "PDF", ""));
+    }
+
+    @Test
+    void auditLogWithoutChangePayloadStillHasEmptyDetails() {
+        AuditLogDAO auditLogDAO = AuditLogDAO.inMemory();
+        AuditLog savedLog = auditLogDAO.saveAuditLog(new AuditLog(
+                auditLogDAO.nextAuditLogId(),
+                java.time.LocalDateTime.now(),
+                "System",
+                "SYSTEM",
+                "Heartbeat",
+                "System",
+                "Success",
+                "A system event was recorded.",
+                List.of()
+        ));
+
+        assertTrue(savedLog.getDetails().isEmpty());
+        assertTrue(auditLogDAO.getAllAuditLogs().get(0).getDetails().isEmpty());
     }
 
     @Test
@@ -132,14 +263,6 @@ class AuditMetadataExportTest {
 
         TiffExportPlan singlePagePlan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
         TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan("", "", List.of(pageOne, pageTwo));
-        TiffExportPlan perDocumentPlan = tiffExportManager.createMultiPagePerDocumentPlan(
-                "Profile A",
-                "BOX-1",
-                Map.of(
-                        "DOC-1", List.of(pageOne),
-                        "DOC-2", List.of(pageTwo)
-                )
-        );
 
         assertEquals(2, singlePagePlan.getFileCount());
         assertEquals(2, singlePagePlan.getPageCount());
@@ -148,22 +271,134 @@ class AuditMetadataExportTest {
         assertEquals(2, multiPagePlan.getPageCount());
         assertEquals("MULTI_PAGE_TIFF_FILE", multiPagePlan.getExportType());
         assertEquals(2, multiPagePlan.getWarnings().size());
-        assertEquals(2, perDocumentPlan.getFileCount());
-        assertEquals(2, perDocumentPlan.getPageCount());
-        assertEquals("MULTI_PAGE_TIFF_PER_DOCUMENT", perDocumentPlan.getExportType());
     }
 
-    @Test
-    void exportPlanWritesTiffFilesToFolder() throws IOException {
-        TiffExportManager tiffExportManager = new TiffExportManager();
-        PageImage pageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
-        PageImage pageTwo = new PageImage(2, PageImage.PageType.TIFF, "DOC-2");
-        TiffExportPlan plan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
+    private boolean hasChange(AuditLog log, String field, String oldValue, String newValue) {
+        return log.getDetails().stream()
+                .filter(AuditLog.AuditLogDetail::isFieldChange)
+                .anyMatch(detail -> field.equals(detail.getLabel())
+                        && oldValue.equals(detail.getOldValue())
+                        && newValue.equals(detail.getNewValue()));
+    }
 
-        List<Path> exportedFiles = tiffExportManager.exportPlanToFolder(plan, tempDir);
+    private static class FakeUserDAO extends UserDAO {
+        private final List<User> users = new ArrayList<>();
+        private int nextId = 1;
 
-        assertEquals(2, exportedFiles.size());
-        assertTrue(Files.exists(exportedFiles.get(0)));
-        assertTrue(Files.size(exportedFiles.get(0)) > 0);
+        @Override
+        public List<User> getAllUsers() {
+            return List.copyOf(users);
+        }
+
+        @Override
+        public int nextUserId() {
+            return nextId;
+        }
+
+        @Override
+        public User saveUser(User user, List<Integer> assignedProfileIds) {
+            User savedUser = new User(
+                    nextId++,
+                    user.getName(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getPasswordHash(),
+                    user.getRole(),
+                    user.getStatus(),
+                    user.getAssignedProfiles(),
+                    user.isCurrentUser()
+            );
+            users.add(savedUser);
+            return savedUser;
+        }
+
+        @Override
+        public User updateUser(User user, List<Integer> assignedProfileIds) {
+            users.removeIf(existingUser -> existingUser.getId() == user.getId());
+            users.add(user);
+            return user;
+        }
+
+        @Override
+        public void deleteUser(int userId) {
+            users.removeIf(user -> user.getId() == userId);
+        }
+
+        @Override
+        public Map<Integer, Set<Integer>> getProfileAssignments() {
+            return new HashMap<>();
+        }
+    }
+
+    private static class FakeMetadataDAO extends MetadataDAO {
+        private final List<ScanProfile> profiles = new ArrayList<>();
+        private int nextProfileId = 1;
+
+        @Override
+        public List<ScanProfile> getProfiles() {
+            return List.copyOf(profiles);
+        }
+
+        @Override
+        public int nextProfileId() {
+            return nextProfileId;
+        }
+
+        @Override
+        public ScanProfile saveProfile(ScanProfile profile) {
+            ScanProfile savedProfile = new ScanProfile(
+                    nextProfileId++,
+                    profile.getName(),
+                    profile.getCode(),
+                    profile.getDescription(),
+                    profile.getStatus(),
+                    profile.getMetadataTemplateName(),
+                    profile.getExportNaming(),
+                    profile.getLastUpdated(),
+                    profile.isArchived(),
+                    profile.isBarcodeSplitting(),
+                    profile.getBarcodeDetectedBehavior(),
+                    profile.getBarcodePageBehavior(),
+                    profile.getDefaultRotation(),
+                    profile.getBrightness(),
+                    profile.getContrast(),
+                    profile.isDeskew(),
+                    profile.getExportFormat(),
+                    profile.isMetadataRequiredBeforeExport()
+            );
+            profiles.add(savedProfile);
+            return savedProfile;
+        }
+
+        @Override
+        public void updateProfile(ScanProfile profile) {
+            profiles.removeIf(existingProfile -> existingProfile.getId() == profile.getId());
+            profiles.add(profile);
+        }
+
+        @Override
+        public void deleteProfile(int profileId) {
+            profiles.removeIf(profile -> profile.getId() == profileId);
+        }
+
+        @Override
+        public List<MetadataTemplate> getMetadataTemplates() {
+            return List.of();
+        }
+
+        @Override
+        public int nextMetadataTemplateId() {
+            return 1;
+        }
+
+        @Override
+        public int nextMetadataFieldId() {
+            return 1;
+        }
+
+        @Override
+        public List<ReviewRecord> getReviewRecords() {
+            return List.of();
+        }
     }
 }

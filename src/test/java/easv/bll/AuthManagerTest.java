@@ -1,10 +1,11 @@
 package easv.bll;
 
+import easv.be.User;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +22,9 @@ class AuthManagerTest {
 
     @Test
     void loginSucceedsForValidActiveUser() {
-        UserDAO userDAO = new FakeUserDAO();
+        UserDAO userDAO = new FakeUserDAO(Map.of(
+                "admin", user("admin", "admin123", true)
+        ));
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("admin", "admin123");
@@ -34,7 +37,9 @@ class AuthManagerTest {
 
     @Test
     void loginFailsForWrongPassword() {
-        UserDAO userDAO = new FakeUserDAO();
+        UserDAO userDAO = new FakeUserDAO(Map.of(
+                "admin", user("admin", "admin123", true)
+        ));
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("admin", "wrong-password");
@@ -46,7 +51,9 @@ class AuthManagerTest {
 
     @Test
     void loginFailsForInactiveAccount() {
-        UserDAO userDAO = new FakeUserDAO();
+        UserDAO userDAO = new FakeUserDAO(Map.of(
+                "inactive", user("inactive", "inactive123", false)
+        ));
         AuthManager authManager = new AuthManager(userDAO);
 
         AuthResult authResult = authManager.login("inactive", "inactive123");
@@ -56,21 +63,24 @@ class AuthManagerTest {
         assertFalse(UserSession.hasCurrentUser());
     }
 
-    private static class FakeUserDAO extends UserDAO {
-        private final Map<String, easv.be.User> users = new HashMap<>();
+    private User user(String username, String password, boolean active) {
+        return new User(username, PasswordHasher.hash(password), "User", active);
+    }
 
-        private FakeUserDAO() {
-            users.put("admin", new easv.be.User("admin", PasswordHasher.hash("admin123"), "Admin", true));
-            users.put("inactive", new easv.be.User("inactive", PasswordHasher.hash("inactive123"), "User", false));
+    private static class FakeUserDAO extends UserDAO {
+        private final Map<String, User> usersByUsername;
+
+        private FakeUserDAO(Map<String, User> usersByUsername) {
+            this.usersByUsername = usersByUsername;
         }
 
         @Override
-        public easv.be.User findByUsername(String username) {
+        public User findByUsername(String username) {
             if (username == null) {
                 return null;
             }
 
-            return users.get(username.trim().toLowerCase());
+            return usersByUsername.get(username.trim().toLowerCase(Locale.ROOT));
         }
     }
 }

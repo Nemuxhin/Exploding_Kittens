@@ -1,0 +1,711 @@
+/* =========================================================
+   WEBLAGER USER QA WORKFLOW
+   Assigned QA list and QA review workspace.
+   ========================================================= */
+
+/* =========================================================
+   ASSIGNED QA LIST + QA REVIEW WORKSPACE
+   ========================================================= */
+
+/* =========================================================
+   17.1 ASSIGNED QA PAGE SHELL
+   ========================================================= */
+
+.assigned-qa-page,
+.assigned-qa-scroll,
+.assigned-qa-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.assigned-qa-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.assigned-qa-content {
+    -fx-background-color: -wl-background;
+    -fx-alignment: top-center;
+}
+
+.assigned-qa-header,
+.assigned-qa-toolbar,
+.assigned-qa-card-list {
+    -fx-pref-width: 1080;
+    -fx-max-width: 1080;
+}
+
+/* =========================================================
+   17.2 ASSIGNED QA HEADER
+   ========================================================= */
+
+.assigned-qa-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.assigned-qa-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   17.3 ASSIGNED QA FILTER BAR
+   ========================================================= */
+
+.assigned-qa-toolbar {
+    -fx-alignment: center-left;
+}
+
+.assigned-qa-search-field,
+.assigned-qa-filter-combo {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.assigned-qa-search-field:hover,
+.assigned-qa-filter-combo:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.assigned-qa-search-field:focused,
+.assigned-qa-filter-combo:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.assigned-qa-filter-combo > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;
+}
+
+.assigned-qa-filter-combo > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.assigned-qa-filter-combo .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+/* =========================================================
+   17.4 ASSIGNED QA CARD LIST
+   ========================================================= */
+
+.assigned-qa-card-list {
+    -fx-spacing: 15;
+}
+
+.assigned-qa-card {
+    -fx-padding: 24;
+    -fx-spacing: 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.assigned-qa-card-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.assigned-qa-card-meta,
+.assigned-qa-card-detail {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.assigned-qa-card-meta-separator {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.assigned-qa-card-issues {
+    -fx-text-fill: -wl-status-error-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   17.5 ASSIGNED QA STATUS BADGES
+   ========================================================= */
+
+.assigned-qa-status-badge,
+.qa-review-status-badge {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: center;
+}
+
+.assigned-qa-status-waiting,
+.qa-review-status-waiting {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.assigned-qa-status-review,
+.qa-review-status-review {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.assigned-qa-status-issues,
+.qa-review-status-issues {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.assigned-qa-status-complete,
+.qa-review-status-complete {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+/* =========================================================
+   17.6 ASSIGNED QA PROGRESS BARS
+   ========================================================= */
+
+.assigned-qa-progress-track {
+    -fx-background-color: -wl-progress-track;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 0;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+}
+
+.assigned-qa-progress-fill {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 0;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+}
+
+.assigned-qa-progress-none {
+    -fx-background-color: transparent;
+}
+
+.assigned-qa-progress-review {
+    -fx-background-color: -wl-progress-review;
+}
+
+.assigned-qa-progress-issues {
+    -fx-background-color: -wl-progress-issues;
+}
+
+.assigned-qa-progress-complete {
+    -fx-background-color: -wl-progress-complete;
+}
+
+/* =========================================================
+   17.7 ASSIGNED QA ACTION BUTTONS
+   ========================================================= */
+
+.assigned-qa-primary-button,
+.assigned-qa-secondary-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.assigned-qa-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-primary-button:hover,
+.assigned-qa-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.assigned-qa-secondary-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-secondary-button:hover,
+.assigned-qa-secondary-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+/* =========================================================
+   17.8 ASSIGNED QA EMPTY STATE
+   ========================================================= */
+
+.assigned-qa-empty-state {
+    -fx-padding: 36;
+    -fx-spacing: 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.assigned-qa-empty-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.assigned-qa-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   17.9 QA REVIEW WORKSPACE SHELL
+   ========================================================= */
+
+.qa-review-workspace {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-meta-strong,
+.qa-review-meta {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.qa-review-meta-strong {
+    -fx-font-weight: 600;
+}
+
+.qa-review-meta-separator {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.qa-review-left-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.qa-review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-current-file-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-panel-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+/* =========================================================
+   17.10 QA REVIEW PREVIEW / VIEW TOOLS
+   ========================================================= */
+
+.qa-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+    -fx-padding: 15 24 15 24;
+}
+
+.qa-view-toolbar {
+    -fx-alignment: center-right;
+}
+
+.qa-view-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.qa-zoom-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+.qa-view-icon-button {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.qa-view-icon-button:hover,
+.qa-view-icon-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-view-reset-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.qa-view-reset-button:hover,
+.qa-view-reset-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+/* =========================================================
+   17.11 QA RIGHT TOOLS PANEL
+   ========================================================= */
+
+.qa-tools-panel {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.qa-tools-scroll,
+.qa-tools-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.qa-tools-content {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-section-box {
+    -fx-background-color: transparent;
+}
+
+.qa-tools-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+/* =========================================================
+   17.12 QA CURRENT STATUS
+   ========================================================= */
+
+.qa-current-status-chip {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-alignment: center-left;
+}
+
+.qa-current-status-pending {
+    -fx-background-color: -wl-muted-control-bg;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.qa-current-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-current-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-preview-page-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.qa-tray-page-block {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 4;
+    -fx-border-color: -wl-paper-line-light;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+}
+
+.qa-tree-page-status,
+.qa-tray-status-mark {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+    -fx-alignment: center;
+}
+
+.qa-status-pending {
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+}
+
+.qa-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-error;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+/* =========================================================
+   17.13 QA CHECKLIST + COMMENT
+   ========================================================= */
+
+.qa-checklist-check-box {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-checklist-check-box > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.qa-checklist-check-box:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.qa-checklist-check-box:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.qa-comment-textarea {
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-max-height: 84;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 9;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-comment-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+}
+
+.qa-comment-textarea:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-comment-textarea:focused {
+    -fx-border-color: -wl-primary;
+}
+
+/* =========================================================
+   17.14 QA BUTTONS
+   ========================================================= */
+
+.qa-approve-button,
+.qa-fix-button,
+.qa-neutral-button,
+.qa-complete-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.qa-approve-button {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-approve-button:hover,
+.qa-approve-button:pressed {
+    -fx-background-color: -wl-status-success-hover-bg;
+    -fx-border-color: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-fix-button {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-error;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-fix-button:hover,
+.qa-fix-button:pressed {
+    -fx-background-color: -wl-status-error-hover-bg;
+    -fx-border-color: -wl-status-error-text;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-neutral-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.qa-neutral-button:hover,
+.qa-neutral-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-complete-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 700;
+}
+
+.qa-complete-button:hover,
+.qa-complete-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}

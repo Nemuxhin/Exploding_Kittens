@@ -5,7 +5,6 @@ enum AdminPage {
     USERS("/view/AdminViews/manage-users-view.fxml", "Users"),
     PROFILES("/view/AdminViews/manage-profiles-view.fxml", "Profiles"),
     ASSIGNMENTS("/view/AdminViews/assignments-view.fxml", "Assignments"),
-    METADATA_TEMPLATES("/view/AdminViews/metadata-view.fxml", "Metadata Templates"),
     REVIEW("/view/AdminViews/review-view.fxml", "Review Center"),
     ACTIVITY("/view/AdminViews/activity-view.fxml", "Activity");
 

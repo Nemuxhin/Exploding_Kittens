@@ -2,6 +2,10 @@ package easv.gui.controller.admin;
 
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
+import easv.gui.controller.utilities.AppDates;
+import easv.gui.controller.utilities.PaginationHelper;
+import easv.gui.controller.utilities.SearchableComboBoxes;
+import easv.util.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -32,7 +36,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
@@ -41,7 +44,6 @@ public class ReviewController {
     private static final String ALL_CLIENTS = "All Clients";
     private static final String ALL_ARCHIVES = "All Archives";
     private static final String ALL_PROFILES = "All Profiles";
-    private static final String ALL_METADATA_STATUSES = "All Metadata Statuses";
     private static final String ALL_QA_STATUSES = "All QA Statuses";
     private static final String ALL_USERS = "All Users";
     private static final String RANGE_LAST_30_DAYS = "Last 30 Days";
@@ -53,7 +55,7 @@ public class ReviewController {
 
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
-    private static final DateTimeFormatter DATE_RANGE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_RANGE_FORMATTER = AppDates.FORMATTER;
 
     private final ObservableList<ReviewRow> records = FXCollections.observableArrayList();
     private final Set<String> selectedRecordIds = new HashSet<>();
@@ -69,6 +71,7 @@ public class ReviewController {
     private LocalDate pendingRangeStart;
 
     private ReviewRow activeReviewRecord;
+    private ReviewQueueFilter activeQueueFilter = ReviewQueueFilter.ALL;
     private AdminManager adminManager;
 
     @FXML private VBox overviewPane;
@@ -79,7 +82,6 @@ public class ReviewController {
     @FXML private ComboBox<String> clientFilterComboBox;
     @FXML private ComboBox<String> archiveFilterComboBox;
     @FXML private ComboBox<String> profileFilterComboBox;
-    @FXML private ComboBox<String> metadataStatusFilterComboBox;
     @FXML private ComboBox<String> qaStatusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
     @FXML private DatePicker dateRangePicker;
@@ -145,40 +147,16 @@ public class ReviewController {
     private void configureFilters() {
         configureDateRangePicker();
 
-        clientFilterComboBox.getItems().setAll(
-                ALL_CLIENTS,
-                "Aalborg Municipality",
-                "Maersk Archive",
-                "Copenhagen Airport"
-        );
+        // Client / archive / profile / scannedBy options are data-driven —
+        // refreshFilterOptions() rebuilds them from the loaded records.
+        clientFilterComboBox.getItems().setAll(ALL_CLIENTS);
         clientFilterComboBox.setValue(ALL_CLIENTS);
 
-        archiveFilterComboBox.getItems().setAll(
-                ALL_ARCHIVES,
-                "Building Archive",
-                "Technical Archive",
-                "Airport Archive"
-        );
+        archiveFilterComboBox.getItems().setAll(ALL_ARCHIVES);
         archiveFilterComboBox.setValue(ALL_ARCHIVES);
 
-        profileFilterComboBox.getItems().setAll(
-                ALL_PROFILES,
-                "Building Archive",
-                "Technical Drawings",
-                "Standard Scan"
-        );
+        profileFilterComboBox.getItems().setAll(ALL_PROFILES);
         profileFilterComboBox.setValue(ALL_PROFILES);
-
-        metadataStatusFilterComboBox.getItems().setAll(
-                ALL_METADATA_STATUSES,
-                "Not Started",
-                "Incomplete",
-                "Missing Required Fields",
-                "Invalid",
-                "Complete",
-                "Approved"
-        );
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
 
         qaStatusFilterComboBox.getItems().setAll(
                 ALL_QA_STATUSES,
@@ -201,14 +179,15 @@ public class ReviewController {
         );
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
 
-        scannedByFilterComboBox.getItems().setAll(
-                ALL_USERS,
-                "Sarah Smith",
-                "John Doe",
-                "Sofia Nielsen",
-                "System Import"
-        );
+        scannedByFilterComboBox.getItems().setAll(ALL_USERS);
         scannedByFilterComboBox.setValue(ALL_USERS);
+
+        SearchableComboBoxes.configure(clientFilterComboBox);
+        SearchableComboBoxes.configure(archiveFilterComboBox);
+        SearchableComboBoxes.configure(profileFilterComboBox);
+        SearchableComboBoxes.configure(qaStatusFilterComboBox);
+        SearchableComboBoxes.configure(dateRangeFilterComboBox);
+        SearchableComboBoxes.configure(scannedByFilterComboBox);
     }
 
     private void configureWorkspaceControls() {
@@ -226,11 +205,11 @@ public class ReviewController {
                 "Municipal Archive",
                 "Legal Department"
         );
-        departmentComboBox.setValue("Technical Services");
+        SearchableComboBoxes.configure(documentTypeComboBox);
 
-        caseNumberField.setText("2026-042");
-        registrationDateField.setText("Invalid date");
-        buildingAddressField.setText("Skagerrakvej 16");
+        caseNumberField.clear();
+        registrationDateField.clear();
+        buildingAddressField.clear();
         notesTextArea.clear();
     }
 
@@ -255,7 +234,6 @@ public class ReviewController {
         clientFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         archiveFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         profileFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        metadataStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         qaStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (updatingDateControls) {
@@ -295,7 +273,11 @@ public class ReviewController {
         );
 
         updateEmptyState(totalRecords);
-        renderPagination(pageSlice, totalRecords);
+        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, pageSlice,
+                totalRecords, "records", page -> {
+                    currentPage = page;
+                    renderRows();
+                });
         updateBatchBar();
         updateSummaryCards();
     }
@@ -316,21 +298,21 @@ public class ReviewController {
     }
 
     private boolean isMissingRequired(ReviewRow record) {
-        return "Missing Required Fields".equalsIgnoreCase(record.metadataStatus());
+        return "Missing Required Fields".equalsIgnoreCase(record.documentDetailsStatus());
     }
 
     private boolean isExportBlocked(ReviewRow record) {
         return isMissingRequired(record)
-                || "Invalid".equalsIgnoreCase(record.metadataStatus())
-                || "Incomplete".equalsIgnoreCase(record.metadataStatus());
+                || "Invalid".equalsIgnoreCase(record.documentDetailsStatus())
+                || "Incomplete".equalsIgnoreCase(record.documentDetailsStatus());
     }
 
     private boolean isFailedValidation(ReviewRow record) {
-        return "Invalid".equalsIgnoreCase(record.metadataStatus());
+        return "Invalid".equalsIgnoreCase(record.documentDetailsStatus());
     }
 
     private boolean isReadyForQa(ReviewRow record) {
-        return "Complete".equalsIgnoreCase(record.metadataStatus())
+        return "Complete".equalsIgnoreCase(record.documentDetailsStatus())
                 && "Ready for QA".equalsIgnoreCase(record.qaStatus());
     }
 
@@ -363,13 +345,11 @@ public class ReviewController {
         addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 1, HPos.LEFT);
         addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 2, HPos.LEFT);
         addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 3, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.metadataTemplate(), "review-cell-text"), 4, HPos.LEFT);
-        addCell(row, createStatusBadge(record.metadataStatus(), "metadata"), 5, HPos.LEFT);
-        addCell(row, createStatusBadge(record.qaStatus(), "qa"), 6, HPos.LEFT);
-        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 7, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 8, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 9, HPos.LEFT);
-        addCell(row, createReviewButton(record), 10, HPos.LEFT);
+        addCell(row, createStatusBadge(record.qaStatus()), 4, HPos.LEFT);
+        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 5, HPos.CENTER);
+        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 6, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 7, HPos.LEFT);
+        addCell(row, createReviewButton(record), 8, HPos.LEFT);
 
         return row;
     }
@@ -377,16 +357,14 @@ public class ReviewController {
     private List<ColumnConstraints> createTableColumns() {
         return List.of(
                 createPercentColumn(4),
-                createPercentColumn(17),
+                createPercentColumn(20),
+                createPercentColumn(14),
+                createPercentColumn(14),
+                createPercentColumn(12),
+                createPercentColumn(6),
                 createPercentColumn(12),
                 createPercentColumn(10),
-                createPercentColumn(12),
-                createPercentColumn(11),
-                createPercentColumn(10),
-                createPercentColumn(4),
-                createPercentColumn(8),
-                createPercentColumn(7),
-                createPercentColumn(5)
+                createPercentColumn(8)
         );
     }
 
@@ -422,15 +400,10 @@ public class ReviewController {
         return label;
     }
 
-    private Label createStatusBadge(String status, String type) {
+    private Label createStatusBadge(String status) {
         Label badge = new Label(status);
         badge.getStyleClass().add("review-status-badge");
-
-        if ("metadata".equals(type)) {
-            badge.getStyleClass().add(metadataStatusClass(status));
-        } else {
-            badge.getStyleClass().add(qaStatusClass(status));
-        }
+        badge.getStyleClass().add(qaStatusClass(status));
 
         badge.setWrapText(true);
         badge.setMinWidth(0);
@@ -533,90 +506,22 @@ public class ReviewController {
         paginationBar.setManaged(hasRows);
     }
 
-    private void renderPagination(PaginationHelper.PageSlice pageSlice, int totalRecords) {
-        paginationButtonsBox.getChildren().clear();
-
-        if (totalRecords == 0) {
-            paginationSummaryLabel.setText("Showing 0 records");
-            return;
-        }
-
-        paginationSummaryLabel.setText(
-                "Showing " + (pageSlice.fromIndex() + 1) + "-"
-                        + pageSlice.toIndex()
-                        + " of "
-                        + totalRecords
-                        + " records"
-        );
-
-        paginationButtonsBox.getChildren().add(createPaginationButton("<<", 1, currentPage == 1));
-        paginationButtonsBox.getChildren().add(createPaginationButton("<", currentPage - 1, currentPage == 1));
-
-        for (String pageItem : PaginationHelper.buildPageItems(currentPage, pageSlice.totalPages())) {
-            Node paginationItem = PaginationHelper.ELLIPSIS.equals(pageItem)
-                    ? createPaginationEllipsis()
-                    : createPaginationButton(pageItem, Integer.parseInt(pageItem), false);
-
-            paginationButtonsBox.getChildren().add(paginationItem);
-        }
-
-        paginationButtonsBox.getChildren().add(createPaginationButton(
-                ">",
-                currentPage + 1,
-                currentPage == pageSlice.totalPages()
-        ));
-        paginationButtonsBox.getChildren().add(createPaginationButton(
-                ">>",
-                pageSlice.totalPages(),
-                currentPage == pageSlice.totalPages()
-        ));
-    }
-
-    private Button createPaginationButton(String text, int targetPage, boolean disabled) {
-        Button button = new Button(text);
-        button.getStyleClass().add("pagination-button");
-        button.setFocusTraversable(false);
-        button.setDisable(disabled);
-
-        if (text.equals(String.valueOf(currentPage))) {
-            button.getStyleClass().add("pagination-button-active");
-            return button;
-        }
-
-        if (!disabled) {
-            button.setOnAction(event -> {
-                currentPage = targetPage;
-                renderRows();
-            });
-        }
-
-        return button;
-    }
-
-    private Label createPaginationEllipsis() {
-        Label ellipsis = new Label("...");
-        ellipsis.getStyleClass().add("pagination-ellipsis");
-        return ellipsis;
-    }
-
     private boolean matchesSearch(ReviewRow record) {
-        String searchText = normalize(searchField.getText());
+        String searchText = Strings.normalize(searchField.getText());
 
         if (searchText.isBlank()) {
             return true;
         }
 
-        return normalize(record.identity()).contains(searchText)
-                || normalize(record.client()).contains(searchText)
-                || normalize(record.archive()).contains(searchText)
-                || normalize(record.profile()).contains(searchText)
-                || normalize(record.metadataTemplate()).contains(searchText)
-                || normalize(record.metadataStatus()).contains(searchText)
-                || normalize(record.qaStatus()).contains(searchText)
-                || normalize(record.assignedTo()).contains(searchText)
-                || normalize(record.scannedBy()).contains(searchText)
-                || normalize(record.lastUpdated()).contains(searchText)
-                || normalize(record.dateGroup()).contains(searchText)
+        return Strings.normalize(record.identity()).contains(searchText)
+                || Strings.normalize(record.client()).contains(searchText)
+                || Strings.normalize(record.archive()).contains(searchText)
+                || Strings.normalize(record.profile()).contains(searchText)
+                || Strings.normalize(record.qaStatus()).contains(searchText)
+                || Strings.normalize(record.assignedTo()).contains(searchText)
+                || Strings.normalize(record.scannedBy()).contains(searchText)
+                || Strings.normalize(record.lastUpdated()).contains(searchText)
+                || Strings.normalize(record.dateGroup()).contains(searchText)
                 || String.valueOf(record.pages()).contains(searchText);
     }
 
@@ -624,10 +529,22 @@ public class ReviewController {
         return matchesCombo(record.client(), clientFilterComboBox.getValue(), ALL_CLIENTS)
                 && matchesCombo(record.archive(), archiveFilterComboBox.getValue(), ALL_ARCHIVES)
                 && matchesCombo(record.profile(), profileFilterComboBox.getValue(), ALL_PROFILES)
-                && matchesCombo(record.metadataStatus(), metadataStatusFilterComboBox.getValue(), ALL_METADATA_STATUSES)
+                && matchesQueueFilter(record)
                 && matchesCombo(record.qaStatus(), qaStatusFilterComboBox.getValue(), ALL_QA_STATUSES)
                 && matchesCombo(record.scannedBy(), scannedByFilterComboBox.getValue(), ALL_USERS)
                 && matchesDateRange(record);
+    }
+
+    private boolean matchesQueueFilter(ReviewRow record) {
+        return switch (activeQueueFilter) {
+            case ALL -> true;
+            case MISSING_REQUIRED -> isMissingRequired(record);
+            case EXPORT_BLOCKED -> isExportBlocked(record);
+            case FAILED_VALIDATION -> isFailedValidation(record);
+            case READY_FOR_QA -> isReadyForQa(record);
+            case QA_REJECTED -> isQaRejected(record);
+            case RECENTLY_SCANNED -> isRecentlyScanned(record);
+        };
     }
 
     private boolean matchesCombo(String value, String selectedValue, String allValue) {
@@ -678,7 +595,7 @@ public class ReviewController {
 
     private LocalDate parseDateText(String value) {
         String dateText = value == null ? "" : value.trim();
-        String normalizedDateText = normalize(dateText);
+        String normalizedDateText = Strings.normalize(dateText);
 
         if (dateText.isBlank()) {
             return null;
@@ -696,6 +613,7 @@ public class ReviewController {
     private LocalDate parseFormattedDate(String dateText) {
         List<DateTimeFormatter> dateFormatters = List.of(
                 DATE_RANGE_FORMATTER,
+                DateTimeFormatter.ofPattern("dd/MM/yyyy"),
                 DateTimeFormatter.ISO_LOCAL_DATE
         );
 
@@ -708,6 +626,7 @@ public class ReviewController {
 
         List<DateTimeFormatter> dateTimeFormatters = List.of(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+                DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm"),
                 DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
         );
 
@@ -721,18 +640,8 @@ public class ReviewController {
         return null;
     }
 
-    private String metadataStatusClass(String status) {
-        return switch (normalize(status)) {
-            case "not started" -> "review-status-neutral";
-            case "incomplete" -> "review-status-warning";
-            case "missing required fields", "invalid" -> "review-status-danger";
-            case "complete", "approved" -> "review-status-success";
-            default -> "review-status-neutral";
-        };
-    }
-
     private String qaStatusClass(String status) {
-        return switch (normalize(status)) {
+        return switch (Strings.normalize(status)) {
             case "not started" -> "review-status-neutral";
             case "waiting for qa", "qa in progress", "ready for qa" -> "review-status-info";
             case "qa approved" -> "review-status-success";
@@ -748,10 +657,10 @@ public class ReviewController {
         clientFilterComboBox.setValue(ALL_CLIENTS);
         archiveFilterComboBox.setValue(ALL_ARCHIVES);
         profileFilterComboBox.setValue(ALL_PROFILES);
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
         scannedByFilterComboBox.setValue(ALL_USERS);
+        activeQueueFilter = ReviewQueueFilter.ALL;
 
         selectedRecordIds.clear();
         currentPage = 1;
@@ -760,45 +669,51 @@ public class ReviewController {
 
     @FXML
     private void showMissingRequiredQueue() {
-        metadataStatusFilterComboBox.setValue("Missing Required Fields");
+        activeQueueFilter = ReviewQueueFilter.MISSING_REQUIRED;
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showExportBlockedQueue() {
-        metadataStatusFilterComboBox.setValue("Missing Required Fields");
+        activeQueueFilter = ReviewQueueFilter.EXPORT_BLOCKED;
         qaStatusFilterComboBox.setValue("Waiting for QA");
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showFailedValidationQueue() {
-        metadataStatusFilterComboBox.setValue("Invalid");
+        activeQueueFilter = ReviewQueueFilter.FAILED_VALIDATION;
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showReadyForQaQueue() {
-        metadataStatusFilterComboBox.setValue("Complete");
+        activeQueueFilter = ReviewQueueFilter.READY_FOR_QA;
         qaStatusFilterComboBox.setValue("Ready for QA");
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showQaRejectedQueue() {
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
+        activeQueueFilter = ReviewQueueFilter.QA_REJECTED;
         qaStatusFilterComboBox.setValue("QA Rejected");
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        applyFilters();
     }
 
     @FXML
     private void showRecentlyScannedQueue() {
-        metadataStatusFilterComboBox.setValue(ALL_METADATA_STATUSES);
+        activeQueueFilter = ReviewQueueFilter.RECENTLY_SCANNED;
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         LocalDate today = LocalDate.now();
         setDateRange(RANGE_TODAY, today, today);
+        applyFilters();
     }
 
     private void applyPresetDateRange(String selectedRange) {
@@ -859,6 +774,7 @@ public class ReviewController {
     }
 
     private void configureDateRangePicker() {
+        dateRangePicker.setPromptText("MM/DD/YYYY");
         dateRangePicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate value) {
@@ -981,17 +897,17 @@ public class ReviewController {
                         + " - "
                         + record.pages()
                         + " pages - "
-                        + record.metadataStatus()
+                        + record.documentDetailsStatus()
         );
 
-        boolean isBlocked = record.metadataStatus().equalsIgnoreCase("Missing Required Fields")
-                || record.metadataStatus().equalsIgnoreCase("Invalid")
-                || record.metadataStatus().equalsIgnoreCase("Incomplete");
+        boolean isBlocked = record.documentDetailsStatus().equalsIgnoreCase("Missing Required Fields")
+                || record.documentDetailsStatus().equalsIgnoreCase("Invalid")
+                || record.documentDetailsStatus().equalsIgnoreCase("Incomplete");
 
         workspaceWarningLabel.setText(
                 isBlocked
-                        ? "Export blocked: 2 required metadata fields are missing."
-                        : "Metadata is complete. Ready for QA assignment or approval."
+                        ? "Export blocked: required document fields are missing."
+                        : "Document details are complete. Ready for QA assignment or approval."
         );
 
         configureWorkspaceControls();
@@ -1017,7 +933,7 @@ public class ReviewController {
     }
 
     @FXML
-    private void saveMetadata() {
+    private void saveReviewDetails() {
         if (activeReviewRecord == null) {
             return;
         }
@@ -1059,7 +975,7 @@ public class ReviewController {
             return;
         }
 
-        replaceActiveRecord(activeReviewRecord.withReviewState(activeReviewRecord.metadataStatus(), "QA Rejected", true));
+        replaceActiveRecord(activeReviewRecord.withReviewState(activeReviewRecord.documentDetailsStatus(), "QA Rejected", true));
     }
 
     private void replaceActiveRecord(ReviewRow updatedRecord) {
@@ -1101,18 +1017,14 @@ public class ReviewController {
         List<Button> tabButtons = List.of(boxTabButton, caseTabButton, documentTabButton, pageTabButton);
 
         for (Button tabButton : tabButtons) {
-            tabButton.getStyleClass().removeAll("metadata-workspace-tab-active", "metadata-workspace-tab-button");
+            tabButton.getStyleClass().removeAll("review-workspace-tab-active", "review-workspace-tab-button");
 
             if (tabButton == activeButton) {
-                tabButton.getStyleClass().add("metadata-workspace-tab-active");
+                tabButton.getStyleClass().add("review-workspace-tab-active");
             } else {
-                tabButton.getStyleClass().add("metadata-workspace-tab-button");
+                tabButton.getStyleClass().add("review-workspace-tab-button");
             }
         }
-    }
-
-    private String normalize(String value) {
-        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private void loadRecords() {
@@ -1137,8 +1049,8 @@ public class ReviewController {
                 record.getClient(),
                 record.getArchive(),
                 record.getProfile(),
-                record.getMetadataTemplate(),
-                record.getMetadataStatus(),
+                record.getDocumentDetailsTemplate(),
+                record.getDocumentDetailsStatus(),
                 record.getQaStatus(),
                 record.getPages(),
                 record.getLastUpdated(),
@@ -1156,8 +1068,8 @@ public class ReviewController {
                 row.client(),
                 row.archive(),
                 row.profile(),
-                row.metadataTemplate(),
-                row.metadataStatus(),
+                row.documentDetailsTemplate(),
+                row.documentDetailsStatus(),
                 row.qaStatus(),
                 row.pages(),
                 row.lastUpdated(),
@@ -1199,14 +1111,24 @@ public class ReviewController {
         }
     }
 
+    private enum ReviewQueueFilter {
+        ALL,
+        MISSING_REQUIRED,
+        EXPORT_BLOCKED,
+        FAILED_VALIDATION,
+        READY_FOR_QA,
+        QA_REJECTED,
+        RECENTLY_SCANNED
+    }
+
     record ReviewRow(
             String id,
             String identity,
             String client,
             String archive,
             String profile,
-            String metadataTemplate,
-            String metadataStatus,
+            String documentDetailsTemplate,
+            String documentDetailsStatus,
             String qaStatus,
             int pages,
             String lastUpdated,
@@ -1222,8 +1144,8 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    metadataTemplate,
-                    metadataStatus,
+                    documentDetailsTemplate,
+                    documentDetailsStatus,
                     qaStatus,
                     pages,
                     updatedAt,
@@ -1241,8 +1163,8 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    metadataTemplate,
-                    metadataStatus,
+                    documentDetailsTemplate,
+                    documentDetailsStatus,
                     qaStatus,
                     pages,
                     "Updated just now",
@@ -1253,15 +1175,15 @@ public class ReviewController {
             );
         }
 
-        private ReviewRow withReviewState(String newMetadataStatus, String newQaStatus, boolean hasWarning) {
+        private ReviewRow withReviewState(String newDocumentDetailsStatus, String newQaStatus, boolean hasWarning) {
             return new ReviewRow(
                     id,
                     identity,
                     client,
                     archive,
                     profile,
-                    metadataTemplate,
-                    newMetadataStatus,
+                    documentDetailsTemplate,
+                    newDocumentDetailsStatus,
                     newQaStatus,
                     pages,
                     "Updated just now",

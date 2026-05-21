@@ -6,7 +6,7 @@ enum UserPage {
     MY_SCANS(null, "My Scans"),
     ASSIGNED_QA("/view/UserViews/assigned-qa-view.fxml", "Assigned QA"),
     EXPORTS(null, "Exports"),
-    HELP(null, "Help"),
+    EDIT_PROFILE(null, "Edit User Profile"),
     SETTINGS(null, "Settings");
 
     private final String fxmlPath;

@@ -173,7 +173,7 @@ public class SettingsController {
     private Node buildPlaceholderSection(String section) {
         Label heading = new Label(section);
         heading.getStyleClass().add("settings-section-heading");
-        Label body = new Label("This section is being rebuilt in the controller-based portal.");
+        Label body = new Label("No additional preferences are stored for this section yet.");
         body.getStyleClass().add("portal-muted");
         body.setWrapText(true);
 

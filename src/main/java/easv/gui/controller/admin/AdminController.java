@@ -2,45 +2,36 @@ package easv.gui.controller.admin;
 
 import easv.be.User;
 import easv.bll.AdminManager;
-import easv.bll.KeyboardShortcut;
-import easv.bll.ShortcutManager;
 import easv.bll.UserSession;
+import easv.gui.BackgroundExecutor;
 import easv.gui.MainApp;
+import easv.gui.PrimeIcons;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.prefs.Preferences;
 
 public class AdminController implements AdminNavigator {
 
@@ -52,14 +43,14 @@ public class AdminController implements AdminNavigator {
 
     private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
-    private static final double COMPACT_NAV_WIDTH = 1180;
+    private static final String THEME_PREFERENCES_NODE = "easv.gui.weblager";
+    private static final String DARK_MODE_PREFERENCE_KEY = "darkMode";
+    private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
+    private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
     private static final String ACCOUNT_SECTION = "Edit Profile";
     private static final String PRIVACY_SECTION = "Settings and Privacy";
-    private static final String HELP_SECTION = "Help and Support";
-    private static final String MOON_ICON_PATH =
-            "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
-    private static final String SUN_ICON_PATH =
-            "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
+    private static final String MOON_ICON = "\ue9c7";
+    private static final String SUN_ICON = "\ue9c8";
 
     @FXML private StackPane appShell;
     @FXML private StackPane contentHost;
@@ -72,7 +63,6 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton usersNavItem;
     @FXML private ToggleButton profilesNavItem;
     @FXML private ToggleButton assignmentsNavItem;
-    @FXML private ToggleButton metadataNavItem;
     @FXML private ToggleButton reviewNavItem;
     @FXML private ToggleButton activityNavItem;
 
@@ -85,17 +75,13 @@ public class AdminController implements AdminNavigator {
     @FXML private Button editProfileMenuButton;
     @FXML private Button settingsPrivacyMenuButton;
     @FXML private Button logoutMenuButton;
-    @FXML private Button keyboardShortcutsButton;
-    @FXML private Button helpButton;
     @FXML private ToggleButton darkModeToggleButton;
-    @FXML private SVGPath darkModeToggleIcon;
+    @FXML private Label darkModeToggleIcon;
 
-    private final AdminManager adminManager = new AdminManager();
-    private final ShortcutManager shortcutManager = new ShortcutManager();
+    private AdminManager adminManager;
+    private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
-    private Scene shortcutScene;
-    private boolean rootShortcutFiltersRegistered;
-    private AdminPage currentPage = AdminPage.DASHBOARD;
+    private AdminPage pendingPage = AdminPage.DASHBOARD;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -106,13 +92,11 @@ public class AdminController implements AdminNavigator {
         configureBrandLogo();
         configureAccount();
         configureAccountMenu();
-        configureKeyboardShortcutsButton();
-        configureHelpButton();
         configureThemeToggle();
         configureNavigation();
-        configureResponsiveNavigation();
-        configureGlobalHelpShortcuts();
-        showPage(AdminPage.DASHBOARD);
+        setNavigationDisabled(true);
+        showLoadingPage("Loading admin data...");
+        loadAdminDataAsync();
     }
 
     private void configureBrandLogo() {
@@ -123,7 +107,6 @@ public class AdminController implements AdminNavigator {
         updateTheme(isDarkModeEnabled());
 
         if (darkModeToggleButton != null) {
-            darkModeToggleButton.setTooltip(new Tooltip("Toggle light or dark mode"));
             darkModeToggleButton.selectedProperty().addListener((observable, oldValue, isDark) ->
                     updateTheme(isDark)
             );
@@ -140,7 +123,7 @@ public class AdminController implements AdminNavigator {
         }
 
         if (accountInitialsLabel != null) {
-            accountInitialsLabel.setText(initialsFor(displayName));
+            accountInitialsLabel.setText(Strings.initials(displayName, "AD"));
         }
 
         if (accountDropdownNameLabel != null) {
@@ -174,104 +157,19 @@ public class AdminController implements AdminNavigator {
         }
     }
 
-    private void configureKeyboardShortcutsButton() {
-        if (keyboardShortcutsButton != null) {
-            keyboardShortcutsButton.setTooltip(new Tooltip("Keyboard Shortcuts"));
-            keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
-        }
-    }
-
-    private void configureHelpButton() {
-        if (helpButton != null) {
-            // The keyboard icon is the single visible entry point for the shortcut legend.
-            helpButton.setVisible(false);
-            helpButton.setManaged(false);
-        }
-    }
-
-    private void configureGlobalHelpShortcuts() {
-        registerRootShortcutFilters();
-
-        Platform.runLater(() -> {
-            Scene scene = appShell == null ? null : appShell.getScene();
-
-            if (scene != null) {
-                registerHelpShortcuts(scene);
-                return;
-            }
-
-            if (appShell != null) {
-                // If the scene is not ready yet, install shortcuts as soon as JavaFX attaches it.
-                appShell.sceneProperty().addListener((observable, oldScene, newScene) -> {
-                    if (newScene != null) {
-                        registerHelpShortcuts(newScene);
-                    }
-                });
-            }
-        });
-    }
-
-    private void registerRootShortcutFilters() {
-        if (appShell == null || rootShortcutFiltersRegistered) {
-            return;
-        }
-
-        // The root filter keeps help available even when a child page owns focus.
-        appShell.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
-        appShell.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
-        rootShortcutFiltersRegistered = true;
-    }
-
-    private void registerHelpShortcuts(Scene scene) {
-        if (scene == shortcutScene) {
-            return;
-        }
-
-        if (shortcutScene != null) {
-            shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
-            shortcutScene.removeEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
-        }
-
-        shortcutScene = scene;
-
-        // Keep help reachable even when focus is inside a table, form, or child page.
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
-        scene.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
-        scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showHelpDialog);
-        scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showHelpDialog);
-    }
-
-    private void handleGlobalShortcut(KeyEvent event) {
-        if (event.isConsumed()) {
-            return;
-        }
-
-        if (event.getCode() == KeyCode.F1
-                || (event.isShiftDown() && event.getCode() == KeyCode.SLASH)
-                || "?".equals(event.getText())) {
-            showHelpDialog();
-            event.consume();
-        }
-    }
-
-    private void handleGlobalTypedShortcut(KeyEvent event) {
-        if (event.isConsumed()) {
-            return;
-        }
-
-        if ("?".equals(event.getCharacter())) {
-            showHelpDialog();
-            event.consume();
-        }
-    }
-
     private boolean isDarkModeEnabled() {
-        return darkModeToggleButton != null && darkModeToggleButton.isSelected();
+        Preferences legacyUserPreferences = Preferences.userRoot().node(LEGACY_USER_PREFERENCES_NODE);
+
+        return preferences.getBoolean(
+                DARK_MODE_PREFERENCE_KEY,
+                legacyUserPreferences.getBoolean(LEGACY_USER_DARK_MODE_KEY, false)
+        );
     }
 
     private void updateTheme(boolean isDark) {
         updateDarkModeClass(isDark);
         updateBrandLogo(isDark);
+        preferences.putBoolean(DARK_MODE_PREFERENCE_KEY, isDark);
         updateThemeControls(isDark);
     }
 
@@ -322,71 +220,15 @@ public class AdminController implements AdminNavigator {
         }
 
         if (darkModeToggleIcon != null) {
-            darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
+            darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
+            PrimeIcons.applyFont(darkModeToggleIcon);
         }
     }
 
     private void configureNavigation() {
         for (AdminPage page : AdminPage.values()) {
-            ToggleButton navItem = getNavItem(page);
-
-            if (navItem != null) {
-                installCloseIcon(navItem);
-                setNavigationAction(navItem, () -> showPage(page));
-            }
+            setNavigationAction(getNavItem(page), () -> showPage(page));
         }
-    }
-
-    private void configureResponsiveNavigation() {
-        if (appShell == null) {
-            return;
-        }
-
-        appShell.widthProperty().addListener((observable, oldWidth, newWidth) ->
-                updateNavigationLabelVisibility(newWidth.doubleValue())
-        );
-
-        // JavaFX knows the real window width only after the scene is visible.
-        Platform.runLater(() -> updateNavigationLabelVisibility(appShell.getWidth()));
-    }
-
-    private void updateNavigationLabelVisibility(double width) {
-        boolean showLabels = width <= 0 || width >= COMPACT_NAV_WIDTH;
-
-        for (ToggleButton navItem : getNavigationItems()) {
-            updateNavLabelVisibility(navItem, showLabels);
-        }
-    }
-
-    private void updateNavLabelVisibility(ToggleButton navItem, boolean visible) {
-        if (navItem == null || !(navItem.getGraphic() instanceof HBox graphicBox)) {
-            return;
-        }
-
-        for (Node child : graphicBox.getChildren()) {
-            if (child.getStyleClass().contains("admin-top-nav-label")) {
-                child.setVisible(visible);
-                child.setManaged(visible);
-            }
-        }
-    }
-
-    private void installCloseIcon(ToggleButton navItem) {
-        if (!(navItem.getGraphic() instanceof HBox graphicBox)) {
-            return;
-        }
-
-        Label closeIcon = new Label("x");
-        closeIcon.getStyleClass().add("admin-nav-close-icon");
-        closeIcon.setVisible(false);
-        closeIcon.setManaged(false);
-        closeIcon.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> event.consume());
-        closeIcon.setOnMouseClicked(event -> {
-            showPage(AdminPage.DASHBOARD);
-            event.consume();
-        });
-
-        graphicBox.getChildren().add(closeIcon);
     }
 
     private void setNavigationAction(ToggleButton navItem, Runnable action) {
@@ -399,10 +241,55 @@ public class AdminController implements AdminNavigator {
 
     @Override
     public void showPage(AdminPage page) {
-        currentPage = page;
         hideAccountDropdown();
+
+        if (adminManager == null) {
+            pendingPage = page == null ? AdminPage.DASHBOARD : page;
+            showLoadingPage("Loading admin data...");
+            return;
+        }
+
         loadPage(page);
         setActiveNavItem(getNavItem(page));
+    }
+
+    private void loadAdminDataAsync() {
+        CompletableFuture
+                .supplyAsync(AdminManager::new, BackgroundExecutor.io())
+                .whenComplete((loadedManager, throwable) -> Platform.runLater(() -> {
+                    if (throwable != null) {
+                        showLoadingPage("Admin data could not be loaded.");
+                        return;
+                    }
+
+                    adminManager = loadedManager;
+                    setNavigationDisabled(false);
+                    showPage(pendingPage);
+                }));
+    }
+
+    private void setNavigationDisabled(boolean disabled) {
+        for (ToggleButton navItem : getNavigationItems()) {
+            if (navItem != null) {
+                navItem.setDisable(disabled);
+            }
+        }
+    }
+
+    private void showLoadingPage(String message) {
+        Label titleLabel = new Label(message);
+        titleLabel.getStyleClass().add("page-title");
+
+        Label subtitleLabel = new Label("Please wait a moment.");
+        subtitleLabel.getStyleClass().add("page-subtitle");
+
+        VBox placeholder = new VBox(6, titleLabel, subtitleLabel);
+        placeholder.getStyleClass().addAll("admin-page", "main-content", "admin-missing-page-placeholder");
+        placeholder.setAlignment(Pos.TOP_LEFT);
+        placeholder.setMaxWidth(Double.MAX_VALUE);
+        placeholder.setMaxHeight(Double.MAX_VALUE);
+
+        contentHost.getChildren().setAll(placeholder);
     }
 
     private void loadPage(AdminPage page) {
@@ -419,6 +306,7 @@ public class AdminController implements AdminNavigator {
 
             configureLoadedController(loader.getController());
             configureLoadedPageSize(loadedPage);
+            PrimeIcons.applyFont(loadedPage);
             contentHost.getChildren().setAll(loadedPage);
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load page: " + page.fxmlPath(), exception);
@@ -436,8 +324,6 @@ public class AdminController implements AdminNavigator {
             profilesController.setAdminManager(adminManager);
         } else if (controller instanceof AssignmentsController assignmentsController) {
             assignmentsController.setAdminManager(adminManager);
-        } else if (controller instanceof MetadataController metadataController) {
-            metadataController.setAdminManager(adminManager);
         } else if (controller instanceof ReviewController reviewController) {
             reviewController.setAdminManager(adminManager);
         } else if (controller instanceof ActivityController activityController) {
@@ -483,24 +369,32 @@ public class AdminController implements AdminNavigator {
     private void setNavItemActive(ToggleButton navItem, boolean active) {
         navItem.setSelected(active);
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
+        removeNavCloseButton(navItem);
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
+            addNavCloseButton(navItem);
         }
-
-        updateNavCloseIcon(navItem, active && currentPage != AdminPage.DASHBOARD);
     }
 
-    private void updateNavCloseIcon(ToggleButton navItem, boolean visible) {
-        if (!(navItem.getGraphic() instanceof HBox graphicBox)) {
+    private void addNavCloseButton(ToggleButton navItem) {
+        if (navItem == null || navItem == dashboardNavItem || !(navItem.getGraphic() instanceof HBox graphic)) {
             return;
         }
 
-        for (Node child : graphicBox.getChildren()) {
-            if (child.getStyleClass().contains("admin-nav-close-icon")) {
-                child.setVisible(visible);
-                child.setManaged(visible);
-            }
+        Label closeLabel = new Label("x");
+        closeLabel.getStyleClass().add("admin-top-nav-close");
+        closeLabel.setOnMouseClicked(event -> {
+            event.consume();
+            showPage(AdminPage.DASHBOARD);
+        });
+
+        graphic.getChildren().add(closeLabel);
+    }
+
+    private void removeNavCloseButton(ToggleButton navItem) {
+        if (navItem != null && navItem.getGraphic() instanceof HBox graphic) {
+            graphic.getChildren().removeIf(node -> node.getStyleClass().contains("admin-top-nav-close"));
         }
     }
 
@@ -510,7 +404,6 @@ public class AdminController implements AdminNavigator {
                 usersNavItem,
                 profilesNavItem,
                 assignmentsNavItem,
-                metadataNavItem,
                 reviewNavItem,
                 activityNavItem
         );
@@ -522,7 +415,6 @@ public class AdminController implements AdminNavigator {
             case USERS -> usersNavItem;
             case PROFILES -> profilesNavItem;
             case ASSIGNMENTS -> assignmentsNavItem;
-            case METADATA_TEMPLATES -> metadataNavItem;
             case REVIEW -> reviewNavItem;
             case ACTIVITY -> activityNavItem;
         };
@@ -564,7 +456,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private VBox createAccountSettingsPage(String selectedSection) {
-        String safeSection = clean(selectedSection).isBlank() ? ACCOUNT_SECTION : selectedSection;
+        String safeSection = Strings.clean(selectedSection).isBlank() ? ACCOUNT_SECTION : selectedSection;
 
         Label titleLabel = new Label(safeSection);
         titleLabel.getStyleClass().add("page-title");
@@ -594,7 +486,6 @@ public class AdminController implements AdminNavigator {
         return switch (section) {
             case ACCOUNT_SECTION -> "Manage your account information and password.";
             case PRIVACY_SECTION -> "Settings and privacy options.";
-            case HELP_SECTION -> "Help and support resources.";
             default -> "";
         };
     }
@@ -630,7 +521,6 @@ public class AdminController implements AdminNavigator {
                 switch (selectedSection) {
                     case ACCOUNT_SECTION -> buildAccountProfileSection();
                     case PRIVACY_SECTION -> buildEmptyAccountSection(PRIVACY_SECTION);
-                    case HELP_SECTION -> buildEmptyAccountSection(HELP_SECTION);
                     default -> buildEmptyAccountSection(selectedSection);
                 }
         );
@@ -645,10 +535,10 @@ public class AdminController implements AdminNavigator {
         heading.getStyleClass().add("settings-section-heading");
 
         TextField nameField = createAccountTextField(displayNameFor(account));
-        TextField usernameField = createAccountTextField(account == null ? "" : clean(account.getUsername()));
-        TextField emailField = createAccountTextField(account == null ? "" : clean(account.getEmail()));
-        TextField roleField = createAccountTextField(account == null ? "Admin" : clean(account.getRole()));
-        TextField statusField = createAccountTextField(account == null ? "Active" : clean(account.getStatus()));
+        TextField usernameField = createAccountTextField(account == null ? "" : Strings.clean(account.getUsername()));
+        TextField emailField = createAccountTextField(account == null ? "" : Strings.clean(account.getEmail()));
+        TextField roleField = createAccountTextField(account == null ? "Admin" : Strings.clean(account.getRole()));
+        TextField statusField = createAccountTextField(account == null ? "Active" : Strings.clean(account.getStatus()));
 
         roleField.setEditable(false);
         statusField.setEditable(false);
@@ -715,6 +605,11 @@ public class AdminController implements AdminNavigator {
                                     Label saveMessage) {
         if (account == null) {
             showInlineMessage(saveMessage, "Could not find the current account.", false);
+            return;
+        }
+
+        if (adminManager == null) {
+            showInlineMessage(saveMessage, "Please wait until admin data has loaded.", false);
             return;
         }
 
@@ -797,7 +692,7 @@ public class AdminController implements AdminNavigator {
     private void showInlineMessage(Label messageLabel, String message, boolean success) {
         messageLabel.getStyleClass().removeAll("success", "error");
         messageLabel.getStyleClass().add(success ? "success" : "error");
-        messageLabel.setText(clean(message).isBlank() ? "Something went wrong." : message);
+        messageLabel.setText(Strings.clean(message).isBlank() ? "Something went wrong." : message);
         messageLabel.setVisible(true);
         messageLabel.setManaged(true);
     }
@@ -809,172 +704,14 @@ public class AdminController implements AdminNavigator {
             return null;
         }
 
+        if (adminManager == null) {
+            return sessionUser;
+        }
+
         return adminManager.getUsers().stream()
                 .filter(user -> user.getId() == sessionUser.getId())
                 .findFirst()
                 .orElse(sessionUser);
-    }
-
-    private void showKeyboardShortcutsDialog() {
-        hideAccountDropdown();
-
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Keyboard Shortcuts");
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStyleClass().addAll("app-shell", "shortcut-help-dialog-pane");
-
-        if (appShell != null && appShell.getStyleClass().contains(DARK_MODE_CLASS)) {
-            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
-        }
-
-        addAppStylesheet(dialog);
-
-        ScrollPane content = createKeyboardShortcutsContent("Keyboard Shortcuts");
-        dialog.getDialogPane().setContent(content);
-        dialog.setResizable(true);
-
-        if (appShell != null && appShell.getScene() != null) {
-            dialog.initOwner(appShell.getScene().getWindow());
-        }
-
-        dialog.showAndWait();
-    }
-
-    private void showHelpDialog() {
-        hideAccountDropdown();
-
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle(HELP_SECTION);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStyleClass().addAll("app-shell", "shortcut-help-dialog-pane");
-
-        if (appShell != null && appShell.getStyleClass().contains(DARK_MODE_CLASS)) {
-            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
-        }
-
-        addAppStylesheet(dialog);
-
-        ScrollPane content = createKeyboardShortcutsContent("Keyboard Shortcuts");
-        dialog.getDialogPane().setContent(content);
-        dialog.setResizable(true);
-
-        if (appShell != null && appShell.getScene() != null) {
-            dialog.initOwner(appShell.getScene().getWindow());
-        }
-
-        dialog.showAndWait();
-    }
-
-    private void addAppStylesheet(Dialog<?> dialog) {
-        URL stylesheetUrl = getClass().getResource("/css/app.css");
-
-        if (stylesheetUrl != null) {
-            dialog.getDialogPane().getStylesheets().add(stylesheetUrl.toExternalForm());
-        }
-    }
-
-    private ScrollPane createKeyboardShortcutsContent(String titleText) {
-        ScrollPane scrollPane = new ScrollPane(createShortcutHelpShell(titleText));
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefViewportWidth(860);
-        scrollPane.setPrefViewportHeight(560);
-        scrollPane.getStyleClass().add("shortcut-help-scroll");
-        return scrollPane;
-    }
-
-    private VBox createShortcutHelpShell(String titleText) {
-        VBox content = new VBox(0);
-        content.getStyleClass().add("shortcut-help-shell");
-
-        HBox header = createShortcutHelpHeader(titleText);
-        VBox body = new VBox(createShortcutGrid());
-        body.getStyleClass().add("shortcut-help-body");
-
-        content.getChildren().addAll(header, body);
-        content.setPrefSize(860, 560);
-        return content;
-    }
-
-    private HBox createShortcutHelpHeader(String titleText) {
-        Label keyboardIcon = new Label("⌨");
-        keyboardIcon.getStyleClass().add("shortcut-help-header-icon");
-
-        Label title = new Label(titleText);
-        title.getStyleClass().add("shortcut-help-main-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox header = new HBox(18, keyboardIcon, title, spacer);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.getStyleClass().add("shortcut-help-header");
-        return header;
-    }
-
-    private GridPane createShortcutGrid() {
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(9);
-        grid.getStyleClass().add("shortcut-help-grid");
-
-        ColumnConstraints leftColumn = new ColumnConstraints();
-        leftColumn.setPercentWidth(50);
-        ColumnConstraints rightColumn = new ColumnConstraints();
-        rightColumn.setPercentWidth(50);
-        grid.getColumnConstraints().addAll(leftColumn, rightColumn);
-
-        List<KeyboardShortcut> shortcuts = shortcutManager.getShortcuts();
-
-        for (int index = 0; index < shortcuts.size(); index++) {
-            int column = index % 2;
-            int row = index / 2;
-            grid.add(createShortcutCard(shortcuts.get(index)), column, row);
-        }
-
-        return grid;
-    }
-
-    private HBox createShortcutCard(KeyboardShortcut shortcut) {
-        Label icon = new Label(shortcutIcon(shortcut));
-        icon.getStyleClass().add("shortcut-help-icon");
-
-        Label keys = new Label(shortcut.getDisplayKeys());
-        keys.getStyleClass().add("settings-shortcut-key");
-
-        Label actionName = new Label(shortcut.getActionName());
-        actionName.getStyleClass().add("shortcut-help-title");
-
-        HBox heading = new HBox(8, keys, actionName);
-        heading.setAlignment(Pos.CENTER_LEFT);
-
-        Label action = new Label(shortcut.getDescription());
-        action.getStyleClass().add("settings-shortcut-copy");
-        action.setWrapText(true);
-
-        VBox copy = new VBox(4, heading, action);
-        HBox.setHgrow(copy, Priority.ALWAYS);
-
-        HBox card = new HBox(12, icon, copy);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.getStyleClass().add("shortcut-help-card");
-        return card;
-    }
-
-    private String shortcutIcon(KeyboardShortcut shortcut) {
-        return switch (shortcut.getActionName()) {
-            case "Next page" -> "→";
-            case "Previous page" -> "←";
-            case "Rotate" -> "↻";
-            case "Delete" -> "⌫";
-            case "Undo" -> "↶";
-            case "Save" -> "✓";
-            case "Search / jump" -> "⌕";
-            case "Export" -> "⇩";
-            case "Zoom in" -> "+";
-            case "Zoom out" -> "-";
-            case "Escape" -> "×";
-            default -> "?";
-        };
     }
 
     private void logout() {
@@ -997,12 +734,12 @@ public class AdminController implements AdminNavigator {
             return "Admin";
         }
 
-        if (!clean(user.getName()).isBlank()) {
-            return clean(user.getName());
+        if (!Strings.clean(user.getName()).isBlank()) {
+            return Strings.clean(user.getName());
         }
 
-        if (!clean(user.getUsername()).isBlank()) {
-            return clean(user.getUsername());
+        if (!Strings.clean(user.getUsername()).isBlank()) {
+            return Strings.clean(user.getUsername());
         }
 
         return "Admin";
@@ -1013,34 +750,15 @@ public class AdminController implements AdminNavigator {
             return "Admin account";
         }
 
-        if (!clean(user.getEmail()).isBlank()) {
-            return clean(user.getEmail());
+        if (!Strings.clean(user.getEmail()).isBlank()) {
+            return Strings.clean(user.getEmail());
         }
 
-        if (!clean(user.getUsername()).isBlank()) {
-            return clean(user.getUsername());
+        if (!Strings.clean(user.getUsername()).isBlank()) {
+            return Strings.clean(user.getUsername());
         }
 
-        return clean(user.getRole()).isBlank() ? "Admin account" : clean(user.getRole()) + " account";
+        return Strings.clean(user.getRole()).isBlank() ? "Admin account" : Strings.clean(user.getRole()) + " account";
     }
 
-    private String initialsFor(String displayName) {
-        String cleanedName = clean(displayName);
-
-        if (cleanedName.isBlank()) {
-            return "AD";
-        }
-
-        String[] parts = cleanedName.split("\\s+");
-
-        if (parts.length == 1) {
-            return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase(Locale.ROOT);
-        }
-
-        return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase(Locale.ROOT);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
 }

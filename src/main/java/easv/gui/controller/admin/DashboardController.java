@@ -3,18 +3,17 @@ package easv.gui.controller.admin;
 import easv.be.AuditLog;
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
+import easv.gui.PrimeIcons;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Circle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,9 +25,8 @@ public class DashboardController {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-    private static final double DONUT_SIZE = 60;
-    private static final double DONUT_RADIUS = 22;
-    private static final double DONUT_STROKE_WIDTH = 9;
+    private static final double DONUT_RADIUS = 19;
+    private static final double DONUT_HOLE_RADIUS = 12;
 
     private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
 
@@ -233,9 +231,7 @@ public class DashboardController {
     }
 
     private StackPane createRecentActivityIcon(AuditLog log) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(iconPathFor(log));
-        icon.getStyleClass().add(iconPathClassFor(log));
+        Label icon = PrimeIcons.create(iconGlyphFor(log), iconPathClassFor(log));
 
         StackPane iconBox = new StackPane(icon);
         iconBox.getStyleClass().add(iconBoxClassFor(log));
@@ -292,7 +288,7 @@ public class DashboardController {
         return countReviewRecords(record ->
                 contains(record.getQaStatus(), "waiting")
                         || contains(record.getQaStatus(), "ready")
-                        || contains(record.getMetadataStatus(), "ready")
+                        || contains(record.getDocumentDetailsStatus(), "ready")
         );
     }
 
@@ -341,54 +337,37 @@ public class DashboardController {
 
         workflowDonutChart.getChildren().clear();
 
-        Canvas canvas = new Canvas(DONUT_SIZE, DONUT_SIZE);
-        GraphicsContext graphics = canvas.getGraphicsContext2D();
-
-        graphics.setLineWidth(DONUT_STROKE_WIDTH);
-        graphics.setLineCap(StrokeLineCap.BUTT);
-        graphics.setStroke(Color.web("#DCE3EC"));
-        graphics.strokeOval(
-                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
-                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
-                DONUT_RADIUS * 2,
-                DONUT_RADIUS * 2
-        );
-
         int total = inProgress + waitingForQa + exported;
+
+        Circle track = new Circle(DONUT_RADIUS);
+        track.getStyleClass().add(total > 0 ? "dashboard-donut-green" : "dashboard-donut-track");
+        workflowDonutChart.getChildren().add(track);
 
         if (total > 0) {
             double startAngle = 90;
-            startAngle = drawDonutSegment(graphics, inProgress, total, startAngle, "#0B6FAE");
-            startAngle = drawDonutSegment(graphics, waitingForQa, total, startAngle, "#F59E0B");
-            drawDonutSegment(graphics, exported, total, startAngle, "#168A72");
+            startAngle = addDonutSegment(waitingForQa, total, startAngle, "dashboard-donut-amber");
+            addDonutSegment(inProgress, total, startAngle, "dashboard-donut-blue");
         }
 
-        workflowDonutChart.getChildren().add(canvas);
+        Circle hole = new Circle(DONUT_HOLE_RADIUS);
+        hole.getStyleClass().add("dashboard-donut-hole");
+        workflowDonutChart.getChildren().add(hole);
     }
 
-    private double drawDonutSegment(GraphicsContext graphics, int value, int total, double startAngle, String color) {
+    private double addDonutSegment(int value, int total, double startAngle, String styleClass) {
         if (value <= 0) {
             return startAngle;
         }
 
         double length = -360.0 * value / total;
 
-        graphics.setStroke(Color.web(color));
-        graphics.strokeArc(
-                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
-                centerToTopLeft(DONUT_SIZE, DONUT_RADIUS),
-                DONUT_RADIUS * 2,
-                DONUT_RADIUS * 2,
-                startAngle,
-                length,
-                javafx.scene.shape.ArcType.OPEN
-        );
+        Arc segment = new Arc(0, 0, DONUT_RADIUS, DONUT_RADIUS, startAngle, length);
+        segment.setType(ArcType.OPEN);
+        segment.getStyleClass().add(styleClass);
+
+        workflowDonutChart.getChildren().add(segment);
 
         return startAngle + length;
-    }
-
-    private double centerToTopLeft(double size, double radius) {
-        return (size - radius * 2) / 2;
     }
 
     private void setAttentionRowState(HBox row, boolean shouldShow) {
@@ -450,20 +429,16 @@ public class DashboardController {
         };
     }
 
-    private String iconPathFor(AuditLog log) {
+    private String iconGlyphFor(AuditLog log) {
         if (isWarningOrFailed(log)) {
-            return "M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm-1 9h2v2h-2v-2z";
+            return "\ue922";
         }
 
         return switch (safeText(log.getType(), "")) {
-            case "Scans" ->
-                    "M3 17.5 9.2 11.3l3.3 3.3L20 7.1V12h2V3.5h-8.5v2H18l-5.5 5.5-3.3-3.3L1.5 15.4 3 17.5z";
-            case "Access" ->
-                    "M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.31 0-6 1.79-6 4v2h8.1a6.48 6.48 0 0 1-.1-1.1c0-1.9.82-3.61 2.13-4.8A10.6 10.6 0 0 0 8 13zm8.5 0a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm-.5 6.7-2.1-2.1 1.06-1.06L16 17.59l2.54-2.55 1.06 1.06-3.6 3.6z";
-            case "QA" ->
-                    "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z";
-            default ->
-                    "M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2zm0 2v13h14v-13H5zm2.5 3h4.2a2.4 2.4 0 0 1 4.6 0h1.2v2h-1.2a2.4 2.4 0 0 1-4.6 0H7.5v-2zm6.5 1.3a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6z";
+            case "Scans" -> "\ue9e4";
+            case "Access" -> "\ue93f";
+            case "QA" -> "\ue90a";
+            default -> "\ue992";
         };
     }
 
@@ -480,11 +455,6 @@ public class DashboardController {
     @FXML
     private void createProfile() {
         navigator.showProfiles();
-    }
-
-    @FXML
-    private void createMetadataTemplate() {
-        navigator.showMetadataTemplates();
     }
 
     @FXML
