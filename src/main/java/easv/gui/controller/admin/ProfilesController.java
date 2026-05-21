@@ -3,6 +3,7 @@ package easv.gui.controller.admin;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,16 +29,13 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.IntStream;
 
 public class ProfilesController {
 
     private static final String ALL_STATUSES = "All Statuses";
-    private static final String ALL_METADATA_TEMPLATES = "All Metadata Templates";
 
     private static final double PAGE_HORIZONTAL_PADDING = 48;
     private static final double CARD_GAP = 18;
@@ -53,7 +51,6 @@ public class ProfilesController {
     @FXML private Label profilesCountLabel;
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusFilterComboBox;
-    @FXML private ComboBox<String> metadataFilterComboBox;
     @FXML private GridPane profilesCardsGrid;
     @FXML private VBox emptyStateBox;
 
@@ -63,13 +60,11 @@ public class ProfilesController {
 
     @FXML private Button generalTabButton;
     @FXML private Button scanRulesTabButton;
-    @FXML private Button metadataTabButton;
     @FXML private Button accessTabButton;
     @FXML private Button previewTabButton;
 
     @FXML private VBox generalTabPane;
     @FXML private VBox scanRulesTabPane;
-    @FXML private VBox metadataTabPane;
     @FXML private VBox accessTabPane;
     @FXML private VBox previewTabPane;
 
@@ -91,9 +86,6 @@ public class ProfilesController {
     @FXML private TextField exportNamingField;
     @FXML private Label exportNamingPreviewLabel;
 
-    @FXML private ComboBox<String> metadataTemplateComboBox;
-    @FXML private ToggleButton metadataRequiredToggle;
-
     @FXML private Label accessCountLabel;
     @FXML private VBox accessRowsContainer;
 
@@ -101,7 +93,6 @@ public class ProfilesController {
     @FXML private Label previewBoxIdLabel;
     @FXML private Label previewExportFolderLabel;
     @FXML private Label previewBarcodeLabel;
-    @FXML private Label previewMetadataTemplateLabel;
     @FXML private Label previewPageCorrectionLabel;
     @FXML private Label previewExportFormatLabel;
 
@@ -146,8 +137,6 @@ public class ProfilesController {
         );
         statusFilterComboBox.setValue(ALL_STATUSES);
 
-        metadataFilterComboBox.getItems().setAll(ALL_METADATA_TEMPLATES);
-        metadataFilterComboBox.setValue(ALL_METADATA_TEMPLATES);
     }
 
     private void configureEditorControls() {
@@ -177,15 +166,12 @@ public class ProfilesController {
                 "Single-page TIFF"
         );
 
-        metadataTemplateComboBox.getItems().setAll("");
-
         profileNameField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         profileCodeField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         exportNamingField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeSplitToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         deskewToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        metadataRequiredToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         barcodePageBehaviorComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
@@ -193,7 +179,6 @@ public class ProfilesController {
         brightnessComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         contrastComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         exportFormatComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        metadataTemplateComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
     }
 
     private void configureFiltering() {
@@ -201,7 +186,6 @@ public class ProfilesController {
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        metadataFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
     }
 
     private void configureResponsiveGrid() {
@@ -214,54 +198,10 @@ public class ProfilesController {
     private void loadProfiles() {
         if (adminManager == null) {
             masterProfiles.clear();
-            refreshMetadataOptions();
             return;
         }
 
         masterProfiles.setAll(adminManager.getProfiles());
-        refreshMetadataOptions();
-    }
-
-    private void refreshMetadataOptions() {
-        LinkedHashSet<String> metadataNames = new LinkedHashSet<>();
-
-        if (adminManager != null) {
-            adminManager.getMetadataTemplates().forEach(template -> {
-                if (!clean(template.getName()).isBlank()) {
-                    metadataNames.add(template.getName());
-                }
-            });
-        }
-
-        masterProfiles.forEach(profile -> {
-            if (!clean(profile.getMetadataTemplateName()).isBlank()) {
-                metadataNames.add(profile.getMetadataTemplateName());
-            }
-        });
-
-        String selectedFilter = metadataFilterComboBox.getValue();
-
-        List<String> filterOptions = new ArrayList<>();
-        filterOptions.add(ALL_METADATA_TEMPLATES);
-        filterOptions.addAll(metadataNames);
-
-        metadataFilterComboBox.getItems().setAll(filterOptions);
-        metadataFilterComboBox.setValue(filterOptions.contains(selectedFilter)
-                ? selectedFilter
-                : ALL_METADATA_TEMPLATES);
-
-        String selectedEditorTemplate = metadataTemplateComboBox.getValue();
-
-        List<String> editorOptions = new ArrayList<>(metadataNames);
-
-        if (editorOptions.isEmpty()) {
-            editorOptions.add("");
-        }
-
-        metadataTemplateComboBox.getItems().setAll(editorOptions);
-        metadataTemplateComboBox.setValue(editorOptions.contains(selectedEditorTemplate)
-                ? selectedEditorTemplate
-                : editorOptions.get(0));
     }
 
     private void applyFilters() {
@@ -269,14 +209,12 @@ public class ProfilesController {
             return;
         }
 
-        String searchText = normalize(searchField.getText());
+        String searchText = Strings.normalize(searchField.getText());
         String selectedStatus = statusFilterComboBox.getValue();
-        String selectedMetadata = metadataFilterComboBox.getValue();
 
         filteredProfiles.setPredicate(profile ->
                 matchesSearch(profile, searchText)
                         && matchesStatus(profile, selectedStatus)
-                        && matchesMetadata(profile, selectedMetadata)
         );
 
         renderProfileCards();
@@ -287,26 +225,19 @@ public class ProfilesController {
             return true;
         }
 
-        return normalize(profile.getName()).contains(searchText)
-                || normalize(profile.getCode()).contains(searchText)
-                || normalize(profile.getDescription()).contains(searchText)
-                || normalize(profile.getMetadataTemplateName()).contains(searchText)
-                || normalize(profile.getExportNaming()).contains(searchText)
-                || normalize(displayStatus(profile)).contains(searchText)
+        return Strings.normalize(profile.getName()).contains(searchText)
+                || Strings.normalize(profile.getCode()).contains(searchText)
+                || Strings.normalize(profile.getDescription()).contains(searchText)
+                || Strings.normalize(profile.getExportNaming()).contains(searchText)
+                || Strings.normalize(displayStatus(profile)).contains(searchText)
                 || configChipsFor(profile).stream()
-                .anyMatch(chip -> normalize(chip.getLabel()).contains(searchText));
+                .anyMatch(chip -> Strings.normalize(chip.label()).contains(searchText));
     }
 
     private boolean matchesStatus(ScanProfile profile, String selectedStatus) {
         return selectedStatus == null
                 || ALL_STATUSES.equals(selectedStatus)
                 || displayStatus(profile).equalsIgnoreCase(selectedStatus);
-    }
-
-    private boolean matchesMetadata(ScanProfile profile, String selectedMetadata) {
-        return selectedMetadata == null
-                || ALL_METADATA_TEMPLATES.equals(selectedMetadata)
-                || profile.getMetadataTemplateName().equalsIgnoreCase(selectedMetadata);
     }
 
     private void renderProfileCards() {
@@ -436,6 +367,8 @@ public class ProfilesController {
         headerRow.setAlignment(Pos.TOP_LEFT);
 
         VBox titleBox = new VBox(4);
+        titleBox.setMinWidth(0);
+        HBox.setHgrow(titleBox, Priority.ALWAYS);
 
         Label nameLabel = new Label(profile.getName());
         nameLabel.getStyleClass().add("profile-card-title");
@@ -451,6 +384,8 @@ public class ProfilesController {
 
         Label statusBadge = new Label(displayStatus(profile));
         statusBadge.getStyleClass().addAll("profile-status-badge", statusClassFor(displayStatus(profile)));
+        statusBadge.setMinWidth(Region.USE_PREF_SIZE);
+        statusBadge.setMaxWidth(Region.USE_PREF_SIZE);
 
         headerRow.getChildren().addAll(titleBox, spacer, statusBadge);
         return headerRow;
@@ -463,8 +398,8 @@ public class ProfilesController {
         chipsPane.setVgap(8);
 
         for (ConfigChip chip : configChipsFor(profile)) {
-            Label chipLabel = new Label(chip.getLabel());
-            chipLabel.getStyleClass().addAll("profile-config-chip", chip.getStyleClass());
+            Label chipLabel = new Label(chip.label());
+            chipLabel.getStyleClass().addAll("profile-config-chip", chip.styleClass());
             chipsPane.getChildren().add(chipLabel);
         }
 
@@ -474,10 +409,9 @@ public class ProfilesController {
     private VBox buildInfoBox(ScanProfile profile) {
         VBox infoBox = new VBox(10);
         infoBox.getChildren().addAll(
-                buildInfoBlock("Metadata Template", displayText(profile.getMetadataTemplateName(), "No metadata template"), false),
-                buildInfoBlock("Export Naming", displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), true),
+                buildInfoBlock("Export Naming", Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), true),
                 buildInfoBlock("Assigned Users", formatAssignedUsers(assignedUserCountFor(profile)), false),
-                buildInfoBlock("Updated", displayText(profile.getLastUpdated(), "Not updated yet"), false)
+                buildInfoBlock("Updated", Strings.displayText(profile.getLastUpdated(), "Not updated yet"), false)
         );
 
         return infoBox;
@@ -494,7 +428,10 @@ public class ProfilesController {
         Button archiveButton = createActionButton(profile.isArchived() ? "Restore" : "Archive", "profile-secondary-button");
         archiveButton.setOnAction(event -> toggleArchive(profile));
 
-        footerRow.getChildren().addAll(openButton, archiveButton);
+        Button deleteButton = createActionButton("Delete", "profile-danger-button");
+        deleteButton.setOnAction(event -> deleteProfile(profile));
+
+        footerRow.getChildren().addAll(openButton, archiveButton, deleteButton);
         return footerRow;
     }
 
@@ -562,9 +499,6 @@ public class ProfilesController {
         exportFormatComboBox.setValue(profile.getExportFormat());
         exportNamingField.setText(profile.getExportNaming());
 
-        metadataTemplateComboBox.setValue(profile.getMetadataTemplateName());
-        metadataRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
-
         populateAccessRows(profile);
         syncPreview();
     }
@@ -621,9 +555,9 @@ public class ProfilesController {
     }
 
     private void syncPreview() {
-        String profileName = clean(profileNameField.getText());
-        String profileCode = clean(profileCodeField.getText());
-        String namingPattern = clean(exportNamingField.getText());
+        String profileName = Strings.clean(profileNameField.getText());
+        String profileCode = Strings.clean(profileCodeField.getText());
+        String namingPattern = Strings.clean(exportNamingField.getText());
 
         if (profileName.isBlank()) {
             profileName = "Untitled Profile";
@@ -652,7 +586,6 @@ public class ProfilesController {
                 : "Disabled";
 
         previewBarcodeLabel.setText(barcodeStatus);
-        previewMetadataTemplateLabel.setText(displayText(safeValue(metadataTemplateComboBox), "No metadata template"));
 
         previewPageCorrectionLabel.setText(
                 "Rotation " + safeValue(defaultRotationComboBox)
@@ -717,7 +650,6 @@ public class ProfilesController {
 
         searchField.clear();
         statusFilterComboBox.setValue(ALL_STATUSES);
-        metadataFilterComboBox.setValue(ALL_METADATA_TEMPLATES);
 
         loadProfiles();
         applyFilters();
@@ -744,6 +676,44 @@ public class ProfilesController {
         }
     }
 
+    @FXML
+    private void deleteCurrentProfile() {
+        deleteProfile(currentProfile);
+    }
+
+    private void deleteProfile(ScanProfile profile) {
+        if (profile == null || adminManager == null) {
+            return;
+        }
+
+        try {
+            adminManager.deleteProfile(profile.getId());
+
+            if (currentProfile != null && currentProfile.getId() == profile.getId()) {
+                currentProfile = null;
+            }
+
+            loadProfiles();
+            applyFilters();
+            showOverviewPane();
+        } catch (RuntimeException exception) {
+            currentProfile = profile;
+            populateEditor(profile);
+            showEditorPane();
+            editorSubtitleLabel.setText(deleteProfileErrorMessage(exception));
+        }
+    }
+
+    private String deleteProfileErrorMessage(RuntimeException exception) {
+        String message = exception.getMessage();
+
+        if (message == null || message.isBlank()) {
+            return "Profile could not be deleted.";
+        }
+
+        return message;
+    }
+
     private AdminManager.ProfileInput createDefaultProfileInput() {
         String name = createUniqueProfileName();
         String code = createProfileCode(name);
@@ -753,7 +723,7 @@ public class ProfilesController {
                 code,
                 "Describe this scanning workflow profile.",
                 "Draft",
-                defaultMetadataTemplateName(),
+                "",
                 "{profileCode}_{boxId}",
                 false,
                 "Start new document",
@@ -769,12 +739,12 @@ public class ProfilesController {
 
     private AdminManager.ProfileInput createProfileInputFromEditor() {
         return new AdminManager.ProfileInput(
-                clean(profileNameField.getText()),
-                clean(profileCodeField.getText()),
-                clean(profileDescriptionArea.getText()),
+                Strings.clean(profileNameField.getText()),
+                Strings.clean(profileCodeField.getText()),
+                Strings.clean(profileDescriptionArea.getText()),
                 safeValue(profileStatusComboBox),
-                safeValue(metadataTemplateComboBox),
-                clean(exportNamingField.getText()),
+                "",
+                Strings.clean(exportNamingField.getText()),
                 barcodeSplitToggle.isSelected(),
                 safeValue(barcodeDetectedComboBox),
                 safeValue(barcodePageBehaviorComboBox),
@@ -783,7 +753,7 @@ public class ProfilesController {
                 safeValue(contrastComboBox),
                 deskewToggle.isSelected(),
                 safeValue(exportFormatComboBox),
-                metadataRequiredToggle.isSelected()
+                false
         );
     }
 
@@ -791,16 +761,6 @@ public class ProfilesController {
     private void previewExport() {
         selectTab(EditorTab.PREVIEW);
         Platform.runLater(() -> pageScrollPane.setVvalue(0));
-    }
-
-    @FXML
-    private void previewMetadataForm() {
-        selectTab(EditorTab.METADATA);
-    }
-
-    @FXML
-    private void editTemplate() {
-        navigator.showMetadataTemplates();
     }
 
     @FXML
@@ -819,11 +779,6 @@ public class ProfilesController {
     }
 
     @FXML
-    private void showMetadataTab() {
-        selectTab(EditorTab.METADATA);
-    }
-
-    @FXML
     private void showAccessTab() {
         selectTab(EditorTab.ACCESS);
     }
@@ -838,13 +793,11 @@ public class ProfilesController {
 
         setTabButtonActive(generalTabButton, tab == EditorTab.GENERAL);
         setTabButtonActive(scanRulesTabButton, tab == EditorTab.SCAN_RULES);
-        setTabButtonActive(metadataTabButton, tab == EditorTab.METADATA);
         setTabButtonActive(accessTabButton, tab == EditorTab.ACCESS);
         setTabButtonActive(previewTabButton, tab == EditorTab.PREVIEW);
 
         setPaneVisible(generalTabPane, tab == EditorTab.GENERAL);
         setPaneVisible(scanRulesTabPane, tab == EditorTab.SCAN_RULES);
-        setPaneVisible(metadataTabPane, tab == EditorTab.METADATA);
         setPaneVisible(accessTabPane, tab == EditorTab.ACCESS);
         setPaneVisible(previewTabPane, tab == EditorTab.PREVIEW);
     }
@@ -891,10 +844,6 @@ public class ProfilesController {
                 ? new ConfigChip("Deskew", "chip-indigo")
                 : new ConfigChip("Deskew Off", "chip-neutral"));
 
-        if (profile.getName().toLowerCase(Locale.ROOT).contains("drawing")) {
-            chips.add(new ConfigChip("OCR Enabled", "chip-purple"));
-        }
-
         if (!profile.getBrightness().equalsIgnoreCase("Normal")) {
             chips.add(new ConfigChip("Brightness Correction", "chip-orange"));
         }
@@ -934,16 +883,16 @@ public class ProfilesController {
     }
 
     private boolean profileNameExists(String name) {
-        String normalizedName = normalize(name);
+        String normalizedName = Strings.normalize(name);
 
         return adminManager.getProfiles().stream()
                 .map(ScanProfile::getName)
-                .map(this::normalize)
+                .map(Strings::normalize)
                 .anyMatch(existingName -> existingName.equals(normalizedName));
     }
 
     private String createProfileCode(String name) {
-        String baseCode = clean(name).replaceAll("[^A-Za-z0-9]", "");
+        String baseCode = Strings.clean(name).replaceAll("[^A-Za-z0-9]", "");
 
         if (baseCode.isBlank()) {
             baseCode = "NewProfile";
@@ -960,20 +909,12 @@ public class ProfilesController {
         return code;
     }
 
-    private String defaultMetadataTemplateName() {
-        return adminManager.getMetadataTemplates().stream()
-                .map(template -> template.getName())
-                .filter(name -> !clean(name).isBlank())
-                .findFirst()
-                .orElse("");
-    }
-
     private String displayStatus(ScanProfile profile) {
         return profile.isArchived() ? "Archived" : profile.getStatus();
     }
 
     private String statusClassFor(String status) {
-        return switch (normalize(status)) {
+        return switch (Strings.normalize(status)) {
             case "active" -> "profile-status-active";
             case "draft" -> "profile-status-draft";
             case "archived" -> "profile-status-archived";
@@ -985,137 +926,13 @@ public class ProfilesController {
         return assignedUsersCount + (assignedUsersCount == 1 ? " user assigned" : " users assigned");
     }
 
-    private String displayText(String value, String fallback) {
-        String cleanedValue = clean(value);
-        return cleanedValue.isBlank() ? fallback : cleanedValue;
-    }
-
-    private String normalize(String value) {
-        return clean(value).toLowerCase(Locale.ROOT);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
     private enum EditorTab {
         GENERAL,
         SCAN_RULES,
-        METADATA,
         ACCESS,
         PREVIEW
     }
 
-    static class ConfigChip {
-        private final String label;
-        private final String styleClass;
-
-        ConfigChip(String label, String styleClass) {
-            this.label = label;
-            this.styleClass = styleClass;
-        }
-
-        String getLabel() {
-            return label;
-        }
-
-        String getStyleClass() {
-            return styleClass;
-        }
-    }
-
-    static final class ProfileCardModel {
-        private String name;
-        private String code;
-        private String description;
-        private String status;
-        private List<ConfigChip> configChips;
-        private String metadataTemplate;
-        private String exportNaming;
-        private int assignedUsersCount;
-        private String lastUpdated;
-        private boolean archived;
-
-        private boolean barcodeSplitting;
-        private String barcodeDetectedBehavior;
-        private String barcodePageBehavior;
-
-        private String defaultRotation;
-        private String brightness;
-        private String contrast;
-        private boolean deskew;
-
-        private String exportFormat;
-        private boolean metadataRequiredBeforeExport;
-
-        ProfileCardModel(
-                String name,
-                String code,
-                String description,
-                String status,
-                List<ConfigChip> configChips,
-                String metadataTemplate,
-                String exportNaming,
-                int assignedUsersCount,
-                String lastUpdated,
-                boolean archived,
-                boolean barcodeSplitting,
-                String barcodeDetectedBehavior,
-                String barcodePageBehavior,
-                String defaultRotation,
-                String brightness,
-                String contrast,
-                boolean deskew,
-                String exportFormat,
-                boolean metadataRequiredBeforeExport
-        ) {
-            this.name = name;
-            this.code = code;
-            this.description = description;
-            this.status = status;
-            this.configChips = new ArrayList<>(configChips);
-            this.metadataTemplate = metadataTemplate;
-            this.exportNaming = exportNaming;
-            this.assignedUsersCount = assignedUsersCount;
-            this.lastUpdated = lastUpdated;
-            this.archived = archived;
-            this.barcodeSplitting = barcodeSplitting;
-            this.barcodeDetectedBehavior = barcodeDetectedBehavior;
-            this.barcodePageBehavior = barcodePageBehavior;
-            this.defaultRotation = defaultRotation;
-            this.brightness = brightness;
-            this.contrast = contrast;
-            this.deskew = deskew;
-            this.exportFormat = exportFormat;
-            this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
-        }
-
-        String displayStatus() {
-            return archived ? "Archived" : status;
-        }
-    }
-
-    static final class AccessUser {
-        private final String name;
-        private final String role;
-        private final String status;
-
-        AccessUser(String name, String role, String status) {
-            this.name = name;
-            this.role = role;
-            this.status = status;
-        }
-
-        String name() {
-            return name;
-        }
-
-        String role() {
-            return role;
-        }
-
-        String status() {
-            return status;
-        }
+    private record ConfigChip(String label, String styleClass) {
     }
 }

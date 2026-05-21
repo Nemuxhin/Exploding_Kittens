@@ -1,0 +1,544 @@
+/* =========================================================
+   WEBLAGER ADMIN DASHBOARD
+   Dashboard-specific styles split from app.css.
+   ========================================================= */
+
+/* =========================================================
+   DASHBOARD
+   Project note: dashboard status cards use soft icon backgrounds
+   and separate attention styling for blocked work.
+   ========================================================= */
+
+.dashboard-summary-grid,
+.dashboard-main-layout {
+    -fx-alignment: top-left;
+}
+
+.dashboard-summary-card {
+    -fx-min-height: 144;
+    -fx-pref-height: 144;
+    -fx-padding: 18;
+}
+
+.dashboard-stat-card {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-min-height: 126;
+    -fx-pref-height: 126;
+    -fx-max-height: 126;
+    -fx-padding: 15 18 15 18;
+}
+
+.dashboard-workflow-overview-card {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+}
+
+.dashboard-stat-visual {
+    -fx-min-width: 84;
+    -fx-pref-width: 84;
+    -fx-max-width: 84;
+}
+
+.dashboard-stat-title {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-stat-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-stat-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.dashboard-trend-neutral,
+.dashboard-trend-up,
+.dashboard-trend-down {
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.dashboard-trend-neutral {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.dashboard-trend-up {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.dashboard-trend-down {
+    -fx-text-fill: -wl-tag-red-text;
+}
+
+.dashboard-sparkline-teal,
+.dashboard-sparkline-blue,
+.dashboard-sparkline-purple,
+.dashboard-sparkline-orange {
+    -fx-fill: transparent;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.dashboard-sparkline-teal {
+    -fx-stroke: -wl-tag-teal-text;
+}
+
+.dashboard-sparkline-blue {
+    -fx-stroke: -wl-tag-blue-text;
+}
+
+.dashboard-sparkline-purple {
+    -fx-stroke: -wl-tag-purple-text;
+}
+
+.dashboard-sparkline-orange {
+    -fx-stroke: -wl-tag-amber-text;
+}
+
+.dashboard-attention-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.dashboard-needs-attention-card {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.dashboard-attention-summary-row {
+    -fx-padding: 18;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-summary-icon-box,
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-blue,
+.dashboard-summary-icon-green,
+.dashboard-summary-icon-amber,
+.dashboard-summary-icon-red {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-max-height: 60;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+}
+
+.dashboard-activity-icon-box,
+.dashboard-activity-icon-scan-box,
+.dashboard-activity-icon-profile-box,
+.dashboard-activity-icon-qa-box,
+.dashboard-activity-icon-warning-box,
+.dashboard-activity-icon-access-box {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+}
+
+.dashboard-summary-icon,
+.dashboard-summary-icon-teal-path,
+.dashboard-summary-icon-blue-path,
+.dashboard-summary-icon-green-path,
+.dashboard-summary-icon-amber-path,
+.dashboard-summary-icon-red-path {
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.dashboard-activity-icon,
+.dashboard-activity-icon-scan-path,
+.dashboard-activity-icon-profile-path,
+.dashboard-activity-icon-qa-path,
+.dashboard-activity-icon-warning-path,
+.dashboard-activity-icon-access-path {
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+    -fx-scale-x: 0.68;
+    -fx-scale-y: 0.68;
+}
+
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-green,
+.dashboard-activity-icon-scan-box,
+.dashboard-activity-icon-access-box {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.dashboard-summary-icon-blue,
+.dashboard-activity-icon-profile-box,
+.dashboard-activity-icon-qa-box {
+    -fx-background-color: -wl-status-info-bg;
+}
+
+.dashboard-summary-icon-amber,
+.dashboard-activity-icon-warning-box {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.dashboard-summary-icon-red {
+    -fx-background-color: -wl-status-danger-bg;
+}
+
+.dashboard-summary-icon-teal .dashboard-summary-icon,
+.dashboard-summary-icon-green .dashboard-summary-icon,
+.dashboard-activity-icon-scan-box .dashboard-activity-icon,
+.dashboard-activity-icon-access-box .dashboard-activity-icon,
+.dashboard-summary-icon-teal-path,
+.dashboard-summary-icon-green-path,
+.dashboard-activity-icon-scan-path,
+.dashboard-activity-icon-access-path {
+    -fx-fill: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.dashboard-summary-icon-blue .dashboard-summary-icon,
+.dashboard-activity-icon-profile-box .dashboard-activity-icon,
+.dashboard-activity-icon-qa-box .dashboard-activity-icon,
+.dashboard-summary-icon-blue-path,
+.dashboard-activity-icon-profile-path,
+.dashboard-activity-icon-qa-path {
+    -fx-fill: -wl-status-info-text;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.dashboard-summary-icon-amber .dashboard-summary-icon,
+.dashboard-activity-icon-warning-box .dashboard-activity-icon,
+.dashboard-summary-icon-amber-path,
+.dashboard-activity-icon-warning-path {
+    -fx-fill: -wl-status-warning-text;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.dashboard-summary-icon-red .dashboard-summary-icon,
+.dashboard-summary-icon-red-path {
+    -fx-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.dashboard-summary-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-workflow-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-overrun: clip;
+}
+
+.dashboard-summary-subtitle,
+.dashboard-section-subtitle,
+.dashboard-activity-detail,
+.dashboard-simple-detail {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-wrap-text: true;
+}
+
+.dashboard-summary-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-section-header {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-padding: 15 18 15 18;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-workflow-header {
+    -fx-min-height: 57;
+    -fx-pref-height: 57;
+    -fx-max-height: 57;
+    -fx-padding: 12 18 9 18;
+    -fx-border-width: 0;
+}
+
+.dashboard-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-activity-list,
+.dashboard-simple-list {
+    -fx-background-color: -wl-surface;
+}
+
+.dashboard-activity-row {
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-max-height: 72;
+    -fx-padding: 15 18 15 18;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-simple-row {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-padding: 12 18 12 18;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-activity-row:hover,
+.dashboard-simple-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.dashboard-activity-title,
+.dashboard-simple-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-activity-time {
+    -fx-min-width: 72;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-alignment: center-right;
+}
+
+.dashboard-simple-metric,
+.dashboard-workflow-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-workflow-value {
+    -fx-min-width: 18;
+    -fx-alignment: center-right;
+}
+
+.dashboard-workflow-body,
+.dashboard-actions-grid {
+    -fx-padding: 18;
+}
+
+.dashboard-workflow-status-body,
+.dashboard-quick-actions-grid {
+    -fx-padding: 18;
+}
+
+.dashboard-workflow-status-body {
+    -fx-padding: 12 18 15 18;
+    -fx-spacing: 18;
+    -fx-alignment: center-left;
+}
+
+.dashboard-donut-chart {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-max-height: 60;
+    -fx-alignment: center;
+}
+
+.dashboard-donut-track,
+.dashboard-donut-blue,
+.dashboard-donut-amber,
+.dashboard-donut-green {
+    -fx-fill: transparent;
+    -fx-stroke-width: 9;
+    -fx-stroke-line-cap: butt;
+}
+
+.dashboard-donut-track {
+    -fx-stroke: -wl-progress-track;
+}
+
+.dashboard-donut-blue {
+    -fx-stroke: -wl-status-info-text;
+}
+
+.dashboard-donut-amber {
+    -fx-stroke: -wl-progress-amber;
+}
+
+.dashboard-donut-green {
+    -fx-stroke: -wl-status-success-text;
+}
+
+.dashboard-donut-hole {
+    -fx-fill: -wl-surface;
+}
+
+.dashboard-workflow-legend-row {
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+}
+
+.dashboard-workflow-legend {
+    -fx-fill-width: true;
+}
+
+.dashboard-workflow-marker-blue,
+.dashboard-workflow-marker-amber,
+.dashboard-workflow-marker-green {
+    -fx-min-width: 9;
+    -fx-pref-width: 9;
+    -fx-max-width: 9;
+    -fx-min-height: 9;
+    -fx-pref-height: 9;
+    -fx-max-height: 9;
+    -fx-background-radius: 3;
+}
+
+.dashboard-workflow-marker-blue {
+    -fx-background-color: -wl-status-info-text;
+}
+
+.dashboard-workflow-marker-amber {
+    -fx-background-color: -wl-progress-amber;
+}
+
+.dashboard-workflow-marker-green {
+    -fx-background-color: -wl-status-success-text;
+}
+
+.dashboard-workflow-percent {
+    -fx-min-width: 30;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-alignment: center-right;
+}
+
+.dashboard-quick-action {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-min-height: 96;
+    -fx-pref-height: 96;
+    -fx-cursor: hand;
+}
+
+.dashboard-quick-action:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+}
+
+.dashboard-quick-action-icon-box {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-background-color: -wl-status-info-bg;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.dashboard-quick-action-icon {
+    -fx-fill: -wl-status-info-text;
+    -fx-text-fill: -wl-status-info-text;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.dashboard-quick-action-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
+}
+
+.dashboard-progress-track,
+.dashboard-progress-fill-blue,
+.dashboard-progress-fill-amber,
+.dashboard-progress-fill-green {
+    -fx-min-height: 12;
+    -fx-pref-height: 12;
+    -fx-max-height: 12;
+    -fx-background-radius: 999;
+}
+
+.dashboard-progress-track {
+    -fx-background-color: -wl-card-content;
+}
+
+.dashboard-progress-fill-blue {
+    -fx-background-color: -wl-status-info-text;
+}
+
+.dashboard-progress-fill-amber {
+    -fx-background-color: -wl-progress-amber;
+}
+
+.dashboard-progress-fill-green {
+    -fx-background-color: -wl-status-success-text;
+}
+
+
+/* Existing dashboard refinements */
+
+.dashboard-history-attention-layout {
+    -fx-alignment: top-left;
+    -fx-fill-height: true;
+}
+
+.dashboard-balanced-column,
+.dashboard-recent-activity-card {
+    -fx-min-height: 426;
+    -fx-pref-height: 426;
+    -fx-max-height: 426;
+}
+
+.dashboard-left-stack {
+    -fx-alignment: top-left;
+}
+

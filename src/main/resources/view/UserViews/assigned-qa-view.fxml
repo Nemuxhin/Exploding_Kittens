@@ -86,15 +86,15 @@
                                styleClass="assigned-qa-search-field"/>
 
                     <ComboBox fx:id="statusFilterComboBox"
-                              prefWidth="174"
-                              minWidth="174"
-                              maxWidth="174"
-                              styleClass="assigned-qa-filter-combo"/>
-
-                    <ComboBox fx:id="profileFilterComboBox"
                               prefWidth="210"
                               minWidth="210"
                               maxWidth="210"
+                              styleClass="assigned-qa-filter-combo"/>
+
+                    <ComboBox fx:id="profileFilterComboBox"
+                              prefWidth="252"
+                              minWidth="252"
+                              maxWidth="252"
                               styleClass="assigned-qa-filter-combo"/>
                 </HBox>
 

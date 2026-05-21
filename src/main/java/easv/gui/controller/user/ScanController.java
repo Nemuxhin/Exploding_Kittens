@@ -1,9 +1,22 @@
 package easv.gui.controller.user;
 
+import easv.be.PageImage;
+import easv.be.ScanProfile;
+import easv.be.ScanSession;
+import easv.be.User;
+import easv.gui.BackgroundExecutor;
+import easv.gui.controller.utilities.SearchableComboBoxes;
+import easv.bll.ScanImportResult;
+import easv.bll.ScanManager;
+import easv.bll.UserSession;
+import easv.dal.DataAccessException;
+import easv.dal.ScanProfileDAO;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -11,6 +24,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -27,11 +42,21 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ScanController {
@@ -58,9 +83,10 @@ public class ScanController {
     @FXML private Button profileInfoButton;
     @FXML private VBox profileInfoPanel;
     @FXML private Label profileInfoTitleLabel;
-    @FXML private Label profileInfoMetadataLabel;
+    @FXML private Label profileInfoDocumentDetailsLabel;
     @FXML private Label profileInfoQaLabel;
     @FXML private Label profileInfoSplittingLabel;
+    @FXML private Label profileInfoBarcodeBehaviorLabel;
 
     @FXML private Button startScanningButton;
     @FXML private Button viewMyScansButton;
@@ -68,6 +94,7 @@ public class ScanController {
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
+    @FXML private Label scanStatusLabel;
     @FXML private Label boxStructureSubtitleLabel;
     @FXML private Label selectedFileTitleLabel;
     @FXML private Label selectedFileRefLabel;
@@ -103,11 +130,19 @@ public class ScanController {
     private final List<DocumentGroup> documents = new ArrayList<>();
     private final Set<Integer> collapsedDocuments = new HashSet<>();
     private final Deque<ScanSnapshot> undoStack = new ArrayDeque<>();
+    private final Map<String, ScanProfile> availableProfilesByName = new LinkedHashMap<>();
+    private final Map<Integer, WritableImage> previewImageCache = new HashMap<>();
+    private final Map<Integer, String> previewLoadFailures = new HashMap<>();
+    private final Set<Integer> previewLoadsInProgress = new HashSet<>();
+    private final ScanManager scanManager = new ScanManager();
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
 
     private int nextReferenceId = 1;
     private int nextFileId = 1;
+    private boolean scanningStoppedByBarcode = false;
+    private String pendingBarcodeBehavior = "Continue scanning when barcode is found";
+    private String activeBarcodeBehavior = "Continue scanning when barcode is found";
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -119,6 +154,7 @@ public class ScanController {
     private StackPane currentPreviewWrapper;
 
     private ScannedPage selectedPage;
+    private ScanSession activeScanSession;
 
     private UserNavigator navigator = UserNavigator.none();
 
@@ -140,19 +176,15 @@ public class ScanController {
     }
 
     private void configureProfiles() {
-        profileComboBox.getItems().setAll(
-                "Building Archive",
-                "Technical Drawings",
-                "Court Records",
-                "Standard Scan"
-        );
-
-        profileComboBox.setPromptText("Select profile");
+        profileComboBox.setDisable(true);
+        profileComboBox.setPromptText("Loading profiles...");
         profileComboBox.getSelectionModel().clearSelection();
 
         profileComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 updateProfileInfo(newValue)
         );
+
+        loadProfilesAsync();
     }
 
     private void configureProfileInfo() {
@@ -172,43 +204,24 @@ public class ScanController {
     }
 
     private void updateProfileInfo(String selectedProfile) {
-        if (selectedProfile == null || selectedProfile.isBlank()) {
+        ScanProfile profile = selectedProfile == null ? null : availableProfilesByName.get(selectedProfile);
+
+        if (profile == null) {
             profileInfoTitleLabel.setText("No profile selected");
-            profileInfoMetadataLabel.setText("Metadata required: —");
+            profileInfoDocumentDetailsLabel.setText("Document details required: —");
             profileInfoQaLabel.setText("QA required: —");
             profileInfoSplittingLabel.setText("Splitting method: —");
+            profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: —");
+            pendingBarcodeBehavior = "Continue scanning when barcode is found";
             return;
         }
 
-        profileInfoTitleLabel.setText(selectedProfile);
-
-        switch (selectedProfile) {
-            case "Building Archive" -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: Yes");
-                profileInfoSplittingLabel.setText("Splitting method: Manual or barcode");
-            }
-            case "Technical Drawings" -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: No");
-                profileInfoSplittingLabel.setText("Splitting method: Single document");
-            }
-            case "Court Records" -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: Yes");
-                profileInfoSplittingLabel.setText("Splitting method: Barcode");
-            }
-            case "Standard Scan" -> {
-                profileInfoMetadataLabel.setText("Metadata required: No");
-                profileInfoQaLabel.setText("QA required: No");
-                profileInfoSplittingLabel.setText("Splitting method: Manual");
-            }
-            default -> {
-                profileInfoMetadataLabel.setText("Metadata required: Unknown");
-                profileInfoQaLabel.setText("QA required: Unknown");
-                profileInfoSplittingLabel.setText("Splitting method: Unknown");
-            }
-        }
+        profileInfoTitleLabel.setText(profile.getName());
+        profileInfoDocumentDetailsLabel.setText("Document details required: " + (profile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No"));
+        profileInfoQaLabel.setText("QA required: " + (profile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No"));
+        profileInfoSplittingLabel.setText("Splitting method: " + (profile.isBarcodeSplitting() ? "Barcode" : "Manual"));
+        pendingBarcodeBehavior = defaultBarcodeBehavior(profile);
+        profileInfoBarcodeBehaviorLabel.setText("Barcode behavior: " + pendingBarcodeBehavior);
     }
 
     private void configureValidation() {
@@ -435,9 +448,15 @@ public class ScanController {
         documents.clear();
         collapsedDocuments.clear();
         undoStack.clear();
+        previewImageCache.clear();
+        previewLoadFailures.clear();
+        previewLoadsInProgress.clear();
 
         nextReferenceId = 1;
         nextFileId = 1;
+        scanningStoppedByBarcode = false;
+        activeBarcodeBehavior = pendingBarcodeBehavior;
+        activeScanSession = null;
 
         selectedPage = null;
         resetPreviewViewState();
@@ -446,38 +465,57 @@ public class ScanController {
 
         refreshWorkspace();
         updateUndoButtonState();
+        try {
+            activeScanSession = scanManager.startSession(getBoxId(), getSelectedProfile());
+            if (activeScanSession != null) {
+                activeScanSession.setSelectedBarcodeBehavior(activeBarcodeBehavior);
+            }
+            updateScanStatus("Ready");
+        } catch (RuntimeException exception) {
+            updateScanStatus("Failed to start session");
+        }
     }
 
     @FXML
     private void onScanNextFile() {
+        if (activeScanSession == null) {
+            updateScanStatus("Session not started");
+            return;
+        }
+
+        if (scanningStoppedByBarcode) {
+            updateScanStatus("Stopped on barcode");
+            return;
+        }
+
         saveUndoState();
+        try {
+            ScanImportResult result = scanManager.scanNextItem(
+                    activeScanSession,
+                    activeBarcodeBehavior,
+                    selectedBarcodePageBehavior()
+            );
 
-        boolean barcode = shouldMockBarcode();
-        boolean needsRescan = !barcode && shouldMockNeedsRescan();
-
-        ScannedPage scannedPage = new ScannedPage(
-                nextReferenceId,
-                nextFileId,
-                barcode,
-                needsRescan
-        );
-
-        allPages.add(scannedPage);
-        selectedPage = scannedPage;
-
-        nextReferenceId++;
-        nextFileId++;
-
-        rebuildDocumentsFromPages();
-        refreshWorkspace();
-    }
-
-    private boolean shouldMockBarcode() {
-        return nextReferenceId > 1 && nextReferenceId % 5 == 0;
-    }
-
-    private boolean shouldMockNeedsRescan() {
-        return nextReferenceId > 1 && nextReferenceId % 6 == 0;
+            switch (result.getStatus()) {
+                case IMPORTED -> {
+                    appendImportedPages(result.getScannedPages());
+                    refreshWorkspace();
+                    updateScanStatus("Imported");
+                }
+                case STOPPED_ON_BARCODE -> {
+                    appendImportedPages(result.getScannedPages());
+                    scanningStoppedByBarcode = true;
+                    refreshWorkspace();
+                    updateScanStatus(result.getMessage().isBlank() ? "Stopped on barcode" : result.getMessage());
+                }
+                case FETCH_FAILED -> {
+                    updateScanStatus(result.getMessage().isBlank() ? "Fetch failed" : result.getMessage());
+                }
+                case NO_MORE_FILES -> updateScanStatus("No more files");
+            }
+        } catch (RuntimeException exception) {
+            updateScanStatus("Scan failed");
+        }
     }
 
     private void rebuildDocumentsFromPages() {
@@ -494,7 +532,7 @@ public class ScanController {
         for (ScannedPage page : allPages) {
             if (page.barcode) {
                 if (!currentDocumentPages.isEmpty()) {
-                    DocumentGroup document = createDocument(documentNumber, "Barcode split", currentDocumentPages);
+                    DocumentGroup document = createDocument(documentNumber, "Barcode split", currentDocumentPages, false);
                     documents.add(document);
                     documentNumber++;
                     currentDocumentPages.clear();
@@ -506,19 +544,22 @@ public class ScanController {
             currentDocumentPages.add(page);
 
             if (page.splitReasonAfter != null && !page.splitReasonAfter.isBlank()) {
-                DocumentGroup document = createDocument(documentNumber, page.splitReasonAfter, currentDocumentPages);
+                DocumentGroup document = createDocument(documentNumber, page.splitReasonAfter, currentDocumentPages, false);
                 documents.add(document);
                 documentNumber++;
                 currentDocumentPages.clear();
             }
         }
 
-        pendingPages.addAll(currentDocumentPages);
+        if (!currentDocumentPages.isEmpty()) {
+            documents.add(createDocument(documentNumber, "", currentDocumentPages, true));
+        }
         collapsedDocuments.removeIf(documentId -> documentId > documents.size());
     }
 
-    private DocumentGroup createDocument(int documentNumber, String splitReason, List<ScannedPage> pages) {
-        DocumentGroup document = new DocumentGroup(documentNumber, splitReason);
+    private DocumentGroup createDocument(int documentNumber, String splitReason, List<ScannedPage> pages, boolean open) {
+        String sourceDocumentId = pages.isEmpty() ? "" : pages.get(0).sourceDocumentId;
+        DocumentGroup document = new DocumentGroup(documentNumber, splitReason, sourceDocumentId, open);
         document.pages.addAll(pages);
 
         for (ScannedPage page : document.pages) {
@@ -567,7 +608,7 @@ public class ScanController {
     }
 
     private void selectAdjacentReviewPage(int direction) {
-        List<ScannedPage> reviewPages = getReviewPages();
+        List<ScannedPage> reviewPages = getReviewSequence();
 
         if (reviewPages.isEmpty()) {
             selectedPage = null;
@@ -575,7 +616,7 @@ public class ScanController {
             return;
         }
 
-        if (selectedPage == null || selectedPage.barcode || !reviewPages.contains(selectedPage)) {
+        if (selectedPage == null || !reviewPages.contains(selectedPage)) {
             selectedPage = direction < 0
                     ? reviewPages.get(reviewPages.size() - 1)
                     : reviewPages.get(0);
@@ -595,16 +636,8 @@ public class ScanController {
         refreshReviewWorkspace();
     }
 
-    private List<ScannedPage> getReviewPages() {
-        List<ScannedPage> reviewPages = new ArrayList<>();
-
-        for (ScannedPage page : allPages) {
-            if (!page.barcode) {
-                reviewPages.add(page);
-            }
-        }
-
-        return reviewPages;
+    private List<ScannedPage> getReviewSequence() {
+        return new ArrayList<>(allPages);
     }
 
     @FXML
@@ -646,6 +679,12 @@ public class ScanController {
     private void updatePreviewZoomLabel() {
         if (previewZoomLabel != null) {
             previewZoomLabel.setText(Math.round(previewZoomMultiplier.get() * 100) + "%");
+        }
+    }
+
+    private void updateScanStatus(String status) {
+        if (scanStatusLabel != null) {
+            scanStatusLabel.setText("Status: " + status);
         }
     }
 
@@ -831,16 +870,6 @@ public class ScanController {
             return;
         }
 
-        if (!pendingPages.isEmpty()) {
-            saveUndoState();
-
-            ScannedPage lastPendingPage = pendingPages.get(pendingPages.size() - 1);
-            lastPendingPage.splitReasonAfter = "Finish batch";
-
-            rebuildDocumentsFromPages();
-            refreshWorkspace();
-        }
-
         updateFinishReviewModal();
         showFinishReviewModal();
     }
@@ -956,6 +985,7 @@ public class ScanController {
 
         nextReferenceId = 1;
         nextFileId = 1;
+        activeScanSession = null;
 
         selectedPage = null;
 
@@ -1029,8 +1059,7 @@ public class ScanController {
         workspaceSessionTitleLabel.setText("Scanning Session · " + boxId);
         workspaceSessionSubtitleLabel.setText(
                 allPages.size() + " files scanned · "
-                        + documents.size() + " documents created · "
-                        + pendingPages.size() + " pending pages"
+                        + documents.size() + " documents visible"
         );
 
         boxStructureSubtitleLabel.setText(profile + " · " + boxId);
@@ -1058,7 +1087,7 @@ public class ScanController {
         } else if (selectedPage.barcode) {
             selectedInfo += " · Barcode split marker";
         } else {
-            selectedInfo += " · Pending document";
+            selectedInfo += " · In progress document";
         }
 
         if (selectedPage.needsRescan) {
@@ -1094,6 +1123,99 @@ public class ScanController {
         return boxId == null || boxId.isBlank() ? "No box ID" : boxId.trim();
     }
 
+    private List<String> loadAvailableProfileNames() {
+        availableProfilesByName.clear();
+        try {
+            ScanProfileDAO scanProfileDAO = new ScanProfileDAO();
+            List<ScanProfile> allProfiles = scanProfileDAO.findAll();
+            User currentUser = UserSession.getCurrentUser();
+            List<String> assignedNames = currentUser == null ? List.of() : currentUser.getAssignedProfiles();
+
+            for (ScanProfile profile : allProfiles) {
+                if (profile.isArchived()) {
+                    continue;
+                }
+                if (!assignedNames.isEmpty() && assignedNames.stream().noneMatch(name -> name.equalsIgnoreCase(profile.getName()))) {
+                    continue;
+                }
+                availableProfilesByName.put(profile.getName(), profile);
+            }
+
+            if (availableProfilesByName.isEmpty()) {
+                for (ScanProfile profile : allProfiles) {
+                    if (!profile.isArchived()) {
+                        availableProfilesByName.put(profile.getName(), profile);
+                    }
+                }
+            }
+        } catch (DataAccessException exception) {
+            availableProfilesByName.clear();
+        }
+
+        return new ArrayList<>(availableProfilesByName.keySet());
+    }
+
+    private void loadProfilesAsync() {
+        BackgroundExecutor.io().execute(() -> {
+            List<String> profileNames = loadAvailableProfileNames();
+            Platform.runLater(() -> {
+                profileComboBox.getItems().setAll(profileNames);
+                SearchableComboBoxes.configure(profileComboBox);
+                profileComboBox.setDisable(false);
+                profileComboBox.setPromptText(profileNames.isEmpty() ? "No profiles available" : "Select profile");
+                updateProfileInfo(profileComboBox.getValue());
+                updateStartScanningState();
+            });
+        });
+    }
+
+    private String defaultBarcodeBehavior(ScanProfile profile) {
+        if (profile == null || profile.getBarcodeDetectedBehavior().isBlank()) {
+            return "Continue scanning when barcode is found";
+        }
+
+        String behavior = profile.getBarcodeDetectedBehavior().toLowerCase();
+        if (behavior.contains("stop")) {
+            return "Stop scanning when barcode is found";
+        }
+        return "Continue scanning when barcode is found";
+    }
+
+    private String selectedBarcodePageBehavior() {
+        ScanProfile profile = availableProfilesByName.get(profileComboBox.getValue());
+        if (profile == null || profile.getBarcodePageBehavior().isBlank()) {
+            return "Keep barcode page in final document";
+        }
+        return profile.getBarcodePageBehavior();
+    }
+
+    private void appendImportedPages(List<PageImage> scannedPages) {
+        if (scannedPages == null || scannedPages.isEmpty()) {
+            return;
+        }
+
+        for (PageImage page : scannedPages) {
+            int referenceId = page.getReferenceId() > 0 ? page.getReferenceId() : nextReferenceId;
+
+            ScannedPage scannedPage = new ScannedPage(
+                    referenceId,
+                    nextFileId++,
+                    page.getPageType() == PageImage.PageType.BARCODE,
+                    false,
+                    page.getSourceReference(),
+                    page.getDisplayContent(),
+                    ""
+            );
+            scannedPage.rotationDegrees = page.getRotationDegrees();
+
+            allPages.add(scannedPage);
+            selectedPage = scannedPage;
+            nextReferenceId = Math.max(nextReferenceId, referenceId + 1);
+        }
+
+        rebuildDocumentsFromPages();
+    }
+
     private void renderDocumentTree() {
         documentTreeContainer.getChildren().clear();
 
@@ -1104,7 +1226,7 @@ public class ScanController {
             Label title = new Label("No documents created yet");
             title.getStyleClass().add("document-tree-empty-title");
 
-            Label copy = new Label("Scanned files appear in the tray below. Documents appear here after barcode detection, manual split, or finishing the batch.");
+            Label copy = new Label("Scanned files appear in the tray below. The current document appears here as pages are scanned and closes when a barcode split or manual split is applied.");
             copy.setWrapText(true);
             copy.getStyleClass().add("document-tree-empty-copy");
 
@@ -1146,7 +1268,7 @@ public class ScanController {
         Label chevron = new Label(collapsedDocuments.contains(document.number) ? "›" : "⌄");
         chevron.getStyleClass().add("document-tree-chevron");
 
-        Label documentName = new Label("Document " + document.number);
+        Label documentName = new Label(document.displayTitle());
         documentName.getStyleClass().add("document-tree-document-title");
 
         Region spacer = new Region();
@@ -1207,6 +1329,10 @@ public class ScanController {
     private boolean shouldShowTreeSplitRow(DocumentGroup document, int documentIndex) {
         boolean isLastDocument = documentIndex == documents.size() - 1;
 
+        if (document.open && isLastDocument) {
+            return false;
+        }
+
         if ("Finish batch".equals(document.splitReason) && isLastDocument) {
             return false;
         }
@@ -1248,7 +1374,7 @@ public class ScanController {
         Label drag = new Label("⋮⋮");
         drag.getStyleClass().add("document-tree-page-drag");
 
-        Label name = new Label("Page " + pageNumberInDocument);
+        Label name = new Label(page.displayPageTitle(pageNumberInDocument));
         name.getStyleClass().add("document-tree-page-title");
 
         Region spacer = new Region();
@@ -1380,7 +1506,7 @@ public class ScanController {
     private Node createBarcodePreview(ScannedPage page) {
         VBox barcodePreview = new VBox(15);
         barcodePreview.setAlignment(Pos.CENTER);
-        barcodePreview.getStyleClass().add("mock-document-page");
+        barcodePreview.getStyleClass().add("document-preview-page");
         barcodePreview.setMinWidth(PREVIEW_PAGE_WIDTH);
         barcodePreview.setPrefWidth(PREVIEW_PAGE_WIDTH);
         barcodePreview.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1408,9 +1534,14 @@ public class ScanController {
     }
 
     private Node createDocumentPreview(ScannedPage page) {
+        Node actualPreview = createActualDocumentPreview(page);
+        if (actualPreview != null) {
+            return actualPreview;
+        }
+
         VBox documentPage = new VBox(15);
         documentPage.setAlignment(Pos.TOP_LEFT);
-        documentPage.getStyleClass().add("mock-document-page");
+        documentPage.getStyleClass().add("document-preview-page");
         documentPage.setMinWidth(PREVIEW_PAGE_WIDTH);
         documentPage.setPrefWidth(PREVIEW_PAGE_WIDTH);
         documentPage.setMaxWidth(PREVIEW_PAGE_WIDTH);
@@ -1424,8 +1555,8 @@ public class ScanController {
 
         VBox topLeft = new VBox(9);
         topLeft.getChildren().addAll(
-                createLine("mock-line-dark", 180, 15),
-                createLine("mock-line-medium", 126, 9)
+                createLine("document-preview-line-dark", 180, 15),
+                createLine("document-preview-line-medium", 126, 9)
         );
 
         Region topSpacer = new Region();
@@ -1434,28 +1565,28 @@ public class ScanController {
         VBox topRight = new VBox(6);
         topRight.setAlignment(Pos.TOP_RIGHT);
         topRight.getChildren().addAll(
-                createLine("mock-line-medium", 90, 9),
-                createLine("mock-line-medium", 108, 9)
+                createLine("document-preview-line-medium", 90, 9),
+                createLine("document-preview-line-medium", 108, 9)
         );
 
         topSection.getChildren().addAll(topLeft, topSpacer, topRight);
 
         VBox textLines = new VBox(6);
         textLines.getChildren().addAll(
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 372, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 318, 7)
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 372, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 318, 7)
         );
 
         VBox formArea = new VBox(9);
-        formArea.getStyleClass().add("mock-form-area");
+        formArea.getStyleClass().add("document-preview-form-area");
 
         HBox formHeading = new HBox(18);
         formHeading.getChildren().addAll(
-                createLine("mock-line-dark", 144, 12),
-                createLine("mock-line-medium", 78, 8)
+                createLine("document-preview-line-dark", 144, 12),
+                createLine("document-preview-line-medium", 78, 8)
         );
 
         HBox formInputs = new HBox(12);
@@ -1471,9 +1602,9 @@ public class ScanController {
 
         VBox bottomText = new VBox(6);
         bottomText.getChildren().addAll(
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 405, 7),
-                createLine("mock-line-light", 315, 7)
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 405, 7),
+                createLine("document-preview-line-light", 315, 7)
         );
 
         HBox bottomRow = new HBox();
@@ -1484,12 +1615,12 @@ public class ScanController {
 
         VBox barcode = new VBox(3);
         barcode.setAlignment(Pos.CENTER);
-        barcode.getStyleClass().add("mock-barcode-box");
+        barcode.getStyleClass().add("document-preview-barcode-box");
 
         Label bars = new Label("||||||||||||");
-        bars.getStyleClass().add("mock-barcode-bars");
+        bars.getStyleClass().add("document-preview-barcode-bars");
 
-        Region barcodeLine = createLine("mock-line-medium", 48, 6);
+        Region barcodeLine = createLine("document-preview-line-medium", 48, 6);
 
         barcode.getChildren().addAll(bars, barcodeLine);
         bottomRow.getChildren().addAll(bottomSpacer, barcode);
@@ -1503,6 +1634,200 @@ public class ScanController {
         documentPage.getChildren().addAll(topSection, textLines, formArea, bottomText, bottomRow);
 
         return documentPage;
+    }
+
+    private Node createActualDocumentPreview(ScannedPage page) {
+        if (page == null || page.displayContent.isBlank()) {
+            return null;
+        }
+
+        String failureMessage = previewLoadFailures.get(page.referenceId);
+        if (failureMessage != null) {
+            return createPreviewUnavailableState(failureMessage);
+        }
+
+        WritableImage image = previewImageCache.get(page.referenceId);
+        if (image == null) {
+            ensurePreviewImageLoaded(page);
+            return createPreviewLoadingState();
+        }
+
+        ImageView imageView = new ImageView(image);
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(PREVIEW_PAGE_WIDTH);
+        imageView.setFitHeight(PREVIEW_PAGE_HEIGHT);
+        imageView.setRotate(page.rotationDegrees);
+        imageView.setSmooth(true);
+
+        StackPane preview = new StackPane(imageView);
+        preview.setAlignment(Pos.CENTER);
+        preview.getStyleClass().add("document-preview-page");
+        preview.setMinWidth(PREVIEW_PAGE_WIDTH);
+        preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        if (page.needsRescan) {
+            Label warning = new Label("Marked for rescan");
+            warning.getStyleClass().add("preview-warning-banner");
+            StackPane.setAlignment(warning, Pos.TOP_CENTER);
+            preview.getChildren().add(warning);
+        }
+
+        return preview;
+    }
+
+    private Node createPreviewLoadingState() {
+        VBox loading = new VBox(9);
+        loading.setAlignment(Pos.CENTER);
+        loading.getStyleClass().add("document-preview-page");
+        loading.setMinWidth(PREVIEW_PAGE_WIDTH);
+        loading.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        loading.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        loading.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        loading.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        loading.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        Label title = new Label("Loading TIFF preview");
+        title.getStyleClass().add("scan-preview-empty-title");
+
+        Label copy = new Label("The scanned page is being decoded from the API response.");
+        copy.getStyleClass().add("scan-preview-empty-copy");
+        copy.setWrapText(true);
+
+        loading.getChildren().addAll(title, copy);
+        return loading;
+    }
+
+    private Node createPreviewUnavailableState(String message) {
+        VBox unavailable = new VBox(9);
+        unavailable.setAlignment(Pos.CENTER);
+        unavailable.getStyleClass().add("document-preview-page");
+        unavailable.setMinWidth(PREVIEW_PAGE_WIDTH);
+        unavailable.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        unavailable.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        unavailable.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        unavailable.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        unavailable.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        Label title = new Label("TIFF preview unavailable");
+        title.getStyleClass().add("scan-preview-empty-title");
+
+        Label copy = new Label(message);
+        copy.getStyleClass().add("scan-preview-empty-copy");
+        copy.setWrapText(true);
+        copy.setMaxWidth(360);
+
+        unavailable.getChildren().addAll(title, copy);
+        return unavailable;
+    }
+
+    private void ensurePreviewImageLoaded(ScannedPage page) {
+        if (page == null || page.displayContent.isBlank()) {
+            return;
+        }
+        if (previewImageCache.containsKey(page.referenceId) || previewLoadsInProgress.contains(page.referenceId)) {
+            return;
+        }
+
+        previewLoadsInProgress.add(page.referenceId);
+        int referenceId = page.referenceId;
+        String displayContent = page.displayContent;
+
+        BackgroundExecutor.io().execute(() -> {
+            PreviewDecodeResult result = decodePreviewImage(displayContent);
+            Platform.runLater(() -> {
+                previewLoadsInProgress.remove(referenceId);
+                if (result.image() != null) {
+                    previewImageCache.put(referenceId, result.image());
+                    previewLoadFailures.remove(referenceId);
+                } else {
+                    previewLoadFailures.put(referenceId, result.message());
+                }
+
+                if (selectedPage != null && selectedPage.referenceId == referenceId) {
+                    if (reviewWorkspaceView.isVisible()) {
+                        refreshReviewWorkspace();
+                    } else {
+                        refreshWorkspace();
+                    }
+                }
+            });
+        });
+    }
+
+    private PreviewDecodeResult decodePreviewImage(String displayContent) {
+        byte[] bytes = extractDisplayContentBytes(displayContent);
+        if (bytes.length == 0) {
+            return PreviewDecodeResult.failed("The API response did not contain previewable TIFF data.");
+        }
+
+        ImageIO.scanForPlugins();
+
+        try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            if (imageInputStream == null) {
+                return PreviewDecodeResult.failed("The TIFF preview stream could not be opened.");
+            }
+
+            var readers = ImageIO.getImageReaders(imageInputStream);
+            if (!readers.hasNext()) {
+                return PreviewDecodeResult.failed("No TIFF reader is available for this API file.");
+            }
+
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(imageInputStream, true, true);
+
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+
+                ImageReadParam param = reader.getDefaultReadParam();
+                int subsampling = Math.max(1, Math.min(
+                        Math.max(1, width / (int) PREVIEW_PAGE_WIDTH),
+                        Math.max(1, height / (int) PREVIEW_PAGE_HEIGHT)
+                ));
+                param.setSourceSubsampling(subsampling, subsampling, 0, 0);
+
+                BufferedImage bufferedImage = reader.read(0, param);
+                if (bufferedImage == null) {
+                    return PreviewDecodeResult.failed("The TIFF reader returned no image for this page.");
+                }
+
+                return PreviewDecodeResult.success(SwingFXUtils.toFXImage(bufferedImage, null));
+            } finally {
+                reader.dispose();
+            }
+        } catch (Exception exception) {
+            return PreviewDecodeResult.failed("The TIFF preview could not be decoded: " + exception.getClass().getSimpleName());
+        }
+    }
+
+    private byte[] extractDisplayContentBytes(String displayContent) {
+        if (displayContent == null || displayContent.isBlank()) {
+            return new byte[0];
+        }
+
+        String encoded = displayContent.trim();
+        int base64Index = encoded.indexOf("base64,");
+        if (base64Index >= 0) {
+            encoded = encoded.substring(base64Index + 7);
+        }
+
+        return Base64.getDecoder().decode(encoded);
+    }
+
+    private record PreviewDecodeResult(WritableImage image, String message) {
+        private static PreviewDecodeResult success(WritableImage image) {
+            return new PreviewDecodeResult(image, "");
+        }
+
+        private static PreviewDecodeResult failed(String message) {
+            return new PreviewDecodeResult(null, message == null || message.isBlank()
+                    ? "The TIFF preview could not be decoded."
+                    : message);
+        }
     }
 
     private Region createLine(String styleClass, double width, double height) {
@@ -1519,7 +1844,7 @@ public class ScanController {
 
     private Region createInputSkeleton() {
         Region input = new Region();
-        input.getStyleClass().add("mock-input");
+        input.getStyleClass().add("document-preview-input");
         input.setMinHeight(30);
         input.setPrefHeight(30);
         input.setMinWidth(174);
@@ -1788,6 +2113,11 @@ public class ScanController {
             return;
         }
 
+        if (selectedPage.barcode) {
+            reviewSelectedTitleLabel.setText("Barcode split marker");
+            return;
+        }
+
         DocumentGroup document = findDocumentContainingPage(selectedPage);
         int pageNumber = getPageNumberInDocument(selectedPage);
 
@@ -1796,7 +2126,7 @@ public class ScanController {
             return;
         }
 
-        reviewSelectedTitleLabel.setText("Document " + document.number + " · Page " + pageNumber);
+        reviewSelectedTitleLabel.setText(document.displayTitle() + " · Page " + pageNumber);
     }
 
     private int getNormalPageCount() {
@@ -1841,7 +2171,7 @@ public class ScanController {
                 documentCard.getStyleClass().add("review-document-card-selected");
             }
 
-            Label title = new Label("Document " + document.number);
+            Label title = new Label(document.displayTitle());
             title.getStyleClass().add("review-document-title");
 
             Region spacer = new Region();
@@ -1865,15 +2195,19 @@ public class ScanController {
             reviewDocumentListContainer.getChildren().add(documentCard);
 
             if (index < documents.size() - 1) {
-                reviewDocumentListContainer.getChildren().add(createReviewSplitRow());
+                reviewDocumentListContainer.getChildren().add(createReviewSplitRow(findSplitMarkerAfter(document)));
             }
         }
     }
 
-    private Node createReviewSplitRow() {
+    private Node createReviewSplitRow(ScannedPage splitMarker) {
         HBox row = new HBox(9);
         row.setAlignment(Pos.CENTER);
         row.getStyleClass().add("review-split-row");
+
+        if (splitMarker != null && splitMarker == selectedPage) {
+            row.getStyleClass().add("review-document-card-selected");
+        }
 
         Region leftLine = new Region();
         leftLine.getStyleClass().add("review-split-line");
@@ -1888,6 +2222,13 @@ public class ScanController {
 
         row.getChildren().addAll(leftLine, label, rightLine);
 
+        if (splitMarker != null) {
+            row.setOnMouseClicked(event -> {
+                selectedPage = splitMarker;
+                refreshReviewWorkspace();
+            });
+        }
+
         return row;
     }
 
@@ -1899,7 +2240,9 @@ public class ScanController {
             return;
         }
 
-        Node previewNode = createDocumentPreview(selectedPage);
+        Node previewNode = selectedPage.barcode
+                ? createBarcodePreview(selectedPage)
+                : createDocumentPreview(selectedPage);
         reviewPreviewHost.getChildren().add(wrapReviewPreviewWithAutoScale(previewNode));
     }
 
@@ -1945,6 +2288,13 @@ public class ScanController {
         reviewPageTrayContainer.getChildren().clear();
 
         DocumentGroup selectedDocument = findDocumentContainingPage(selectedPage);
+
+        if (selectedPage != null && selectedPage.barcode) {
+            Label empty = new Label("Barcode split marker selected.");
+            empty.getStyleClass().add("page-tray-empty-copy");
+            reviewPageTrayContainer.getChildren().add(empty);
+            return;
+        }
 
         if (selectedDocument == null || selectedDocument.pages.isEmpty()) {
             Label empty = new Label("No pages available.");
@@ -2020,6 +2370,21 @@ public class ScanController {
         return null;
     }
 
+    private ScannedPage findSplitMarkerAfter(DocumentGroup document) {
+        if (document == null || document.pages.isEmpty()) {
+            return null;
+        }
+
+        ScannedPage lastPage = document.pages.get(document.pages.size() - 1);
+        int lastIndex = allPages.indexOf(lastPage);
+        if (lastIndex < 0 || lastIndex >= allPages.size() - 1) {
+            return null;
+        }
+
+        ScannedPage nextPage = allPages.get(lastIndex + 1);
+        return nextPage.barcode ? nextPage : null;
+    }
+
     private static final class ScanSnapshot {
         private final List<PageSnapshot> pages = new ArrayList<>();
         private final int selectedPageReferenceId;
@@ -2058,6 +2423,9 @@ public class ScanController {
         private final int referenceId;
         private final int fileId;
         private final boolean barcode;
+        private final String sourceReference;
+        private final String displayContent;
+        private final String sourceDocumentId;
         private final int documentNumber;
         private final int rotationDegrees;
         private final boolean needsRescan;
@@ -2067,6 +2435,9 @@ public class ScanController {
             this.referenceId = page.referenceId;
             this.fileId = page.fileId;
             this.barcode = page.barcode;
+            this.sourceReference = page.sourceReference;
+            this.displayContent = page.displayContent;
+            this.sourceDocumentId = page.sourceDocumentId;
             this.documentNumber = page.documentNumber;
             this.rotationDegrees = page.rotationDegrees;
             this.needsRescan = page.needsRescan;
@@ -2074,7 +2445,15 @@ public class ScanController {
         }
 
         private ScannedPage toScannedPage() {
-            ScannedPage page = new ScannedPage(referenceId, fileId, barcode, needsRescan);
+            ScannedPage page = new ScannedPage(
+                    referenceId,
+                    fileId,
+                    barcode,
+                    needsRescan,
+                    sourceReference,
+                    displayContent,
+                    sourceDocumentId
+            );
             page.documentNumber = documentNumber;
             page.rotationDegrees = rotationDegrees;
             page.splitReasonAfter = splitReasonAfter;
@@ -2085,11 +2464,15 @@ public class ScanController {
     private static final class DocumentGroup {
         private final int number;
         private final String splitReason;
+        private final String sourceDocumentId;
+        private final boolean open;
         private final List<ScannedPage> pages = new ArrayList<>();
 
-        private DocumentGroup(int number, String splitReason) {
+        private DocumentGroup(int number, String splitReason, String sourceDocumentId, boolean open) {
             this.number = number;
             this.splitReason = splitReason;
+            this.sourceDocumentId = sourceDocumentId == null ? "" : sourceDocumentId;
+            this.open = open;
         }
 
         private boolean hasPagesNeedingRescan() {
@@ -2101,23 +2484,47 @@ public class ScanController {
 
             return false;
         }
+
+        private String displayTitle() {
+            if (!sourceDocumentId.isBlank() && !sourceDocumentId.startsWith("api-item-")) {
+                return open ? sourceDocumentId + " (In progress)" : sourceDocumentId;
+            }
+            if (!pages.isEmpty() && !pages.get(0).sourceReference.isBlank()) {
+                return open ? pages.get(0).sourceReference + " (In progress)" : pages.get(0).sourceReference;
+            }
+            return open ? "Document " + number + " (In progress)" : "Document " + number;
+        }
     }
 
     private static final class ScannedPage {
         private final int referenceId;
         private final int fileId;
         private final boolean barcode;
+        private final String sourceReference;
+        private final String displayContent;
+        private final String sourceDocumentId;
 
         private int documentNumber;
         private int rotationDegrees;
         private boolean needsRescan;
         private String splitReasonAfter;
 
-        private ScannedPage(int referenceId, int fileId, boolean barcode, boolean needsRescan) {
+        private ScannedPage(
+                int referenceId,
+                int fileId,
+                boolean barcode,
+                boolean needsRescan,
+                String sourceReference,
+                String displayContent,
+                String sourceDocumentId
+        ) {
             this.referenceId = referenceId;
             this.fileId = fileId;
             this.barcode = barcode;
             this.needsRescan = needsRescan;
+            this.sourceReference = sourceReference == null ? "" : sourceReference;
+            this.displayContent = displayContent == null ? "" : displayContent;
+            this.sourceDocumentId = sourceDocumentId == null ? "" : sourceDocumentId;
             this.rotationDegrees = 0;
         }
 
@@ -2126,11 +2533,22 @@ public class ScanController {
         }
 
         private String fileName() {
+            if (!sourceReference.isBlank()) {
+                return sourceReference;
+            }
+
             if (barcode) {
                 return "barcode_split_" + String.format("%02d", referenceId) + ".tiff";
             }
 
             return "scan_file_" + String.format("%02d", fileId) + ".tiff";
+        }
+
+        private String displayPageTitle(int pageNumberInDocument) {
+            if (!sourceReference.isBlank()) {
+                return sourceReference;
+            }
+            return "Page " + pageNumberInDocument;
         }
     }
 }

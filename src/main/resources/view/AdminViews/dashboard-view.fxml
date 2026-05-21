@@ -86,8 +86,7 @@
                         <Label fx:id="totalUsersTrendLabel"
                                text="- 0%"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath fx:id="totalUsersSparkline"
-                                 content="M0 22 L12 20 L24 21 L36 12 L48 18 L60 8 L72 20 L84 10 L96 13"
+                        <SVGPath content="M0 22 L12 20 L24 21 L36 12 L48 18 L60 8 L72 20 L84 10 L96 13"
                                  styleClass="dashboard-sparkline-teal"/>
                     </VBox>
                 </HBox>
@@ -117,8 +116,7 @@
                         <Label fx:id="activeProfilesTrendLabel"
                                text="- 0%"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath fx:id="activeProfilesSparkline"
-                                 content="M0 23 L12 21 L24 22 L36 15 L48 21 L60 8 L72 20 L84 12 L96 17"
+                        <SVGPath content="M0 23 L12 21 L24 22 L36 15 L48 21 L60 8 L72 20 L84 12 L96 17"
                                  styleClass="dashboard-sparkline-blue"/>
                     </VBox>
                 </HBox>
@@ -148,8 +146,7 @@
                         <Label fx:id="scansTodayTrendLabel"
                                text="- 0%"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath fx:id="scansTodaySparkline"
-                                 content="M0 23 L12 20 L24 22 L36 18 L48 9 L60 22 L72 18 L84 10 L96 17"
+                        <SVGPath content="M0 23 L12 20 L24 22 L36 18 L48 9 L60 22 L72 18 L84 10 L96 17"
                                  styleClass="dashboard-sparkline-purple"/>
                     </VBox>
                 </HBox>
@@ -179,8 +176,7 @@
                         <Label fx:id="waitingForQaTrendLabel"
                                text="- 0%"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath fx:id="waitingForQaSparkline"
-                                 content="M0 23 L12 21 L24 22 L36 15 L48 20 L60 9 L72 21 L84 13 L96 18"
+                        <SVGPath content="M0 23 L12 21 L24 22 L36 15 L48 20 L60 9 L72 21 L84 13 L96 18"
                                  styleClass="dashboard-sparkline-orange"/>
                     </VBox>
                 </HBox>
@@ -219,8 +215,7 @@
 
                             <HBox alignment="CENTER_LEFT" spacing="15">
                                 <StackPane styleClass="dashboard-summary-icon-red">
-                                    <SVGPath content="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5v6h-2V7h2zm-2 8h2v2h-2v-2z"
-                                             styleClass="dashboard-summary-icon-red-path"/>
+                                    <Label text="&#xe922;" styleClass="prime-icon dashboard-summary-icon-red-path"/>
                                 </StackPane>
 
                                 <VBox spacing="3">
@@ -259,7 +254,7 @@
                                 <Button text="Review"
                                         onAction="#manageAccess"
                                         focusTraversable="false"
-                                        styleClass="metadata-action-button"/>
+                                        styleClass="inline-action-button"/>
                             </HBox>
 
                             <HBox fx:id="failedEventsRow"
@@ -276,7 +271,7 @@
                                 <Button text="Review"
                                         onAction="#reviewFailedExports"
                                         focusTraversable="false"
-                                        styleClass="metadata-action-button"/>
+                                        styleClass="inline-action-button"/>
                             </HBox>
 
                             <HBox fx:id="draftProfilesRow"
@@ -293,7 +288,7 @@
                                 <Button text="Open"
                                         onAction="#createProfile"
                                         focusTraversable="false"
-                                        styleClass="metadata-action-button"/>
+                                        styleClass="inline-action-button"/>
                             </HBox>
                         </VBox>
                     </VBox>
@@ -404,7 +399,7 @@
                         <Button text="View All"
                                 onAction="#viewActivity"
                                 focusTraversable="false"
-                                styleClass="metadata-action-button"/>
+                                styleClass="inline-action-button"/>
                     </HBox>
 
                     <VBox fx:id="recentActivityList"

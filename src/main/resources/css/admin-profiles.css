@@ -1,0 +1,664 @@
+/* =========================================================
+   WEBLAGER ADMIN PROFILES / ACCESS
+   Profile, access assignment, and related editor styles.
+   ========================================================= */
+
+/* =========================================================
+   PROFILES AND ASSIGNMENTS
+   Project note: profile and assignment editors reuse the
+   same section spacing so the admin area feels like one product.
+   ========================================================= */
+
+.profiles-cards-container {
+    -fx-padding: 0;
+    -fx-hgap: 18;
+    -fx-vgap: 18;
+    -fx-alignment: top-left;
+}
+
+.profile-card {
+    -fx-min-height: 456;
+    -fx-padding: 18;
+    -fx-min-width: 0;
+    -fx-max-width: 9999;
+}
+
+.profile-card:hover {
+    -fx-background-color: -wl-surface;
+}
+
+.profile-card-archived,
+.profile-card-archived:hover,
+.admin-list-row-archived,
+.admin-list-row-archived:hover {
+    -fx-opacity: 0.6;
+}
+
+.profile-card-footer-spacer {
+    -fx-min-height: 0;
+}
+
+.profile-card-footer,
+.profile-chip-group,
+.profile-editor-header-actions {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.profile-card-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.profile-card-description {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-wrap-text: true;
+}
+
+.profile-card-divider,
+.profile-editor-section-divider,
+.assignment-divider,
+.review-workspace-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.profile-info-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.profile-info-value,
+.profile-info-code {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.profile-info-code,
+.assignment-code-label {
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-padding: 3 9 3 9;
+}
+
+.profile-editor-tabs,
+.admin-tabs {
+    -fx-spacing: 0;
+    -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-editor-tab-button,
+.admin-tab-button {
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-radius: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+}
+
+.profile-editor-tab-button:hover,
+.profile-editor-tab-button:focused,
+.profile-editor-tab-button:pressed,
+.profile-editor-tab-button:armed,
+.admin-tab-button:hover,
+.admin-tab-button:focused,
+.admin-tab-button:pressed,
+.admin-tab-button:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-editor-tab-active,
+.profile-editor-tab-active:hover,
+.profile-editor-tab-active:focused,
+.profile-editor-tab-active:pressed,
+.profile-editor-tab-active:armed,
+.admin-tab-active,
+.admin-tab-active:hover,
+.admin-tab-active:focused,
+.admin-tab-active:pressed,
+.admin-tab-active:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-primary transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: -wl-primary;
+    -fx-font-weight: 700;
+}
+
+.profile-editor-content {
+    -fx-alignment: top-left;
+}
+
+.profile-editor-card {
+    -fx-padding: 36;
+}
+
+.profile-editor-sectioned-card {
+    -fx-padding: 0;
+}
+
+.profile-editor-section {
+    -fx-padding: 36;
+}
+
+.profile-editor-section-title,
+.assignment-panel-title,
+.admin-section-title,
+.review-workspace-panel-title,
+.dashboard-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.profile-editor-subtitle,
+.profile-editor-helper-text,
+.admin-helper-text,
+.review-workspace-panel-subtitle,
+.assignment-list-subtitle,
+.assignment-row-subtitle,
+.assignment-selected-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.profile-editor-strong-text,
+.profile-editor-field-label,
+.admin-field-label,
+.review-workspace-field-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.profile-editor-switch {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-switch-off-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 30 3 3;
+    -fx-background-radius: 999, 999;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: transparent;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-editor-switch:selected {
+    -fx-background-color: -wl-switch-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 3 3 30;
+    -fx-background-radius: 999, 999;
+}
+
+.profile-editor-switch:hover {
+    -fx-background-color: -wl-switch-off-track-hover, -wl-switch-thumb;
+}
+
+.profile-editor-switch:selected:hover {
+    -fx-background-color: -wl-switch-track-hover, -wl-switch-thumb;
+}
+
+.profile-editor-preview-box,
+.profile-editor-scanner-preview-box {
+    -fx-padding: 18 21 18 21;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+}
+
+.profile-editor-code-preview {
+    -fx-text-fill: -wl-text;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.profile-editor-field-preview-card,
+.profile-editor-access-list,
+.profile-access-list {
+    -fx-padding: 21;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.profile-editor-field-preview-item,
+.profile-editor-access-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.profile-editor-access-list {
+    -fx-padding: 0;
+}
+
+.profile-editor-access-row {
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
+    -fx-padding: 0 21 0 21;
+    -fx-spacing: 9;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-editor-access-row-last {
+    -fx-border-width: 0;
+}
+
+.profile-editor-preview-key {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.profile-editor-preview-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-wrap-text: true;
+}
+
+.assignment-mode-switch {
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: none;
+}
+
+.assignment-mode-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+    -fx-max-width: 108;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-text;
+}
+
+.assignment-mode-button:hover,
+.assignment-mode-button:pressed,
+.assignment-mode-button:armed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.assignment-mode-button-active,
+.assignment-mode-button-active:hover,
+.assignment-mode-button-active:pressed,
+.assignment-mode-button-active:armed {
+    -fx-background-color: -wl-primary-selected;
+    -fx-border-color: -wl-primary-selected;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-weight: 600;
+}
+
+.assignment-panels {
+    -fx-alignment: top-left;
+}
+
+.assignment-panel-header,
+.assignment-editor-top,
+.assignment-editor-body {
+    -fx-padding: 24;
+    -fx-background-color: -wl-surface;
+}
+
+.assignment-panel-header,
+.assignment-editor-top {
+    -fx-background-radius: 10 10 0 0;
+}
+
+.assignment-editor-top {
+    -fx-padding: 24 24 0 24;
+}
+
+.assignment-list-item {
+    -fx-min-height: 96;
+    -fx-padding: 15 24 15 24;
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.assignment-list-item > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.assignment-list-item:hover,
+.assignment-list-item-active,
+.assignment-list-item-active:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.assignment-list-item-active,
+.assignment-list-item-active:hover {
+    -fx-border-color: transparent transparent -wl-border -wl-primary;
+    -fx-border-width: 0 0 1 3;
+}
+
+.assignment-checkbox-row {
+    -fx-min-height: 69;
+    -fx-padding: 12 18 12 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.assignment-checkbox-row > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.assignment-row-content,
+.create-user-profile-content,
+.profile-access-row-content {
+    -fx-padding: 0 0 0 15;
+}
+
+.assignment-checkbox-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.assignment-list-title,
+.assignment-row-title,
+.assignment-selected-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.assignment-checkbox,
+.review-checkbox {
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+}
+
+.assignment-checkbox > .box,
+.assignment-checkbox-row > .box,
+.create-user-profile-row > .box,
+.profile-access-row > .box,
+.review-checkbox > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.assignment-checkbox:selected > .box,
+.assignment-checkbox-row:selected > .box,
+.create-user-profile-row:selected > .box,
+.profile-access-row:selected > .box,
+.review-checkbox:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.assignment-checkbox:selected > .box > .mark,
+.assignment-checkbox-row:selected > .box > .mark,
+.create-user-profile-row:selected > .box > .mark,
+.profile-access-row:selected > .box > .mark,
+.review-checkbox:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.assignment-save-bar {
+    -fx-padding: 15 24 18 24;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.assignment-save-status {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.edit-icon {
+    -fx-fill: -wl-primary;
+    -fx-text-fill: -wl-primary;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.delete-icon {
+    -fx-fill: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.edit-link-icon,
+.edit-link-button .edit-link-icon,
+.inline-action-button .edit-link-icon,
+.inline-action-button-muted .edit-link-icon {
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 13px;
+}
+
+.edit-link-button:hover .edit-link-icon,
+.inline-action-button:hover .edit-link-icon,
+.inline-action-button-muted:hover .edit-link-icon {
+    -fx-fill: -wl-primary-hover;
+    -fx-text-fill: -wl-primary-hover;
+}
+
+.deactivate-link-icon,
+.deactivate-link-button .deactivate-link-icon {
+    -fx-fill: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+    -fx-font-size: 13px;
+}
+
+.deactivate-link-button:hover .deactivate-link-icon {
+    -fx-fill: -wl-destructive-hover;
+    -fx-text-fill: -wl-destructive-hover;
+}
+
+.delete-link-icon,
+.delete-link-button .delete-link-icon {
+    -fx-fill: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+}
+
+.delete-link-button:hover .delete-link-icon {
+    -fx-fill: -wl-destructive-hover;
+    -fx-text-fill: -wl-destructive-hover;
+}
+
+.form-editor-card {
+    -fx-padding: 24;
+}
+
+.document-preview-form {
+    -fx-max-width: 900;
+}
+
+.document-fields-card {
+    -fx-padding: 0;
+}
+
+.document-fields-card-header {
+    -fx-padding: 24;
+}
+
+.document-fields-header {
+    -fx-padding: 15 24 15 24;
+    -fx-hgap: 18;
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border transparent -wl-border transparent;
+    -fx-border-width: 1 0 1 0;
+}
+
+.document-fields-list {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.document-field-row {
+    -fx-min-height: 60;
+    -fx-padding: 18 24 18 24;
+    -fx-hgap: 18;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.document-field-row:hover,
+.profile-access-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.document-field-name,
+.profile-access-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.document-drag-handle {
+    -fx-text-fill: -wl-muted-icon;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.profile-access-search,
+.profile-assignment-status-filter {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.profile-assignment-status-filter {
+    -fx-pref-width: 150;
+}
+
+.profile-access-list {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+}
+
+.profile-access-row {
+    -fx-min-height: 90;
+    -fx-pref-height: 90;
+    -fx-padding: 18 21 18 21;
+    -fx-spacing: 18;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-access-row-last {
+    -fx-border-width: 0;
+    -fx-background-radius: 0 0 10 10;
+}
+
+.profile-access-row-archived,
+.profile-access-row-archived:hover {
+    -fx-background-color: -wl-surface;
+}
+
+.profile-access-row-archived .profile-access-title,
+.profile-access-row-archived .profile-access-code {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.profile-access-code {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.profile-access-check {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.profile-access-check-selected {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.profile-access-check-empty {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: transparent;
+}
+

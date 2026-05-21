@@ -3,6 +3,9 @@ package easv.gui.controller.admin;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.dal.DataAccessException;
+import easv.gui.PrimeIcons;
+import easv.gui.controller.utilities.PaginationHelper;
+import easv.util.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -26,7 +29,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -48,18 +50,16 @@ public class ManageUsersController {
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
 
-    private static final double NAME_COLUMN_WIDTH = 20;
-    private static final double USERNAME_COLUMN_WIDTH = 15;
-    private static final double EMAIL_COLUMN_WIDTH = 25;
-    private static final double ROLE_COLUMN_WIDTH = 10;
-    private static final double PROFILES_COLUMN_WIDTH = 15;
+    private static final double NAME_COLUMN_WIDTH = 18;
+    private static final double USERNAME_COLUMN_WIDTH = 13;
+    private static final double EMAIL_COLUMN_WIDTH = 22;
+    private static final double ROLE_COLUMN_WIDTH = 9;
+    private static final double STATUS_COLUMN_WIDTH = 10;
+    private static final double PROFILES_COLUMN_WIDTH = 13;
     private static final double ACTIONS_COLUMN_WIDTH = 15;
 
-    private static final String EDIT_ICON_PATH =
-            "M4 17.25V20h2.75l8.12-8.12-2.75-2.75L4 17.25zm11.71-9.04a.996.996 0 0 0 0-1.41l-1.5-1.5a.996.996 0 1 0-1.41 1.41l1.5 1.5a.996.996 0 0 0 1.41 0z";
-
-    private static final String DELETE_ICON_PATH =
-            "M6 7h12l-1 13H7L6 7zm3-3h6l1 2h4v2H4V6h4l1-2z";
+    private static final String EDIT_ICON = "\ue942";
+    private static final String DEACTIVATE_ICON = "\ue90b";
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> roleFilterComboBox;
@@ -202,7 +202,11 @@ public class ManageUsersController {
         userRoleComboBox.getItems().setAll(ROLE_USER, ROLE_ADMIN);
         userStatusComboBox.getItems().setAll(STATUS_ACTIVE, STATUS_INACTIVE);
 
-        refreshProfileAccessControls();
+        if (adminManager != null) {
+            refreshProfileAccessControls();
+        } else if (profileListBox != null) {
+            profileListBox.getChildren().clear();
+        }
 
         userRoleComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (ROLE_ADMIN.equals(newValue) && !ROLE_ADMIN.equals(oldValue)) {
@@ -234,6 +238,14 @@ public class ManageUsersController {
     }
 
     private void refreshProfileAccessControls() {
+        if (adminManager == null) {
+            profileControls.clear();
+            if (profileListBox != null) {
+                profileListBox.getChildren().clear();
+            }
+            return;
+        }
+
         profileControls.clear();
 
         profileControls.addAll(loadProfileOptions().stream()
@@ -242,12 +254,12 @@ public class ManageUsersController {
 
         profileListBox.getChildren().setAll(
                 profileControls.stream()
-                        .map(ProfileAccessControl::getRow)
+                        .map(ProfileAccessControl::checkBox)
                         .toList()
         );
 
         for (ProfileAccessControl control : profileControls) {
-            control.getCheckBox().selectedProperty().addListener((observable, oldValue, newValue) ->
+            control.checkBox().selectedProperty().addListener((observable, oldValue, newValue) ->
                     updateNoProfilesWarning()
             );
         }
@@ -329,7 +341,7 @@ public class ManageUsersController {
         boolean roleIsAdmin = ROLE_ADMIN.equals(userRoleComboBox.getValue());
 
         if (roleIsAdmin) {
-            profileHelpLabel.setText("Admins can manage users, profiles, metadata, access, and activity logs. Profile access is optional if this admin will also scan.");
+            profileHelpLabel.setText("Admins can manage users, profiles, review details, access, and activity logs. Profile access is optional if this admin will also scan.");
             setVisibleAndManaged(showProfileAccessButton, !adminProfileAccessExpanded);
             setVisibleAndManaged(profileAccessContent, adminProfileAccessExpanded);
         } else {
@@ -348,27 +360,27 @@ public class ManageUsersController {
     }
 
     private void filterProfileAccessRows(String searchText) {
-        String normalizedSearch = normalize(searchText);
+        String normalizedSearch = Strings.normalize(searchText);
 
         for (ProfileAccessControl control : profileControls) {
             boolean matches = normalizedSearch.isBlank()
-                    || normalize(control.getProfile().getName()).contains(normalizedSearch)
-                    || normalize(control.getProfile().getStatus()).contains(normalizedSearch);
+                    || Strings.normalize(control.profile().name()).contains(normalizedSearch)
+                    || Strings.normalize(control.profile().status()).contains(normalizedSearch);
 
-            setVisibleAndManaged(control.getRow(), matches);
+            setVisibleAndManaged(control.checkBox(), matches);
         }
     }
 
     private ProfileAccessControl createProfileAccessControl(ProfileOption profile) {
-        Label nameLabel = new Label(profile.getName());
+        Label nameLabel = new Label(profile.name());
         nameLabel.getStyleClass().add("create-user-profile-name");
 
-        Label statusBadge = new Label(profile.getStatus());
+        Label statusBadge = new Label(profile.status());
         statusBadge.getStyleClass().addAll(
-                "metadata-profile-status",
-                STATUS_ACTIVE.equalsIgnoreCase(profile.getStatus())
-                        ? "metadata-profile-status-active"
-                        : "metadata-profile-status-draft"
+                "profile-assignment-status",
+                STATUS_ACTIVE.equalsIgnoreCase(profile.status())
+                        ? "profile-assignment-status-active"
+                        : "profile-assignment-status-draft"
         );
 
         Region spacer = new Region();
@@ -394,10 +406,10 @@ public class ManageUsersController {
     private boolean validateUserEditor() {
         List<String> errors = new ArrayList<>();
 
-        String fullName = clean(fullNameField.getText());
-        String username = clean(usernameField.getText());
-        String email = clean(emailField.getText());
-        String password = clean(temporaryPasswordField.getText());
+        String fullName = Strings.clean(fullNameField.getText());
+        String username = Strings.clean(usernameField.getText());
+        String email = Strings.clean(emailField.getText());
+        String password = Strings.clean(temporaryPasswordField.getText());
 
         if (fullName.isBlank()) {
             errors.add("Full name is required.");
@@ -435,54 +447,54 @@ public class ManageUsersController {
 
     private AdminManager.UserInput createUserInputFromEditor() {
         return new AdminManager.UserInput(
-                clean(fullNameField.getText()),
-                clean(usernameField.getText()),
-                clean(emailField.getText()),
+                Strings.clean(fullNameField.getText()),
+                Strings.clean(usernameField.getText()),
+                Strings.clean(emailField.getText()),
                 userRoleComboBox.getValue(),
                 userStatusComboBox.getValue(),
                 getSelectedProfileNames(),
-                clean(temporaryPasswordField.getText())
+                Strings.clean(temporaryPasswordField.getText())
         );
     }
 
     private List<String> getSelectedProfileNames() {
         return profileControls.stream()
-                .filter(control -> control.getCheckBox().isSelected())
-                .map(control -> control.getProfile().getName())
+                .filter(control -> control.checkBox().isSelected())
+                .map(control -> control.profile().name())
                 .toList();
     }
 
     private void selectAssignedProfiles(List<String> assignedProfiles) {
         for (ProfileAccessControl control : profileControls) {
-            control.getCheckBox().setSelected(assignedProfiles.contains(control.getProfile().getName()));
+            control.checkBox().setSelected(assignedProfiles.contains(control.profile().name()));
         }
     }
 
-    private void deleteUser(User user) {
+    private void deactivateUser(User user) {
         if (adminManager == null) {
             showUserActionMessage("User storage is not available.");
             return;
         }
 
         try {
-            adminManager.deleteUser(user.getId());
+            adminManager.deactivateUser(user.getId());
         } catch (IllegalArgumentException exception) {
             showUserActionMessage(exception.getMessage());
             return;
         } catch (DataAccessException exception) {
-            showUserActionMessage("User could not be deleted. Check the database connection.");
+            showUserActionMessage("User could not be deactivated. Check the database connection.");
             return;
         }
 
         loadUsers();
         applyFilters();
-        showUserActionMessage(user.getName() + " was deleted.");
+        showUserActionMessage(user.getName() + " was deactivated.");
     }
 
     private void applyFilters() {
         currentPage = 1;
 
-        String searchText = normalize(searchField.getText());
+        String searchText = Strings.normalize(searchField.getText());
         String selectedRole = roleFilterComboBox.getValue();
 
         filteredUsers.setPredicate(user ->
@@ -504,12 +516,12 @@ public class ManageUsersController {
             return true;
         }
 
-        return normalize(user.getName()).contains(searchText)
-                || normalize(user.getUsername()).contains(searchText)
-                || normalize(user.getEmail()).contains(searchText)
-                || normalize(user.getRole()).contains(searchText)
-                || normalize(user.getStatus()).contains(searchText)
-                || normalize(searchableProfileText(user)).contains(searchText);
+        return Strings.normalize(user.getName()).contains(searchText)
+                || Strings.normalize(user.getUsername()).contains(searchText)
+                || Strings.normalize(user.getEmail()).contains(searchText)
+                || Strings.normalize(user.getRole()).contains(searchText)
+                || Strings.normalize(user.getStatus()).contains(searchText)
+                || Strings.normalize(searchableProfileText(user)).contains(searchText);
     }
 
     private void renderUsers() {
@@ -531,7 +543,11 @@ public class ManageUsersController {
         updateEmptyState(totalUsers);
 
         usersCountLabel.setText(formatUserCount(totalUsers));
-        renderPagination(pageSlice, totalUsers);
+        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, pageSlice,
+                totalUsers, "users", page -> {
+                    currentPage = page;
+                    renderUsers();
+                });
     }
 
     private void updateEmptyState(int totalUsers) {
@@ -557,8 +573,9 @@ public class ManageUsersController {
         addCell(row, buildCenteredTextCell(user.getUsername()), 1, HPos.CENTER);
         addCell(row, buildCenteredTextCell(user.getEmail()), 2, HPos.CENTER);
         addCell(row, buildRoleCell(user), 3, HPos.CENTER);
-        addCell(row, buildCenteredTextCell(profileAccessSummary(user)), 4, HPos.CENTER);
-        addCell(row, buildActionsCell(user), 5, HPos.CENTER);
+        addCell(row, buildStatusCell(user), 4, HPos.CENTER);
+        addCell(row, buildCenteredTextCell(profileAccessSummary(user)), 5, HPos.CENTER);
+        addCell(row, buildActionsCell(user), 6, HPos.CENTER);
 
         return row;
     }
@@ -571,6 +588,7 @@ public class ManageUsersController {
                 createPercentColumn(USERNAME_COLUMN_WIDTH),
                 createPercentColumn(EMAIL_COLUMN_WIDTH),
                 createPercentColumn(ROLE_COLUMN_WIDTH),
+                createPercentColumn(STATUS_COLUMN_WIDTH),
                 createPercentColumn(PROFILES_COLUMN_WIDTH),
                 createPercentColumn(ACTIONS_COLUMN_WIDTH)
         );
@@ -593,7 +611,7 @@ public class ManageUsersController {
     }
 
     private HBox buildNameCell(User user) {
-        Label avatar = new Label(initialsFor(user.getName()));
+        Label avatar = new Label(Strings.initials(user.getName(), ""));
         avatar.getStyleClass().add("user-avatar-initials");
 
         Label nameLabel = createLeftTableLabel(user.getName(), "table-cell-text");
@@ -643,19 +661,33 @@ public class ManageUsersController {
         return wrapper;
     }
 
+    private StackPane buildStatusCell(User user) {
+        Label statusBadge = new Label(user.getStatus());
+        statusBadge.getStyleClass().addAll(
+                "user-status-badge",
+                user.isActive() ? "user-status-active" : "user-status-inactive"
+        );
+
+        StackPane wrapper = new StackPane(statusBadge);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
+
+        return wrapper;
+    }
+
     private HBox buildActionsCell(User user) {
         HBox actionBox = new HBox(12);
         actionBox.getStyleClass().add("inline-actions");
         actionBox.setAlignment(Pos.CENTER);
 
-        Button editButton = createInlineActionButton("Edit", EDIT_ICON_PATH, "edit-link-button", "edit-link-icon");
+        Button editButton = createInlineActionButton("Edit", EDIT_ICON, "edit-link-button", "edit-link-icon");
         editButton.setOnAction(event -> showEditUserEditor(user));
         actionBox.getChildren().add(editButton);
 
-        if (!user.isCurrentUser()) {
-            Button deleteButton = createInlineActionButton("Delete", DELETE_ICON_PATH, "delete-link-button", "delete-link-icon");
-            deleteButton.setOnAction(event -> deleteUser(user));
-            actionBox.getChildren().add(deleteButton);
+        if (!user.isCurrentUser() && user.isActive()) {
+            Button deactivateButton = createInlineActionButton("Deactivate", DEACTIVATE_ICON, "deactivate-link-button", "deactivate-link-icon");
+            deactivateButton.setOnAction(event -> deactivateUser(user));
+            actionBox.getChildren().add(deactivateButton);
         }
 
         return actionBox;
@@ -671,88 +703,13 @@ public class ManageUsersController {
         return button;
     }
 
-    private StackPane createActionIcon(String pathData, String iconStyleClass) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(pathData);
-        icon.getStyleClass().add(iconStyleClass);
-        icon.setScaleX(0.68);
-        icon.setScaleY(0.68);
+    private StackPane createActionIcon(String glyph, String iconStyleClass) {
+        Label icon = PrimeIcons.create(glyph, iconStyleClass);
 
         StackPane shell = new StackPane(icon);
         shell.getStyleClass().add("action-icon-shell");
 
         return shell;
-    }
-
-    private void renderPagination(PaginationHelper.PageSlice pageSlice, int totalUsers) {
-        paginationButtonsBox.getChildren().clear();
-
-        if (totalUsers == 0) {
-            paginationSummaryLabel.setText("Showing 0 users");
-            return;
-        }
-
-        paginationSummaryLabel.setText(formatPaginationSummary(
-                pageSlice.fromIndex(),
-                pageSlice.toIndex(),
-                totalUsers
-        ));
-
-        paginationButtonsBox.getChildren().add(createPaginationButton("<<", 1, currentPage == 1));
-        paginationButtonsBox.getChildren().add(createPaginationButton("<", currentPage - 1, currentPage == 1));
-
-        for (String pageItem : PaginationHelper.buildPageItems(currentPage, pageSlice.totalPages())) {
-            Node paginationItem = PaginationHelper.ELLIPSIS.equals(pageItem)
-                    ? createPaginationEllipsis()
-                    : createPaginationButton(pageItem, Integer.parseInt(pageItem), false);
-
-            paginationButtonsBox.getChildren().add(paginationItem);
-        }
-
-        paginationButtonsBox.getChildren().add(createPaginationButton(
-                ">",
-                currentPage + 1,
-                currentPage == pageSlice.totalPages()
-        ));
-
-        paginationButtonsBox.getChildren().add(createPaginationButton(
-                ">>",
-                pageSlice.totalPages(),
-                currentPage == pageSlice.totalPages()
-        ));
-    }
-
-    private String formatPaginationSummary(int fromIndex, int toIndex, int totalUsers) {
-        return "Showing " + (fromIndex + 1) + "-" + toIndex + " of " + totalUsers + " users";
-    }
-
-    private Label createPaginationEllipsis() {
-        Label ellipsis = new Label("...");
-        ellipsis.getStyleClass().add("pagination-ellipsis");
-        return ellipsis;
-    }
-
-    private Button createPaginationButton(String text, int targetPage, boolean disabled) {
-        Button button = new Button(text);
-        button.getStyleClass().add("pagination-button");
-        button.setFocusTraversable(false);
-        button.setDisable(disabled);
-
-        boolean isCurrentPageButton = text.equals(String.valueOf(currentPage));
-
-        if (isCurrentPageButton) {
-            button.getStyleClass().add("pagination-button-active");
-            return button;
-        }
-
-        if (!disabled) {
-            button.setOnAction(event -> {
-                currentPage = targetPage;
-                renderUsers();
-            });
-        }
-
-        return button;
     }
 
     private boolean usernameAlreadyExists(String username, User userBeingEdited) {
@@ -841,7 +798,7 @@ public class ManageUsersController {
     }
 
     private String generateUsernameFromName(String fullName) {
-        String cleanedName = clean(fullName);
+        String cleanedName = Strings.clean(fullName);
 
         if (cleanedName.isBlank()) {
             return "";
@@ -854,75 +811,14 @@ public class ManageUsersController {
                 .replaceAll("[^a-z0-9]", "");
     }
 
-    private String initialsFor(String fullName) {
-        if (fullName == null || fullName.isBlank()) {
-            return "";
-        }
-
-        String[] nameParts = fullName.trim().split("\\s+");
-
-        if (nameParts.length == 1) {
-            return nameParts[0]
-                    .substring(0, Math.min(2, nameParts[0].length()))
-                    .toUpperCase(Locale.ROOT);
-        }
-
-        return (nameParts[0].substring(0, 1) + nameParts[1].substring(0, 1))
-                .toUpperCase(Locale.ROOT);
-    }
-
-    private String normalize(String value) {
-        return value == null
-                ? ""
-                : value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
     private void setVisibleAndManaged(Node node, boolean visible) {
         node.setVisible(visible);
         node.setManaged(visible);
     }
 
-    private static class ProfileOption {
-        private final String name;
-        private final String status;
-
-        private ProfileOption(String name, String status) {
-            this.name = name;
-            this.status = status;
-        }
-
-        private String getName() {
-            return name;
-        }
-
-        private String getStatus() {
-            return status;
-        }
+    private record ProfileOption(String name, String status) {
     }
 
-    private static class ProfileAccessControl {
-        private final ProfileOption profile;
-        private final CheckBox checkBox;
-
-        private ProfileAccessControl(ProfileOption profile, CheckBox checkBox) {
-            this.profile = profile;
-            this.checkBox = checkBox;
-        }
-
-        private ProfileOption getProfile() {
-            return profile;
-        }
-
-        private CheckBox getRow() {
-            return checkBox;
-        }
-
-        private CheckBox getCheckBox() {
-            return checkBox;
-        }
+    private record ProfileAccessControl(ProfileOption profile, CheckBox checkBox) {
     }
 }

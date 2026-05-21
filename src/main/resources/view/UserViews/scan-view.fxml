@@ -156,7 +156,7 @@
                                 <Region HBox.hgrow="ALWAYS"/>
 
                                 <Button fx:id="profileInfoButton"
-                                        text="ⓘ Profile info"
+                                        text="Profile info"
                                         focusTraversable="false"
                                         styleClass="profile-info-link-button"/>
                             </HBox>
@@ -182,8 +182,8 @@
                                    text="No profile selected"
                                    styleClass="profile-info-title"/>
 
-                            <Label fx:id="profileInfoMetadataLabel"
-                                   text="Metadata required: —"
+                            <Label fx:id="profileInfoDocumentDetailsLabel"
+                                   text="Document details required: —"
                                    styleClass="profile-info-line"/>
 
                             <Label fx:id="profileInfoQaLabel"
@@ -192,6 +192,10 @@
 
                             <Label fx:id="profileInfoSplittingLabel"
                                    text="Splitting method: —"
+                                   styleClass="profile-info-line"/>
+
+                            <Label fx:id="profileInfoBarcodeBehaviorLabel"
+                                   text="Barcode behavior: —"
                                    styleClass="profile-info-line"/>
                         </VBox>
 
@@ -277,6 +281,10 @@
 
                     <Label fx:id="workspaceSessionSubtitleLabel"
                            text="0 files scanned · 0 documents created · 0 pending pages"
+                           styleClass="workspace-subtitle"/>
+
+                    <Label fx:id="scanStatusLabel"
+                           text="Status: Ready"
                            styleClass="workspace-subtitle"/>
                 </VBox>
 

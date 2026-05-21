@@ -1,46 +1,68 @@
 package easv.gui;
 
+import easv.be.CaseFile;
+import easv.be.Document;
+import easv.be.PageImage;
+import easv.be.ScanProfile;
+import easv.be.User;
+import easv.bll.UserSession;
+import easv.dal.CaseFileDAO;
+import easv.dal.DataAccessException;
+import easv.dal.ScanProfileDAO;
+import easv.dal.ScanSessionDAO;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class UserPortalModel {
     private static final String BOX_ID_PATTERN = "^BOX-\\d{4}-\\d{3}$";
-    private AccountProfile accountProfile = new AccountProfile("John Doe", "john.doe@company.com", "Archives");
+    private static final AccountProfile DEFAULT_ACCOUNT =
+            new AccountProfile("User", "", "Scanning");
+    private static final DateTimeFormatter HISTORY_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm", Locale.ENGLISH);
 
-    public record DashboardMetric(String label, String value) {
+    private final ScanProfileDAO scanProfileDAO;
+    private final CaseFileDAO caseFileDAO;
+    private final ScanSessionDAO scanSessionDAO;
+    private AccountProfile accountProfile = DEFAULT_ACCOUNT;
+
+    public UserPortalModel() {
+        this(new ScanProfileDAO(), new CaseFileDAO(), new ScanSessionDAO());
     }
 
-    public record AccountProfile(String fullName, String email, String department) {
+    UserPortalModel(ScanProfileDAO scanProfileDAO, CaseFileDAO caseFileDAO, ScanSessionDAO scanSessionDAO) {
+        this.scanProfileDAO = scanProfileDAO;
+        this.caseFileDAO = caseFileDAO;
+        this.scanSessionDAO = scanSessionDAO;
+        syncAccountFromSession();
     }
 
-    public record ScanProfileInfo(String metadataRequired, String qaRequired, String splittingMethod) {
-    }
-
+    public record DashboardMetric(String label, String value) {}
+    public record AccountProfile(String fullName, String email, String department) {}
+    public record ScanProfileInfo(String documentDetailsRequired, String qaRequired, String splittingMethod) {}
     public record BoxItem(String id, String description) {
         @Override
         public String toString() {
             return id;
         }
     }
-
-    public record ProfileSetting(String label, String value) {
-    }
-
+    public record ProfileSetting(String label, String value) {}
     public record ProfileItem(int id, String name, String description, boolean defaultProfile, List<BoxItem> assignedBoxes) {
         @Override
         public String toString() {
             return name;
         }
     }
-
-    public record RecentScanItem(String boxId, String profileName, String status, String startedAt, int pages) {
-    }
-
-    public record HistoryItem(String boxId, String profileName, String status, String startedAt, String completedAt, int pages) {
-    }
-
-    public record ExportItem(String fileName, String boxId, String profileName, String createdAt, String size, String status) {
-    }
-
+    public record RecentScanItem(String boxId, String profileName, String status, String startedAt, int pages) {}
+    public record HistoryItem(String boxId, String profileName, int documents, String status, String startedAt, String completedAt, int pages, String size) {}
+    public record ExportItem(String fileName, String boxId, String profileName, int documents, String createdAt, String size, String status) {}
     public record PortalSession(ProfileItem profile, BoxItem box) {
         public String exportName() {
             return profile.name() + "_" + box.id();
@@ -48,102 +70,147 @@ public class UserPortalModel {
     }
 
     public List<DashboardMetric> fetchDashboardMetrics() {
+        syncAccountFromSession();
+
+        List<ProfileItem> profiles = fetchProfilesForUser();
+        List<HistoryItem> history = fetchScanHistory();
+        int documents = fetchAllCaseFiles().stream()
+                .mapToInt(caseFile -> caseFile.getDocuments().size())
+                .sum();
+        int pages = fetchAllCaseFiles().stream()
+                .flatMap(caseFile -> caseFile.getDocuments().stream())
+                .mapToInt(document -> document.getPages().size())
+                .sum();
+
         return List.of(
-                new DashboardMetric("Total Scans", "247"),
-                new DashboardMetric("This Month", "23"),
-                new DashboardMetric("Pages Scanned", "18.4K"),
-                new DashboardMetric("Completed", "94.7%")
+                new DashboardMetric("Assigned Profiles", String.valueOf(profiles.size())),
+                new DashboardMetric("Batches", String.valueOf(history.size())),
+                new DashboardMetric("Documents", String.valueOf(documents)),
+                new DashboardMetric("Pages", String.valueOf(pages))
         );
     }
 
     public List<ProfileItem> fetchProfilesForUser() {
-        return List.of(
-                new ProfileItem(1, "Standard Scan", "Balanced settings for everyday document intake and general office work.", true, List.of(
-                        new BoxItem("BOX-2026-042", "Primary intake"),
-                        new BoxItem("BOX-2026-041", "Overflow intake")
-                )),
-                new ProfileItem(2, "High Quality", "Higher resolution profile for detailed pages and image-heavy packets.", false, List.of(
-                        new BoxItem("BOX-2026-040", "Detailed review queue")
-                )),
-                new ProfileItem(3, "Archive", "Optimized for long-term archival exports and retention workflows.", false, List.of(
-                        new BoxItem("BOX-2026-039", "Archive staging")
-                ))
-        );
+        syncAccountFromSession();
+
+        User currentUser = UserSession.getCurrentUser();
+        List<ScanProfile> availableProfiles = safeProfiles();
+        if (availableProfiles.isEmpty()) {
+            return List.of();
+        }
+
+        LinkedHashSet<String> allowedNames = new LinkedHashSet<>();
+        if (currentUser != null && currentUser.getAssignedProfiles() != null && !currentUser.getAssignedProfiles().isEmpty()) {
+            allowedNames.addAll(currentUser.getAssignedProfiles());
+        }
+
+        List<ScanProfile> filteredProfiles = allowedNames.isEmpty()
+                ? availableProfiles.stream().filter(profile -> !profile.isArchived()).toList()
+                : availableProfiles.stream()
+                .filter(profile -> allowedNames.stream().anyMatch(assigned -> assigned.equalsIgnoreCase(profile.getName())))
+                .toList();
+
+        if (filteredProfiles.isEmpty()) {
+            filteredProfiles = availableProfiles.stream().filter(profile -> !profile.isArchived()).toList();
+        }
+
+        List<BoxItem> boxes = fetchDistinctBoxes();
+        List<ProfileItem> items = new ArrayList<>();
+        for (int index = 0; index < filteredProfiles.size(); index++) {
+            ScanProfile profile = filteredProfiles.get(index);
+            items.add(new ProfileItem(
+                    profile.getId(),
+                    profile.getName(),
+                    profile.getDescription(),
+                    index == 0,
+                    boxes
+            ));
+        }
+        return items;
     }
 
     public ProfileItem getDefaultProfileForUser() {
         return fetchProfilesForUser().stream()
-                .filter(ProfileItem::defaultProfile)
                 .findFirst()
-                .orElse(fetchProfilesForUser().get(0));
+                .orElse(null);
     }
 
     public List<RecentScanItem> fetchRecentScans() {
-        return List.of(
-                new RecentScanItem("BOX-2026-042", "Standard Scan", "Completed", "2026-04-24 14:45", 125),
-                new RecentScanItem("BOX-2026-041", "High Quality", "Processing", "2026-04-24 13:15", 89),
-                new RecentScanItem("BOX-2026-040", "Standard Scan", "Completed", "2026-04-23 16:38", 203),
-                new RecentScanItem("BOX-2026-039", "Archive", "Failed", "2026-04-23 10:05", 0)
-        );
+        return fetchScanHistory().stream()
+                .limit(4)
+                .map(item -> new RecentScanItem(
+                        item.boxId(),
+                        item.profileName(),
+                        item.status(),
+                        item.startedAt(),
+                        item.pages()
+                ))
+                .toList();
     }
 
     public List<HistoryItem> fetchScanHistory() {
-        return List.of(
-                new HistoryItem("BOX-2026-042", "Standard Scan", "Completed", "2026-04-24 14:45", "2026-04-24 15:02", 125),
-                new HistoryItem("BOX-2026-041", "High Quality", "Processing", "2026-04-24 13:15", "-", 89),
-                new HistoryItem("BOX-2026-040", "Standard Scan", "Completed", "2026-04-23 16:38", "2026-04-23 17:11", 203),
-                new HistoryItem("BOX-2026-039", "Archive", "Failed", "2026-04-23 10:05", "2026-04-23 10:22", 0),
-                new HistoryItem("BOX-2026-038", "High Quality", "Completed", "2026-04-22 09:40", "2026-04-22 10:18", 176)
-        );
+        try {
+            return scanSessionDAO.findHistorySummaries().stream()
+                    .map(summary -> new HistoryItem(
+                            summary.boxId(),
+                            summary.profileName(),
+                            summary.documentCount(),
+                            summary.status(),
+                            formatHistoryTime(summary.startedAt()),
+                            isCompletedStatus(summary.status()) ? formatHistoryTime(summary.startedAt()) : "-",
+                            summary.pageCount(),
+                            "-"
+                    ))
+                    .toList();
+        } catch (DataAccessException exception) {
+            return List.of();
+        }
     }
 
     public List<ExportItem> fetchExports() {
-        return List.of(
-                new ExportItem("standard_scan_BOX-2026-042.pdf", "BOX-2026-042", "Standard Scan", "2026-04-24 15:02", "102.7 MB", "Ready"),
-                new ExportItem("high_quality_BOX-2026-041.pdf", "BOX-2026-041", "High Quality", "2026-04-24 13:15", "96.3 MB", "Ready"),
-                new ExportItem("archive_BOX-2026-039.pdf", "BOX-2026-039", "Archive", "2026-04-23 10:22", "-", "Failed"),
-                new ExportItem("standard_scan_BOX-2026-040.pdf", "BOX-2026-040", "Standard Scan", "2026-04-23 17:11", "145.0 MB", "Processing")
-        );
+        return fetchScanHistory().stream()
+                .filter(item -> isCompletedStatus(item.status()))
+                .map(item -> new ExportItem(
+                        formatExportName(item.profileName(), item.boxId()) + ".pdf",
+                        item.boxId(),
+                        item.profileName(),
+                        item.documents(),
+                        item.completedAt(),
+                        item.size(),
+                        item.status()
+                ))
+                .toList();
     }
 
     public List<ProfileSetting> fetchProfileSettings(ProfileItem profile) {
-        if (profile == null) {
+        ScanProfile scanProfile = findProfile(profile);
+        if (scanProfile == null) {
             return List.of();
         }
-        return switch (profile.name()) {
-            case "High Quality" -> List.of(
-                    new ProfileSetting("Resolution", "600 DPI"),
-                    new ProfileSetting("Denoise", "On"),
-                    new ProfileSetting("Deskew", "On"),
-                    new ProfileSetting("Output format", "PDF/A")
-            );
-            case "Archive" -> List.of(
-                    new ProfileSetting("Resolution", "400 DPI"),
-                    new ProfileSetting("Blank page removal", "On"),
-                    new ProfileSetting("Retention tag", "Archive"),
-                    new ProfileSetting("Output format", "TIFF + PDF")
-            );
-            default -> List.of(
-                    new ProfileSetting("Resolution", "300 DPI"),
-                    new ProfileSetting("Auto crop", "On"),
-                    new ProfileSetting("Blank page removal", "On"),
-                    new ProfileSetting("Output format", "PDF")
-            );
-        };
+
+        return List.of(
+                new ProfileSetting("Rotation", emptyAsDash(scanProfile.getDefaultRotation())),
+                new ProfileSetting("Brightness", emptyAsDash(scanProfile.getBrightness())),
+                new ProfileSetting("Contrast", emptyAsDash(scanProfile.getContrast())),
+                new ProfileSetting("Export format", emptyAsDash(scanProfile.getExportFormat())),
+                new ProfileSetting("Barcode behavior", emptyAsDash(scanProfile.getBarcodeDetectedBehavior()))
+        );
     }
 
     public ScanProfileInfo fetchScanProfileInfo(ProfileItem profile) {
-        if (profile == null) {
+        ScanProfile scanProfile = findProfile(profile);
+        if (scanProfile == null) {
             return new ScanProfileInfo("-", "-", "-");
         }
-        return switch (profile.name()) {
-            case "High Quality" -> new ScanProfileInfo("Yes", "No", "Single document");
-            case "Archive" -> new ScanProfileInfo("Yes", "Yes", "Manual or barcode");
-            default -> new ScanProfileInfo("No", "No", "Manual");
-        };
+
+        String documentDetailsRequired = scanProfile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No";
+        String qaRequired = scanProfile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No";
+        String splittingMethod = scanProfile.isBarcodeSplitting() ? "Barcode" : "Manual";
+        return new ScanProfileInfo(documentDetailsRequired, qaRequired, splittingMethod);
     }
 
     public AccountProfile fetchAccountProfile() {
+        syncAccountFromSession();
         return accountProfile;
     }
 
@@ -156,7 +223,7 @@ public class UserPortalModel {
     }
 
     public String formatExportName(String profileName, String boxId) {
-        return profileName.toLowerCase().replace(' ', '_') + "_" + boxId;
+        return profileName.toLowerCase(Locale.ROOT).replace(' ', '_') + "_" + boxId;
     }
 
     public boolean isValidBoxId(String boxId) {
@@ -164,8 +231,9 @@ public class UserPortalModel {
     }
 
     public PortalSession startSession(ProfileItem profile, String boxId) {
-        String normalizedBoxId = boxId == null || boxId.isBlank() ? "BOX-2026-042" : boxId.trim();
-        return new PortalSession(profile, new BoxItem(normalizedBoxId, "Manual scan started from dashboard"));
+        String normalizedBoxId = boxId == null || boxId.isBlank() ? "BOX-UNSPECIFIED" : boxId.trim();
+        String description = "Scanning session";
+        return new PortalSession(profile, new BoxItem(normalizedBoxId, description));
     }
 
     public PortalSession resumeSession(RecentScanItem item) {
@@ -178,10 +246,64 @@ public class UserPortalModel {
 
     private PortalSession resumeSession(String boxId, String profileName) {
         ProfileItem profile = fetchProfilesForUser().stream()
-                .filter(candidate -> candidate.name().equals(profileName))
+                .filter(candidate -> candidate.name().equalsIgnoreCase(profileName))
                 .findFirst()
                 .orElse(getDefaultProfileForUser());
-        return new PortalSession(profile, new BoxItem(boxId, "Resumed from history"));
+        return new PortalSession(profile, new BoxItem(boxId, "Resumed from stored history"));
+    }
+
+    private void syncAccountFromSession() {
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser == null) {
+            return;
+        }
+
+        String department = currentUser.getAssignedProfiles().isEmpty()
+                ? "Scanning"
+                : currentUser.getAssignedProfiles().get(0);
+
+        accountProfile = new AccountProfile(
+                normalizedValue(currentUser.getName(), DEFAULT_ACCOUNT.fullName()),
+                normalizedValue(currentUser.getEmail(), DEFAULT_ACCOUNT.email()),
+                normalizedValue(department, DEFAULT_ACCOUNT.department())
+        );
+    }
+
+    private List<ScanProfile> safeProfiles() {
+        try {
+            return scanProfileDAO.findAll();
+        } catch (DataAccessException exception) {
+            return List.of();
+        }
+    }
+
+    private List<CaseFile> fetchAllCaseFiles() {
+        try {
+            return new ArrayList<>(caseFileDAO.findAll());
+        } catch (DataAccessException exception) {
+            return List.of();
+        }
+    }
+
+    private List<BoxItem> fetchDistinctBoxes() {
+        Map<String, BoxItem> boxes = new LinkedHashMap<>();
+        for (CaseFile caseFile : fetchAllCaseFiles()) {
+            boxes.putIfAbsent(
+                    caseFile.getBox().getBoxId(),
+                    new BoxItem(caseFile.getBox().getBoxId(), caseFile.getBox().getDescription())
+            );
+        }
+        return new ArrayList<>(boxes.values());
+    }
+
+    private ScanProfile findProfile(ProfileItem profile) {
+        if (profile == null) {
+            return null;
+        }
+        return safeProfiles().stream()
+                .filter(candidate -> candidate.getId() == profile.id() || candidate.getName().equalsIgnoreCase(profile.name()))
+                .findFirst()
+                .orElse(null);
     }
 
     private String normalizedValue(String value, String fallback) {
@@ -189,5 +311,17 @@ public class UserPortalModel {
             return fallback;
         }
         return value.trim();
+    }
+
+    private String emptyAsDash(String value) {
+        return value == null || value.isBlank() ? "-" : value.trim();
+    }
+
+    private String formatHistoryTime(java.time.Instant instant) {
+        return HISTORY_TIME_FORMAT.format(instant.atZone(ZoneId.systemDefault()));
+    }
+
+    private boolean isCompletedStatus(String status) {
+        return "Completed".equalsIgnoreCase(status);
     }
 }

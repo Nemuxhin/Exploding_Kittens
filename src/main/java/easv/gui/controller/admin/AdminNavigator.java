@@ -19,10 +19,6 @@ interface AdminNavigator {
         showPage(AdminPage.ASSIGNMENTS);
     }
 
-    default void showMetadataTemplates() {
-        showPage(AdminPage.METADATA_TEMPLATES);
-    }
-
     default void showReview() {
         showPage(AdminPage.REVIEW);
     }

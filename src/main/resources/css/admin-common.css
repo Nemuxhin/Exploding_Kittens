@@ -1,0 +1,1297 @@
+/* =========================================================
+   WEBLAGER ADMIN COMMON
+   Shared page shell, controls, navigation, cards, chips,
+   pagination, dark-mode guards, and JavaFX skin resets.
+   ========================================================= */
+
+/* =========================================================
+   PAGE SHELL
+   Project note: shared page containers use the same background so
+   individual screens do not create mismatched blocks.
+   ========================================================= */
+
+.content-host,
+.admin-page,
+.dashboard-page,
+.assignments-page,
+.profiles-page-host,
+.profiles-overview-page,
+.profile-editor-page,
+.review-page-host,
+.review-page,
+.review-workspace-page {
+    -fx-background-color: -wl-background;
+}
+
+.admin-page-scroll,
+.admin-page-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.admin-page-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+}
+
+.page-header,
+.profile-editor-header,
+.review-workspace-header {
+    -fx-alignment: center-left;
+    -fx-spacing: 18;
+}
+
+.page-header-actions,
+.profile-editor-header-actions,
+.header-actions {
+    -fx-spacing: 12;
+    -fx-alignment: center-right;
+}
+
+/* =========================================================
+   BUTTONS
+   Project note: primary page actions are 33px high. Small table
+   actions stay compact so rows remain vertically centered.
+   ========================================================= */
+
+.button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button:disabled,
+.text-field:disabled,
+.combo-box-base:disabled {
+    -fx-opacity: 0.6;
+}
+
+.admin-missing-page-placeholder {
+    -fx-padding: 24;
+}
+
+.create-user-button,
+.header-action-button,
+.secondary-outline-button,
+.header-primary-button,
+.header-secondary-button,
+.header-destructive-button,
+.review-workspace-danger-button,
+.admin-save-button,
+.admin-complete-button,
+.admin-send-review-button,
+.admin-approve-button,
+.admin-reject-button,
+.profile-editor-primary-button,
+.profile-editor-secondary-button,
+.profile-editor-danger-button,
+.profile-editor-link-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-alignment: center;
+    -fx-effect: none;
+}
+
+.create-user-button,
+.header-action-button,
+.header-primary-button,
+.admin-send-review-button,
+.admin-approve-button,
+.profile-editor-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.create-user-button:hover,
+.create-user-button:pressed,
+.header-action-button:hover,
+.header-action-button:pressed,
+.header-primary-button:hover,
+.header-primary-button:pressed,
+.admin-send-review-button:hover,
+.admin-send-review-button:pressed,
+.admin-approve-button:hover,
+.admin-approve-button:pressed,
+.profile-editor-primary-button:hover,
+.profile-editor-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-outline-button,
+.header-secondary-button,
+.admin-save-button,
+.admin-complete-button,
+.profile-editor-secondary-button,
+.profile-editor-link-button,
+.profile-secondary-button,
+.profile-icon-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.secondary-outline-button:hover,
+.secondary-outline-button:pressed,
+.header-secondary-button:hover,
+.header-secondary-button:pressed,
+.admin-save-button:hover,
+.admin-save-button:pressed,
+.admin-complete-button:hover,
+.admin-complete-button:pressed,
+.profile-editor-secondary-button:hover,
+.profile-editor-secondary-button:pressed,
+.profile-editor-link-button:hover,
+.profile-editor-link-button:pressed,
+.profile-secondary-button:hover,
+.profile-secondary-button:pressed,
+.profile-icon-button:hover,
+.profile-icon-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.header-destructive-button,
+.review-workspace-danger-button,
+.admin-reject-button,
+.profile-editor-danger-button {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.header-destructive-button:hover,
+.header-destructive-button:pressed,
+.review-workspace-danger-button:hover,
+.review-workspace-danger-button:pressed,
+.admin-reject-button:hover,
+.admin-reject-button:pressed,
+.profile-editor-danger-button:hover,
+.profile-editor-danger-button:pressed {
+    -fx-background-color: -wl-destructive-hover;
+    -fx-border-color: -wl-destructive-hover;
+}
+
+.profile-open-button,
+.profile-secondary-button,
+.profile-danger-button,
+.profile-icon-button,
+.secondary-action-button,
+.review-workspace-tool-button,
+.review-workspace-tab-button,
+.review-workspace-tab-active,
+.assignment-mode-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+}
+
+.profile-open-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.profile-open-button:hover,
+.profile-open-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-action-button {
+    -fx-background-color: -wl-secondary;
+    -fx-border-color: -wl-secondary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.profile-danger-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+}
+
+.profile-danger-button:hover,
+.profile-danger-button:pressed {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-destructive-hover;
+    -fx-text-fill: -wl-destructive-hover;
+}
+
+.secondary-action-button:hover,
+.secondary-action-button:pressed {
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
+}
+
+.edit-link-button,
+.delete-link-button,
+.deactivate-link-button,
+.inline-action-button,
+.inline-action-button-muted,
+.review-action-button,
+.inline-icon-action-button,
+.inline-icon-action-button-destructive {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.edit-link-button,
+.inline-action-button,
+.inline-action-button-muted,
+.review-action-button,
+.inline-icon-action-button {
+    -fx-text-fill: -wl-text;
+}
+
+.delete-link-button,
+.inline-icon-action-button-destructive {
+    -fx-text-fill: -wl-destructive;
+}
+
+.deactivate-link-button {
+    -fx-text-fill: -wl-destructive;
+}
+
+.edit-link-button:hover,
+.inline-action-button:hover,
+.inline-action-button-muted:hover,
+.review-action-button:hover,
+.inline-icon-action-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+.delete-link-button:hover,
+.inline-icon-action-button-destructive:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-destructive-hover;
+    -fx-underline: true;
+}
+
+.deactivate-link-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-destructive-hover;
+    -fx-underline: true;
+}
+
+/* =========================================================
+   INPUTS AND SEARCH
+   Project note: normal inputs own their border. Search fields are
+   nested inside an HBox shell, so the shell owns the visible border.
+   ========================================================= */
+
+.text-input,
+.text-field,
+.text-area,
+.combo-box-base {
+    -fx-highlight-fill: -wl-primary-selected;
+    -fx-highlight-text-fill: -wl-on-primary;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.role-filter,
+.rows-per-page-filter,
+.review-filter,
+.form-editor-input,
+.form-editor-textarea,
+.review-workspace-input,
+.review-workspace-textarea,
+.profile-editor-input,
+.profile-editor-textarea {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.role-filter,
+.rows-per-page-filter,
+.review-filter {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.role-filter {
+    -fx-pref-width: 192;
+}
+
+.rows-per-page-filter {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+}
+
+.form-editor-input,
+.review-workspace-input,
+.review-workspace-input-error,
+.profile-editor-input {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+}
+
+.form-editor-textarea,
+.review-workspace-textarea,
+.profile-editor-textarea {
+    -fx-padding: 9;
+}
+
+.form-editor-textarea .content,
+.review-workspace-textarea .content,
+.profile-editor-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+}
+
+.role-filter:hover,
+.rows-per-page-filter:hover,
+.review-filter:hover,
+.form-editor-input:hover,
+.form-editor-textarea:hover,
+.review-workspace-input:hover,
+.review-workspace-textarea:hover,
+.profile-editor-input:hover,
+.profile-editor-textarea:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.role-filter:focused,
+.rows-per-page-filter:focused,
+.review-filter:focused,
+.form-editor-input:focused,
+.form-editor-textarea:focused,
+.review-workspace-input:focused,
+.review-workspace-textarea:focused,
+.profile-editor-input:focused,
+.profile-editor-textarea:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.search-field-shell,
+.review-search-shell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.review-search-shell {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+}
+
+.search-field-shell:hover,
+.review-search-shell:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-secondary;
+}
+
+.search-field-shell-focused,
+.review-search-shell-focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-primary;
+}
+
+.search-field-input,
+.search-field-input:hover,
+.search-field-input:focused,
+.search-field-input:pressed,
+.search-field-input:armed,
+.search-field-input:focused:hover {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.field-icon-shell,
+.action-icon-shell {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.field-icon-path {
+    -fx-fill: -wl-secondary;
+    -fx-text-fill: -wl-secondary;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.combo-box-base > .arrow-button,
+.role-filter > .arrow-button,
+.rows-per-page-filter > .arrow-button,
+.review-filter > .arrow-button,
+.review-workspace-input > .arrow-button,
+.profile-editor-input > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;
+}
+
+.combo-box-base > .arrow-button > .arrow,
+.role-filter > .arrow-button > .arrow,
+.rows-per-page-filter > .arrow-button > .arrow,
+.review-filter > .arrow-button > .arrow,
+.review-workspace-input > .arrow-button > .arrow,
+.profile-editor-input > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.combo-box-base .list-cell,
+.role-filter .list-cell,
+.rows-per-page-filter .list-cell,
+.review-filter .list-cell,
+.review-workspace-input .list-cell,
+.profile-editor-input .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-cell-size: 39;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: -wl-surface;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   SIDEBAR
+   Project note: sidebar navigation has its own palette. Green is only
+   used as the light-mode sidebar background, not for toggles or inputs.
+   ========================================================= */
+
+.primary-sidebar {
+    -fx-pref-width: 252;
+    -fx-min-width: 252;
+    -fx-max-width: 252;
+    -fx-background-color: -wl-sidebar-bg;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.sidebar-brand-row {
+    -fx-padding: 0 0 9 0;
+    -fx-alignment: center-left;
+}
+
+.brand-title {
+    -fx-text-fill: -wl-sidebar-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.sidebar-nav {
+    -fx-spacing: 6;
+}
+
+.sidebar-footer {
+    -fx-spacing: 12;
+    -fx-padding: 0;
+}
+
+.sidebar-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-sidebar-divider;
+}
+
+.sidebar-nav-item,
+.sidebar-nav-item-active,
+.sidebar-utility-row,
+.sidebar-theme-row,
+.sidebar-logout-row {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-width: 9999;
+    -fx-padding: 0 9 0 9;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+}
+
+.sidebar-nav-item > .graphic-container,
+.sidebar-nav-item-active > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.sidebar-nav-item,
+.sidebar-utility-row,
+.sidebar-theme-row {
+    -fx-background-color: transparent;
+}
+
+.sidebar-nav-item:hover,
+.sidebar-utility-row:hover,
+.sidebar-theme-row:hover {
+    -fx-background-color: -wl-sidebar-hover-bg;
+}
+
+.sidebar-nav-item-active,
+.sidebar-nav-item-active:hover {
+    -fx-background-color: -wl-sidebar-active-bg;
+}
+
+.sidebar-logout-row {
+    -fx-background-color: -wl-logout-bg;
+}
+
+.sidebar-logout-row:hover {
+    -fx-background-color: -wl-logout-hover-bg;
+}
+
+.sidebar-row-icon-shell {
+    -fx-min-width: 27;
+    -fx-pref-width: 27;
+    -fx-max-width: 27;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.sidebar-nav-icon-home,
+.sidebar-nav-icon-users,
+.sidebar-nav-icon-profiles,
+.sidebar-nav-icon-assignments,
+.sidebar-nav-icon-documents,
+.sidebar-nav-icon-review,
+.sidebar-nav-icon-activity,
+.sidebar-theme-icon {
+    -fx-fill: -wl-sidebar-icon;
+    -fx-text-fill: -wl-sidebar-icon;
+}
+
+.sidebar-logout-icon {
+    -fx-fill: -wl-logout-icon;
+    -fx-text-fill: -wl-logout-icon;
+}
+
+.sidebar-nav-item-active .sidebar-nav-icon-home,
+.sidebar-nav-item-active .sidebar-nav-icon-users,
+.sidebar-nav-item-active .sidebar-nav-icon-profiles,
+.sidebar-nav-item-active .sidebar-nav-icon-assignments,
+.sidebar-nav-item-active .sidebar-nav-icon-documents,
+.sidebar-nav-item-active .sidebar-nav-icon-review,
+.sidebar-nav-item-active .sidebar-nav-icon-activity {
+    -fx-fill: -wl-sidebar-active-text;
+    -fx-text-fill: -wl-sidebar-active-text;
+}
+
+.sidebar-nav-item:hover .sidebar-nav-icon-home,
+.sidebar-nav-item:hover .sidebar-nav-icon-users,
+.sidebar-nav-item:hover .sidebar-nav-icon-profiles,
+.sidebar-nav-item:hover .sidebar-nav-icon-assignments,
+.sidebar-nav-item:hover .sidebar-nav-icon-documents,
+.sidebar-nav-item:hover .sidebar-nav-icon-review,
+.sidebar-nav-item:hover .sidebar-nav-icon-activity,
+.sidebar-theme-row:hover .sidebar-theme-icon {
+    -fx-fill: -wl-sidebar-hover-text;
+    -fx-text-fill: -wl-sidebar-hover-text;
+}
+
+.sidebar-nav-icon-home,
+.sidebar-nav-icon-profiles,
+.sidebar-nav-icon-documents,
+.sidebar-nav-icon-review,
+.sidebar-nav-icon-activity,
+.sidebar-logout-icon {
+    -fx-translate-x: 2;
+}
+
+.sidebar-nav-icon-users,
+.sidebar-nav-icon-assignments {
+    -fx-translate-x: 4;
+}
+
+.sidebar-nav-label,
+.sidebar-utility-label,
+.sidebar-theme-label {
+    -fx-text-fill: -wl-sidebar-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.sidebar-logout-label {
+    -fx-text-fill: -wl-logout-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.sidebar-nav-item-active .sidebar-nav-label {
+    -fx-text-fill: -wl-sidebar-active-text;
+}
+
+.sidebar-nav-item:hover .sidebar-nav-label,
+.sidebar-utility-row:hover .sidebar-utility-label,
+.sidebar-theme-row:hover .sidebar-theme-label {
+    -fx-text-fill: -wl-sidebar-hover-text;
+}
+
+.sidebar-language-chip {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-sidebar-language-bg;
+    -fx-background-radius: 3;
+    -fx-alignment: center;
+}
+
+.sidebar-language-text {
+    -fx-text-fill: -wl-sidebar-language-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.dark-mode-toggle {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.dark-mode-toggle:hover,
+.dark-mode-toggle:armed,
+.dark-mode-toggle:focused,
+.dark-mode-toggle:selected,
+.dark-mode-toggle:selected:hover,
+.dark-mode-toggle:selected:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+}
+
+.dark-mode-toggle > .graphic-container {
+    -fx-padding: 0;
+}
+
+.inline-actions {
+    -fx-alignment: center;
+    -fx-spacing: 12;
+}
+
+.sidebar-theme-toggle > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.dark-mode-switch-track {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 3;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-switch-track;
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.dark-mode-toggle:selected .dark-mode-switch-track,
+.sidebar-theme-toggle:selected .dark-mode-switch-track {
+    -fx-alignment: center-right;
+    -fx-background-color: -wl-switch-track;
+}
+
+.dark-mode-toggle:hover .dark-mode-switch-track,
+.dark-mode-toggle:selected:hover .dark-mode-switch-track,
+.sidebar-theme-toggle:hover .dark-mode-switch-track,
+.sidebar-theme-toggle:selected:hover .dark-mode-switch-track {
+    -fx-background-color: -wl-switch-track-hover;
+}
+
+.dark-mode-switch-thumb {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-switch-thumb;
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+    -fx-effect: none;
+}
+
+.dark-mode-switch-thumb-icon {
+    -fx-fill: -wl-switch-icon;
+    -fx-text-fill: -wl-switch-icon;
+    -fx-scale-x: 0.5;
+    -fx-scale-y: 0.5;
+}
+
+/* =========================================================
+   PANELS, TABLES, LISTS
+   Project note: cards share one surface style, and rows stay
+   vertically centered for readable admin tables.
+   ========================================================= */
+
+.users-panel,
+.review-panel,
+.dashboard-summary-card,
+.dashboard-section-card,
+.profile-card,
+.profile-editor-card,
+.assignment-panel,
+.assignment-list-panel,
+.assignment-editor-panel,
+.form-editor-card,
+.review-results-card,
+.review-filter-card,
+.review-workspace-shell {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.app-shell.dark .users-panel,
+.app-shell.dark .review-panel,
+.app-shell.dark .dashboard-summary-card,
+.app-shell.dark .dashboard-section-card,
+.app-shell.dark .profile-card,
+.app-shell.dark .profile-editor-card,
+.app-shell.dark .assignment-panel,
+.app-shell.dark .assignment-list-panel,
+.app-shell.dark .assignment-editor-panel,
+.app-shell.dark .form-editor-card,
+.app-shell.dark .review-results-card,
+.app-shell.dark .review-filter-card,
+.app-shell.dark .review-workspace-shell {
+    -fx-effect: none;
+}
+
+.users-panel-body,
+.users-body-scroll-pane,
+.users-body-scroll-pane > .viewport,
+.assignment-list-scroll,
+.assignment-list-scroll > .viewport,
+.review-workspace-thumbnail-scroll,
+.review-workspace-thumbnail-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.users-body-scroll-pane,
+.assignment-list-scroll,
+.review-workspace-thumbnail-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+}
+
+.users-toolbar,
+.profiles-toolbar,
+.admin-list-toolbar {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.users-toolbar,
+.admin-list-toolbar {
+    -fx-padding: 18;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.users-list-header,
+.admin-list-header,
+.review-table-header {
+    -fx-hgap: 18;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.users-list-header {
+    -fx-padding: 12 24 12 24;
+    -fx-background-color: -wl-surface;
+}
+
+.admin-list-header,
+.review-table-header {
+    -fx-padding: 15 24 15 24;
+    -fx-background-color: -wl-card-content;
+}
+
+.review-table-header {
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-padding: 0 12 0 12;
+    -fx-hgap: 10;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.list-header-label,
+.list-header-label-right,
+.review-header-label {
+    -fx-text-fill: -wl-table-header-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.review-header-label {
+    -fx-wrap-text: true;
+}
+
+.users-list,
+.admin-list,
+.review-table-body,
+.assignment-list,
+.assignment-checkbox-list {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.user-record,
+.admin-list-row,
+.review-table-row {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.user-record {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-padding: 0 24 0 24;
+    -fx-hgap: 18;
+    -fx-vgap: 0;
+    -fx-alignment: center-left;
+}
+
+.admin-list-row {
+    -fx-min-height: 105;
+    -fx-padding: 18 24 18 24;
+    -fx-hgap: 18;
+    -fx-cursor: hand;
+}
+
+.review-table-row {
+    -fx-min-height: 72;
+    -fx-padding: 9 12 9 12;
+    -fx-hgap: 9;
+}
+
+.user-record:hover,
+.admin-list-row:hover,
+.review-table-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-table-row-warning {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.review-table-row-warning:hover {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.table-cell-text,
+.table-cell-text-muted,
+.admin-table-text,
+.review-main-cell,
+.review-cell-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.admin-table-text,
+.review-main-cell {
+    -fx-font-weight: 600;
+}
+
+.review-main-cell,
+.review-cell-text {
+    -fx-font-size: 12px;
+    -fx-wrap-text: true;
+}
+
+.name-cell {
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.user-avatar-initials,
+.assignment-avatar {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-avatar-bg;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.assignment-avatar {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.empty-state-box,
+.review-empty-state {
+    -fx-padding: 48 24 57 24;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.empty-state-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.empty-state-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* =========================================================
+   BADGES AND CHIPS
+   Project note: chips communicate status or category. Decorative
+   icons use separate borderless containers.
+   ========================================================= */
+
+.role-cell {
+    -fx-alignment: center;
+}
+
+.role-badge,
+.user-status-badge,
+.assignment-status-badge,
+.profile-status-badge,
+.required-pill,
+.profile-config-chip,
+.review-status-badge,
+.profile-editor-small-badge,
+.profile-assignment-status,
+.review-workspace-tag,
+.review-workspace-tag-warning,
+.user-profiles-badge {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-alignment: center;
+}
+
+.role-badge {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-min-width: 78;
+    -fx-pref-width: 78;
+    -fx-padding: 0 15 0 15;
+}
+
+.user-status-badge {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-min-width: 90;
+    -fx-pref-width: 90;
+    -fx-padding: 0 15 0 15;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.assignment-status-badge,
+.profile-status-badge,
+.required-pill,
+.review-status-badge,
+.profile-editor-small-badge,
+.profile-assignment-status,
+.review-workspace-tag,
+.review-workspace-tag-warning,
+.user-profiles-badge {
+    -fx-min-height: 24;
+    -fx-padding: 3 9 3 9;
+}
+
+.profile-status-badge {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-min-width: 90;
+    -fx-pref-width: 90;
+    -fx-max-width: 9999;
+    -fx-padding: 0 12 0 12;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.profile-config-chip {
+    -fx-padding: 3 9 3 9;
+    -fx-font-weight: 500;
+}
+
+.role-badge-admin,
+.profile-editor-admin-badge,
+.profile-status-draft,
+.assignment-status-draft,
+.profile-assignment-status-draft,
+.profile-editor-user-badge,
+.chip-blue,
+.chip-indigo,
+.chip-purple,
+.review-status-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.role-badge-user,
+.user-status-active,
+.profile-status-active,
+.assignment-status-active,
+.required-yes,
+.profile-assignment-status-active,
+.profile-editor-active-badge,
+.chip-teal,
+.review-status-success,
+.user-profiles-badge-all {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.profile-status-archived,
+.profile-status-default,
+.user-status-inactive,
+.assignment-status-archived,
+.required-no,
+.profile-assignment-status-archived,
+.chip-neutral,
+.review-status-neutral,
+.review-workspace-tag,
+.user-profiles-badge {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.chip-amber,
+.review-status-warning,
+.review-workspace-tag-warning,
+.user-profiles-badge-none {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.chip-orange,
+.review-status-danger {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.user-profiles-cell {
+    -fx-alignment: center;
+}
+
+/* =========================================================
+   SCREEN-SPECIFIC CSS MOVED OUT
+   Dashboard, profiles/access, review, dialogs, activity, and
+   user portal screens now live in dedicated CSS files loaded
+   from MainApp. Keep app.css for tokens and shared controls.
+   ========================================================= */
+
+/* =========================================================
+   DARK MODE SEMANTICS
+   Project note: dark mode keeps the same meaning for colors while
+   using darker surfaces and softer status backgrounds.
+   ========================================================= */
+
+.app-shell.dark .form-editor-textarea .content,
+.app-shell.dark .review-workspace-textarea .content,
+.app-shell.dark .profile-editor-textarea .content {
+    -fx-background-color: -wl-input-bg;
+}
+
+/* =========================================================
+   CONTROL AND ICON GUARDS
+   Project note: these rules keep JavaFX skin defaults from adding
+   blue inner focus boxes or accidental borders around decorative icons.
+   ========================================================= */
+
+.dashboard-summary-icon-teal,
+.dashboard-summary-icon-blue,
+.dashboard-summary-icon-green,
+.dashboard-summary-icon-amber,
+.dashboard-summary-icon-red,
+.dashboard-activity-icon-scan-box,
+.dashboard-activity-icon-profile-box,
+.dashboard-activity-icon-qa-box,
+.dashboard-activity-icon-warning-box,
+.dashboard-activity-icon-access-box,
+.review-card-icon-warning-box,
+.review-card-icon-danger-box,
+.review-card-icon-success-box,
+.review-card-icon-neutral-box,
+.sidebar-row-icon-shell,
+.field-icon-shell,
+.action-icon-shell {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.dark-mode-toggle,
+.dark-mode-toggle:hover,
+.dark-mode-toggle:armed,
+.dark-mode-toggle:focused,
+.dark-mode-toggle:selected,
+.dark-mode-toggle:selected:hover,
+.dark-mode-toggle:selected:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}

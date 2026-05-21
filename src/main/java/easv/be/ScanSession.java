@@ -10,17 +10,23 @@ public class ScanSession {
     private final UUID id;
     private final Instant startedAt;
     private final Box box;
+    private final String profileName;
     private final List<Document> importedDocuments = new ArrayList<>();
     private final List<String> failures = new ArrayList<>();
+    private String selectedBarcodeBehavior = "";
+    private String lastStatus = "READY";
+    private int nextReferenceId = 1;
+    private int nextImportedItemNumber = 1;
 
-    public ScanSession(Box box) {
-        this(UUID.randomUUID(), Instant.now(), box);
+    public ScanSession(Box box, String profileName) {
+        this(UUID.randomUUID(), Instant.now(), box, profileName);
     }
 
-    public ScanSession(UUID id, Instant startedAt, Box box) {
+    public ScanSession(UUID id, Instant startedAt, Box box, String profileName) {
         this.id = Objects.requireNonNull(id, "id");
         this.startedAt = Objects.requireNonNull(startedAt, "startedAt");
         this.box = Objects.requireNonNull(box, "box");
+        this.profileName = profileName == null ? "" : profileName.trim();
     }
 
     public UUID getId() {
@@ -35,12 +41,40 @@ public class ScanSession {
         return box;
     }
 
+    public String getProfileName() {
+        return profileName;
+    }
+
     public List<Document> getImportedDocuments() {
         return List.copyOf(importedDocuments);
     }
 
     public List<String> getFailures() {
         return List.copyOf(failures);
+    }
+
+    public String getSelectedBarcodeBehavior() {
+        return selectedBarcodeBehavior;
+    }
+
+    public String getLastStatus() {
+        return lastStatus;
+    }
+
+    public void setSelectedBarcodeBehavior(String selectedBarcodeBehavior) {
+        this.selectedBarcodeBehavior = selectedBarcodeBehavior == null ? "" : selectedBarcodeBehavior.trim();
+    }
+
+    public void setLastStatus(String lastStatus) {
+        this.lastStatus = lastStatus == null || lastStatus.isBlank() ? "READY" : lastStatus.trim();
+    }
+
+    public int allocateReferenceId() {
+        return nextReferenceId++;
+    }
+
+    public int allocateImportedItemNumber() {
+        return nextImportedItemNumber++;
     }
 
     public void addImportedDocument(Document document) {
@@ -57,5 +91,6 @@ public class ScanSession {
             throw new IllegalArgumentException("message must not be blank");
         }
         failures.add(message);
+        lastStatus = "FAILED";
     }
 }

@@ -4,6 +4,7 @@ import easv.be.MetadataField;
 import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
+import easv.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -130,6 +131,29 @@ public class MetadataDAO {
             statement.executeUpdate();
         } catch (SQLException exception) {
             throw new DataAccessException("Failed to update scan profile " + profile.getName(), exception);
+        }
+    }
+
+    public void deleteProfile(int profileId) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try {
+                deleteProfileReferences(connection, profileId);
+                deleteProfileRow(connection, profileId);
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException(
+                    "Failed to delete scan profile. Archive it if scanned data still uses it.",
+                    exception
+            );
         }
     }
 
@@ -482,7 +506,7 @@ public class MetadataDAO {
                 FROM scan_profiles
                 WHERE LOWER(name) = LOWER(?)
                 """)) {
-            statement.setString(1, clean(profileName));
+            statement.setString(1, Strings.clean(profileName));
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -491,7 +515,38 @@ public class MetadataDAO {
             }
         }
 
-        throw new DataAccessException("Scan profile does not exist in the database: " + clean(profileName), null);
+        throw new DataAccessException("Scan profile does not exist in the database: " + Strings.clean(profileName), null);
+    }
+
+    private void deleteProfileReferences(Connection connection, int profileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM metadata_template_profile_assignments
+                WHERE scan_profile_id = ?
+                """)) {
+            statement.setInt(1, profileId);
+            statement.executeUpdate();
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM user_profile_assignments
+                WHERE scan_profile_id = ?
+                """)) {
+            statement.setInt(1, profileId);
+            statement.executeUpdate();
+        }
+    }
+
+    private void deleteProfileRow(Connection connection, int profileId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                DELETE FROM scan_profiles
+                WHERE id = ?
+                """)) {
+            statement.setInt(1, profileId);
+
+            if (statement.executeUpdate() == 0) {
+                throw new SQLException("Scan profile was not found: " + profileId);
+            }
+        }
     }
 
     private boolean reviewRecordExists(Connection connection, String recordId) throws SQLException {
@@ -632,12 +687,8 @@ public class MetadataDAO {
         );
     }
 
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
     private String displayStatus(String status) {
-        String cleanedStatus = clean(status);
+        String cleanedStatus = Strings.clean(status);
 
         if (cleanedStatus.isBlank()) {
             return "";

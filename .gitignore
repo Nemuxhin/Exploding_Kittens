@@ -9,3 +9,5 @@ database.properties
 tmp_inspect/
 screenshots/
 *.log
+
+.claude/settings.local.json

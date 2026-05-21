@@ -1,0 +1,1152 @@
+/* =========================================================
+   WEBLAGER ACTIVITY LOG
+   Clean stylesheet for the current row-based expandable log UI.
+   No legacy payload panels, no card/table expansion leftovers.
+   ========================================================= */
+
+.activity-log-page.logs-page {
+    -fx-background-color: -wl-background;
+    -fx-spacing: 18;
+}
+
+.logs-page {
+    -fx-background-color: -wl-background;
+}
+
+.activity-log-page.logs-page .logs-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* Toolbar */
+.activity-log-page.logs-page .logs-toolbar {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-search,
+.activity-log-page.logs-page .logs-filter,
+.activity-log-page.logs-page .logs-date-filter,
+.activity-log-page.logs-page .logs-reset-button {
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-search {
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-search:hover,
+.activity-log-page.logs-page .logs-filter:hover,
+.activity-log-page.logs-page .logs-date-filter:hover,
+.activity-log-page.logs-page .logs-reset-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-border;
+}
+
+.activity-log-page.logs-page .logs-filter:focused,
+.activity-log-page.logs-page .logs-filter:showing,
+.activity-log-page.logs-page .logs-date-filter:focused,
+.activity-log-page.logs-page .logs-date-filter:showing {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-primary;
+}
+
+.activity-log-page.logs-page .field-icon-shell,
+.activity-log-page.logs-page .logs-filter-icon-shell {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .field-icon-path,
+.activity-log-page.logs-page .logs-filter-icon-path {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .field-icon-path .text,
+.activity-log-page.logs-page .logs-filter-icon-path .text {
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .search-field-input,
+.activity-log-page.logs-page .search-field-input:hover,
+.activity-log-page.logs-page .search-field-input:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-filter,
+.activity-log-page.logs-page .logs-date-filter {
+    -fx-padding: 0 12 0 12;
+}
+
+.activity-log-page.logs-page .logs-filter > .list-cell,
+.activity-log-page.logs-page .logs-date-filter > .label {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-filter-graphic {
+    -fx-alignment: center-left;
+    -fx-spacing: 9;
+}
+
+.activity-log-page.logs-page .logs-filter-copy {
+    -fx-spacing: 0;
+}
+
+.activity-log-page.logs-page .logs-filter-heading {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-filter-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.activity-log-page.logs-page .logs-filter > .arrow-button,
+.activity-log-page.logs-page .logs-date-filter > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-filter > .arrow-button > .arrow,
+.activity-log-page.logs-page .logs-date-filter > .arrow-button > .arrow {
+    -fx-background-color: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-reset-button {
+    -fx-padding: 0 18 0 18;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-reset-button .text {
+    -fx-fill: -wl-text;
+}
+
+/* Date menu */
+.activity-log-page.logs-page .logs-date-popover {
+    -fx-padding: 15;
+    -fx-spacing: 12;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-pref-width: 408;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.activity-log-page.logs-page .logs-date-mode-switch {
+    -fx-padding: 3;
+    -fx-spacing: 6;
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-date-mode-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-date-mode-button-active,
+.activity-log-page.logs-page .logs-date-mode-button-active:hover,
+.activity-log-page.logs-page .logs-date-mode-button-active:focused,
+.activity-log-page.logs-page .logs-date-mode-button-active:pressed {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-date-mode-button-active .text {
+    -fx-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-date-section {
+    -fx-spacing: 6;
+}
+
+.activity-log-page.logs-page .logs-date-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-popover-date-picker {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-popover-date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 9 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+}
+
+.activity-log-page.logs-page .logs-popover-date-picker > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 9 0 6;
+}
+
+.activity-log-page.logs-page .logs-popover-date-picker > .arrow-button > .arrow {
+    -fx-background-color: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button,
+.activity-log-page.logs-page .logs-date-apply-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 0 15 0 15;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button .text {
+    -fx-fill: -wl-on-primary;
+}
+
+/* Event stream */
+.activity-log-page.logs-page .logs-content {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-event-stream,
+.activity-log-page.logs-page .logs-event-stream-shell {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.activity-log-page.logs-page .logs-event-group-header {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-padding: 0 24 0 24;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.activity-log-page.logs-page .logs-event-group-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-event-count-badge {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-min-width: 24;
+    -fx-padding: 0 8 0 8;
+    -fx-alignment: center;
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 999;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-expandable-row {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.activity-log-page.logs-page .logs-expandable-row-selected {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.activity-log-page.logs-page .logs-expandable-row-selected-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.activity-log-page.logs-page .logs-event-row,
+.activity-log-page.logs-page .logs-event-row:hover,
+.activity-log-page.logs-page .logs-event-row:focused,
+.activity-log-page.logs-page .logs-event-row:pressed,
+.activity-log-page.logs-page .logs-event-row:armed {
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-background-color: transparent;
+    -fx-background-radius: 8 8 0 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-event-row-selected,
+.activity-log-page.logs-page .logs-event-row-selected-failed {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-event-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.activity-log-page.logs-page .logs-expandable-row-selected .logs-event-row:hover,
+.activity-log-page.logs-page .logs-expandable-row-selected-failed .logs-event-row:hover {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-event-row-content {
+    -fx-padding: 0 24 0 24;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-event-icon {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-event-icon-path {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-event-icon-path .text {
+    -fx-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-event-icon-users,
+.activity-log-page.logs-page .logs-event-icon-profiles {
+    -fx-background-color: -wl-tag-purple-bg;
+    -fx-border-color: -wl-tag-purple-border;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-event-icon-users .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-profiles .logs-event-icon-path {
+    -fx-text-fill: -wl-tag-purple-text;
+}
+
+.activity-log-page.logs-page .logs-event-icon-files,
+.activity-log-page.logs-page .logs-event-icon-documents {
+    -fx-background-color: -wl-tag-blue-bg;
+    -fx-border-color: -wl-tag-blue-border;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-event-icon-files .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-documents .logs-event-icon-path {
+    -fx-text-fill: -wl-tag-blue-text;
+}
+
+.activity-log-page.logs-page .logs-event-icon-qa,
+.activity-log-page.logs-page .logs-event-icon-access {
+    -fx-background-color: -wl-tag-teal-bg;
+    -fx-border-color: -wl-tag-teal-border;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-event-icon-qa .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-access .logs-event-icon-path {
+    -fx-text-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-event-icon-system {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-event-icon-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-event-icon-failed .logs-event-icon-path {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-event-time {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-event-row-content > .vbox {
+    -fx-min-width: 0;
+}
+
+.activity-log-page.logs-page .logs-event-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-event-meta {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.activity-log-page.logs-page .logs-area-chip,
+.activity-log-page.logs-page .logs-result-pill {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-area-users,
+.activity-log-page.logs-page .logs-area-profiles,
+.activity-log-page.logs-page .logs-area-access {
+    -fx-background-color: -wl-tag-purple-bg;
+    -fx-border-color: -wl-tag-purple-border;
+    -fx-text-fill: -wl-tag-purple-text;
+}
+
+.activity-log-page.logs-page .logs-area-files,
+.activity-log-page.logs-page .logs-area-import,
+.activity-log-page.logs-page .logs-area-documents {
+    -fx-background-color: -wl-tag-blue-bg;
+    -fx-border-color: -wl-tag-blue-border;
+    -fx-text-fill: -wl-tag-blue-text;
+}
+
+.activity-log-page.logs-page .logs-area-qa {
+    -fx-background-color: -wl-tag-teal-bg;
+    -fx-border-color: -wl-tag-teal-border;
+    -fx-text-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-area-import-failed {
+    -fx-background-color: -wl-tag-red-bg;
+    -fx-border-color: -wl-tag-red-border;
+    -fx-text-fill: -wl-tag-red-text;
+}
+
+.activity-log-page.logs-page .logs-area-system {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.activity-log-page.logs-page .logs-result-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-result-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-result-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+/* Expanded rail */
+.activity-log-page.logs-page .logs-inline-payload {
+    -fx-padding: 0 24 15 24;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-inline-payload-failed {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-inline-payload-content,
+.activity-log-page.logs-page .logs-inline-rail-holder {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-inline-rail {
+    -fx-min-height: 84;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.activity-log-page.logs-page .logs-inline-rail-failed {
+    -fx-border-color: -wl-status-error-border;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-cell {
+    -fx-min-height: 72;
+    -fx-padding: 12 15 12 15;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-cell-first {
+    -fx-padding: 12 15 12 15;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-wide-cell,
+.activity-log-page.logs-page .logs-inline-rail-note-cell,
+.activity-log-page.logs-page .logs-inline-rail-change-stack-cell,
+.activity-log-page.logs-page .logs-inline-rail-sensitive-cell,
+.activity-log-page.logs-page .logs-inline-rail-change-cell {
+    -fx-pref-width: 540;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-log-cell {
+    -fx-pref-width: 150;
+    -fx-max-width: 180;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-divider {
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 48;
+    -fx-background-color: -wl-border;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-icon-shell {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-icon {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-icon .text {
+    -fx-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-label,
+.activity-log-page.logs-page .logs-inline-rail-change-field {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-primary-cell .logs-inline-rail-value,
+.activity-log-page.logs-page .logs-inline-rail-note-cell .logs-inline-rail-value {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-danger-cell .logs-inline-rail-value {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-success-cell .logs-inline-rail-value {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-change-stack {
+    -fx-spacing: 6;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-change-row {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-before-pill,
+.activity-log-page.logs-page .logs-inline-rail-after-pill {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-alignment: center;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-before-pill {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-after-pill {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-inline-rail-arrow {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-load-more-button {
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+/* Empty state */
+.activity-log-page.logs-page .activity-log-empty-state {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+}
+
+/* =========================================================
+   EXPANDED LOG PAYLOAD CARD
+   ========================================================= */
+
+.activity-log-page.logs-page .logs-payload-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.activity-log-page.logs-page .logs-payload-card-failed {
+    -fx-border-color: -wl-status-error-border;
+}
+
+.activity-log-page.logs-page .logs-payload-error-banner {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-background-radius: 10 10 0 0;
+    -fx-padding: 12 18 12 18;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-error-icon {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-error-icon .text {
+    -fx-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-error-title {
+    -fx-text-fill: -wl-status-error-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-payload-error-copy {
+    -fx-text-fill: -wl-status-error-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* Hero section — subject + actor + status line at top of every expanded card */
+.activity-log-page.logs-page .logs-payload-hero {
+    -fx-padding: 15 18 15 18;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-shell {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-max-height: 48;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-purple {
+    -fx-background-color: -wl-tag-purple-bg;
+    -fx-border-color: -wl-tag-purple-border;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-blue {
+    -fx-background-color: -wl-tag-blue-bg;
+    -fx-border-color: -wl-tag-blue-border;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-teal {
+    -fx-background-color: -wl-tag-teal-bg;
+    -fx-border-color: -wl-tag-teal-border;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-neutral {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-border;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon {
+    -fx-font-size: 21px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-purple .logs-payload-hero-icon,
+.activity-log-page.logs-page .logs-payload-hero-icon-purple .logs-payload-hero-icon .text {
+    -fx-text-fill: -wl-tag-purple-text;
+    -fx-fill: -wl-tag-purple-text;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-blue .logs-payload-hero-icon,
+.activity-log-page.logs-page .logs-payload-hero-icon-blue .logs-payload-hero-icon .text {
+    -fx-text-fill: -wl-tag-blue-text;
+    -fx-fill: -wl-tag-blue-text;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-teal .logs-payload-hero-icon,
+.activity-log-page.logs-page .logs-payload-hero-icon-teal .logs-payload-hero-icon .text {
+    -fx-text-fill: -wl-tag-teal-text;
+    -fx-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-neutral .logs-payload-hero-icon,
+.activity-log-page.logs-page .logs-payload-hero-icon-neutral .logs-payload-hero-icon .text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-subject {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-meta {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-meta-icon {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-meta-icon .text {
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-actor {
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-status-icon {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-status-icon .text {
+    -fx-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-status-text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+/* Right sidebar — Storage & trace panel */
+.activity-log-page.logs-page .logs-payload-sidebar {
+    -fx-min-width: 220;
+    -fx-pref-width: 240;
+    -fx-max-width: 260;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+/* Sidebar stacked rows */
+.activity-log-page.logs-page .logs-payload-sidebar-row {
+    -fx-min-height: 36;
+    -fx-padding: 6 0 6 0;
+    -fx-spacing: 10;
+    -fx-alignment: top-left;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-shell {
+    -fx-min-width: 20;
+    -fx-pref-width: 20;
+    -fx-max-width: 20;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-alignment: center;
+    -fx-padding: 1 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-purple,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-purple .text {
+    -fx-text-fill: -wl-tag-purple-text;
+    -fx-fill: -wl-tag-purple-text;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-blue,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-blue .text {
+    -fx-text-fill: -wl-tag-blue-text;
+    -fx-fill: -wl-tag-blue-text;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-teal,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-teal .text {
+    -fx-text-fill: -wl-tag-teal-text;
+    -fx-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-neutral,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-neutral .text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-wrap-text: true;
+}
+
+.activity-log-page.logs-page .logs-payload-section-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.activity-log-page.logs-page .logs-payload-row-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+    -fx-opacity: 0.5;
+}
+
+.activity-log-page.logs-page .logs-payload-section {
+    -fx-padding: 12 18 10 18;
+    -fx-spacing: 0;
+}
+
+.activity-log-page.logs-page .logs-payload-section-title {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+    -fx-padding: 0 0 7 0;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-row {
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-icon-shell {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-icon {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-icon .text {
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+    -fx-max-width: 120;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-danger {
+    -fx-text-fill: -wl-status-error-text;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-success {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-link {
+    -fx-text-fill: -wl-primary;
+}
+
+/* Rich before → after change cards inside the payload card */
+.activity-log-page.logs-page .logs-payload-change-card {
+    -fx-padding: 9 0 9 0;
+    -fx-spacing: 6;
+}
+
+.activity-log-page.logs-page .logs-payload-change-field-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+    -fx-padding: 0 0 2 0;
+}
+
+.activity-log-page.logs-page .logs-payload-change-boxes {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-change-before,
+.activity-log-page.logs-page .logs-payload-change-after {
+    -fx-padding: 8 14 8 14;
+    -fx-background-radius: 7;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+    -fx-spacing: 3;
+}
+
+.activity-log-page.logs-page .logs-payload-change-before {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+}
+
+.activity-log-page.logs-page .logs-payload-change-after {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+}
+
+.activity-log-page.logs-page .logs-payload-change-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 9px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-change-before-value {
+    -fx-text-fill: -wl-status-error-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-change-after-value {
+    -fx-text-fill: -wl-status-success-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.activity-log-page.logs-page .logs-payload-change-center-arrow {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+/* =========================================================
+   TIFF METRIC TILES
+   Grid of bordered tiles replacing flat rows for TIFF details
+   ========================================================= */
+.activity-log-page.logs-page .logs-payload-tile-grid {
+    -fx-hgap: 6;
+    -fx-vgap: 6;
+    -fx-padding: 0 0 2 0;
+}
+
+.activity-log-page.logs-page .logs-payload-tile {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 7;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+    -fx-padding: 8 12 7 12;
+    -fx-min-width: 120;
+    -fx-pref-width: 145;
+    -fx-max-width: 200;
+    -fx-spacing: 2;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-icon {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-icon .text {
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+    -fx-padding: 2 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+/* =========================================================
+   DARK MODE OVERRIDES
+   ========================================================= */
+.app-shell.dark .activity-log-page.logs-page .logs-payload-card {
+    -fx-effect: none;
+}

@@ -1,14 +1,14 @@
 package easv.bll;
 
 import easv.be.AuditLog;
-import easv.be.MetadataField;
+import easv.be.AuditLog.AuditLogDetail;
 import easv.be.ReviewRecord;
-import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
 import easv.dal.UserDAO;
+import easv.util.Strings;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class AdminManager {
@@ -28,7 +28,6 @@ public class AdminManager {
 
     private final List<User> users = new ArrayList<>();
     private final List<ScanProfile> profiles = new ArrayList<>();
-    private final List<MetadataTemplate> metadataTemplates = new ArrayList<>();
     private final List<ReviewRecord> reviewRecords = new ArrayList<>();
     private final List<AuditLog> auditLogs = new ArrayList<>();
 
@@ -36,8 +35,6 @@ public class AdminManager {
 
     private int nextUserId = 1;
     private int nextProfileId = 1;
-    private int nextMetadataTemplateId = 1;
-    private int nextMetadataFieldId = 1;
     private int nextAuditLogId = 1;
 
     public AdminManager() {
@@ -69,7 +66,7 @@ public class AdminManager {
                 input.getName(),
                 input.getUsername(),
                 input.getEmail(),
-                PasswordHasher.hash(clean(input.getPlainPassword())),
+                PasswordHasher.hash(Strings.clean(input.getPlainPassword())),
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
@@ -82,7 +79,8 @@ public class AdminManager {
         nextUserId = Math.max(nextUserId, savedUser.getId() + 1);
 
         addAuditLog("Users", "Created user", savedUser.getName(), "Success",
-                "A new user account was created.");
+                "A new user account was created.",
+                createdUserChanges(savedUser));
 
         return savedUser;
     }
@@ -90,11 +88,13 @@ public class AdminManager {
     public User updateUser(int userId, UserInput input) {
         User user = findRequiredUser(userId);
         validateUserInput(input, userId);
+        User previousUser = copyUser(user);
+        boolean passwordChanged = !Strings.clean(input.getPlainPassword()).isBlank();
 
         String updatedPasswordHash = user.getPasswordHash();
 
-        if (!clean(input.getPlainPassword()).isBlank()) {
-            updatedPasswordHash = PasswordHasher.hash(clean(input.getPlainPassword()));
+        if (passwordChanged) {
+            updatedPasswordHash = PasswordHasher.hash(Strings.clean(input.getPlainPassword()));
         }
 
         User updatedUser = new User(
@@ -122,7 +122,8 @@ public class AdminManager {
         syncProfileAssignmentsForUser(user);
 
         addAuditLog("Users", "Updated user", user.getName(), "Success",
-                "User details were updated.");
+                "User details were updated.",
+                changedUserFields(previousUser, user, passwordChanged));
 
         return user;
     }
@@ -139,11 +140,52 @@ public class AdminManager {
         users.remove(user);
 
         addAuditLog("Users", "Deleted user", user.getName(), "Success",
-                "A user account was deleted.");
+                "A user account was deleted.",
+                deletedUserChanges(user));
+    }
+
+    public User deactivateUser(int userId) {
+        User user = findRequiredUser(userId);
+
+        if (user.isCurrentUser()) {
+            throw new IllegalArgumentException("The current user cannot be deactivated.");
+        }
+
+        if (!user.isActive()) {
+            return user;
+        }
+
+        User deactivatedUser = new User(
+                user.getId(),
+                user.getName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getRole(),
+                "Inactive",
+                user.getAssignedProfiles(),
+                user.isCurrentUser()
+        );
+
+        User savedUser = userDAO.updateUser(deactivatedUser, profileIdsForNames(user.getAssignedProfiles()));
+
+        user.setName(savedUser.getName());
+        user.setUsername(savedUser.getUsername());
+        user.setEmail(savedUser.getEmail());
+        user.setPasswordHash(savedUser.getPasswordHash());
+        user.setRole(savedUser.getRole());
+        user.setStatus(savedUser.getStatus());
+        user.setAssignedProfiles(savedUser.getAssignedProfiles());
+
+        addAuditLog("Users", "Deactivated user", user.getName(), "Success",
+                "A user account was deactivated.",
+                changeList("Status", "Active", user.getStatus()));
+
+        return user;
     }
 
     public boolean usernameExists(String username, Integer excludedUserId) {
-        String normalizedUsername = normalize(username);
+        String normalizedUsername = Strings.normalize(username);
 
         if (normalizedUsername.isBlank()) {
             return false;
@@ -152,7 +194,7 @@ public class AdminManager {
         return users.stream()
                 .filter(user -> excludedUserId == null || user.getId() != excludedUserId)
                 .map(User::getUsername)
-                .map(this::normalize)
+                .map(Strings::normalize)
                 .anyMatch(existingUsername -> existingUsername.equals(normalizedUsername));
     }
 
@@ -198,7 +240,8 @@ public class AdminManager {
         nextProfileId = Math.max(nextProfileId, savedProfile.getId() + 1);
 
         addAuditLog("Profiles", "Created profile", savedProfile.getName(), "Success",
-                "A scan profile was created.");
+                "A scan profile was created.",
+                createdProfileChanges(savedProfile));
 
         return savedProfile;
     }
@@ -207,6 +250,7 @@ public class AdminManager {
         ScanProfile profile = findRequiredProfile(profileId);
         validateProfileInput(input, profileId);
 
+        ScanProfile previousProfile = copyProfile(profile);
         String previousName = profile.getName();
 
         profile.setName(input.getName());
@@ -231,13 +275,15 @@ public class AdminManager {
         renameAssignedProfile(previousName, profile.getName());
 
         addAuditLog("Profiles", "Updated profile", profile.getName(), "Success",
-                "A scan profile was updated.");
+                "A scan profile was updated.",
+                changedProfileFields(previousProfile, profile));
 
         return profile;
     }
 
     public void archiveProfile(int profileId) {
         ScanProfile profile = findRequiredProfile(profileId);
+        String previousStatus = profile.getStatus();
         profile.setArchived(true);
         profile.setStatus("Archived");
         profile.setLastUpdated("Archived just now");
@@ -245,11 +291,13 @@ public class AdminManager {
         metadataDAO.updateProfile(profile);
 
         addAuditLog("Profiles", "Archived profile", profile.getName(), "Success",
-                "A scan profile was archived.");
+                "A scan profile was archived.",
+                changeList("Profile status", previousStatus, "Archived"));
     }
 
     public void restoreProfile(int profileId) {
         ScanProfile profile = findRequiredProfile(profileId);
+        String previousStatus = profile.getStatus();
         profile.setArchived(false);
         profile.setStatus("Active");
         profile.setLastUpdated("Restored just now");
@@ -257,11 +305,33 @@ public class AdminManager {
         metadataDAO.updateProfile(profile);
 
         addAuditLog("Profiles", "Restored profile", profile.getName(), "Success",
-                "A scan profile was restored.");
+                "A scan profile was restored.",
+                changeList("Profile status", previousStatus, "Active"));
+    }
+
+    public void deleteProfile(int profileId) {
+        ScanProfile profile = findRequiredProfile(profileId);
+        String deletedProfileName = profile.getName();
+        String normalizedDeletedProfileName = Strings.normalize(deletedProfileName);
+
+        metadataDAO.deleteProfile(profileId);
+
+        profiles.removeIf(storedProfile -> storedProfile.getId() == profileId);
+        profileAssignments.remove(profileId);
+
+        users.forEach(user -> user.setAssignedProfiles(
+                user.getAssignedProfiles().stream()
+                        .filter(profileName -> !Strings.normalize(profileName).equals(normalizedDeletedProfileName))
+                        .toList()
+        ));
+
+        addAuditLog("Profiles", "Deleted profile", deletedProfileName, "Success",
+                "A scan profile was deleted.",
+                deletedProfileChanges(profile));
     }
 
     public boolean profileCodeExists(String code, Integer excludedProfileId) {
-        String normalizedCode = normalize(code);
+        String normalizedCode = Strings.normalize(code);
 
         if (normalizedCode.isBlank()) {
             return false;
@@ -270,93 +340,8 @@ public class AdminManager {
         return profiles.stream()
                 .filter(profile -> excludedProfileId == null || profile.getId() != excludedProfileId)
                 .map(ScanProfile::getCode)
-                .map(this::normalize)
+                .map(Strings::normalize)
                 .anyMatch(existingCode -> existingCode.equals(normalizedCode));
-    }
-
-    public List<MetadataTemplate> getMetadataTemplates() {
-        return metadataTemplates.stream()
-                .sorted(Comparator.comparingInt(MetadataTemplate::getId))
-                .toList();
-    }
-
-    public MetadataTemplate createMetadataTemplate(MetadataTemplateInput input) {
-        validateMetadataTemplateInput(input, null);
-
-        MetadataTemplate template = new MetadataTemplate(
-                0,
-                input.getName(),
-                input.getDescription(),
-                input.getAssignedProfileNames(),
-                withFieldIds(input.getFields()),
-                input.getStatus(),
-                "Created just now"
-        );
-
-        MetadataTemplate savedTemplate = metadataDAO.saveMetadataTemplate(template);
-        metadataTemplates.add(savedTemplate);
-        nextMetadataTemplateId = Math.max(nextMetadataTemplateId, savedTemplate.getId() + 1);
-
-        addAuditLog("Metadata", "Created metadata template", savedTemplate.getName(), "Success",
-                "A metadata template was created.");
-
-        return savedTemplate;
-    }
-
-    public MetadataTemplate updateMetadataTemplate(int templateId, MetadataTemplateInput input) {
-        MetadataTemplate template = findRequiredMetadataTemplate(templateId);
-        validateMetadataTemplateInput(input, templateId);
-
-        template.setName(input.getName());
-        template.setDescription(input.getDescription());
-        template.setAssignedProfileNames(input.getAssignedProfileNames());
-        template.setFields(withFieldIds(input.getFields()));
-        template.setStatus(input.getStatus());
-        template.setLastUpdated("Updated just now");
-
-        MetadataTemplate savedTemplate = metadataDAO.updateMetadataTemplate(template);
-        template.setFields(savedTemplate.getFields());
-
-        addAuditLog("Metadata", "Updated metadata template", template.getName(), "Success",
-                "A metadata template was updated.");
-
-        return template;
-    }
-
-    public void archiveMetadataTemplate(int templateId) {
-        MetadataTemplate template = findRequiredMetadataTemplate(templateId);
-        template.setStatus("Archived");
-        template.setLastUpdated("Archived just now");
-
-        metadataDAO.updateMetadataTemplate(template);
-
-        addAuditLog("Metadata", "Archived metadata template", template.getName(), "Success",
-                "A metadata template was archived.");
-    }
-
-    public void restoreMetadataTemplate(int templateId) {
-        MetadataTemplate template = findRequiredMetadataTemplate(templateId);
-        template.setStatus("Active");
-        template.setLastUpdated("Restored just now");
-
-        metadataDAO.updateMetadataTemplate(template);
-
-        addAuditLog("Metadata", "Restored metadata template", template.getName(), "Success",
-                "A metadata template was restored.");
-    }
-
-    public boolean metadataTemplateNameExists(String name, Integer excludedTemplateId) {
-        String normalizedName = normalize(name);
-
-        if (normalizedName.isBlank()) {
-            return false;
-        }
-
-        return metadataTemplates.stream()
-                .filter(template -> excludedTemplateId == null || template.getId() != excludedTemplateId)
-                .map(MetadataTemplate::getName)
-                .map(this::normalize)
-                .anyMatch(existingName -> existingName.equals(normalizedName));
     }
 
     public List<ReviewRecord> getReviewRecords() {
@@ -366,7 +351,7 @@ public class AdminManager {
     }
 
     public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
-        if (updatedRecord == null || clean(updatedRecord.getId()).isBlank()) {
+        if (updatedRecord == null || Strings.clean(updatedRecord.getId()).isBlank()) {
             throw new IllegalArgumentException("Review record is required.");
         }
 
@@ -412,13 +397,17 @@ public class AdminManager {
     }
 
     public void saveProfileAssignments(Map<Integer, Set<Integer>> assignments) {
+        Map<Integer, Set<Integer>> previousAssignments = copyAssignments(profileAssignments);
+        Map<Integer, Set<Integer>> updatedAssignments = copyAssignments(assignments);
+
         profileAssignments.clear();
-        profileAssignments.putAll(copyAssignments(assignments));
+        profileAssignments.putAll(updatedAssignments);
         userDAO.replaceProfileAssignments(profileAssignments);
         refreshUsersFromProfileAssignments();
 
         addAuditLog("Access", "Updated profile access", "Assignments", "Success",
-                "Profile access assignments were saved.");
+                "Profile access assignments were saved.",
+                changedProfileAssignments(previousAssignments, updatedAssignments));
     }
 
     public List<AuditLog> getAuditLogs() {
@@ -429,11 +418,21 @@ public class AdminManager {
 
     public AuditLog addAuditLog(String type, String action, String target,
                                 String status, String description) {
-        return addAuditLog(type, currentActorName(), action, target, status, description);
+        return addAuditLog(type, currentActorName(), action, target, status, description, List.of());
+    }
+
+    public AuditLog addAuditLog(String type, String action, String target,
+                                String status, String description, List<AuditLogDetail> details) {
+        return addAuditLog(type, currentActorName(), action, target, status, description, details);
     }
 
     public AuditLog addAuditLog(String type, String actor, String action, String target,
                                 String status, String description) {
+        return addAuditLog(type, actor, action, target, status, description, List.of());
+    }
+
+    public AuditLog addAuditLog(String type, String actor, String action, String target,
+                                String status, String description, List<AuditLogDetail> details) {
         AuditLog log = new AuditLog(
                 nextAuditLogId++,
                 LocalDateTime.now(),
@@ -443,7 +442,7 @@ public class AdminManager {
                 target,
                 status,
                 description,
-                List.of()
+                details
         );
 
         AuditLog savedLog = auditLogDAO.saveAuditLog(log);
@@ -498,7 +497,6 @@ public class AdminManager {
     private void loadAdminData() {
         loadUsers();
         loadProfiles();
-        loadMetadataTemplates();
         loadReviewRecords();
         loadProfileAssignments();
         loadAuditLogs();
@@ -515,13 +513,6 @@ public class AdminManager {
         profiles.clear();
         profiles.addAll(metadataDAO.getProfiles());
         nextProfileId = metadataDAO.nextProfileId();
-    }
-
-    private void loadMetadataTemplates() {
-        metadataTemplates.clear();
-        metadataTemplates.addAll(metadataDAO.getMetadataTemplates());
-        nextMetadataTemplateId = metadataDAO.nextMetadataTemplateId();
-        nextMetadataFieldId = metadataDAO.nextMetadataFieldId();
     }
 
     private void loadReviewRecords() {
@@ -543,7 +534,7 @@ public class AdminManager {
     private String currentActorName() {
         User currentUser = UserSession.getCurrentUser();
 
-        if (currentUser == null || clean(currentUser.getName()).isBlank()) {
+        if (currentUser == null || Strings.clean(currentUser.getName()).isBlank()) {
             return "Admin";
         }
 
@@ -564,23 +555,16 @@ public class AdminManager {
                 .orElseThrow(() -> new IllegalArgumentException("Profile could not be found."));
     }
 
-    private MetadataTemplate findRequiredMetadataTemplate(int templateId) {
-        return metadataTemplates.stream()
-                .filter(template -> template.getId() == templateId)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Metadata template could not be found."));
-    }
-
     private void validateUserInput(UserInput input, Integer excludedUserId) {
         if (input == null) {
             throw new IllegalArgumentException("User details are required.");
         }
 
-        if (clean(input.getName()).isBlank()) {
+        if (Strings.clean(input.getName()).isBlank()) {
             throw new IllegalArgumentException("Full name is required.");
         }
 
-        if (clean(input.getUsername()).isBlank()) {
+        if (Strings.clean(input.getUsername()).isBlank()) {
             throw new IllegalArgumentException("Username is required.");
         }
 
@@ -588,19 +572,19 @@ public class AdminManager {
             throw new IllegalArgumentException("Username must be unique.");
         }
 
-        if (excludedUserId == null && clean(input.getPlainPassword()).isBlank()) {
+        if (excludedUserId == null && Strings.clean(input.getPlainPassword()).isBlank()) {
             throw new IllegalArgumentException("Temporary password is required.");
         }
 
-        if (!clean(input.getEmail()).isBlank() && !isValidEmail(input.getEmail())) {
+        if (!Strings.clean(input.getEmail()).isBlank() && !isValidEmail(input.getEmail())) {
             throw new IllegalArgumentException("Email must be valid if entered.");
         }
 
-        if (clean(input.getRole()).isBlank()) {
+        if (Strings.clean(input.getRole()).isBlank()) {
             throw new IllegalArgumentException("Role is required.");
         }
 
-        if (clean(input.getStatus()).isBlank()) {
+        if (Strings.clean(input.getStatus()).isBlank()) {
             throw new IllegalArgumentException("Status is required.");
         }
     }
@@ -610,11 +594,11 @@ public class AdminManager {
             throw new IllegalArgumentException("Profile details are required.");
         }
 
-        if (clean(input.getName()).isBlank()) {
+        if (Strings.clean(input.getName()).isBlank()) {
             throw new IllegalArgumentException("Profile name is required.");
         }
 
-        if (clean(input.getCode()).isBlank()) {
+        if (Strings.clean(input.getCode()).isBlank()) {
             throw new IllegalArgumentException("Profile code is required.");
         }
 
@@ -622,49 +606,229 @@ public class AdminManager {
             throw new IllegalArgumentException("Profile code must be unique.");
         }
 
-        if (clean(input.getStatus()).isBlank()) {
+        if (Strings.clean(input.getStatus()).isBlank()) {
             throw new IllegalArgumentException("Status is required.");
         }
     }
 
-    private void validateMetadataTemplateInput(MetadataTemplateInput input, Integer excludedTemplateId) {
-        if (input == null) {
-            throw new IllegalArgumentException("Metadata template details are required.");
+    private List<AuditLogDetail> createdUserChanges(User user) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        addCreatedChange(changes, "Full name", user.getName());
+        addCreatedChange(changes, "Username", user.getUsername());
+        addCreatedChange(changes, "Email", user.getEmail());
+        addCreatedChange(changes, "Role", user.getRole());
+        addCreatedChange(changes, "Status", user.getStatus());
+        addCreatedChange(changes, "Assigned profiles", user.getAssignedProfiles());
+        return changes;
+    }
+
+    private List<AuditLogDetail> changedUserFields(User previousUser, User updatedUser, boolean passwordChanged) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        addChangedChange(changes, "Full name", previousUser.getName(), updatedUser.getName());
+        addChangedChange(changes, "Username", previousUser.getUsername(), updatedUser.getUsername());
+        addChangedChange(changes, "Email", previousUser.getEmail(), updatedUser.getEmail());
+        addChangedChange(changes, "Role", previousUser.getRole(), updatedUser.getRole());
+        addChangedChange(changes, "Status", previousUser.getStatus(), updatedUser.getStatus());
+        addChangedChange(changes, "Assigned profiles", previousUser.getAssignedProfiles(), updatedUser.getAssignedProfiles());
+
+        if (passwordChanged) {
+            changes.add(AuditLogDetail.change("Password", "Existing password", "Updated"));
         }
 
-        if (clean(input.getName()).isBlank()) {
-            throw new IllegalArgumentException("Template name is required.");
+        return changes;
+    }
+
+    private List<AuditLogDetail> deletedUserChanges(User user) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        changes.add(AuditLogDetail.change("Account state", "Existing", "Deleted"));
+        addDeletedChange(changes, "Full name", user.getName());
+        addDeletedChange(changes, "Username", user.getUsername());
+        addDeletedChange(changes, "Email", user.getEmail());
+        addDeletedChange(changes, "Role", user.getRole());
+        addDeletedChange(changes, "Status", user.getStatus());
+        addDeletedChange(changes, "Assigned profiles", user.getAssignedProfiles());
+        return changes;
+    }
+
+    private List<AuditLogDetail> createdProfileChanges(ScanProfile profile) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        addCreatedChange(changes, "Profile name", profile.getName());
+        addCreatedChange(changes, "Profile code", profile.getCode());
+        addCreatedChange(changes, "Profile status", profile.getStatus());
+        addCreatedChange(changes, "Description", profile.getDescription());
+        addCreatedChange(changes, "Export naming", profile.getExportNaming());
+        addCreatedChange(changes, "Barcode splitting", profile.isBarcodeSplitting());
+        addCreatedChange(changes, "Barcode detected behavior", profile.getBarcodeDetectedBehavior());
+        addCreatedChange(changes, "Barcode page behavior", profile.getBarcodePageBehavior());
+        addCreatedChange(changes, "Default rotation", profile.getDefaultRotation());
+        addCreatedChange(changes, "Brightness", profile.getBrightness());
+        addCreatedChange(changes, "Contrast", profile.getContrast());
+        addCreatedChange(changes, "Deskew", profile.isDeskew());
+        addCreatedChange(changes, "Export format", profile.getExportFormat());
+        return changes;
+    }
+
+    private List<AuditLogDetail> changedProfileFields(ScanProfile previousProfile, ScanProfile updatedProfile) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        addChangedChange(changes, "Profile name", previousProfile.getName(), updatedProfile.getName());
+        addChangedChange(changes, "Profile code", previousProfile.getCode(), updatedProfile.getCode());
+        addChangedChange(changes, "Profile status", previousProfile.getStatus(), updatedProfile.getStatus());
+        addChangedChange(changes, "Description", previousProfile.getDescription(), updatedProfile.getDescription());
+        addChangedChange(changes, "Export naming", previousProfile.getExportNaming(), updatedProfile.getExportNaming());
+        addChangedChange(changes, "Barcode splitting", previousProfile.isBarcodeSplitting(), updatedProfile.isBarcodeSplitting());
+        addChangedChange(changes, "Barcode detected behavior", previousProfile.getBarcodeDetectedBehavior(), updatedProfile.getBarcodeDetectedBehavior());
+        addChangedChange(changes, "Barcode page behavior", previousProfile.getBarcodePageBehavior(), updatedProfile.getBarcodePageBehavior());
+        addChangedChange(changes, "Default rotation", previousProfile.getDefaultRotation(), updatedProfile.getDefaultRotation());
+        addChangedChange(changes, "Brightness", previousProfile.getBrightness(), updatedProfile.getBrightness());
+        addChangedChange(changes, "Contrast", previousProfile.getContrast(), updatedProfile.getContrast());
+        addChangedChange(changes, "Deskew", previousProfile.isDeskew(), updatedProfile.isDeskew());
+        addChangedChange(changes, "Export format", previousProfile.getExportFormat(), updatedProfile.getExportFormat());
+        return changes;
+    }
+
+    private List<AuditLogDetail> deletedProfileChanges(ScanProfile profile) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        changes.add(AuditLogDetail.change("Profile state", "Existing", "Deleted"));
+        addDeletedChange(changes, "Profile name", profile.getName());
+        addDeletedChange(changes, "Profile code", profile.getCode());
+        addDeletedChange(changes, "Profile status", profile.getStatus());
+        addDeletedChange(changes, "Description", profile.getDescription());
+        addDeletedChange(changes, "Export naming", profile.getExportNaming());
+        addDeletedChange(changes, "Barcode splitting", profile.isBarcodeSplitting());
+        addDeletedChange(changes, "Export format", profile.getExportFormat());
+        return changes;
+    }
+
+    private List<AuditLogDetail> changedProfileAssignments(Map<Integer, Set<Integer>> previousAssignments,
+                                                           Map<Integer, Set<Integer>> updatedAssignments) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        LinkedHashSet<Integer> profileIds = new LinkedHashSet<>();
+        profileIds.addAll(previousAssignments.keySet());
+        profileIds.addAll(updatedAssignments.keySet());
+
+        for (Integer profileId : profileIds) {
+            if (profileId == null) {
+                continue;
+            }
+
+            String profileName = profileNameForId(profileId);
+            addChangedChange(
+                    changes,
+                    profileName + " assigned users",
+                    formatAssignedUserNames(previousAssignments.getOrDefault(profileId, Set.of())),
+                    formatAssignedUserNames(updatedAssignments.getOrDefault(profileId, Set.of()))
+            );
         }
 
-        if (metadataTemplateNameExists(input.getName(), excludedTemplateId)) {
-            throw new IllegalArgumentException("Template name must be unique.");
-        }
+        return changes;
+    }
 
-        if (clean(input.getStatus()).isBlank()) {
-            throw new IllegalArgumentException("Status is required.");
+    private List<AuditLogDetail> changeList(String field, Object oldValue, Object newValue) {
+        List<AuditLogDetail> changes = new ArrayList<>();
+        addChangedChange(changes, field, oldValue, newValue);
+        return changes;
+    }
+
+    private void addCreatedChange(List<AuditLogDetail> changes, String field, Object newValue) {
+        changes.add(AuditLogDetail.change(field, "", formatAuditValue(newValue)));
+    }
+
+    private void addDeletedChange(List<AuditLogDetail> changes, String field, Object oldValue) {
+        changes.add(AuditLogDetail.change(field, formatAuditValue(oldValue), ""));
+    }
+
+    private void addChangedChange(List<AuditLogDetail> changes, String field, Object oldValue, Object newValue) {
+        String formattedOldValue = formatAuditValue(oldValue);
+        String formattedNewValue = formatAuditValue(newValue);
+
+        if (!Objects.equals(formattedOldValue, formattedNewValue)) {
+            changes.add(AuditLogDetail.change(field, formattedOldValue, formattedNewValue));
         }
     }
 
-    private List<MetadataField> withFieldIds(List<MetadataField> fields) {
-        if (fields == null || fields.isEmpty()) {
-            return List.of();
+    private String formatAuditValue(Object value) {
+        if (value == null) {
+            return "";
         }
 
-        List<MetadataField> fieldsWithIds = new ArrayList<>();
-
-        for (MetadataField field : fields) {
-            int fieldId = field.getId() > 0 ? field.getId() : nextMetadataFieldId++;
-
-            fieldsWithIds.add(new MetadataField(
-                    fieldId,
-                    field.getName(),
-                    field.getType(),
-                    field.isRequired(),
-                    field.getPlaceholder()
-            ));
+        if (value instanceof Boolean booleanValue) {
+            return booleanValue ? "Yes" : "No";
         }
 
-        return fieldsWithIds;
+        if (value instanceof List<?> listValue) {
+            return listValue.stream()
+                    .map(item -> item == null ? "" : Strings.clean(String.valueOf(item)))
+                    .filter(item -> !item.isBlank())
+                    .reduce((first, second) -> first + ", " + second)
+                    .orElse("");
+        }
+
+        return Strings.clean(String.valueOf(value));
+    }
+
+    private String profileNameForId(int profileId) {
+        return profiles.stream()
+                .filter(profile -> profile.getId() == profileId)
+                .map(ScanProfile::getName)
+                .findFirst()
+                .orElse("Profile " + profileId);
+    }
+
+    private String formatAssignedUserNames(Set<Integer> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return "";
+        }
+
+        return userIds.stream()
+                .sorted()
+                .map(this::userNameForId)
+                .reduce((first, second) -> first + ", " + second)
+                .orElse("");
+    }
+
+    private String userNameForId(int userId) {
+        return users.stream()
+                .filter(user -> user.getId() == userId)
+                .map(User::getName)
+                .findFirst()
+                .orElse("User " + userId);
+    }
+
+    private User copyUser(User user) {
+        return new User(
+                user.getId(),
+                user.getName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getRole(),
+                user.getStatus(),
+                user.getAssignedProfiles(),
+                user.isCurrentUser()
+        );
+    }
+
+    private ScanProfile copyProfile(ScanProfile profile) {
+        return new ScanProfile(
+                profile.getId(),
+                profile.getName(),
+                profile.getCode(),
+                profile.getDescription(),
+                profile.getStatus(),
+                profile.getMetadataTemplateName(),
+                profile.getExportNaming(),
+                profile.getLastUpdated(),
+                profile.isArchived(),
+                profile.isBarcodeSplitting(),
+                profile.getBarcodeDetectedBehavior(),
+                profile.getBarcodePageBehavior(),
+                profile.getDefaultRotation(),
+                profile.getBrightness(),
+                profile.getContrast(),
+                profile.isDeskew(),
+                profile.getExportFormat(),
+                profile.isMetadataRequiredBeforeExport()
+        );
     }
 
     private List<Integer> profileIdsForNames(List<String> profileNames) {
@@ -675,7 +839,7 @@ public class AdminManager {
         List<Integer> profileIds = new ArrayList<>();
 
         for (String profileName : profileNames) {
-            if (clean(profileName).isBlank()) {
+            if (Strings.clean(profileName).isBlank()) {
                 continue;
             }
 
@@ -700,10 +864,10 @@ public class AdminManager {
     }
 
     private java.util.Optional<ScanProfile> findProfileByName(String profileName) {
-        String normalizedProfileName = normalize(profileName);
+        String normalizedProfileName = Strings.normalize(profileName);
 
         return profiles.stream()
-                .filter(profile -> normalize(profile.getName()).equals(normalizedProfileName))
+                .filter(profile -> Strings.normalize(profile.getName()).equals(normalizedProfileName))
                 .findFirst();
     }
 
@@ -728,7 +892,7 @@ public class AdminManager {
     }
 
     private void renameAssignedProfile(String previousName, String newName) {
-        if (normalize(previousName).equals(normalize(newName))) {
+        if (Strings.normalize(previousName).equals(Strings.normalize(newName))) {
             return;
         }
 
@@ -736,7 +900,7 @@ public class AdminManager {
             LinkedHashSet<String> updatedProfiles = new LinkedHashSet<>();
 
             for (String assignedProfile : user.getAssignedProfiles()) {
-                if (normalize(assignedProfile).equals(normalize(previousName))) {
+                if (Strings.normalize(assignedProfile).equals(Strings.normalize(previousName))) {
                     updatedProfiles.add(newName);
                 } else {
                     updatedProfiles.add(assignedProfile);
@@ -772,21 +936,13 @@ public class AdminManager {
     }
 
     private boolean isValidEmail(String email) {
-        String cleanedEmail = clean(email);
+        String cleanedEmail = Strings.clean(email);
         int atIndex = cleanedEmail.indexOf("@");
         int dotIndex = cleanedEmail.lastIndexOf(".");
 
         return atIndex > 0
                 && dotIndex > atIndex + 1
                 && dotIndex < cleanedEmail.length() - 1;
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
-    private String normalize(String value) {
-        return clean(value).toLowerCase(Locale.ROOT);
     }
 
     public static class UserInput {
@@ -889,34 +1045,6 @@ public class AdminManager {
         public boolean isDeskew() { return deskew; }
         public String getExportFormat() { return exportFormat; }
         public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
-    }
-
-    public static class MetadataTemplateInput {
-        private final String name;
-        private final String description;
-        private final List<String> assignedProfileNames;
-        private final List<MetadataField> fields;
-        private final String status;
-
-        public MetadataTemplateInput(
-                String name,
-                String description,
-                List<String> assignedProfileNames,
-                List<MetadataField> fields,
-                String status
-        ) {
-            this.name = name;
-            this.description = description;
-            this.assignedProfileNames = assignedProfileNames == null ? List.of() : List.copyOf(assignedProfileNames);
-            this.fields = fields == null ? List.of() : List.copyOf(fields);
-            this.status = status;
-        }
-
-        public String getName() { return name; }
-        public String getDescription() { return description; }
-        public List<String> getAssignedProfileNames() { return assignedProfileNames; }
-        public List<MetadataField> getFields() { return fields; }
-        public String getStatus() { return status; }
     }
 
     public static class DashboardSummary {
