@@ -1,7 +1,6 @@
 package easv.gui.controller.user;
 
 import easv.gui.UserPortalModel;
-import easv.gui.controller.utilities.PaginationHelper;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -20,12 +19,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MyScansController {
     private static final String ALL_STATUSES = "All Statuses";
-    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
-    private static final DateTimeFormatter LEGACY_ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter FILTER_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final UserPortalModel portalModel;
     private final UserNavigator navigator;
@@ -48,11 +48,19 @@ public class MyScansController {
         VBox page = new VBox(24);
         page.getStyleClass().addAll("portal-page", "my-scans-page", "exports-page");
 
-        Label title = new Label("My Scans");
-        title.getStyleClass().add("exports-title");
+        page.getChildren().add(buildContent(true));
+        return page;
+    }
 
-        Label subtitle = new Label("Review scan history and reopen sessions that still need attention.");
-        subtitle.getStyleClass().add("exports-subtitle");
+    public Node createEmbedded() {
+        VBox section = new VBox(24);
+        section.getStyleClass().addAll("my-scans-page", "exports-page");
+        section.getChildren().add(buildContent(false));
+        return section;
+    }
+
+    private VBox buildContent(boolean showHeader) {
+        VBox content = new VBox(24);
 
         configureFilters();
 
@@ -63,12 +71,18 @@ public class MyScansController {
 
         refreshTable();
 
-        page.getChildren().addAll(
-                new VBox(6, title, subtitle),
-                buildFilterPanel(),
-                tablePanel
-        );
-        return page;
+        if (showHeader) {
+            Label title = new Label("My Scans");
+            title.getStyleClass().add("exports-title");
+
+            Label subtitle = new Label("Review scan history and reopen sessions that still need attention.");
+            subtitle.getStyleClass().add("exports-subtitle");
+
+            content.getChildren().add(new VBox(6, title, subtitle));
+        }
+
+        content.getChildren().addAll(buildFilterPanel(), tablePanel);
+        return content;
     }
 
     private void configureFilters() {
@@ -135,22 +149,23 @@ public class MyScansController {
 
         int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
         int totalItems = visibleItems.size();
-        PaginationHelper.PageSlice slice = PaginationHelper.slice(currentPage, rowsPerPage, totalItems);
-        currentPage = slice.currentPage();
+        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) rowsPerPage));
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
 
         if (visibleItems.isEmpty()) {
             table.getChildren().add(emptyRow("No matching scans"));
-        } else {
-            for (UserPortalModel.HistoryItem item : visibleItems.subList(slice.fromIndex(), slice.toIndex())) {
-                table.getChildren().add(createDataRow(item));
-            }
+            updatePagination(totalItems, totalPages);
+            return;
         }
 
-        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, slice,
-                totalItems, "scans", page -> {
-                    currentPage = page;
-                    refreshTable();
-                });
+        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalItems);
+        int toIndex = Math.min(fromIndex + rowsPerPage, totalItems);
+
+        for (UserPortalModel.HistoryItem item : visibleItems.subList(fromIndex, toIndex)) {
+            table.getChildren().add(createDataRow(item));
+        }
+
+        updatePagination(totalItems, totalPages);
     }
 
     private boolean matchesFilters(UserPortalModel.HistoryItem item) {
@@ -190,9 +205,12 @@ public class MyScansController {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("exports-table-row");
 
-        Button actionButton = new Button(item.status().equalsIgnoreCase("Processing") ? "Resume" : "Reuse");
-        actionButton.getStyleClass().addAll("portal-row-button", "my-scans-action-button");
-        actionButton.setOnAction(event -> navigator.resumeHistoryScan(item));
+        Button editButton = new Button("Edit");
+        editButton.getStyleClass().addAll("portal-row-button", "my-scans-action-button");
+        editButton.setOnAction(event -> navigator.resumeHistoryScan(item));
+
+        HBox editBox = new HBox(editButton);
+        editBox.getStyleClass().add("exports-action-box");
 
         row.add(primaryCell(item.boxId()), 0, 0);
         row.add(dataCell(item.profileName()), 1, 0);
@@ -200,7 +218,7 @@ public class MyScansController {
         row.add(dataCell(item.size()), 3, 0);
         row.add(dataCell(item.startedAt()), 4, 0);
         row.add(statusCell(item.status()), 5, 0);
-        row.add(actionButton, 6, 0);
+        row.add(editBox, 6, 0);
 
         return row;
     }
@@ -247,10 +265,10 @@ public class MyScansController {
                 percentColumn(16),
                 percentColumn(18),
                 percentColumn(10),
-                percentColumn(10),
-                percentColumn(20),
                 percentColumn(12),
-                percentColumn(14)
+                percentColumn(18),
+                percentColumn(14),
+                percentColumn(12)
         );
         return row;
     }
@@ -279,6 +297,75 @@ public class MyScansController {
         return bar;
     }
 
+    private void updatePagination(int totalItems, int totalPages) {
+        int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
+        int start = totalItems == 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
+        int end = totalItems == 0 ? 0 : Math.min(currentPage * rowsPerPage, totalItems);
+        paginationSummaryLabel.setText("Showing " + start + "-" + end + " of " + totalItems + " scans");
+        paginationButtonsBox.getChildren().setAll(buildPaginationButtons(totalPages));
+    }
+
+    private List<Node> buildPaginationButtons(int totalPages) {
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(paginationButton("«", 1, currentPage == 1, false));
+        nodes.add(paginationButton("‹", currentPage - 1, currentPage == 1, false));
+
+        for (int page : visiblePages(totalPages)) {
+            if (page < 0) {
+                Label ellipsis = new Label("...");
+                ellipsis.getStyleClass().add("pagination-ellipsis");
+                nodes.add(ellipsis);
+            } else {
+                nodes.add(paginationButton(String.valueOf(page), page, false, page == currentPage));
+            }
+        }
+
+        nodes.add(paginationButton("›", currentPage + 1, currentPage == totalPages, false));
+        nodes.add(paginationButton("»", totalPages, currentPage == totalPages, false));
+        return nodes;
+    }
+
+    private List<Integer> visiblePages(int totalPages) {
+        List<Integer> pages = new ArrayList<>();
+        if (totalPages <= 5) {
+            for (int page = 1; page <= totalPages; page++) {
+                pages.add(page);
+            }
+            return pages;
+        }
+
+        pages.add(1);
+        if (currentPage > 3) {
+            pages.add(-1);
+        }
+
+        int start = Math.max(2, currentPage - 1);
+        int end = Math.min(totalPages - 1, currentPage + 1);
+        for (int page = start; page <= end; page++) {
+            pages.add(page);
+        }
+
+        if (currentPage < totalPages - 2) {
+            pages.add(-1);
+        }
+        pages.add(totalPages);
+        return pages;
+    }
+
+    private Button paginationButton(String text, int targetPage, boolean disabled, boolean active) {
+        Button button = new Button(text);
+        button.getStyleClass().add("pagination-button");
+        if (active) {
+            button.getStyleClass().add("pagination-button-active");
+        }
+        button.setDisable(disabled);
+        button.setOnAction(event -> {
+            currentPage = targetPage;
+            refreshTable();
+        });
+        return button;
+    }
+
     private ColumnConstraints percentColumn(double width) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(width);
@@ -291,13 +378,10 @@ public class MyScansController {
             return null;
         }
 
-        for (DateTimeFormatter formatter : List.of(ITEM_DATE_TIME, LEGACY_ITEM_DATE_TIME)) {
-            try {
-                return LocalDateTime.parse(value.trim(), formatter).toLocalDate();
-            } catch (DateTimeParseException ignored) {
-            }
+        try {
+            return LocalDateTime.parse(value.trim(), ITEM_DATE_TIME).toLocalDate();
+        } catch (DateTimeParseException ignored) {
+            return null;
         }
-
-        return null;
     }
 }

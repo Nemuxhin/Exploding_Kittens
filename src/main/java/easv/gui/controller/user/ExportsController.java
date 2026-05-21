@@ -1,7 +1,6 @@
 package easv.gui.controller.user;
 
 import easv.gui.UserPortalModel;
-import easv.gui.controller.utilities.PaginationHelper;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
@@ -30,13 +29,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class ExportsController {
     private static final String ALL_STATUSES = "All Statuses";
-    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
-    private static final DateTimeFormatter LEGACY_ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final UserPortalModel portalModel;
     private final VBox table = new VBox();
@@ -101,7 +100,8 @@ public class ExportsController {
 
         rowsPerPageFilter.getItems().setAll(10, 25, 50);
         rowsPerPageFilter.setValue(10);
-        rowsPerPageFilter.getStyleClass().addAll("exports-status-filter", "pagination-rows-filter");
+        rowsPerPageFilter.getStyleClass().add("exports-status-filter");
+        rowsPerPageFilter.getStyleClass().add("pagination-rows-filter");
         rowsPerPageFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
             currentPage = 1;
             refreshTable();
@@ -167,22 +167,23 @@ public class ExportsController {
 
         int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
         int totalItems = visibleItems.size();
-        PaginationHelper.PageSlice slice = PaginationHelper.slice(currentPage, rowsPerPage, totalItems);
-        currentPage = slice.currentPage();
+        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) rowsPerPage));
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
 
         if (visibleItems.isEmpty()) {
             table.getChildren().add(emptyRow("No matching exports"));
-        } else {
-            for (UserPortalModel.ExportItem item : visibleItems.subList(slice.fromIndex(), slice.toIndex())) {
-                table.getChildren().add(createDataRow(item));
-            }
+            updatePagination(totalItems, totalPages);
+            return;
         }
 
-        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, slice,
-                totalItems, "exports", page -> {
-                    currentPage = page;
-                    refreshTable();
-                });
+        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalItems);
+        int toIndex = Math.min(fromIndex + rowsPerPage, totalItems);
+
+        for (UserPortalModel.ExportItem item : visibleItems.subList(fromIndex, toIndex)) {
+            table.getChildren().add(createDataRow(item));
+        }
+
+        updatePagination(totalItems, totalPages);
     }
 
     private boolean matchesFilters(UserPortalModel.ExportItem item) {
@@ -259,22 +260,15 @@ public class ExportsController {
             root.getStyleClass().add("dark");
         }
 
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
         Scene scene = new Scene(root);
-
-        addStylesheet(scene, "/css/app.css");
-        addStylesheet(scene, "/css/user-portal.css");
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
 
         stage.setScene(scene);
         stage.sizeToScene();
         stage.showAndWait();
-    }
-
-    private void addStylesheet(Scene scene, String stylesheetPath) {
-        URL stylesheetUrl = getClass().getResource(stylesheetPath);
-
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
-        }
     }
 
     private VBox buildExportDialogContent(Stage stage, UserPortalModel.ExportItem item) {
@@ -349,14 +343,14 @@ public class ExportsController {
         Label outputLabel = new Label("Output:");
         outputLabel.getStyleClass().add("exports-dialog-output-label");
 
-        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size()));
+        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size(), item.boxId()));
         outputValue.getStyleClass().add("exports-dialog-output-value");
         outputValue.setWrapText(false);
         outputValue.setMinHeight(Region.USE_PREF_SIZE);
         outputValue.setPrefWidth(420);
         outputValue.setMaxWidth(420);
         selectedType.addListener((observable, oldValue, newValue) ->
-                outputValue.setText(buildOutputText(newValue, boxFiles.size()))
+                outputValue.setText(buildOutputText(newValue, boxFiles.size(), item.boxId()))
         );
 
         HBox outputBox = new HBox(9, outputLabel, outputValue);
@@ -374,10 +368,7 @@ public class ExportsController {
         Button exportButton = new Button("Export");
         exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
         exportButton.setDefaultButton(true);
-        exportButton.setOnAction(event -> {
-            // TODO: invoke TIFF export service with item and selectedType.get(), then close on success
-            stage.close();
-        });
+        exportButton.setOnAction(event -> stage.close());
 
         HBox footerActions = new HBox(9, cancelButton, exportButton);
         footerActions.getStyleClass().add("exports-dialog-footer-actions");
@@ -443,7 +434,7 @@ public class ExportsController {
                 ? "exports-dialog-option-button-selected"
                 : "exports-dialog-option-button-unselected");
         checkBadge.setVisible(selected);
-        checkBadge.setManaged(selected);
+        checkBadge.setManaged(true);
     }
 
     private void renderSelectedFiles(GridPane fileGrid, List<String> selectedFiles) {
@@ -484,11 +475,19 @@ public class ExportsController {
     }
 
     private List<String> buildBoxFiles(UserPortalModel.ExportItem item) {
-        // TODO: fetch real document file names for this item from the database
-        return List.of();
+        if (item == null) {
+            return List.of();
+        }
+
+        int documentCount = Math.max(1, item.documents());
+        List<String> files = new ArrayList<>(documentCount);
+        for (int index = 1; index <= documentCount; index++) {
+            files.add("file_" + String.format(Locale.US, "%03d", index));
+        }
+        return files;
     }
 
-    private String buildOutputText(TiffExportType type, int selectedFileCount) {
+    private String buildOutputText(TiffExportType type, int selectedFileCount, String boxId) {
         return switch (type) {
             case SINGLE_PAGE -> selectedFileCount + " separate .tiff " + pluralize(selectedFileCount, "file") + " will be generated";
             case MULTI_PAGE -> "All selected files will be combined into one .tiff file";
@@ -607,6 +606,75 @@ public class ExportsController {
         return bar;
     }
 
+    private void updatePagination(int totalItems, int totalPages) {
+        int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
+        int start = totalItems == 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
+        int end = totalItems == 0 ? 0 : Math.min(currentPage * rowsPerPage, totalItems);
+        paginationSummaryLabel.setText("Showing " + start + "-" + end + " of " + totalItems + " exports");
+        paginationButtonsBox.getChildren().setAll(buildPaginationButtons(totalPages));
+    }
+
+    private List<Node> buildPaginationButtons(int totalPages) {
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(paginationButton("«", 1, currentPage == 1, false));
+        nodes.add(paginationButton("‹", currentPage - 1, currentPage == 1, false));
+
+        for (int page : visiblePages(totalPages)) {
+            if (page < 0) {
+                Label ellipsis = new Label("...");
+                ellipsis.getStyleClass().add("pagination-ellipsis");
+                nodes.add(ellipsis);
+            } else {
+                nodes.add(paginationButton(String.valueOf(page), page, false, page == currentPage));
+            }
+        }
+
+        nodes.add(paginationButton("›", currentPage + 1, currentPage == totalPages, false));
+        nodes.add(paginationButton("»", totalPages, currentPage == totalPages, false));
+        return nodes;
+    }
+
+    private List<Integer> visiblePages(int totalPages) {
+        List<Integer> pages = new ArrayList<>();
+        if (totalPages <= 5) {
+            for (int page = 1; page <= totalPages; page++) {
+                pages.add(page);
+            }
+            return pages;
+        }
+
+        pages.add(1);
+        if (currentPage > 3) {
+            pages.add(-1);
+        }
+
+        int start = Math.max(2, currentPage - 1);
+        int end = Math.min(totalPages - 1, currentPage + 1);
+        for (int page = start; page <= end; page++) {
+            pages.add(page);
+        }
+
+        if (currentPage < totalPages - 2) {
+            pages.add(-1);
+        }
+        pages.add(totalPages);
+        return pages;
+    }
+
+    private Button paginationButton(String text, int targetPage, boolean disabled, boolean active) {
+        Button button = new Button(text);
+        button.getStyleClass().add("pagination-button");
+        if (active) {
+            button.getStyleClass().add("pagination-button-active");
+        }
+        button.setDisable(disabled);
+        button.setOnAction(event -> {
+            currentPage = targetPage;
+            refreshTable();
+        });
+        return button;
+    }
+
     private ColumnConstraints percentColumn(double width) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(width);
@@ -619,14 +687,11 @@ public class ExportsController {
             return null;
         }
 
-        for (DateTimeFormatter formatter : List.of(ITEM_DATE_TIME, LEGACY_ITEM_DATE_TIME)) {
-            try {
-                return LocalDateTime.parse(value.trim(), formatter).toLocalDate();
-            } catch (DateTimeParseException ignored) {
-            }
+        try {
+            return LocalDateTime.parse(value.trim(), ITEM_DATE_TIME).toLocalDate();
+        } catch (DateTimeParseException ignored) {
+            return null;
         }
-
-        return null;
     }
 
     private enum TiffExportType {

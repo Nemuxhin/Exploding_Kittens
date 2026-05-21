@@ -26,7 +26,7 @@ public class UserPortalModel {
     private static final AccountProfile DEFAULT_ACCOUNT =
             new AccountProfile("User", "", "Scanning");
     private static final DateTimeFormatter HISTORY_TIME_FORMAT =
-            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm", Locale.ENGLISH);
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final ScanProfileDAO scanProfileDAO;
     private final CaseFileDAO caseFileDAO;
@@ -46,7 +46,7 @@ public class UserPortalModel {
 
     public record DashboardMetric(String label, String value) {}
     public record AccountProfile(String fullName, String email, String department) {}
-    public record ScanProfileInfo(String documentDetailsRequired, String qaRequired, String splittingMethod) {}
+    public record ScanProfileInfo(String metadataRequired, String qaRequired, String splittingMethod) {}
     public record BoxItem(String id, String description) {
         @Override
         public String toString() {
@@ -137,7 +137,7 @@ public class UserPortalModel {
 
     public List<RecentScanItem> fetchRecentScans() {
         return fetchScanHistory().stream()
-                .limit(4)
+                .limit(5)
                 .map(item -> new RecentScanItem(
                         item.boxId(),
                         item.profileName(),
@@ -203,10 +203,10 @@ public class UserPortalModel {
             return new ScanProfileInfo("-", "-", "-");
         }
 
-        String documentDetailsRequired = scanProfile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No";
-        String qaRequired = scanProfile.isDocumentDetailsRequiredBeforeExport() ? "Yes" : "No";
+        String metadataRequired = scanProfile.isMetadataRequiredBeforeExport() ? "Yes" : "No";
+        String qaRequired = scanProfile.isMetadataRequiredBeforeExport() ? "Yes" : "No";
         String splittingMethod = scanProfile.isBarcodeSplitting() ? "Barcode" : "Manual";
-        return new ScanProfileInfo(documentDetailsRequired, qaRequired, splittingMethod);
+        return new ScanProfileInfo(metadataRequired, qaRequired, splittingMethod);
     }
 
     public AccountProfile fetchAccountProfile() {
