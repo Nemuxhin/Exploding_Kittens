@@ -12,7 +12,7 @@ public class ShortcutManager {
         return List.of(
                 new KeyboardShortcut("Right Arrow", "RIGHT", "Next page", "Move to the next scanned page."),
                 new KeyboardShortcut("Left Arrow", "LEFT", "Previous page", "Move to the previous scanned page."),
-                new KeyboardShortcut("R", "R", "Rotate", "Rotate the selected page."),
+                new KeyboardShortcut("R", "R", "Rotate", "Rotate the selected page by 1 degree."),
                 new KeyboardShortcut("Delete / Backspace", "DELETE", "Delete", "Delete the selected page."),
                 new KeyboardShortcut("Ctrl + Z", "CTRL+Z", "Undo", "Undo the last supported action."),
                 new KeyboardShortcut("Ctrl + S", "CTRL+S", "Save", "Save progress when the current page supports it."),

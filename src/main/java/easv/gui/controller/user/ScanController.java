@@ -886,9 +886,13 @@ public class ScanController {
         }
 
         saveUndoState();
+        rotatePage(selectedPage, -1);
+        refreshVisibleWorkspace();
+    }
 
-        selectedPage.rotationDegrees = normalizeRotation(selectedPage.rotationDegrees - 90);
-        refreshWorkspace();
+    @FXML
+    private void onRotateAllLeft() {
+        rotateAllNormalPages(-1);
     }
 
     @FXML
@@ -898,9 +902,39 @@ public class ScanController {
         }
 
         saveUndoState();
+        rotatePage(selectedPage, 1);
+        refreshVisibleWorkspace();
+    }
 
-        selectedPage.rotationDegrees = normalizeRotation(selectedPage.rotationDegrees + 90);
-        refreshWorkspace();
+    @FXML
+    private void onRotateAllRight() {
+        rotateAllNormalPages(1);
+    }
+
+    private void rotateAllNormalPages(int degrees) {
+        List<ScannedPage> normalPages = allPages.stream()
+                .filter(page -> !page.barcode)
+                .toList();
+
+        if (normalPages.isEmpty()) {
+            return;
+        }
+
+        saveUndoState();
+        normalPages.forEach(page -> rotatePage(page, degrees));
+        refreshVisibleWorkspace();
+    }
+
+    private void rotatePage(ScannedPage page, int degrees) {
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + degrees);
+    }
+
+    private void refreshVisibleWorkspace() {
+        if (isReviewWorkspaceVisible()) {
+            refreshReviewWorkspace();
+        } else {
+            refreshWorkspace();
+        }
     }
 
     private int normalizeRotation(int rotationDegrees) {

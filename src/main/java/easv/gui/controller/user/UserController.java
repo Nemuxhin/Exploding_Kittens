@@ -996,8 +996,7 @@ public class UserController implements UserNavigator {
 
     private HBox createKeyboardShortcutRow(ShortcutData shortcut) {
         Label icon = new Label(shortcut.icon());
-        icon.getStyleClass().addAll("prime-icon", "weblager-shortcuts-row-icon");
-        PrimeIcons.applyFont(icon);
+        icon.getStyleClass().add("weblager-shortcuts-row-icon");
 
         StackPane iconShell = new StackPane(icon);
         iconShell.getStyleClass().add("weblager-shortcuts-row-icon-shell");
@@ -1036,19 +1035,19 @@ public class UserController implements UserNavigator {
 
     private String shortcutIcon(String actionName) {
         return switch (actionName) {
-            case "Next page" -> "\ue933";
-            case "Previous page" -> "\ue932";
-            case "Rotate" -> "\ue914";
-            case "Delete" -> "\ue90b";
-            case "Undo" -> "\ue931";
-            case "Save" -> "\ue962";
-            case "Search / jump" -> "\ue908";
-            case "Export" -> "\ue956";
-            case "Zoom in" -> "\ue9dd";
-            case "Zoom out" -> "\ue9de";
-            case "Escape" -> "\ue90b";
-            case "Shortcut help" -> "\ue981";
-            default -> "\ue981";
+            case "Next page" -> "→";
+            case "Previous page" -> "←";
+            case "Rotate" -> "↻";
+            case "Delete" -> "⌫";
+            case "Undo" -> "↶";
+            case "Save" -> "💾";
+            case "Search / jump" -> "⌕";
+            case "Export" -> "⇩";
+            case "Zoom in" -> "+";
+            case "Zoom out" -> "−";
+            case "Escape" -> "Esc";
+            case "Shortcut help" -> "?";
+            default -> "•";
         };
     }
 

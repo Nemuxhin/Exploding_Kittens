@@ -522,13 +522,23 @@
                     <Label text="Page Tools"
                            styleClass="scan-tools-section-label"/>
 
-                    <Button text="Rotate Left"
+                    <Button text="Rotate Left 1°"
                             onAction="#onRotateLeft"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Right"
+                    <Button text="Rotate Right 1°"
                             onAction="#onRotateRight"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
+                    <Button text="Rotate All Left 1°"
+                            onAction="#onRotateAllLeft"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
+
+                    <Button text="Rotate All Right 1°"
+                            onAction="#onRotateAllRight"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
