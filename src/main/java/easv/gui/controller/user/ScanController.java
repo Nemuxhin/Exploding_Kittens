@@ -79,6 +79,7 @@ public class ScanController {
 
     @FXML private ComboBox<String> profileComboBox;
     @FXML private ComboBox<String> boxRotationComboBox;
+    @FXML private ComboBox<String> pageRotationComboBox;
     @FXML private TextField boxIdTextField;
 
     @FXML private Button profileInfoButton;
@@ -165,6 +166,7 @@ public class ScanController {
     private boolean scanInProgress = false;
     private int sessionRotationDegrees = 0;
     private boolean syncingBoxRotationComboBox = false;
+    private boolean syncingPageRotationComboBox = false;
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -192,6 +194,7 @@ public class ScanController {
     private void initialize() {
         configureProfiles();
         configureBoxRotation();
+        configurePageRotation();
         configureProfileInfo();
         configureValidation();
         configureDocumentTreeScroll();
@@ -205,6 +208,42 @@ public class ScanController {
         hideFinishReviewModal();
         hideSubmitConfirmationModal();
         showSetupView();
+    }
+
+    private void configurePageRotation() {
+        if (pageRotationComboBox == null) {
+            return;
+        }
+
+        pageRotationComboBox.getItems().setAll(BOX_ROTATION_OPTIONS);
+        pageRotationComboBox.setEditable(true);
+        pageRotationComboBox.setPromptText("Enter rotation in degrees");
+        syncPageRotationComboBox();
+        pageRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null || newValue.isBlank() || syncingPageRotationComboBox) {
+                return;
+            }
+
+            applyPageRotationSelection(newValue);
+        });
+
+        if (pageRotationComboBox.getEditor() != null) {
+            pageRotationComboBox.getEditor().setOnAction(event -> commitCustomPageRotation());
+            pageRotationComboBox.getEditor().focusedProperty().addListener((observable, oldValue, focused) -> {
+                if (!focused) {
+                    commitCustomPageRotation();
+                }
+            });
+        }
+
+        if (rotateLeftButton != null) {
+            rotateLeftButton.setVisible(false);
+            rotateLeftButton.setManaged(false);
+        }
+        if (rotateRightButton != null) {
+            rotateRightButton.setVisible(false);
+            rotateRightButton.setManaged(false);
+        }
     }
 
     private void configureDocumentTreeScroll() {
@@ -370,6 +409,20 @@ public class ScanController {
         boxRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
     }
 
+    private void commitCustomPageRotation() {
+        if (pageRotationComboBox == null || pageRotationComboBox.getEditor() == null) {
+            return;
+        }
+
+        String editorValue = pageRotationComboBox.getEditor().getText();
+        if (editorValue == null || editorValue.isBlank()) {
+            syncPageRotationComboBox();
+            return;
+        }
+
+        pageRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
+    }
+
     private void applyBoxRotationSelection(String oldValue, String newValue) {
         int newRotationDegrees = parseRotationDegrees(newValue);
 
@@ -399,6 +452,24 @@ public class ScanController {
             page.rotationDegrees = normalizeRotation(page.rotationDegrees + rotationDelta);
         }
 
+        refreshWorkspace();
+    }
+
+    private void applyPageRotationSelection(String newValue) {
+        ScannedPage page = resolveActiveNormalPage();
+        if (page == null) {
+            syncPageRotationComboBox();
+            return;
+        }
+
+        int newRotationDegrees = parseRotationDegrees(newValue);
+        if (page.rotationDegrees == newRotationDegrees) {
+            syncPageRotationComboBox();
+            return;
+        }
+
+        saveUndoState();
+        page.rotationDegrees = newRotationDegrees;
         refreshWorkspace();
     }
 
@@ -1225,25 +1296,27 @@ public class ScanController {
 
     @FXML
     private void onRotateLeft() {
-        if (!hasNormalSelectedPage()) {
+        ScannedPage page = resolveActiveNormalPage();
+        if (page == null) {
             return;
         }
 
         saveUndoState();
 
-        selectedPage.rotationDegrees = normalizeRotation(selectedPage.rotationDegrees - 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
         refreshWorkspace();
     }
 
     @FXML
     private void onRotateRight() {
-        if (!hasNormalSelectedPage()) {
+        ScannedPage page = resolveActiveNormalPage();
+        if (page == null) {
             return;
         }
 
         saveUndoState();
 
-        selectedPage.rotationDegrees = normalizeRotation(selectedPage.rotationDegrees + 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
         refreshWorkspace();
     }
 
@@ -1508,6 +1581,21 @@ public class ScanController {
         return selectedPage != null && !selectedPage.barcode;
     }
 
+    private ScannedPage resolveActiveNormalPage() {
+        if (hasNormalSelectedPage()) {
+            return selectedPage;
+        }
+
+        for (ScannedPage page : allPages) {
+            if (!page.barcode) {
+                selectedPage = page;
+                return page;
+            }
+        }
+
+        return null;
+    }
+
     @FXML
     private void onViewMyScans() {
         navigator.showMyScans();
@@ -1562,6 +1650,7 @@ public class ScanController {
         updateWorkspaceHeader();
         refreshHeaderInfoChips();
         updateRotationButtons();
+        syncPageRotationComboBox();
         renderDocumentTree();
         renderPreview();
         updateUndoButtonState();
@@ -1592,6 +1681,21 @@ public class ScanController {
             boxRotationComboBox.setValue(formatRotationDegrees(sessionRotationDegrees));
             syncingBoxRotationComboBox = false;
         }
+    }
+
+    private void syncPageRotationComboBox() {
+        if (pageRotationComboBox == null) {
+            return;
+        }
+
+        syncingPageRotationComboBox = true;
+        ScannedPage page = hasNormalSelectedPage() ? selectedPage : null;
+        String rotationValue = formatRotationDegrees(page == null ? 0 : page.rotationDegrees);
+        pageRotationComboBox.setValue(rotationValue);
+        if (pageRotationComboBox.getEditor() != null) {
+            pageRotationComboBox.getEditor().setText(rotationValue);
+        }
+        syncingPageRotationComboBox = false;
     }
 
     private String formatRotationDegrees(int rotationDegrees) {

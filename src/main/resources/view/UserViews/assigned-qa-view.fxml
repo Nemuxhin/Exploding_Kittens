@@ -529,6 +529,8 @@
                                     fx:id="qaRotateLeftButton"
                                     onAction="#onRotateLeft"
                                     maxWidth="Infinity"
+                                    visible="false"
+                                    managed="false"
                                     focusTraversable="false"
                                     styleClass="qa-neutral-button"/>
 
@@ -536,6 +538,8 @@
                                     fx:id="qaRotateRightButton"
                                     onAction="#onRotateRight"
                                     maxWidth="Infinity"
+                                    visible="false"
+                                    managed="false"
                                     focusTraversable="false"
                                     styleClass="qa-neutral-button"/>
                         </VBox>

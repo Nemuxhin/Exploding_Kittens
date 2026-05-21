@@ -570,6 +570,14 @@
                            wrapText="true"
                            styleClass="helper-text"/>
 
+                    <Label text="Selected Page Rotation"
+                           styleClass="scan-tools-section-label"/>
+
+                    <ComboBox fx:id="pageRotationComboBox"
+                              maxWidth="Infinity"
+                              promptText="Enter rotation in degrees"
+                              styleClass="scan-tool-button"/>
+
                     <Button text="Rotate Left (90°)"
                             fx:id="rotateLeftButton"
                             onAction="#onRotateLeft"
