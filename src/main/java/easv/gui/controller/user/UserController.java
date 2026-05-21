@@ -26,7 +26,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -43,8 +42,6 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -92,8 +89,6 @@ public class UserController implements UserNavigator {
 
     @FXML private Button keyboardShortcutsButton;
     @FXML private Button helpButton;
-    @FXML private Button backNavigationButton;
-    @FXML private Button homeNavigationButton;
 
     @FXML private Button accountMenuButton;
     @FXML private Label accountNameLabel;
@@ -116,9 +111,7 @@ public class UserController implements UserNavigator {
     private Object activePageController;
     private final Map<UserPage, Node> pageCache = new EnumMap<>(UserPage.class);
     private final Map<UserPage, Object> controllerCache = new EnumMap<>(UserPage.class);
-    private final Deque<UserPage> pageHistory = new ArrayDeque<>();
     private UserPage currentPage;
-    private boolean movingThroughHistory;
     private Scene shortcutScene;
     private boolean rootShortcutFiltersRegistered;
 
@@ -130,27 +123,12 @@ public class UserController implements UserNavigator {
     private void initialize() {
         configureAccount();
         configureAccountMenu();
-        configureBrowserNavigationButtons();
         configureKeyboardShortcutsButton();
         configureHelpButton();
         configureThemeToggle();
         configureNavigation();
         configureGlobalShortcuts();
         showPage(UserPage.DASHBOARD);
-    }
-
-    private void configureBrowserNavigationButtons() {
-        if (backNavigationButton != null) {
-            backNavigationButton.setTooltip(new Tooltip("Go back"));
-            backNavigationButton.setOnAction(event -> goBack());
-        }
-
-        if (homeNavigationButton != null) {
-            homeNavigationButton.setTooltip(new Tooltip("Go to dashboard"));
-            homeNavigationButton.setOnAction(event -> showPage(UserPage.DASHBOARD));
-        }
-
-        updateBrowserNavigationButtons();
     }
 
     private void configureAccount() {
@@ -299,7 +277,10 @@ public class UserController implements UserNavigator {
             ToggleButton navItem = getNavItem(page);
 
             if (navItem != null) {
-                navItem.setOnAction(event -> showPage(page));
+                navItem.setOnAction(event -> {
+                    event.consume();
+                    showPage(page);
+                });
             }
         }
     }
@@ -455,53 +436,37 @@ public class UserController implements UserNavigator {
     @Override
     public void showPage(UserPage page) {
         hideAccountDropdown();
-        rememberCurrentPageBeforeOpening(page);
         loadPage(page);
         currentPage = page;
         setActiveNavItem(getNavItem(page));
-        updateBrowserNavigationButtons();
-    }
-
-    private void rememberCurrentPageBeforeOpening(UserPage nextPage) {
-        if (movingThroughHistory || currentPage == null || currentPage == nextPage) {
-            return;
-        }
-
-        pageHistory.push(currentPage);
-    }
-
-    private void goBack() {
-        if (pageHistory.isEmpty()) {
-            return;
-        }
-
-        UserPage previousPage = pageHistory.pop();
-        movingThroughHistory = true;
-        try {
-            showPage(previousPage);
-        } finally {
-            movingThroughHistory = false;
-        }
-    }
-
-    private void updateBrowserNavigationButtons() {
-        if (backNavigationButton != null) {
-            backNavigationButton.setDisable(pageHistory.isEmpty());
-        }
-
-        if (homeNavigationButton != null) {
-            homeNavigationButton.setDisable(currentPage == null || currentPage == UserPage.DASHBOARD);
-        }
     }
 
     @Override
     public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
         showPage(UserPage.SCAN);
+        prepareScanResume(item);
     }
 
     @Override
     public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
         showPage(UserPage.SCAN);
+        prepareScanResume(item);
+    }
+
+    private void prepareScanResume(UserPortalModel.RecentScanItem item) {
+        if (item == null || !(activePageController instanceof ScanController scanController)) {
+            return;
+        }
+
+        scanController.prepareResumeFromHistory(item.boxId(), item.profileName());
+    }
+
+    private void prepareScanResume(UserPortalModel.HistoryItem item) {
+        if (item == null || !(activePageController instanceof ScanController scanController)) {
+            return;
+        }
+
+        scanController.prepareResumeFromHistory(item);
     }
 
     private void loadPage(UserPage page) {
@@ -539,6 +504,11 @@ public class UserController implements UserNavigator {
     }
 
     private boolean showCachedPage(UserPage page) {
+        // The scan page has form state, so we reload it to avoid showing an old page by mistake.
+        if (page == UserPage.SCAN) {
+            return false;
+        }
+
         Node cachedPage = pageCache.get(page);
         if (cachedPage == null) {
             return false;
@@ -553,7 +523,13 @@ public class UserController implements UserNavigator {
         activePageController = controller;
         contentHost.getChildren().setAll(pageNode);
 
-        // Keep visited pages ready, so navigation feels instant after the first load.
+        if (page == UserPage.SCAN) {
+            pageCache.remove(page);
+            controllerCache.remove(page);
+            return;
+        }
+
+        // Keep simple pages ready, so navigation feels instant after the first load.
         pageCache.put(page, pageNode);
         controllerCache.put(page, controller);
     }
@@ -614,8 +590,12 @@ public class UserController implements UserNavigator {
     private void setActiveNavItem(ToggleButton activeNavItem) {
         for (ToggleButton navItem : getNavigationItems()) {
             if (navItem != null) {
-                setNavItemActive(navItem, navItem == activeNavItem);
+                setNavItemActive(navItem, false);
             }
+        }
+
+        if (activeNavItem != null) {
+            setNavItemActive(activeNavItem, true);
         }
     }
 
@@ -626,7 +606,9 @@ public class UserController implements UserNavigator {
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
-            addNavCloseButton(navItem);
+            if (navItem != dashboardNavItem) {
+                addNavCloseButton(navItem);
+            }
         }
     }
 
@@ -637,6 +619,8 @@ public class UserController implements UserNavigator {
 
         Label closeLabel = new Label("x");
         closeLabel.getStyleClass().add("admin-top-nav-close");
+        closeLabel.setOnMousePressed(event -> event.consume());
+        closeLabel.setOnMouseReleased(event -> event.consume());
         closeLabel.setOnMouseClicked(event -> {
             event.consume();
             showPage(UserPage.DASHBOARD);
@@ -910,6 +894,8 @@ public class UserController implements UserNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
+        dialog.getDialogPane().setPrefSize(560, 460);
+        dialog.getDialogPane().setMaxSize(560, 460);
         dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
         dialog.showAndWait();
     }
@@ -962,20 +948,15 @@ public class UserController implements UserNavigator {
     }
 
     private VBox createKeyboardShortcutsBody(Dialog<ButtonType> dialog) {
-        GridPane grid = new GridPane();
-        grid.getStyleClass().add("weblager-shortcuts-grid");
-        grid.setHgap(18);
-        grid.setVgap(14);
+        VBox sections = new VBox(12);
+        sections.getChildren().setAll(
+                createShortcutSection("General shortcuts", "Save", "Undo", "Search / jump", "Escape", "Shortcut help"),
+                createShortcutSection("Navigation shortcuts", "Next page", "Previous page", "Export"),
+                createShortcutSection("Scanning shortcuts", "Rotate", "Delete", "Zoom in", "Zoom out")
+        );
 
-        List<ShortcutData> shortcuts = shortcutManager.getShortcuts().stream()
-                .map(this::shortcutData)
-                .toList();
-
-        for (int index = 0; index < shortcuts.size(); index++) {
-            int column = index % 2;
-            int row = index / 2;
-            grid.add(createKeyboardShortcutRow(shortcuts.get(index)), column, row);
-        }
+        ScrollPane sectionsScroll = new ScrollPane(sections);
+        configureShortcutScroll(sectionsScroll);
 
         Label footerText = new Label("Open this dialog anytime from the keyboard button, F1, or ?.");
         footerText.getStyleClass().add("weblager-shortcuts-footer-text");
@@ -987,11 +968,69 @@ public class UserController implements UserNavigator {
             dialog.close();
         });
 
-        VBox body = new VBox(18, grid, footerText, closeButton);
+        VBox body = new VBox(12, sectionsScroll, footerText, closeButton);
         body.getStyleClass().add("weblager-shortcuts-body");
         body.setAlignment(Pos.TOP_CENTER);
 
         return body;
+    }
+
+    private void configureShortcutScroll(ScrollPane scrollPane) {
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPannable(true);
+        scrollPane.setFocusTraversable(true);
+        scrollPane.setPrefViewportHeight(260);
+        scrollPane.setMaxHeight(260);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.getStyleClass().add("weblager-shortcuts-scroll");
+        scrollPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> scrollShortcutDialog(scrollPane, event));
+    }
+
+    private void scrollShortcutDialog(ScrollPane scrollPane, KeyEvent event) {
+        double step = 0.10;
+
+        if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.PAGE_DOWN) {
+            scrollPane.setVvalue(Math.min(1.0, scrollPane.getVvalue() + step));
+            event.consume();
+        } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.PAGE_UP) {
+            scrollPane.setVvalue(Math.max(0.0, scrollPane.getVvalue() - step));
+            event.consume();
+        }
+    }
+
+    private VBox createShortcutSection(String titleText, String... actionNames) {
+        Label title = new Label(titleText);
+        title.getStyleClass().add("weblager-shortcuts-section-title");
+
+        VBox rows = new VBox(6);
+        for (String actionName : actionNames) {
+            findShortcut(actionName).ifPresent(shortcut -> rows.getChildren().add(createShortcutLine(shortcut)));
+        }
+
+        VBox section = new VBox(8, title, rows);
+        section.getStyleClass().add("weblager-shortcuts-section");
+        return section;
+    }
+
+    private java.util.Optional<KeyboardShortcut> findShortcut(String actionName) {
+        return shortcutManager.getShortcuts().stream()
+                .filter(shortcut -> actionName.equals(shortcut.getActionName()))
+                .findFirst();
+    }
+
+    private HBox createShortcutLine(KeyboardShortcut shortcut) {
+        Label key = new Label(shortcut.getDisplayKeys());
+        key.getStyleClass().add("weblager-shortcuts-key");
+
+        Label action = new Label(shortcut.getActionName() + " - " + shortcut.getDescription());
+        action.getStyleClass().add("weblager-shortcuts-action-description");
+        action.setWrapText(true);
+
+        HBox row = new HBox(12, key, action);
+        row.getStyleClass().add("weblager-shortcuts-simple-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     private HBox createKeyboardShortcutRow(ShortcutData shortcut) {

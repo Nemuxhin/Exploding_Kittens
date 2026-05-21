@@ -332,8 +332,10 @@
    ========================================================= */
 
 .weblager-shortcuts-dialog-pane {
-    -fx-pref-width: 760;
-    -fx-max-width: 760;
+    -fx-pref-width: 560;
+    -fx-pref-height: 460;
+    -fx-max-width: 560;
+    -fx-max-height: 460;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 18;
     -fx-border-color: -wl-border;
@@ -379,10 +381,10 @@
 }
 
 .weblager-shortcuts-header {
-    -fx-min-height: 84;
-    -fx-pref-height: 84;
-    -fx-max-height: 84;
-    -fx-padding: 0 22 0 22;
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-padding: 0 16 0 16;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
@@ -390,12 +392,12 @@
 }
 
 .weblager-shortcuts-title-icon-shell {
-    -fx-min-width: 48;
-    -fx-pref-width: 48;
-    -fx-max-width: 48;
-    -fx-min-height: 48;
-    -fx-pref-height: 48;
-    -fx-max-height: 48;
+    -fx-min-width: 38;
+    -fx-pref-width: 38;
+    -fx-max-width: 38;
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-max-height: 38;
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 14;
     -fx-border-color: -wl-border;
@@ -407,7 +409,7 @@
 .weblager-shortcuts-title-icon {
     -fx-fill: -wl-primary;
     -fx-text-fill: -wl-primary;
-    -fx-font-size: 22px;
+    -fx-font-size: 18px;
 }
 
 .weblager-shortcuts-header-copy {
@@ -416,7 +418,7 @@
 
 .weblager-shortcuts-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 24px;
+    -fx-font-size: 20px;
     -fx-font-weight: 700;
 }
 
@@ -458,8 +460,63 @@
 .weblager-shortcuts-body {
     -fx-background-color: -wl-background;
     -fx-background-radius: 0 0 18 18;
-    -fx-padding: 18 18 16 18;
+    -fx-padding: 12 14 12 14;
     -fx-alignment: top-center;
+}
+
+.weblager-shortcuts-section {
+    -fx-padding: 9;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.weblager-shortcuts-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.weblager-shortcuts-simple-row {
+    -fx-min-height: 24;
+    -fx-alignment: center-left;
+}
+
+.weblager-shortcuts-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+    -fx-fit-to-width: true;
+}
+
+.weblager-shortcuts-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.weblager-shortcuts-scroll .scroll-bar:vertical {
+    -fx-padding: 3 2 3 6;
+}
+
+.weblager-shortcuts-scroll .scroll-bar:vertical .increment-button,
+.weblager-shortcuts-scroll .scroll-bar:vertical .decrement-button {
+    -fx-min-height: 14;
+    -fx-pref-height: 14;
+    -fx-padding: 2;
+    -fx-background-color: transparent;
+}
+
+.weblager-shortcuts-scroll .scroll-bar:vertical .increment-arrow {
+    -fx-padding: 3;
+    -fx-shape: "M 0 0 L 4 4 L 8 0 Z";
+    -fx-background-color: -wl-text-muted;
+}
+
+.weblager-shortcuts-scroll .scroll-bar:vertical .decrement-arrow {
+    -fx-padding: 3;
+    -fx-shape: "M 0 4 L 4 0 L 8 4 Z";
+    -fx-background-color: -wl-text-muted;
 }
 
 .weblager-shortcuts-grid {

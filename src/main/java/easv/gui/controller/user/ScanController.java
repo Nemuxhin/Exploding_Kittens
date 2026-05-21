@@ -11,6 +11,7 @@ import easv.bll.ScanManager;
 import easv.bll.UserSession;
 import easv.dal.DataAccessException;
 import easv.dal.ScanProfileDAO;
+import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -146,6 +147,8 @@ public class ScanController {
     private boolean scanningStoppedByBarcode = false;
     private String pendingBarcodeBehavior = "Continue scanning when barcode is found";
     private String activeBarcodeBehavior = "Continue scanning when barcode is found";
+    private String pendingResumeProfileName = "";
+    private String pendingResumeBoxId = "";
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -163,6 +166,21 @@ public class ScanController {
 
     public void setNavigator(UserNavigator navigator) {
         this.navigator = navigator == null ? UserNavigator.none() : navigator;
+    }
+
+    public void prepareResumeFromHistory(UserPortalModel.HistoryItem item) {
+        if (item == null) {
+            return;
+        }
+
+        prepareResumeFromHistory(item.boxId(), item.profileName());
+    }
+
+    public void prepareResumeFromHistory(String boxId, String profileName) {
+        pendingResumeBoxId = boxId == null ? "" : boxId.trim();
+        pendingResumeProfileName = profileName == null ? "" : profileName.trim();
+        applyPendingResumeDetails();
+        showSetupView();
     }
 
     @FXML
@@ -1324,10 +1342,26 @@ public class ScanController {
                 SearchableComboBoxes.configure(profileComboBox);
                 profileComboBox.setDisable(false);
                 profileComboBox.setPromptText(profileNames.isEmpty() ? "No profiles available" : "Select profile");
+                applyPendingResumeDetails();
                 updateProfileInfo(profileComboBox.getValue());
                 updateStartScanningState();
             });
         });
+    }
+
+    private void applyPendingResumeDetails() {
+        if (boxIdTextField != null && !pendingResumeBoxId.isBlank()) {
+            boxIdTextField.setText(pendingResumeBoxId);
+        }
+
+        if (profileComboBox != null
+                && !pendingResumeProfileName.isBlank()
+                && profileComboBox.getItems().stream().anyMatch(name -> name.equalsIgnoreCase(pendingResumeProfileName))) {
+            profileComboBox.setValue(pendingResumeProfileName);
+            updateProfileInfo(pendingResumeProfileName);
+        }
+
+        updateStartScanningState();
     }
 
     private String defaultBarcodeBehavior(ScanProfile profile) {

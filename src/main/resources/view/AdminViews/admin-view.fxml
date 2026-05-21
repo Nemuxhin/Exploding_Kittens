@@ -152,6 +152,17 @@
                           spacing="9"
                           styleClass="admin-account">
 
+                        <Button fx:id="keyboardShortcutsButton"
+                                focusTraversable="false"
+                                contentDisplay="GRAPHIC_ONLY"
+                                styleClass="admin-toolbar-button">
+                            <graphic>
+                                <StackPane styleClass="admin-toolbar-icon-shell">
+                                    <Label text="&#xe981;" styleClass="prime-icon admin-toolbar-icon"/>
+                                </StackPane>
+                            </graphic>
+                        </Button>
+
                         <Button focusTraversable="false"
                                 contentDisplay="GRAPHIC_ONLY"
                                 styleClass="admin-toolbar-button">
