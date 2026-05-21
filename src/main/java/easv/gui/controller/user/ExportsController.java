@@ -1,6 +1,7 @@
 package easv.gui.controller.user;
 
 import easv.gui.UserPortalModel;
+import easv.gui.controller.utilities.PaginationHelper;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
@@ -29,7 +30,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -167,23 +167,22 @@ public class ExportsController {
 
         int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
         int totalItems = visibleItems.size();
-        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) rowsPerPage));
-        currentPage = Math.max(1, Math.min(currentPage, totalPages));
+        PaginationHelper.PageSlice slice = PaginationHelper.slice(currentPage, rowsPerPage, totalItems);
+        currentPage = slice.currentPage();
 
         if (visibleItems.isEmpty()) {
             table.getChildren().add(emptyRow("No matching exports"));
-            updatePagination(totalItems, totalPages);
-            return;
+        } else {
+            for (UserPortalModel.ExportItem item : visibleItems.subList(slice.fromIndex(), slice.toIndex())) {
+                table.getChildren().add(createDataRow(item));
+            }
         }
 
-        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalItems);
-        int toIndex = Math.min(fromIndex + rowsPerPage, totalItems);
-
-        for (UserPortalModel.ExportItem item : visibleItems.subList(fromIndex, toIndex)) {
-            table.getChildren().add(createDataRow(item));
-        }
-
-        updatePagination(totalItems, totalPages);
+        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, slice,
+                totalItems, "exports", page -> {
+                    currentPage = page;
+                    refreshTable();
+                });
     }
 
     private boolean matchesFilters(UserPortalModel.ExportItem item) {
@@ -606,75 +605,6 @@ public class ExportsController {
         HBox bar = new HBox(18, summaryBox, centerBox, rowsPerPageBox);
         bar.getStyleClass().add("pagination-bar");
         return bar;
-    }
-
-    private void updatePagination(int totalItems, int totalPages) {
-        int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
-        int start = totalItems == 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
-        int end = totalItems == 0 ? 0 : Math.min(currentPage * rowsPerPage, totalItems);
-        paginationSummaryLabel.setText("Showing " + start + "-" + end + " of " + totalItems + " exports");
-        paginationButtonsBox.getChildren().setAll(buildPaginationButtons(totalPages));
-    }
-
-    private List<Node> buildPaginationButtons(int totalPages) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(paginationButton("«", 1, currentPage == 1, false));
-        nodes.add(paginationButton("‹", currentPage - 1, currentPage == 1, false));
-
-        for (int page : visiblePages(totalPages)) {
-            if (page < 0) {
-                Label ellipsis = new Label("...");
-                ellipsis.getStyleClass().add("pagination-ellipsis");
-                nodes.add(ellipsis);
-            } else {
-                nodes.add(paginationButton(String.valueOf(page), page, false, page == currentPage));
-            }
-        }
-
-        nodes.add(paginationButton("›", currentPage + 1, currentPage == totalPages, false));
-        nodes.add(paginationButton("»", totalPages, currentPage == totalPages, false));
-        return nodes;
-    }
-
-    private List<Integer> visiblePages(int totalPages) {
-        List<Integer> pages = new ArrayList<>();
-        if (totalPages <= 5) {
-            for (int page = 1; page <= totalPages; page++) {
-                pages.add(page);
-            }
-            return pages;
-        }
-
-        pages.add(1);
-        if (currentPage > 3) {
-            pages.add(-1);
-        }
-
-        int start = Math.max(2, currentPage - 1);
-        int end = Math.min(totalPages - 1, currentPage + 1);
-        for (int page = start; page <= end; page++) {
-            pages.add(page);
-        }
-
-        if (currentPage < totalPages - 2) {
-            pages.add(-1);
-        }
-        pages.add(totalPages);
-        return pages;
-    }
-
-    private Button paginationButton(String text, int targetPage, boolean disabled, boolean active) {
-        Button button = new Button(text);
-        button.getStyleClass().add("pagination-button");
-        if (active) {
-            button.getStyleClass().add("pagination-button-active");
-        }
-        button.setDisable(disabled);
-        button.setOnAction(event -> {
-            currentPage = targetPage;
-            refreshTable();
-        });
-        return button;
     }
 
     private ColumnConstraints percentColumn(double width) {

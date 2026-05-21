@@ -8,6 +8,7 @@ import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
 import easv.dal.UserDAO;
+import easv.util.Strings;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,7 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -66,7 +66,7 @@ public class AdminManager {
                 input.getName(),
                 input.getUsername(),
                 input.getEmail(),
-                PasswordHasher.hash(clean(input.getPlainPassword())),
+                PasswordHasher.hash(Strings.clean(input.getPlainPassword())),
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
@@ -89,12 +89,12 @@ public class AdminManager {
         User user = findRequiredUser(userId);
         validateUserInput(input, userId);
         User previousUser = copyUser(user);
-        boolean passwordChanged = !clean(input.getPlainPassword()).isBlank();
+        boolean passwordChanged = !Strings.clean(input.getPlainPassword()).isBlank();
 
         String updatedPasswordHash = user.getPasswordHash();
 
         if (passwordChanged) {
-            updatedPasswordHash = PasswordHasher.hash(clean(input.getPlainPassword()));
+            updatedPasswordHash = PasswordHasher.hash(Strings.clean(input.getPlainPassword()));
         }
 
         User updatedUser = new User(
@@ -185,7 +185,7 @@ public class AdminManager {
     }
 
     public boolean usernameExists(String username, Integer excludedUserId) {
-        String normalizedUsername = normalize(username);
+        String normalizedUsername = Strings.normalize(username);
 
         if (normalizedUsername.isBlank()) {
             return false;
@@ -194,7 +194,7 @@ public class AdminManager {
         return users.stream()
                 .filter(user -> excludedUserId == null || user.getId() != excludedUserId)
                 .map(User::getUsername)
-                .map(this::normalize)
+                .map(Strings::normalize)
                 .anyMatch(existingUsername -> existingUsername.equals(normalizedUsername));
     }
 
@@ -312,7 +312,7 @@ public class AdminManager {
     public void deleteProfile(int profileId) {
         ScanProfile profile = findRequiredProfile(profileId);
         String deletedProfileName = profile.getName();
-        String normalizedDeletedProfileName = normalize(deletedProfileName);
+        String normalizedDeletedProfileName = Strings.normalize(deletedProfileName);
 
         metadataDAO.deleteProfile(profileId);
 
@@ -321,7 +321,7 @@ public class AdminManager {
 
         users.forEach(user -> user.setAssignedProfiles(
                 user.getAssignedProfiles().stream()
-                        .filter(profileName -> !normalize(profileName).equals(normalizedDeletedProfileName))
+                        .filter(profileName -> !Strings.normalize(profileName).equals(normalizedDeletedProfileName))
                         .toList()
         ));
 
@@ -331,7 +331,7 @@ public class AdminManager {
     }
 
     public boolean profileCodeExists(String code, Integer excludedProfileId) {
-        String normalizedCode = normalize(code);
+        String normalizedCode = Strings.normalize(code);
 
         if (normalizedCode.isBlank()) {
             return false;
@@ -340,7 +340,7 @@ public class AdminManager {
         return profiles.stream()
                 .filter(profile -> excludedProfileId == null || profile.getId() != excludedProfileId)
                 .map(ScanProfile::getCode)
-                .map(this::normalize)
+                .map(Strings::normalize)
                 .anyMatch(existingCode -> existingCode.equals(normalizedCode));
     }
 
@@ -351,7 +351,7 @@ public class AdminManager {
     }
 
     public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
-        if (updatedRecord == null || clean(updatedRecord.getId()).isBlank()) {
+        if (updatedRecord == null || Strings.clean(updatedRecord.getId()).isBlank()) {
             throw new IllegalArgumentException("Review record is required.");
         }
 
@@ -534,7 +534,7 @@ public class AdminManager {
     private String currentActorName() {
         User currentUser = UserSession.getCurrentUser();
 
-        if (currentUser == null || clean(currentUser.getName()).isBlank()) {
+        if (currentUser == null || Strings.clean(currentUser.getName()).isBlank()) {
             return "Admin";
         }
 
@@ -560,11 +560,11 @@ public class AdminManager {
             throw new IllegalArgumentException("User details are required.");
         }
 
-        if (clean(input.getName()).isBlank()) {
+        if (Strings.clean(input.getName()).isBlank()) {
             throw new IllegalArgumentException("Full name is required.");
         }
 
-        if (clean(input.getUsername()).isBlank()) {
+        if (Strings.clean(input.getUsername()).isBlank()) {
             throw new IllegalArgumentException("Username is required.");
         }
 
@@ -572,19 +572,19 @@ public class AdminManager {
             throw new IllegalArgumentException("Username must be unique.");
         }
 
-        if (excludedUserId == null && clean(input.getPlainPassword()).isBlank()) {
+        if (excludedUserId == null && Strings.clean(input.getPlainPassword()).isBlank()) {
             throw new IllegalArgumentException("Temporary password is required.");
         }
 
-        if (!clean(input.getEmail()).isBlank() && !isValidEmail(input.getEmail())) {
+        if (!Strings.clean(input.getEmail()).isBlank() && !isValidEmail(input.getEmail())) {
             throw new IllegalArgumentException("Email must be valid if entered.");
         }
 
-        if (clean(input.getRole()).isBlank()) {
+        if (Strings.clean(input.getRole()).isBlank()) {
             throw new IllegalArgumentException("Role is required.");
         }
 
-        if (clean(input.getStatus()).isBlank()) {
+        if (Strings.clean(input.getStatus()).isBlank()) {
             throw new IllegalArgumentException("Status is required.");
         }
     }
@@ -594,11 +594,11 @@ public class AdminManager {
             throw new IllegalArgumentException("Profile details are required.");
         }
 
-        if (clean(input.getName()).isBlank()) {
+        if (Strings.clean(input.getName()).isBlank()) {
             throw new IllegalArgumentException("Profile name is required.");
         }
 
-        if (clean(input.getCode()).isBlank()) {
+        if (Strings.clean(input.getCode()).isBlank()) {
             throw new IllegalArgumentException("Profile code is required.");
         }
 
@@ -606,7 +606,7 @@ public class AdminManager {
             throw new IllegalArgumentException("Profile code must be unique.");
         }
 
-        if (clean(input.getStatus()).isBlank()) {
+        if (Strings.clean(input.getStatus()).isBlank()) {
             throw new IllegalArgumentException("Status is required.");
         }
     }
@@ -757,13 +757,13 @@ public class AdminManager {
 
         if (value instanceof List<?> listValue) {
             return listValue.stream()
-                    .map(item -> item == null ? "" : clean(String.valueOf(item)))
+                    .map(item -> item == null ? "" : Strings.clean(String.valueOf(item)))
                     .filter(item -> !item.isBlank())
                     .reduce((first, second) -> first + ", " + second)
                     .orElse("");
         }
 
-        return clean(String.valueOf(value));
+        return Strings.clean(String.valueOf(value));
     }
 
     private String profileNameForId(int profileId) {
@@ -839,7 +839,7 @@ public class AdminManager {
         List<Integer> profileIds = new ArrayList<>();
 
         for (String profileName : profileNames) {
-            if (clean(profileName).isBlank()) {
+            if (Strings.clean(profileName).isBlank()) {
                 continue;
             }
 
@@ -864,10 +864,10 @@ public class AdminManager {
     }
 
     private java.util.Optional<ScanProfile> findProfileByName(String profileName) {
-        String normalizedProfileName = normalize(profileName);
+        String normalizedProfileName = Strings.normalize(profileName);
 
         return profiles.stream()
-                .filter(profile -> normalize(profile.getName()).equals(normalizedProfileName))
+                .filter(profile -> Strings.normalize(profile.getName()).equals(normalizedProfileName))
                 .findFirst();
     }
 
@@ -892,7 +892,7 @@ public class AdminManager {
     }
 
     private void renameAssignedProfile(String previousName, String newName) {
-        if (normalize(previousName).equals(normalize(newName))) {
+        if (Strings.normalize(previousName).equals(Strings.normalize(newName))) {
             return;
         }
 
@@ -900,7 +900,7 @@ public class AdminManager {
             LinkedHashSet<String> updatedProfiles = new LinkedHashSet<>();
 
             for (String assignedProfile : user.getAssignedProfiles()) {
-                if (normalize(assignedProfile).equals(normalize(previousName))) {
+                if (Strings.normalize(assignedProfile).equals(Strings.normalize(previousName))) {
                     updatedProfiles.add(newName);
                 } else {
                     updatedProfiles.add(assignedProfile);
@@ -936,21 +936,13 @@ public class AdminManager {
     }
 
     private boolean isValidEmail(String email) {
-        String cleanedEmail = clean(email);
+        String cleanedEmail = Strings.clean(email);
         int atIndex = cleanedEmail.indexOf("@");
         int dotIndex = cleanedEmail.lastIndexOf(".");
 
         return atIndex > 0
                 && dotIndex > atIndex + 1
                 && dotIndex < cleanedEmail.length() - 1;
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
-    private String normalize(String value) {
-        return clean(value).toLowerCase(Locale.ROOT);
     }
 
     public static class UserInput {

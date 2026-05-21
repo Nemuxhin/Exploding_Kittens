@@ -1,6 +1,7 @@
 package easv.dal;
 
 import easv.be.User;
+import easv.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,7 +31,7 @@ public class UserDAO {
     }
 
     public User findByUsername(String username) {
-        String cleanedUsername = clean(username);
+        String cleanedUsername = Strings.clean(username);
 
         if (cleanedUsername.isBlank()) {
             return null;
@@ -303,7 +304,7 @@ public class UserDAO {
                 FROM roles
                 WHERE LOWER(name) = LOWER(?)
                 """)) {
-            statement.setString(1, clean(roleName));
+            statement.setString(1, Strings.clean(roleName));
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -312,7 +313,7 @@ public class UserDAO {
             }
         }
 
-        throw new DataAccessException("Role does not exist in the database: " + clean(roleName), null);
+        throw new DataAccessException("Role does not exist in the database: " + Strings.clean(roleName), null);
     }
 
     private void replaceProfileAssignmentsForUser(Connection connection, int userId, List<Integer> profileIds)
@@ -432,7 +433,7 @@ public class UserDAO {
     }
 
     private String displayRole(String role) {
-        String cleanedRole = clean(role);
+        String cleanedRole = Strings.clean(role);
 
         if (cleanedRole.equalsIgnoreCase("admin")) {
             return "Admin";
@@ -450,7 +451,7 @@ public class UserDAO {
     }
 
     private String displayStatus(String status) {
-        return titleCase(clean(status));
+        return titleCase(Strings.clean(status));
     }
 
     private String titleCase(String value) {
@@ -462,7 +463,4 @@ public class UserDAO {
         return Character.toUpperCase(lowerCase.charAt(0)) + lowerCase.substring(1);
     }
 
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
 }

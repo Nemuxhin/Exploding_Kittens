@@ -1,6 +1,7 @@
 package easv.dal;
 
 import easv.be.AuditLog;
+import easv.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -138,7 +139,7 @@ public class AuditLogDAO {
     }
 
     private String serializeDescription(AuditLog log) {
-        String description = limitToDatabaseDescription(clean(log.getDescription()));
+        String description = limitToDatabaseDescription(Strings.clean(log.getDescription()));
 
         if (log.getDetails().isEmpty()) {
             return description;
@@ -169,27 +170,27 @@ public class AuditLogDAO {
 
             payload.append(detail.isFieldChange() ? "1" : "0")
                     .append(DETAIL_FIELD_SEPARATOR)
-                    .append(clean(detail.getLabel()))
+                    .append(Strings.clean(detail.getLabel()))
                     .append(DETAIL_FIELD_SEPARATOR)
-                    .append(clean(detail.getValue()))
+                    .append(Strings.clean(detail.getValue()))
                     .append(DETAIL_FIELD_SEPARATOR)
-                    .append(clean(detail.getOldValue()))
+                    .append(Strings.clean(detail.getOldValue()))
                     .append(DETAIL_FIELD_SEPARATOR)
-                    .append(clean(detail.getNewValue()));
+                    .append(Strings.clean(detail.getNewValue()));
         }
 
         return encode(payload.toString());
     }
 
     private String limitToDatabaseDescription(String value) {
-        String cleanValue = clean(value);
+        String cleanValue = Strings.clean(value);
         return cleanValue.length() <= MAX_DESCRIPTION_LENGTH
                 ? cleanValue
                 : cleanValue.substring(0, MAX_DESCRIPTION_LENGTH);
     }
 
     private ParsedDescription parseDescription(String storedDescription) {
-        String description = clean(storedDescription);
+        String description = Strings.clean(storedDescription);
         int markerIndex = description.indexOf(DETAIL_MARKER);
 
         if (markerIndex < 0) {
@@ -240,7 +241,7 @@ public class AuditLogDAO {
     private String encode(String value) {
         return Base64.getUrlEncoder()
                 .withoutPadding()
-                .encodeToString(clean(value).getBytes(StandardCharsets.UTF_8));
+                .encodeToString(Strings.clean(value).getBytes(StandardCharsets.UTF_8));
     }
 
     private String decode(String value) {
@@ -262,7 +263,7 @@ public class AuditLogDAO {
     }
 
     private String displayType(String type) {
-        String cleanedType = clean(type);
+        String cleanedType = Strings.clean(type);
 
         return switch (cleanedType.toLowerCase(java.util.Locale.ROOT)) {
             case "users" -> "Users";
@@ -279,11 +280,11 @@ public class AuditLogDAO {
     }
 
     private String displayStatus(String status) {
-        return titleCase(clean(status));
+        return titleCase(Strings.clean(status));
     }
 
     private String displayAction(String action) {
-        String cleanedAction = clean(action);
+        String cleanedAction = Strings.clean(action);
 
         if ("METADATA_SAVED".equalsIgnoreCase(cleanedAction)) {
             return "DOCUMENT_DETAILS_SAVED";
@@ -299,10 +300,6 @@ public class AuditLogDAO {
 
         String lowerCase = value.toLowerCase(java.util.Locale.ROOT);
         return Character.toUpperCase(lowerCase.charAt(0)) + lowerCase.substring(1);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
     }
 
     private record ParsedDescription(String description, List<AuditLog.AuditLogDetail> details) {

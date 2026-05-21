@@ -1,8 +1,5 @@
 package easv.be;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ScanProfile {
     private final int id;
     private String name;
@@ -107,23 +104,6 @@ public class ScanProfile {
     }
     public void setDocumentDetailsRequiredBeforeExport(boolean documentDetailsRequiredBeforeExport) {
         this.metadataRequiredBeforeExport = documentDetailsRequiredBeforeExport;
-    }
-
-    public List<String> getConfigChipLabels() {
-        List<String> chips = new ArrayList<>();
-
-        chips.add(barcodeSplitting ? "Barcode Split On" : "Barcode Split Off");
-        chips.add(deskew ? "Deskew" : "Deskew Off");
-
-        if (name.toLowerCase().contains("drawing")) {
-            chips.add("OCR Enabled");
-        }
-
-        if (!brightness.equalsIgnoreCase("Normal")) {
-            chips.add("Brightness Correction");
-        }
-
-        return chips;
     }
 
     private static String clean(String value) {

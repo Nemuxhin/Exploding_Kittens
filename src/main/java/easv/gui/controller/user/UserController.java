@@ -8,6 +8,7 @@ import easv.bll.UserSession;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
 import easv.gui.UserPortalModel;
+import easv.util.Strings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -35,7 +36,6 @@ import javafx.stage.StageStyle;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Locale;
 import java.util.prefs.Preferences;
 
 public class UserController implements UserNavigator {
@@ -127,7 +127,7 @@ public class UserController implements UserNavigator {
         }
 
         if (accountInitialsLabel != null) {
-            accountInitialsLabel.setText(initialsFor(displayName));
+            accountInitialsLabel.setText(Strings.initials(displayName, "U"));
         }
 
         if (accountDropdownNameLabel != null) {
@@ -458,10 +458,10 @@ public class UserController implements UserNavigator {
         heading.getStyleClass().add("settings-section-heading");
 
         TextField nameField = createAccountTextField(displayNameFor(account, fallbackProfile));
-        TextField usernameField = createAccountTextField(account == null ? "" : clean(account.getUsername()));
-        TextField emailField = createAccountTextField(account == null ? "" : clean(account.getEmail()));
-        TextField roleField = createAccountTextField(account == null ? "User" : clean(account.getRole()));
-        TextField statusField = createAccountTextField(account == null ? "Active" : clean(account.getStatus()));
+        TextField usernameField = createAccountTextField(account == null ? "" : Strings.clean(account.getUsername()));
+        TextField emailField = createAccountTextField(account == null ? "" : Strings.clean(account.getEmail()));
+        TextField roleField = createAccountTextField(account == null ? "User" : Strings.clean(account.getRole()));
+        TextField statusField = createAccountTextField(account == null ? "Active" : Strings.clean(account.getStatus()));
 
         roleField.setEditable(false);
         statusField.setEditable(false);
@@ -604,7 +604,7 @@ public class UserController implements UserNavigator {
     private void showInlineMessage(Label messageLabel, String message, boolean success) {
         messageLabel.getStyleClass().removeAll("success", "error");
         messageLabel.getStyleClass().add(success ? "success" : "error");
-        messageLabel.setText(clean(message).isBlank() ? "Something went wrong." : message);
+        messageLabel.setText(Strings.clean(message).isBlank() ? "Something went wrong." : message);
         messageLabel.setVisible(true);
         messageLabel.setManaged(true);
     }
@@ -965,17 +965,17 @@ public class UserController implements UserNavigator {
 
     private String displayNameFor(User user, UserPortalModel.AccountProfile fallbackProfile) {
         if (user != null) {
-            if (!clean(user.getName()).isBlank()) {
-                return clean(user.getName());
+            if (!Strings.clean(user.getName()).isBlank()) {
+                return Strings.clean(user.getName());
             }
 
-            if (!clean(user.getUsername()).isBlank()) {
-                return clean(user.getUsername());
+            if (!Strings.clean(user.getUsername()).isBlank()) {
+                return Strings.clean(user.getUsername());
             }
         }
 
-        if (fallbackProfile != null && !clean(fallbackProfile.fullName()).isBlank()) {
-            return clean(fallbackProfile.fullName());
+        if (fallbackProfile != null && !Strings.clean(fallbackProfile.fullName()).isBlank()) {
+            return Strings.clean(fallbackProfile.fullName());
         }
 
         return "User";
@@ -986,34 +986,15 @@ public class UserController implements UserNavigator {
             return "User account";
         }
 
-        if (!clean(user.getEmail()).isBlank()) {
-            return clean(user.getEmail());
+        if (!Strings.clean(user.getEmail()).isBlank()) {
+            return Strings.clean(user.getEmail());
         }
 
-        if (!clean(user.getUsername()).isBlank()) {
-            return clean(user.getUsername());
+        if (!Strings.clean(user.getUsername()).isBlank()) {
+            return Strings.clean(user.getUsername());
         }
 
-        return clean(user.getRole()).isBlank() ? "User account" : clean(user.getRole()) + " account";
+        return Strings.clean(user.getRole()).isBlank() ? "User account" : Strings.clean(user.getRole()) + " account";
     }
 
-    private String initialsFor(String name) {
-        String cleanedName = clean(name);
-
-        if (cleanedName.isBlank()) {
-            return "U";
-        }
-
-        String[] parts = cleanedName.split("\\s+");
-
-        if (parts.length == 1) {
-            return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase(Locale.ROOT);
-        }
-
-        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase(Locale.ROOT);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
 }

@@ -5,7 +5,7 @@
    ========================================================= */
 
 /* =========================================================
-   02. PAGE SHELL
+   PAGE SHELL
    Project note: shared page containers use the same background so
    individual screens do not create mismatched blocks.
    ========================================================= */
@@ -48,7 +48,7 @@
 }
 
 /* =========================================================
-   03. BUTTONS
+   BUTTONS
    Project note: primary page actions are 33px high. Small table
    actions stay compact so rows remain vertically centered.
    ========================================================= */
@@ -197,7 +197,6 @@
 .profile-danger-button,
 .profile-icon-button,
 .secondary-action-button,
-.pagination-button,
 .review-workspace-tool-button,
 .review-workspace-tab-button,
 .review-workspace-tab-active,
@@ -322,7 +321,7 @@
 }
 
 /* =========================================================
-   04. INPUTS AND SEARCH
+   INPUTS AND SEARCH
    Project note: normal inputs own their border. Search fields are
    nested inside an HBox shell, so the shell owns the visible border.
    ========================================================= */
@@ -558,7 +557,7 @@
 }
 
 /* =========================================================
-   05. SIDEBAR
+   SIDEBAR
    Project note: sidebar navigation has its own palette. Green is only
    used as the light-mode sidebar background, not for toggles or inputs.
    ========================================================= */
@@ -853,7 +852,7 @@
 }
 
 /* =========================================================
-   06. PANELS, TABLES, LISTS
+   PANELS, TABLES, LISTS
    Project note: cards share one surface style, and rows stay
    vertically centered for readable admin tables.
    ========================================================= */
@@ -1093,7 +1092,7 @@
 }
 
 /* =========================================================
-   07. BADGES AND CHIPS
+   BADGES AND CHIPS
    Project note: chips communicate status or category. Decorative
    icons use separate borderless containers.
    ========================================================= */
@@ -1242,7 +1241,7 @@
    ========================================================= */
 
 /* =========================================================
-   14. DARK MODE SEMANTICS
+   DARK MODE SEMANTICS
    Project note: dark mode keeps the same meaning for colors while
    using darker surfaces and softer status backgrounds.
    ========================================================= */
@@ -1254,7 +1253,7 @@
 }
 
 /* =========================================================
-   15. CONTROL AND ICON GUARDS
+   CONTROL AND ICON GUARDS
    Project note: these rules keep JavaFX skin defaults from adding
    blue inner focus boxes or accidental borders around decorative icons.
    ========================================================= */

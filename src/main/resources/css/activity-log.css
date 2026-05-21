@@ -877,11 +877,72 @@
 
 /* Right sidebar — Storage & trace panel */
 .activity-log-page.logs-page .logs-payload-sidebar {
-    -fx-min-width: 230;
-    -fx-pref-width: 250;
-    -fx-max-width: 270;
+    -fx-min-width: 220;
+    -fx-pref-width: 240;
+    -fx-max-width: 260;
     -fx-border-color: transparent transparent transparent -wl-border;
     -fx-border-width: 0 0 0 1;
+}
+
+/* Sidebar stacked rows */
+.activity-log-page.logs-page .logs-payload-sidebar-row {
+    -fx-min-height: 36;
+    -fx-padding: 6 0 6 0;
+    -fx-spacing: 10;
+    -fx-alignment: top-left;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-shell {
+    -fx-min-width: 20;
+    -fx-pref-width: 20;
+    -fx-max-width: 20;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-alignment: center;
+    -fx-padding: 1 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-purple,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-purple .text {
+    -fx-text-fill: -wl-tag-purple-text;
+    -fx-fill: -wl-tag-purple-text;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-blue,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-blue .text {
+    -fx-text-fill: -wl-tag-blue-text;
+    -fx-fill: -wl-tag-blue-text;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-teal,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-teal .text {
+    -fx-text-fill: -wl-tag-teal-text;
+    -fx-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-icon-neutral,
+.activity-log-page.logs-page .logs-payload-sidebar-icon-neutral .text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+}
+
+.activity-log-page.logs-page .logs-payload-sidebar-value {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-wrap-text: true;
 }
 
 .activity-log-page.logs-page .logs-payload-section-divider {
@@ -1027,11 +1088,6 @@
     -fx-font-weight: 700;
 }
 
-/* Dark mode overrides */
-.app-shell.dark .activity-log-page.logs-page .logs-payload-card {
-    -fx-effect: none;
-}
-
 /* =========================================================
    TIFF METRIC TILES
    Grid of bordered tiles replacing flat rows for TIFF details
@@ -1086,4 +1142,11 @@
     -fx-text-fill: -wl-text;
     -fx-font-size: 15px;
     -fx-font-weight: 700;
+}
+
+/* =========================================================
+   DARK MODE OVERRIDES
+   ========================================================= */
+.app-shell.dark .activity-log-page.logs-page .logs-payload-card {
+    -fx-effect: none;
 }

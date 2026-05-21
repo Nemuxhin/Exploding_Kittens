@@ -3,6 +3,7 @@ package easv.bll;
 import easv.be.CaseMetadata;
 import easv.be.AuditLog;
 import easv.dal.MetadataDAO;
+import easv.util.Strings;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,7 +47,7 @@ public class MetadataManager {
 
     public boolean saveMetadata(String caseId, String profileName, String boxId, Map<String, String> values,
                                 boolean completed, boolean approved) {
-        String cleanCaseId = clean(caseId);
+        String cleanCaseId = Strings.clean(caseId);
         CaseMetadata existingMetadata = metadataByCaseId.get(cleanCaseId);
 
         // A completed or approved case should not be changed anymore.
@@ -55,7 +56,7 @@ public class MetadataManager {
         }
 
         Map<String, String> cleanedValues = cleanValues(values);
-        CaseMetadata metadata = new CaseMetadata(cleanCaseId, clean(profileName), clean(boxId),
+        CaseMetadata metadata = new CaseMetadata(cleanCaseId, Strings.clean(profileName), Strings.clean(boxId),
                 cleanedValues, completed, approved);
         metadataByCaseId.put(cleanCaseId, metadata);
 
@@ -67,11 +68,11 @@ public class MetadataManager {
     }
 
     public CaseMetadata loadMetadataForm(String caseId) {
-        return metadataByCaseId.get(clean(caseId));
+        return metadataByCaseId.get(Strings.clean(caseId));
     }
 
     public boolean canEdit(String caseId) {
-        CaseMetadata metadata = metadataByCaseId.get(clean(caseId));
+        CaseMetadata metadata = metadataByCaseId.get(Strings.clean(caseId));
         return metadata == null || !metadata.isLocked();
     }
 
@@ -83,7 +84,7 @@ public class MetadataManager {
         }
 
         for (Map.Entry<String, String> entry : values.entrySet()) {
-            cleanValues.put(clean(entry.getKey()), clean(entry.getValue()));
+            cleanValues.put(Strings.clean(entry.getKey()), Strings.clean(entry.getValue()));
         }
 
         return cleanValues;
@@ -125,7 +126,7 @@ public class MetadataManager {
     }
 
     private String cleanAuditValue(String value) {
-        String cleanedValue = clean(value);
+        String cleanedValue = Strings.clean(value);
 
         if ("true".equalsIgnoreCase(cleanedValue)) {
             return "Yes";
@@ -138,7 +139,4 @@ public class MetadataManager {
         return cleanedValue;
     }
 
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
 }

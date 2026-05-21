@@ -4,6 +4,7 @@ import easv.be.AuditLog;
 import easv.bll.AdminManager;
 import easv.gui.controller.utilities.AppDates;
 import easv.gui.PrimeIcons;
+import easv.util.Strings;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.collections.FXCollections;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,23 +60,23 @@ public class ActivityController {
     private static final String SORT_OLDEST_FIRST = "Oldest first";
     private static final double EXPANDED_RAIL_HORIZONTAL_OFFSET = 96;
 
-    private static final String UPLOAD_ICON_PATH = "\ue934";
-    private static final String CHECK_ICON_PATH = "\ue90a";
-    private static final String WARNING_ICON_PATH = "\ue922";
-    private static final String REFRESH_ICON_PATH = "\ue938";
-    private static final String USER_ICON_PATH = "\ue939";
-    private static final String GEAR_ICON_PATH = "\ue94a";
-    private static final String DOWNLOAD_ICON_PATH = "\ue956";
-    private static final String DOCUMENT_ICON_PATH = "\ue958";
-    private static final String PAGES_ICON_PATH = "\ue95c";
-    private static final String CLOCK_ICON_PATH = "\ue940";
-    private static final String BOX_ICON_PATH = "\ue941";
-    private static final String CHART_ICON_PATH = "\ue9e4";
+    private static final String UPLOAD_ICON_GLYPH = "\ue934";
+    private static final String CHECK_ICON_GLYPH = "\ue90a";
+    private static final String WARNING_ICON_GLYPH = "\ue922";
+    private static final String REFRESH_ICON_GLYPH = "\ue938";
+    private static final String USER_ICON_GLYPH = "\ue939";
+    private static final String GEAR_ICON_GLYPH = "\ue94a";
+    private static final String DOWNLOAD_ICON_GLYPH = "\ue956";
+    private static final String DOCUMENT_ICON_GLYPH = "\ue958";
+    private static final String PAGES_ICON_GLYPH = "\ue95c";
+    private static final String CLOCK_ICON_GLYPH = "\ue940";
+    private static final String BOX_ICON_GLYPH = "\ue941";
+    private static final String CHART_ICON_GLYPH = "\ue9e4";
 
-    private static final String AREA_FILTER_ICON_PATH = "\ue941";
-    private static final String RESULT_FILTER_ICON_PATH = "\ue90a";
-    private static final String DATE_FILTER_ICON_PATH = "\ue927";
-    private static final String SORT_FILTER_ICON_PATH = "\ue915";
+    private static final String AREA_FILTER_ICON_GLYPH = "\ue941";
+    private static final String RESULT_FILTER_ICON_GLYPH = "\ue90a";
+    private static final String DATE_FILTER_ICON_GLYPH = "\ue927";
+    private static final String SORT_FILTER_ICON_GLYPH = "\ue915";
 
     private static final String TARGET_ID_PATTERN_TEXT = "\\b[A-Z]{2,}(?:[-_][A-Z0-9]+)+\\b";
     private static final Pattern TARGET_ID_PATTERN = Pattern.compile(TARGET_ID_PATTERN_TEXT);
@@ -183,10 +185,10 @@ public class ActivityController {
     }
 
     private void configureToolbarGraphics() {
-        configureFilterComboBox(typeFilterComboBox, "Area", AREA_FILTER_ICON_PATH);
-        configureFilterComboBox(userFilterComboBox, "User", USER_ICON_PATH);
-        configureFilterComboBox(statusFilterComboBox, "Result", RESULT_FILTER_ICON_PATH);
-        configureFilterComboBox(sortFilterComboBox, "Sort", SORT_FILTER_ICON_PATH);
+        configureFilterComboBox(typeFilterComboBox, "Area", AREA_FILTER_ICON_GLYPH);
+        configureFilterComboBox(userFilterComboBox, "User", USER_ICON_GLYPH);
+        configureFilterComboBox(statusFilterComboBox, "Result", RESULT_FILTER_ICON_GLYPH);
+        configureFilterComboBox(sortFilterComboBox, "Sort", SORT_FILTER_ICON_GLYPH);
 
         if (dateFilterMenuButton != null) {
             dateFilterMenuButton.setText(null);
@@ -237,7 +239,7 @@ public class ActivityController {
         headingLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
         headingLabel.setWrapText(false);
 
-        Label valueLabel = new Label(displayText(value, ""));
+        Label valueLabel = new Label(Strings.displayText(value, ""));
         valueLabel.getStyleClass().add("logs-filter-value");
         valueLabel.setMinWidth(0);
         valueLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
@@ -508,7 +510,7 @@ public class ActivityController {
         HBox.setHgrow(leftColumn, Priority.ALWAYS);
 
         boolean any = false;
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
 
         // Hero section — subject + actor + status (non-error events)
         if (!isError(entry)) {
@@ -564,7 +566,7 @@ public class ActivityController {
         }
 
         // Export details
-        if (area.equals("exports") || normalize(entry.action()).contains("export")) {
+        if (area.equals("exports") || Strings.normalize(entry.action()).contains("export")) {
             List<ActivityDetailRow> exportRows = buildExportDetailRows(entry);
             if (!exportRows.isEmpty()) {
                 if (any) leftColumn.getChildren().add(createPayloadSectionDivider());
@@ -596,7 +598,7 @@ public class ActivityController {
             VBox sidebar = new VBox(0);
             sidebar.getStyleClass().add("logs-payload-sidebar");
             sidebar.setFillWidth(true);
-            sidebar.getChildren().add(createPayloadSection("Storage & trace", storeRows, false));
+            sidebar.getChildren().add(createPayloadSidebarSection(entry, "Storage & trace", storeRows));
 
             HBox body = new HBox(0, leftColumn, sidebar);
             body.setFillHeight(true);
@@ -610,7 +612,7 @@ public class ActivityController {
     }
 
     private HBox createPayloadErrorBanner(ActivityLogEntry entry) {
-        Label icon = createPrimeIcon(WARNING_ICON_PATH, "logs-payload-error-icon");
+        Label icon = createPrimeIcon(WARNING_ICON_GLYPH, "logs-payload-error-icon");
 
         Label titleLabel = new Label(formatAction(entry.action()));
         titleLabel.getStyleClass().add("logs-payload-error-title");
@@ -621,7 +623,7 @@ public class ActivityController {
         copy.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(copy, Priority.ALWAYS);
 
-        String desc = displayText(entry.description(), "");
+        String desc = Strings.displayText(entry.description(), "");
         if (!desc.isBlank()) {
             Label descLabel = new Label(desc);
             descLabel.getStyleClass().add("logs-payload-error-copy");
@@ -658,10 +660,10 @@ public class ActivityController {
         HBox.setHgrow(copy, Priority.ALWAYS);
 
         // Scan profile — for TIFF/import events (between filename and actor)
-        if (isTiffActivity(entry) || normalize(displayArea(entry)).equals("import")) {
+        if (isTiffActivity(entry) || Strings.normalize(displayArea(entry)).equals("import")) {
             String profile = firstContextValue(entry, "profile");
             if (!profile.isBlank()) {
-                Label gearIcon = createPrimeIcon(GEAR_ICON_PATH, "logs-payload-hero-meta-icon");
+                Label gearIcon = createPrimeIcon(GEAR_ICON_GLYPH, "logs-payload-hero-meta-icon");
                 Label profileLabel = new Label(profile);
                 profileLabel.getStyleClass().add("logs-payload-hero-meta");
                 HBox profileLine = new HBox(5, gearIcon, profileLabel);
@@ -673,7 +675,7 @@ public class ActivityController {
         // Actor line — "Uploaded by Alex Johnson" (skip if actor IS the subject)
         if (!isSystemActor(entry.actor())) {
             String actorName = displayActor(entry.actor());
-            boolean actorIsSubject = normalize(actorName).equals(normalize(subject));
+            boolean actorIsSubject = Strings.normalize(actorName).equals(Strings.normalize(subject));
             if (!actorIsSubject) {
                 String prefix = heroActorPrefix(entry);
                 Label actorLabel = new Label(prefix + " " + actorName);
@@ -683,9 +685,9 @@ public class ActivityController {
         }
 
         // Status + description line
-        String desc = displayText(entry.description(), "");
+        String desc = Strings.displayText(entry.description(), "");
         if (!desc.isBlank()) {
-            Label checkIcon = createPrimeIcon(CHECK_ICON_PATH, "logs-payload-hero-status-icon");
+            Label checkIcon = createPrimeIcon(CHECK_ICON_GLYPH, "logs-payload-hero-status-icon");
             Label descLabel = new Label(desc);
             descLabel.getStyleClass().add("logs-payload-hero-status-text");
             descLabel.setWrapText(false);
@@ -703,18 +705,18 @@ public class ActivityController {
 
     private String heroSubjectFor(ActivityLogEntry entry) {
         // TIFF / import events — use filename
-        if (isTiffActivity(entry) || normalize(displayArea(entry)).equals("import")) {
+        if (isTiffActivity(entry) || Strings.normalize(displayArea(entry)).equals("import")) {
             String file = displayTiffItem(entry);
             if (!file.isBlank()) return file;
         }
         // Access / security — actor IS the subject (the person who logged in)
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
         if (area.equals("access") || area.equals("security")) {
             if (!isSystemActor(entry.actor())) return displayActor(entry.actor());
         }
         // Use target for everything else
-        String target = displayText(entry.target(), "");
-        if (!target.isBlank() && !normalize(target).equals("system")) return target;
+        String target = Strings.displayText(entry.target(), "");
+        if (!target.isBlank() && !Strings.normalize(target).equals("system")) return target;
         return "";
     }
 
@@ -722,24 +724,24 @@ public class ActivityController {
         if (isCreateEvent(entry)) return "Created by";
         if (isDeleteEvent(entry)) return "Deleted by";
         if (isPasswordEvent(entry)) return "Changed by";
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
         if (area.equals("import") || isTiffActivity(entry)) return "Imported by";
         return "Performed by";
     }
 
     private String heroIconFor(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
         return switch (area) {
-            case "users", "access", "security" -> USER_ICON_PATH;
-            case "profiles" -> GEAR_ICON_PATH;
-            case "qa" -> CHECK_ICON_PATH;
-            case "files", "import", "documents" -> DOCUMENT_ICON_PATH;
-            default -> CLOCK_ICON_PATH;
+            case "users", "access", "security" -> USER_ICON_GLYPH;
+            case "profiles" -> GEAR_ICON_GLYPH;
+            case "qa" -> CHECK_ICON_GLYPH;
+            case "files", "import", "documents" -> DOCUMENT_ICON_GLYPH;
+            default -> CLOCK_ICON_GLYPH;
         };
     }
 
     private String heroIconBgClassFor(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
         return switch (area) {
             case "users", "access", "security", "profiles" -> "logs-payload-hero-icon-purple";
             case "qa" -> "logs-payload-hero-icon-teal";
@@ -938,16 +940,16 @@ public class ActivityController {
 
     private List<ActivityDetailRow> buildEventOverviewRows(ActivityLogEntry entry) {
         List<ActivityDetailRow> rows = new ArrayList<>();
-        String desc = displayText(entry.description(), "");
+        String desc = Strings.displayText(entry.description(), "");
         if (!desc.isBlank()) {
             rows.add(new ActivityDetailRow("Note", desc));
         }
-        String target = displayText(entry.target(), "");
-        if (!target.isBlank() && !normalize(target).equals("system")) {
+        String target = Strings.displayText(entry.target(), "");
+        if (!target.isBlank() && !Strings.normalize(target).equals("system")) {
             rows.add(new ActivityDetailRow("Affected", target));
         }
         if (!isSystemActor(entry.actor())) {
-            rows.add(new ActivityDetailRow("Performed by", displayText(entry.actor(), "")));
+            rows.add(new ActivityDetailRow("Performed by", Strings.displayText(entry.actor(), "")));
         }
         return rows;
     }
@@ -960,7 +962,7 @@ public class ActivityController {
             rows.add(new ActivityDetailRow("Batch file", file));
         }
 
-        String desc = displayText(entry.description(), "");
+        String desc = Strings.displayText(entry.description(), "");
         if (!desc.isBlank()) {
             rows.add(new ActivityDetailRow("Reason", desc));
         }
@@ -968,7 +970,7 @@ public class ActivityController {
         rows.addAll(normalizedContextRows(entry));
 
         String action = actionNeeded(entry);
-        if (!action.isBlank() && rows.stream().noneMatch(r -> normalize(r.label()).contains("action"))) {
+        if (!action.isBlank() && rows.stream().noneMatch(r -> Strings.normalize(r.label()).contains("action"))) {
             rows.add(new ActivityDetailRow("Action needed", action));
         }
 
@@ -976,37 +978,36 @@ public class ActivityController {
     }
 
     private String iconForPayloadLabel(String label) {
-        String norm = normalize(label);
-        if (norm.contains("user") || norm.contains("actor") || norm.contains("importer") || norm.equals("username")) return USER_ICON_PATH;
-        if (norm.equals("result") || norm.contains("status") || norm.contains("accepted") || norm.contains("action needed")) return CHECK_ICON_PATH;
-        if (norm.contains("checklist")) return CHECK_ICON_PATH;
-        if (norm.contains("issue") || norm.contains("reason") || norm.contains("failed") || norm.contains("warning") || norm.contains("error")) return WARNING_ICON_PATH;
-        if (norm.contains("trace") || norm.equals("log id") || norm.contains("recorded")) return CLOCK_ICON_PATH;
-        if (norm.contains("export") || norm.contains("download") || norm.contains("records")) return DOWNLOAD_ICON_PATH;
-        if (norm.contains("box")) return BOX_ICON_PATH;
-        if (norm.equals("pages") || norm.equals("page count") || norm.equals("page")) return PAGES_ICON_PATH;
-        if (norm.contains("file size") || norm.equals("size")) return CHART_ICON_PATH;
-        if (norm.contains("file") || norm.contains("tiff") || norm.contains("batch")) return UPLOAD_ICON_PATH;
-        if (norm.contains("role") || norm.contains("profile") || norm.contains("split rule") || norm.contains("setting") || norm.contains("config") || norm.equals("field changed")) return GEAR_ICON_PATH;
-        if (norm.equals("case") || norm.equals("case id")) return PAGES_ICON_PATH;
-        if (norm.contains("date") || norm.contains("time") || norm.contains("modified") || norm.contains("created at")) return CLOCK_ICON_PATH;
-        if (norm.contains("email") || norm.equals("note") || norm.equals("document") || norm.contains("client")) return DOCUMENT_ICON_PATH;
-        return DOCUMENT_ICON_PATH;
+        String norm = Strings.normalize(label);
+        if (norm.contains("user") || norm.contains("actor") || norm.contains("importer") || norm.equals("username")) return USER_ICON_GLYPH;
+        if (norm.equals("result") || norm.contains("status") || norm.contains("accepted") || norm.contains("action needed")) return CHECK_ICON_GLYPH;
+        if (norm.contains("checklist")) return CHECK_ICON_GLYPH;
+        if (norm.contains("issue") || norm.contains("reason") || norm.contains("failed") || norm.contains("warning") || norm.contains("error")) return WARNING_ICON_GLYPH;
+        if (norm.contains("trace") || norm.equals("log id") || norm.contains("recorded")) return CLOCK_ICON_GLYPH;
+        if (norm.contains("export") || norm.contains("download") || norm.contains("records")) return DOWNLOAD_ICON_GLYPH;
+        if (norm.contains("box")) return BOX_ICON_GLYPH;
+        if (norm.equals("pages") || norm.equals("page count") || norm.equals("page")) return PAGES_ICON_GLYPH;
+        if (norm.contains("file size") || norm.equals("size")) return CHART_ICON_GLYPH;
+        if (norm.contains("file") || norm.contains("tiff") || norm.contains("batch")) return UPLOAD_ICON_GLYPH;
+        if (norm.contains("role") || norm.contains("profile") || norm.contains("split rule") || norm.contains("setting") || norm.contains("config") || norm.equals("field changed")) return GEAR_ICON_GLYPH;
+        if (norm.equals("case") || norm.equals("case id")) return PAGES_ICON_GLYPH;
+        if (norm.contains("date") || norm.contains("time") || norm.contains("modified") || norm.contains("created at")) return CLOCK_ICON_GLYPH;
+        return DOCUMENT_ICON_GLYPH;
     }
 
     private boolean isPayloadDangerLabel(String label) {
-        String norm = normalize(label);
+        String norm = Strings.normalize(label);
         return norm.contains("failed") || norm.equals("reason") || norm.contains("records failed")
                 || norm.equals("issues found") || norm.equals("issues");
     }
 
     private boolean isPayloadSuccessLabel(String label) {
-        String norm = normalize(label);
+        String norm = Strings.normalize(label);
         return norm.contains("accepted") || norm.equals("result") || norm.equals("value");
     }
 
     private boolean isPayloadLinkLabel(String label) {
-        String norm = normalize(label);
+        String norm = Strings.normalize(label);
         return norm.equals("box") || norm.equals("case") || norm.equals("user") || norm.equals("document");
     }
 
@@ -1097,12 +1098,12 @@ public class ActivityController {
 
     private List<Node> createInlineRailCells(ActivityLogEntry entry) {
         List<Node> cells = new ArrayList<>();
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
 
         if (isError(entry)) {
-            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, primaryRailLabel(entry), primaryRailValue(entry), "logs-inline-rail-danger-cell"));
-            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Reason", failureReason(entry), "logs-inline-rail-wide-cell", "logs-inline-rail-danger-cell"));
-            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Action needed", actionNeeded(entry), "logs-inline-rail-wide-cell"));
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_GLYPH, primaryRailLabel(entry), primaryRailValue(entry), "logs-inline-rail-danger-cell"));
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_GLYPH, "Reason", failureReason(entry), "logs-inline-rail-wide-cell", "logs-inline-rail-danger-cell"));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_GLYPH, "Action needed", actionNeeded(entry), "logs-inline-rail-wide-cell"));
             addLogRailCell(cells, entry);
             return cells;
         }
@@ -1125,27 +1126,27 @@ public class ActivityController {
 
         if (isCreateEvent(entry)) {
             if (area.equals("users")) {
-                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Full name", firstCreatedValue(entry, "full name", "name")));
-                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Username", firstCreatedValue(entry, "username")));
-                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Email", firstCreatedValue(entry, "email", "email address"), "logs-inline-rail-wide-cell"));
-                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Role", firstCreatedValue(entry, "role")));
-                addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Status", firstCreatedValue(entry, "status"), "logs-inline-rail-success-cell"));
+                addRailCell(cells, createRailDetailCell(USER_ICON_GLYPH, "Full name", firstCreatedValue(entry, "full name", "name")));
+                addRailCell(cells, createRailDetailCell(USER_ICON_GLYPH, "Username", firstCreatedValue(entry, "username")));
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Email", firstCreatedValue(entry, "email", "email address"), "logs-inline-rail-wide-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_GLYPH, "Role", firstCreatedValue(entry, "role")));
+                addRailCell(cells, createRailDetailCell(CHECK_ICON_GLYPH, "Status", firstCreatedValue(entry, "status"), "logs-inline-rail-success-cell"));
                 addLogRailCell(cells, entry);
                 return cells;
             }
 
             if (area.equals("profiles")) {
-                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Profile", primaryRailValue(entry), "logs-inline-rail-primary-cell"));
-                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Client", firstCreatedValue(entry, "client", "customer")));
-                addRailCell(cells, createRailDetailCell(REFRESH_ICON_PATH, "Split rule", firstCreatedValue(entry, "split rule", "barcode splitting", "barcode")));
-                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Export label", firstCreatedValue(entry, "export label", "export naming", "export format"), "logs-inline-rail-wide-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_GLYPH, "Profile", primaryRailValue(entry), "logs-inline-rail-primary-cell"));
+                addRailCell(cells, createRailDetailCell(USER_ICON_GLYPH, "Client", firstCreatedValue(entry, "client", "customer")));
+                addRailCell(cells, createRailDetailCell(REFRESH_ICON_GLYPH, "Split rule", firstCreatedValue(entry, "split rule", "barcode splitting", "barcode")));
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Export label", firstCreatedValue(entry, "export label", "export naming", "export format"), "logs-inline-rail-wide-cell"));
                 addLogRailCell(cells, entry);
                 return cells;
             }
 
             if (area.equals("documents")) {
-                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "A document detail item was created."), "logs-inline-rail-note-cell"));
-                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", documentCategory(entry)));
+                addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Note", Strings.displayText(entry.description(), "A document detail item was created."), "logs-inline-rail-note-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_GLYPH, "Category", documentCategory(entry)));
                 addLogRailCell(cells, entry);
                 return cells;
             }
@@ -1153,47 +1154,47 @@ public class ActivityController {
 
         if (isDeleteEvent(entry)) {
             if (area.equals("users")) {
-                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "User", firstDeletedValue(entry, "full name", "name", "user"), "logs-inline-rail-primary-cell"));
-                addRailCell(cells, createRailDetailCell(USER_ICON_PATH, "Username", firstDeletedValue(entry, "username")));
-                addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Action", deleteActionText(entry), "logs-inline-rail-danger-cell"));
+                addRailCell(cells, createRailDetailCell(USER_ICON_GLYPH, "User", firstDeletedValue(entry, "full name", "name", "user"), "logs-inline-rail-primary-cell"));
+                addRailCell(cells, createRailDetailCell(USER_ICON_GLYPH, "Username", firstDeletedValue(entry, "username")));
+                addRailCell(cells, createRailDetailCell(WARNING_ICON_GLYPH, "Action", deleteActionText(entry), "logs-inline-rail-danger-cell"));
                 addLogRailCell(cells, entry);
                 return cells;
             }
 
             if (area.equals("profiles")) {
-                addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Profile", firstDeletedValue(entry, "profile", "profile name", "name"), "logs-inline-rail-primary-cell"));
-                addRailCell(cells, createRailDetailCell(REFRESH_ICON_PATH, "Split rule", firstDeletedValue(entry, "split rule", "barcode splitting")));
-                addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Action", deleteActionText(entry), "logs-inline-rail-danger-cell"));
+                addRailCell(cells, createRailDetailCell(GEAR_ICON_GLYPH, "Profile", firstDeletedValue(entry, "profile", "profile name", "name"), "logs-inline-rail-primary-cell"));
+                addRailCell(cells, createRailDetailCell(REFRESH_ICON_GLYPH, "Split rule", firstDeletedValue(entry, "split rule", "barcode splitting")));
+                addRailCell(cells, createRailDetailCell(WARNING_ICON_GLYPH, "Action", deleteActionText(entry), "logs-inline-rail-danger-cell"));
                 addLogRailCell(cells, entry);
                 return cells;
             }
 
-            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, primaryRailLabel(entry), primaryRailValue(entry), "logs-inline-rail-danger-cell"));
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_GLYPH, primaryRailLabel(entry), primaryRailValue(entry), "logs-inline-rail-danger-cell"));
             compactVisibleRows(snapshotRowsForChangeEvent(entry), 3)
-                    .forEach(row -> addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, row.label(), row.value())));
+                    .forEach(row -> addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, row.label(), row.value())));
             addLogRailCell(cells, entry);
             return cells;
         }
 
         if (area.equals("exports")) {
-            addRailCell(cells, createRailDetailCell(DOWNLOAD_ICON_PATH, "Note", displayText(entry.description(), "A report was exported."), "logs-inline-rail-note-cell"));
-            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Export mode", firstContextValue(entry, "export mode", "mode", "format")));
+            addRailCell(cells, createRailDetailCell(DOWNLOAD_ICON_GLYPH, "Note", Strings.displayText(entry.description(), "A report was exported."), "logs-inline-rail-note-cell"));
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Export mode", firstContextValue(entry, "export mode", "mode", "format")));
             addLogRailCell(cells, entry);
             return cells;
         }
 
         if (area.equals("documents")) {
-            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "Document detail activity was recorded."), "logs-inline-rail-note-cell"));
-            addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, "Category", documentCategory(entry)));
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Note", Strings.displayText(entry.description(), "Document detail activity was recorded."), "logs-inline-rail-note-cell"));
+            addRailCell(cells, createRailDetailCell(GEAR_ICON_GLYPH, "Category", documentCategory(entry)));
             addLogRailCell(cells, entry);
             return cells;
         }
 
         if (area.equals("qa")) {
-            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Document", firstContextOrTarget(entry, "document", "document id", "box", "box id"), "logs-inline-rail-primary-cell"));
-            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Checklist", firstContextValue(entry, "checklist", "checklist count")));
-            addRailCell(cells, createRailDetailCell(WARNING_ICON_PATH, "Issues", firstContextValue(entry, "issues", "issue count")));
-            addRailCell(cells, createRailDetailCell(CHECK_ICON_PATH, "Result", displayStatus(entry.status()), "logs-inline-rail-success-cell"));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_GLYPH, "Document", firstContextOrTarget(entry, "document", "document id", "box", "box id"), "logs-inline-rail-primary-cell"));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_GLYPH, "Checklist", firstContextValue(entry, "checklist", "checklist count")));
+            addRailCell(cells, createRailDetailCell(WARNING_ICON_GLYPH, "Issues", firstContextValue(entry, "issues", "issue count")));
+            addRailCell(cells, createRailDetailCell(CHECK_ICON_GLYPH, "Result", displayStatus(entry.status()), "logs-inline-rail-success-cell"));
             addLogRailCell(cells, entry);
             return cells;
         }
@@ -1203,16 +1204,16 @@ public class ActivityController {
             if (tiffRows.isEmpty()) {
                 tiffRows = compactVisibleRows(compactDetailRows(entry), 5);
             }
-            tiffRows.forEach(row -> addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, row.label(), row.value())));
+            tiffRows.forEach(row -> addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, row.label(), row.value())));
             addLogRailCell(cells, entry);
             return cells;
         }
 
         compactVisibleRows(compactDetailRows(entry), 5)
-                .forEach(row -> addRailCell(cells, createRailDetailCell(GEAR_ICON_PATH, row.label(), row.value())));
+                .forEach(row -> addRailCell(cells, createRailDetailCell(GEAR_ICON_GLYPH, row.label(), row.value())));
 
         if (cells.isEmpty()) {
-            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Note", displayText(entry.description(), "Activity was recorded."), "logs-inline-rail-note-cell"));
+            addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Note", Strings.displayText(entry.description(), "Activity was recorded."), "logs-inline-rail-note-cell"));
         }
 
         addLogRailCell(cells, entry);
@@ -1232,7 +1233,7 @@ public class ActivityController {
     }
 
     private void addLogRailCell(List<Node> cells, ActivityLogEntry entry) {
-        addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_PATH, "Log ID", "LOG-" + entry.id(), "logs-inline-rail-log-cell"));
+        addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Log ID", "LOG-" + entry.id(), "logs-inline-rail-log-cell"));
     }
 
     private HBox createRailDetailCell(String iconPath, String label, String value, String... styleClasses) {
@@ -1243,7 +1244,7 @@ public class ActivityController {
 
         StackPane icon = createRailIcon(iconPath);
 
-        Label labelNode = new Label(displayText(label, "Detail"));
+        Label labelNode = new Label(Strings.displayText(label, "Detail"));
         labelNode.getStyleClass().add("logs-inline-rail-label");
         labelNode.setTextOverrun(OverrunStyle.ELLIPSIS);
 
@@ -1278,7 +1279,7 @@ public class ActivityController {
             return null;
         }
 
-        StackPane icon = createRailIcon(sensitive ? USER_ICON_PATH : REFRESH_ICON_PATH);
+        StackPane icon = createRailIcon(sensitive ? USER_ICON_GLYPH : REFRESH_ICON_GLYPH);
 
         VBox rows = new VBox(6);
         rows.getStyleClass().add("logs-inline-rail-change-stack");
@@ -1305,7 +1306,7 @@ public class ActivityController {
         String beforeText = sensitive ? "Existing password" : displayAuditValue(change.oldValue());
         String afterText = sensitive ? "Updated" : displayAuditValue(change.newValue());
 
-        Label fieldNode = new Label(displayText(change.field(), "Field"));
+        Label fieldNode = new Label(Strings.displayText(change.field(), "Field"));
         fieldNode.getStyleClass().add("logs-inline-rail-change-field");
         fieldNode.setTextOverrun(OverrunStyle.ELLIPSIS);
         fieldNode.setMinWidth(105);
@@ -1337,9 +1338,9 @@ public class ActivityController {
             afterText = "Updated";
         }
 
-        StackPane icon = createRailIcon(sensitive ? USER_ICON_PATH : REFRESH_ICON_PATH);
+        StackPane icon = createRailIcon(sensitive ? USER_ICON_GLYPH : REFRESH_ICON_GLYPH);
 
-        Label fieldNode = new Label(displayText(field, "Field"));
+        Label fieldNode = new Label(Strings.displayText(field, "Field"));
         fieldNode.getStyleClass().add("logs-inline-rail-label");
         fieldNode.setTextOverrun(OverrunStyle.ELLIPSIS);
 
@@ -1385,8 +1386,8 @@ public class ActivityController {
     }
 
     private boolean isPasswordEvent(ActivityLogEntry entry) {
-        return normalize(formatAction(entry.action())).contains("password")
-                || entry.changes().stream().anyMatch(change -> normalize(change.field()).contains("password"));
+        return Strings.normalize(formatAction(entry.action())).contains("password")
+                || entry.changes().stream().anyMatch(change -> Strings.normalize(change.field()).contains("password"));
     }
 
     private String firstCreatedValue(ActivityLogEntry entry, String... labels) {
@@ -1400,12 +1401,12 @@ public class ActivityController {
     }
 
     private String firstChangeValue(ActivityLogEntry entry, boolean newValue, String... labels) {
-        List<String> normalizedLabels = List.of(labels).stream()
-                .map(this::normalize)
+        List<String> normalizedLabels = Arrays.stream(labels)
+                .map(Strings::normalize)
                 .toList();
 
         String exactMatch = entry.changes().stream()
-                .filter(change -> normalizedLabels.contains(normalize(change.field())))
+                .filter(change -> normalizedLabels.contains(Strings.normalize(change.field())))
                 .map(change -> newValue ? change.newValue() : change.oldValue())
                 .filter(value -> !isMissingAuditValue(value))
                 .findFirst()
@@ -1416,7 +1417,7 @@ public class ActivityController {
         }
 
         return entry.changes().stream()
-                .filter(change -> normalizedLabels.stream().anyMatch(label -> normalize(change.field()).contains(label)))
+                .filter(change -> normalizedLabels.stream().anyMatch(label -> Strings.normalize(change.field()).contains(label)))
                 .map(change -> newValue ? change.newValue() : change.oldValue())
                 .filter(value -> !isMissingAuditValue(value))
                 .findFirst()
@@ -1435,11 +1436,11 @@ public class ActivityController {
 
     private String primaryRailValue(ActivityLogEntry entry) {
         String target = displayTiffItem(entry);
-        return "\u2014".equals(displayAuditValue(target)) ? displayText(entry.target(), "") : target;
+        return "\u2014".equals(displayAuditValue(target)) ? Strings.displayText(entry.target(), "") : target;
     }
 
     private String failureReason(ActivityLogEntry entry) {
-        String reason = displayText(entry.description(), "");
+        String reason = Strings.displayText(entry.description(), "");
         if (!reason.isBlank()) {
             return reason;
         }
@@ -1454,7 +1455,7 @@ public class ActivityController {
             return explicitAction;
         }
 
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
         if (area.equals("import") || isTiffActivity(entry)) {
             return "Review TIFF and retry";
         }
@@ -1471,12 +1472,12 @@ public class ActivityController {
     }
 
     private String deleteActionText(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
+        String action = Strings.normalize(formatAction(entry.action()));
         return action.contains("deactivated") || action.contains("inactive") ? "Deactivated" : "Deleted";
     }
 
     private String documentCategory(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
+        String action = Strings.normalize(formatAction(entry.action()));
         if (action.contains("field")) {
             return "Field";
         }
@@ -1488,21 +1489,21 @@ public class ActivityController {
 
     private List<ActivityDetailRow> compactDetailRows(ActivityLogEntry entry) {
         List<ActivityDetailRow> rows = new ArrayList<>();
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
 
         if (!entry.changes().isEmpty() && (isCreateEvent(entry) || isDeleteEvent(entry))) {
             rows.addAll(snapshotRowsForChangeEvent(entry));
         } else if (isError(entry) && (area.equals("import") || isTiffActivity(entry))) {
             rows.add(new ActivityDetailRow("File", displayTiffItem(entry)));
 
-            String reason = displayText(entry.description(), "");
+            String reason = Strings.displayText(entry.description(), "");
             if (!reason.isBlank()) {
                 rows.add(new ActivityDetailRow("Reason", reason));
             }
 
             rows.addAll(normalizedContextRows(entry));
 
-            if (rows.stream().noneMatch(row -> normalize(row.label()).contains("accepted"))) {
+            if (rows.stream().noneMatch(row -> Strings.normalize(row.label()).contains("accepted"))) {
                 rows.add(new ActivityDetailRow("Accepted", "LZW, PackBits, Uncompressed"));
             }
 
@@ -1527,12 +1528,12 @@ public class ActivityController {
                 continue;
             }
 
-            String normalizedLabel = normalize(row.label());
+            String normalizedLabel = Strings.normalize(row.label());
             if (normalizedLabel.equals("trace") || normalizedLabel.equals("log id") || normalizedLabel.equals("recorded")) {
                 continue;
             }
 
-            String key = normalizedLabel + "|" + normalize(displayAuditValue(row.value()));
+            String key = normalizedLabel + "|" + Strings.normalize(displayAuditValue(row.value()));
             uniqueRows.putIfAbsent(key, row);
         }
 
@@ -1601,13 +1602,13 @@ public class ActivityController {
 
     private List<ActivityDetailRow> storageTraceRows(ActivityLogEntry entry) {
         List<ActivityDetailRow> rows = new ArrayList<>();
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
 
         switch (area) {
             case "users", "access", "security" -> {
                 // Who was affected
-                String target = displayText(entry.target(), "");
-                if (!target.isBlank() && !normalize(target).equals("system")) {
+                String target = Strings.displayText(entry.target(), "");
+                if (!target.isBlank() && !Strings.normalize(target).equals("system")) {
                     rows.add(new ActivityDetailRow("User", target));
                 }
                 // Key identifiers pulled from change snapshots (works for create/delete/update)
@@ -1666,6 +1667,78 @@ public class ActivityController {
         return rows;
     }
 
+    // ── Sidebar section (stacked rows + coloured icons) ──────────────────────
+
+    private VBox createPayloadSidebarSection(ActivityLogEntry entry, String title, List<ActivityDetailRow> rows) {
+        VBox section = new VBox(0);
+        section.getStyleClass().add("logs-payload-section");
+        section.setFillWidth(true);
+        section.setMaxWidth(Double.MAX_VALUE);
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("logs-payload-section-title");
+        section.getChildren().add(titleLabel);
+
+        String iconColorClass = sidebarIconColorClass(entry);
+
+        List<ActivityDetailRow> visible = rows.stream()
+                .filter(r -> !isMissingAuditValue(r.value()))
+                .toList();
+
+        for (int i = 0; i < visible.size(); i++) {
+            if (i > 0) section.getChildren().add(createPayloadRowDivider());
+            ActivityDetailRow row = visible.get(i);
+            String valueStyle = isPayloadDangerLabel(row.label()) ? "logs-payload-kv-value-danger"
+                    : isPayloadSuccessLabel(row.label()) ? "logs-payload-kv-value-success"
+                    : isPayloadLinkLabel(row.label()) ? "logs-payload-kv-value-link"
+                    : null;
+            section.getChildren().add(createPayloadSidebarRow(
+                    iconForPayloadLabel(row.label()), iconColorClass,
+                    row.label(), displayAuditValue(row.value()), valueStyle));
+        }
+        return section;
+    }
+
+    private HBox createPayloadSidebarRow(String iconPath, String iconColorClass,
+                                         String label, String value, String valueStyle) {
+        Label iconLabel = createPrimeIcon(iconPath, "logs-payload-sidebar-icon");
+        iconLabel.getStyleClass().add(iconColorClass);
+        StackPane iconShell = new StackPane(iconLabel);
+        iconShell.getStyleClass().add("logs-payload-sidebar-icon-shell");
+
+        Label labelNode = new Label(label);
+        labelNode.getStyleClass().add("logs-payload-sidebar-label");
+
+        Label valueNode = new Label(value);
+        valueNode.getStyleClass().add("logs-payload-sidebar-value");
+        if (valueStyle != null && !valueStyle.isBlank()) {
+            valueNode.getStyleClass().add(valueStyle);
+        }
+        valueNode.setWrapText(true);
+        valueNode.setMinWidth(0);
+        valueNode.setMaxWidth(Double.MAX_VALUE);
+
+        VBox stack = new VBox(2, labelNode, valueNode);
+        stack.setMinWidth(0);
+        stack.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(stack, Priority.ALWAYS);
+
+        HBox row = new HBox(10, iconShell, stack);
+        row.getStyleClass().add("logs-payload-sidebar-row");
+        row.setAlignment(Pos.TOP_LEFT);
+        return row;
+    }
+
+    private String sidebarIconColorClass(ActivityLogEntry entry) {
+        String area = Strings.normalize(displayArea(entry));
+        return switch (area) {
+            case "users", "access", "security", "profiles" -> "logs-payload-sidebar-icon-purple";
+            case "qa" -> "logs-payload-sidebar-icon-teal";
+            case "files", "import", "documents" -> "logs-payload-sidebar-icon-blue";
+            default -> "logs-payload-sidebar-icon-neutral";
+        };
+    }
+
     private List<ActivityDetailRow> buildQaDetailRows(ActivityLogEntry entry) {
         List<ActivityDetailRow> rows = new ArrayList<>();
         String doc = firstContextOrTarget(entry, "document", "document id", "box", "box id");
@@ -1674,7 +1747,7 @@ public class ActivityController {
         addFirstDetail(rows, entry, "Issues found", "issues", "issue count");
         String result = displayStatus(entry.status());
         if (!result.isBlank()) rows.add(new ActivityDetailRow("Result", result));
-        String desc = displayText(entry.description(), "");
+        String desc = Strings.displayText(entry.description(), "");
         if (!desc.isBlank()) rows.add(new ActivityDetailRow("Note", desc));
         return rows;
     }
@@ -1684,7 +1757,7 @@ public class ActivityController {
         addFirstDetail(rows, entry, "Export mode", "export mode", "mode", "format");
         addFirstDetail(rows, entry, "Records exported", "records", "record count", "total records");
         addFirstDetail(rows, entry, "Box", "box", "box id");
-        String desc = displayText(entry.description(), "");
+        String desc = Strings.displayText(entry.description(), "");
         if (!desc.isBlank()) rows.add(new ActivityDetailRow("Note", desc));
         return rows;
     }
@@ -1702,12 +1775,12 @@ public class ActivityController {
         // For events that got no main content: show description + any context details
         if (!hasMainContent) {
             List<ActivityDetailRow> rows = new ArrayList<>();
-            String desc = displayText(entry.description(), "");
+            String desc = Strings.displayText(entry.description(), "");
             if (!desc.isBlank()) rows.add(new ActivityDetailRow("Note", desc));
             rows.addAll(normalizedContextRows(entry).stream()
-                    .filter(r -> !normalize(r.label()).contains("box")
-                            && !normalize(r.label()).contains("profile")
-                            && !normalize(r.label()).contains("file"))
+                    .filter(r -> !Strings.normalize(r.label()).contains("box")
+                            && !Strings.normalize(r.label()).contains("profile")
+                            && !Strings.normalize(r.label()).contains("file"))
                     .limit(6)
                     .toList());
             return rows;
@@ -1716,25 +1789,12 @@ public class ActivityController {
         return normalizedContextRows(entry).stream()
                 .filter(r -> !isMissingAuditValue(r.value()))
                 .filter(r -> {
-                    String norm = normalize(r.label());
+                    String norm = Strings.normalize(r.label());
                     return !norm.contains("box") && !norm.contains("profile")
                             && !norm.contains("file") && !norm.contains("case");
                 })
                 .limit(4)
                 .toList();
-    }
-
-    private List<ActivityDetailRow> userTraceRows(ActivityLogEntry entry) {
-        List<ActivityDetailRow> rows = new ArrayList<>();
-        String userId = targetId(entry);
-
-        if (hasRealTargetId(userId)) {
-            rows.add(new ActivityDetailRow("User ID", userId));
-        }
-
-        addFirstDetail(rows, entry, "Email", "email", "email address");
-        rows.add(new ActivityDetailRow("Trace", "LOG-" + entry.id() + " · " + entry.fullTimestamp()));
-        return rows;
     }
 
     private void addFirstDetail(List<ActivityDetailRow> rows, ActivityLogEntry entry, String displayLabel, String... labels) {
@@ -1750,7 +1810,7 @@ public class ActivityController {
 
         if (isError(entry)) {
             List<ActivityDetailRow> rows = new ArrayList<>();
-            rows.add(new ActivityDetailRow("Failure reason", displayText(entry.description(), "No failure reason recorded.")));
+            rows.add(new ActivityDetailRow("Failure reason", Strings.displayText(entry.description(), "No failure reason recorded.")));
             rows.addAll(contextRows);
             return rows;
         }
@@ -1760,7 +1820,7 @@ public class ActivityController {
                 return contextRows;
             }
 
-            String description = displayText(entry.description(), "");
+            String description = Strings.displayText(entry.description(), "");
             return description.isBlank()
                     ? List.of()
                     : List.of(new ActivityDetailRow("Note", description));
@@ -1796,27 +1856,8 @@ public class ActivityController {
                 .toList();
     }
 
-    private List<ActivityDetailRow> evidenceRows(ActivityLogEntry entry) {
-        List<ActivityDetailRow> rows = new ArrayList<>();
-        rows.add(new ActivityDetailRow("Log ID", "LOG-" + entry.id()));
-
-        String targetId = targetId(entry);
-        if (hasRealTargetId(targetId)) {
-            rows.add(new ActivityDetailRow("Record ID", targetId));
-        }
-
-        rows.add(new ActivityDetailRow("Recorded", entry.fullTimestamp()));
-
-        String trigger = meaningfulTrigger(entry);
-        if (!trigger.isBlank()) {
-            rows.add(new ActivityDetailRow("Source", trigger));
-        }
-
-        return rows;
-    }
-
     private String normalizeDetailLabel(String label) {
-        String normalizedLabel = normalize(label);
+        String normalizedLabel = Strings.normalize(label);
 
         return switch (normalizedLabel) {
             case "file", "file id", "filename", "file name" -> "TIFF file";
@@ -1825,7 +1866,7 @@ public class ActivityController {
             case "document", "document id" -> "Document";
             case "page", "page number" -> "Page";
             case "profile", "profile name" -> "Scan profile";
-            default -> displayText(label, "Detail");
+            default -> Strings.displayText(label, "Detail");
         };
     }
 
@@ -1838,19 +1879,19 @@ public class ActivityController {
     }
 
     private boolean isStateSnapshotField(String field) {
-        String normalizedField = normalize(field);
+        String normalizedField = Strings.normalize(field);
         return "account state".equals(normalizedField)
                 || "profile state".equals(normalizedField)
                 || "template state".equals(normalizedField);
     }
 
     private boolean isCreateEvent(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
+        String action = Strings.normalize(formatAction(entry.action()));
         return action.contains("created") || action.startsWith("create ");
     }
 
     private boolean isDeleteEvent(ActivityLogEntry entry) {
-        String action = normalize(formatAction(entry.action()));
+        String action = Strings.normalize(formatAction(entry.action()));
         return action.contains("deleted") || action.startsWith("delete ");
     }
 
@@ -1888,33 +1929,6 @@ public class ActivityController {
         return TARGET_ID_PATTERN.matcher(cleanedValue).matches()
                 || cleanedValue.matches("\\d+")
                 || (!cleanedValue.contains(".") && cleanedValue.matches("[A-Za-z0-9_-]{3,}"));
-    }
-
-    private String meaningfulTrigger(ActivityLogEntry entry) {
-        String action = normalize(entry.action());
-        String type = normalize(entry.type());
-
-        if (!isSystemActor(entry.actor())) {
-            return "";
-        }
-
-        if (action.contains("import")) {
-            return "Import";
-        }
-
-        if (action.contains("api")) {
-            return "API";
-        }
-
-        if (action.contains("scheduled")) {
-            return "Scheduled task";
-        }
-
-        if (type.contains("scan") || action.contains("scan")) {
-            return "Background scan";
-        }
-
-        return "";
     }
 
     private String displayAuditValue(String value) {
@@ -1980,7 +1994,7 @@ public class ActivityController {
     private String shortActor(String actor) {
         String displayActor = displayActor(actor);
 
-        if (normalize(displayActor).contains("admin")) {
+        if (Strings.normalize(displayActor).contains("admin")) {
             return "Admin";
         }
 
@@ -2004,7 +2018,7 @@ public class ActivityController {
         // Always surface box context on the collapsed meta line when available
         String box = firstContextValue(entry, "box", "box id");
 
-        if (isError(entry) && !displayText(entry.description(), "").isBlank()) {
+        if (isError(entry) && !Strings.displayText(entry.description(), "").isBlank()) {
             String desc = entry.description();
             return box.isBlank() ? desc : "Box " + box + " · " + desc;
         }
@@ -2043,7 +2057,7 @@ public class ActivityController {
             return box.isBlank() ? changeText : "Box " + box + " · " + changeText;
         }
 
-        String fallback = displayText(entry.description(), displayText(entry.target(), "Audit event"));
+        String fallback = Strings.displayText(entry.description(), Strings.displayText(entry.target(), "Audit event"));
         return box.isBlank() ? fallback : "Box " + box + " · " + fallback;
     }
 
@@ -2052,38 +2066,38 @@ public class ActivityController {
     }
 
     private String eventIconPath(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
-        String action = normalize(entry.action());
+        String area = Strings.normalize(displayArea(entry));
+        String action = Strings.normalize(entry.action());
 
         if (isError(entry)) {
-            return WARNING_ICON_PATH;
+            return WARNING_ICON_GLYPH;
         }
 
         if (area.equals("users") || area.equals("access") || area.equals("security")) {
-            return USER_ICON_PATH;
+            return USER_ICON_GLYPH;
         }
 
         if (area.equals("qa")) {
-            return CHECK_ICON_PATH;
+            return CHECK_ICON_GLYPH;
         }
 
         if (area.equals("exports")) {
-            return DOWNLOAD_ICON_PATH;
+            return DOWNLOAD_ICON_GLYPH;
         }
 
         if (action.contains("replace") || action.contains("retry")) {
-            return REFRESH_ICON_PATH;
+            return REFRESH_ICON_GLYPH;
         }
 
         if (isTiffActivity(entry) || area.equals("import")) {
-            return UPLOAD_ICON_PATH;
+            return UPLOAD_ICON_GLYPH;
         }
 
-        return GEAR_ICON_PATH;
+        return GEAR_ICON_GLYPH;
     }
 
     private String eventIconClass(ActivityLogEntry entry) {
-        String area = normalize(displayArea(entry));
+        String area = Strings.normalize(displayArea(entry));
 
         return switch (area) {
             case "users" -> "logs-event-icon-users";
@@ -2103,7 +2117,7 @@ public class ActivityController {
             return fileFromDetails;
         }
 
-        String rawTarget = displayText(entry.target(), "");
+        String rawTarget = Strings.displayText(entry.target(), "");
         if (rawTarget.isBlank()) {
             return "";
         }
@@ -2112,10 +2126,10 @@ public class ActivityController {
 
         for (String part : target.split("/")) {
             String cleanedPart = part.trim();
-            String normalizedPart = normalize(cleanedPart);
+            String normalizedPart = Strings.normalize(cleanedPart);
 
             if (normalizedPart.startsWith("file ")) {
-                return displayText(cleanedPart.substring(5), target);
+                return Strings.displayText(cleanedPart.substring(5), target);
             }
 
             if (normalizedPart.endsWith(".tif") || normalizedPart.endsWith(".tiff")) {
@@ -2127,12 +2141,12 @@ public class ActivityController {
     }
 
     private String firstContextValue(ActivityLogEntry entry, String... labels) {
-        List<String> normalizedLabels = List.of(labels).stream()
-                .map(this::normalize)
+        List<String> normalizedLabels = Arrays.stream(labels)
+                .map(Strings::normalize)
                 .toList();
 
         return entry.contextDetails().stream()
-                .filter(row -> normalizedLabels.contains(normalize(row.label())))
+                .filter(row -> normalizedLabels.contains(Strings.normalize(row.label())))
                 .map(ActivityDetailRow::value)
                 .filter(value -> !isMissingAuditValue(value))
                 .findFirst()
@@ -2140,8 +2154,8 @@ public class ActivityController {
     }
 
     private String displayArea(ActivityLogEntry entry) {
-        String normalizedType = normalize(entry.type());
-        String normalizedAction = normalize(entry.action());
+        String normalizedType = Strings.normalize(entry.type());
+        String normalizedAction = Strings.normalize(entry.action());
 
         if (normalizedAction.contains("import")) {
             return "Import";
@@ -2155,11 +2169,11 @@ public class ActivityController {
             return "Files";
         }
 
-        return displayText(entry.type(), "System");
+        return Strings.displayText(entry.type(), "System");
     }
 
     private String areaBadgeClass(ActivityLogEntry entry) {
-        String normalizedType = normalize(displayArea(entry));
+        String normalizedType = Strings.normalize(displayArea(entry));
 
         return switch (normalizedType) {
             case "users" -> "logs-area-users";
@@ -2174,9 +2188,9 @@ public class ActivityController {
     }
 
     private boolean isTiffActivity(ActivityLogEntry entry) {
-        String type = normalize(entry.type());
-        String action = normalize(entry.action());
-        String target = normalize(entry.target());
+        String type = Strings.normalize(entry.type());
+        String action = Strings.normalize(entry.action());
+        String target = Strings.normalize(entry.target());
 
         return type.contains("scan")
                 || type.contains("document")
@@ -2190,27 +2204,27 @@ public class ActivityController {
     }
 
     private boolean matchesSearch(ActivityLogEntry entry) {
-        String searchText = normalize(searchField == null ? "" : searchField.getText());
+        String searchText = Strings.normalize(searchField == null ? "" : searchField.getText());
 
         if (searchText.isBlank()) {
             return true;
         }
 
-        return normalize(displayArea(entry)).contains(searchText)
-                || normalize(entry.type()).contains(searchText)
-                || normalize(entry.actor()).contains(searchText)
-                || normalize(entry.action()).contains(searchText)
-                || normalize(entry.target()).contains(searchText)
-                || normalize(entry.status()).contains(searchText)
-                || normalize(entry.description()).contains(searchText)
-                || normalize(entry.fullTimestamp()).contains(searchText)
+        return Strings.normalize(displayArea(entry)).contains(searchText)
+                || Strings.normalize(entry.type()).contains(searchText)
+                || Strings.normalize(entry.actor()).contains(searchText)
+                || Strings.normalize(entry.action()).contains(searchText)
+                || Strings.normalize(entry.target()).contains(searchText)
+                || Strings.normalize(entry.status()).contains(searchText)
+                || Strings.normalize(entry.description()).contains(searchText)
+                || Strings.normalize(entry.fullTimestamp()).contains(searchText)
                 || entry.changes().stream().anyMatch(change ->
-                normalize(change.field()).contains(searchText)
-                        || normalize(change.oldValue()).contains(searchText)
-                        || normalize(change.newValue()).contains(searchText)
+                Strings.normalize(change.field()).contains(searchText)
+                        || Strings.normalize(change.oldValue()).contains(searchText)
+                        || Strings.normalize(change.newValue()).contains(searchText)
         ) || entry.contextDetails().stream().anyMatch(row ->
-                normalize(row.label()).contains(searchText)
-                        || normalize(row.searchText()).contains(searchText)
+                Strings.normalize(row.label()).contains(searchText)
+                        || Strings.normalize(row.searchText()).contains(searchText)
         );
     }
 
@@ -2227,7 +2241,7 @@ public class ActivityController {
         return selectedArea.isBlank()
                 || ALL_AREAS.equals(selectedArea)
                 || displayArea(entry).equalsIgnoreCase(selectedArea)
-                || displayText(entry.type(), "").equalsIgnoreCase(selectedArea);
+                || Strings.displayText(entry.type(), "").equalsIgnoreCase(selectedArea);
     }
 
     private boolean matchesUser(ActivityLogEntry entry) {
@@ -2235,7 +2249,7 @@ public class ActivityController {
 
         return selectedUser.isBlank()
                 || ALL_USERS.equals(selectedUser)
-                || displayText(entry.actor(), "").equalsIgnoreCase(selectedUser);
+                || Strings.displayText(entry.actor(), "").equalsIgnoreCase(selectedUser);
     }
 
     private boolean matchesStatus(ActivityLogEntry entry) {
@@ -2484,7 +2498,7 @@ public class ActivityController {
         }
 
         dateFilterMenuButton.setText(null);
-        dateFilterMenuButton.setGraphic(createFilterGraphic(DATE_FILTER_ICON_PATH, "Date", value));
+        dateFilterMenuButton.setGraphic(createFilterGraphic(DATE_FILTER_ICON_GLYPH, "Date", value));
         dateFilterMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         dateFilterMenuButton.setAccessibleText("Date " + value);
     }
@@ -2552,12 +2566,8 @@ public class ActivityController {
         );
     }
 
-    private String normalize(String value) {
-        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
-    }
-
     private String statusBadgeClass(String status) {
-        return switch (normalize(status)) {
+        return switch (Strings.normalize(status)) {
             case "success" -> "logs-result-success";
             case "failed", "error" -> "logs-result-failed";
             default -> "logs-result-info";
@@ -2565,34 +2575,29 @@ public class ActivityController {
     }
 
     private boolean isError(ActivityLogEntry entry) {
-        String status = normalize(entry.status());
+        String status = Strings.normalize(entry.status());
 
         return "failed".equals(status)
                 || "error".equals(status)
-                || normalize(entry.action()).contains("failed")
-                || normalize(entry.action()).contains("rejected");
+                || Strings.normalize(entry.action()).contains("failed")
+                || Strings.normalize(entry.action()).contains("rejected");
     }
 
     private String displayStatus(String status) {
-        String normalizedStatus = normalize(status);
+        String normalizedStatus = Strings.normalize(status);
 
         return "failed".equals(normalizedStatus) || "error".equals(normalizedStatus)
                 ? "Failed"
-                : displayText(status, "Info");
+                : Strings.displayText(status, "Info");
     }
 
     private String displayActor(String actor) {
-        return isSystemActor(actor) ? "System" : displayText(actor, "System");
+        return isSystemActor(actor) ? "System" : Strings.displayText(actor, "System");
     }
 
     private boolean isSystemActor(String actor) {
-        String normalizedActor = normalize(actor);
+        String normalizedActor = Strings.normalize(actor);
         return normalizedActor.isBlank() || "system".equals(normalizedActor);
-    }
-
-    private String displayText(String value, String fallback) {
-        String cleanedValue = value == null ? "" : value.trim();
-        return cleanedValue.isBlank() ? fallback : cleanedValue;
     }
 
     private String lowerFirst(String text) {
@@ -2617,7 +2622,7 @@ public class ActivityController {
     }
 
     private String formatAction(String action) {
-        String cleanedAction = displayText(action, "Activity");
+        String cleanedAction = Strings.displayText(action, "Activity");
         String actionKey = cleanedAction.trim().replace(' ', '_').toUpperCase(Locale.ROOT);
 
         switch (actionKey) {
@@ -2694,12 +2699,12 @@ public class ActivityController {
                 String.valueOf(log.getId()),
                 ROW_TIME_FORMATTER.format(timestamp),
                 ACTIVITY_TIMESTAMP_FORMATTER.format(timestamp),
-                displayText(log.getType(), "System"),
-                displayText(log.getActor(), "System"),
-                displayText(log.getAction(), "Activity"),
-                displayText(log.getTarget(), ""),
-                displayText(log.getStatus(), "Info"),
-                displayText(log.getDescription(), ""),
+                Strings.displayText(log.getType(), "System"),
+                Strings.displayText(log.getActor(), "System"),
+                Strings.displayText(log.getAction(), "Activity"),
+                Strings.displayText(log.getTarget(), ""),
+                Strings.displayText(log.getStatus(), "Info"),
+                Strings.displayText(log.getDescription(), ""),
                 log.getDetails().stream()
                         .filter(detail -> !detail.isFieldChange())
                         .map(detail -> new ActivityDetailRow(detail.getLabel(), detail.getValue()))

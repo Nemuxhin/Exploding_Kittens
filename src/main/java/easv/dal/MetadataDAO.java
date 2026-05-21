@@ -4,6 +4,7 @@ import easv.be.MetadataField;
 import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
+import easv.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -505,7 +506,7 @@ public class MetadataDAO {
                 FROM scan_profiles
                 WHERE LOWER(name) = LOWER(?)
                 """)) {
-            statement.setString(1, clean(profileName));
+            statement.setString(1, Strings.clean(profileName));
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -514,7 +515,7 @@ public class MetadataDAO {
             }
         }
 
-        throw new DataAccessException("Scan profile does not exist in the database: " + clean(profileName), null);
+        throw new DataAccessException("Scan profile does not exist in the database: " + Strings.clean(profileName), null);
     }
 
     private void deleteProfileReferences(Connection connection, int profileId) throws SQLException {
@@ -686,12 +687,8 @@ public class MetadataDAO {
         );
     }
 
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
     private String displayStatus(String status) {
-        String cleanedStatus = clean(status);
+        String cleanedStatus = Strings.clean(status);
 
         if (cleanedStatus.isBlank()) {
             return "";

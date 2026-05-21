@@ -4,7 +4,7 @@
    ========================================================= */
 
 /* =========================================================
-   11. REVIEW WORKSPACE
+   REVIEW WORKSPACE
    Project note: review has a denser workspace layout, so
    workspace widths and toolbar actions are scoped to that screen.
    ========================================================= */
@@ -324,10 +324,6 @@
     -fx-font-weight: 600;
 }
 
-.review-workspace-tree-title-active {
-    -fx-font-weight: 600;
-}
-
 .review-workspace-tree-status-text {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
@@ -567,7 +563,7 @@
 }
 
 /* =========================================================
-   12. REVIEW QUEUE GUARDS
+   REVIEW QUEUE GUARDS
    Project note: queue row graphics stay aligned with review rows.
    ========================================================= */
 

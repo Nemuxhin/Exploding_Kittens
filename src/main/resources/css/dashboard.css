@@ -4,7 +4,7 @@
    ========================================================= */
 
 /* =========================================================
-   09. DASHBOARD
+   DASHBOARD
    Project note: dashboard status cards use soft icon backgrounds
    and separate attention styling for blocked work.
    ========================================================= */
@@ -259,7 +259,6 @@
     -fx-text-fill: -wl-text;
     -fx-font-size: 18px;
     -fx-font-weight: 600;
-    -fx-wrap-text: false;
     -fx-text-overrun: clip;
 }
 

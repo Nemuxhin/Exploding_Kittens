@@ -9,7 +9,7 @@
    ========================================================= */
 
 /* =========================================================
-   01. THEME TOKENS
+   THEME TOKENS
    Project note: all screens, cards, dialogs, and controls should use
    these variables so light mode and dark mode stay consistent.
    ========================================================= */
@@ -333,7 +333,7 @@
 }
 
 /* =========================================================
-   01B. GLOBAL SCROLLBARS
+   GLOBAL SCROLLBARS
    Shared vertical scrollbar polish for all pages.
    ========================================================= */
 
@@ -367,7 +367,7 @@
 }
 
 /* =========================================================
-   01C. SHARED DATE CELL STATES
+   SHARED DATE CELL STATES
    Used by admin review/activity range pickers.
    ========================================================= */
 

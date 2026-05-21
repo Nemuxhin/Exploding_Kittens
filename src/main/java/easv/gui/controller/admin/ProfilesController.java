@@ -3,6 +3,7 @@ package easv.gui.controller.admin;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,7 +30,6 @@ import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -209,7 +209,7 @@ public class ProfilesController {
             return;
         }
 
-        String searchText = normalize(searchField.getText());
+        String searchText = Strings.normalize(searchField.getText());
         String selectedStatus = statusFilterComboBox.getValue();
 
         filteredProfiles.setPredicate(profile ->
@@ -225,13 +225,13 @@ public class ProfilesController {
             return true;
         }
 
-        return normalize(profile.getName()).contains(searchText)
-                || normalize(profile.getCode()).contains(searchText)
-                || normalize(profile.getDescription()).contains(searchText)
-                || normalize(profile.getExportNaming()).contains(searchText)
-                || normalize(displayStatus(profile)).contains(searchText)
+        return Strings.normalize(profile.getName()).contains(searchText)
+                || Strings.normalize(profile.getCode()).contains(searchText)
+                || Strings.normalize(profile.getDescription()).contains(searchText)
+                || Strings.normalize(profile.getExportNaming()).contains(searchText)
+                || Strings.normalize(displayStatus(profile)).contains(searchText)
                 || configChipsFor(profile).stream()
-                .anyMatch(chip -> normalize(chip.getLabel()).contains(searchText));
+                .anyMatch(chip -> Strings.normalize(chip.label()).contains(searchText));
     }
 
     private boolean matchesStatus(ScanProfile profile, String selectedStatus) {
@@ -398,8 +398,8 @@ public class ProfilesController {
         chipsPane.setVgap(8);
 
         for (ConfigChip chip : configChipsFor(profile)) {
-            Label chipLabel = new Label(chip.getLabel());
-            chipLabel.getStyleClass().addAll("profile-config-chip", chip.getStyleClass());
+            Label chipLabel = new Label(chip.label());
+            chipLabel.getStyleClass().addAll("profile-config-chip", chip.styleClass());
             chipsPane.getChildren().add(chipLabel);
         }
 
@@ -409,9 +409,9 @@ public class ProfilesController {
     private VBox buildInfoBox(ScanProfile profile) {
         VBox infoBox = new VBox(10);
         infoBox.getChildren().addAll(
-                buildInfoBlock("Export Naming", displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), true),
+                buildInfoBlock("Export Naming", Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), true),
                 buildInfoBlock("Assigned Users", formatAssignedUsers(assignedUserCountFor(profile)), false),
-                buildInfoBlock("Updated", displayText(profile.getLastUpdated(), "Not updated yet"), false)
+                buildInfoBlock("Updated", Strings.displayText(profile.getLastUpdated(), "Not updated yet"), false)
         );
 
         return infoBox;
@@ -555,9 +555,9 @@ public class ProfilesController {
     }
 
     private void syncPreview() {
-        String profileName = clean(profileNameField.getText());
-        String profileCode = clean(profileCodeField.getText());
-        String namingPattern = clean(exportNamingField.getText());
+        String profileName = Strings.clean(profileNameField.getText());
+        String profileCode = Strings.clean(profileCodeField.getText());
+        String namingPattern = Strings.clean(exportNamingField.getText());
 
         if (profileName.isBlank()) {
             profileName = "Untitled Profile";
@@ -739,12 +739,12 @@ public class ProfilesController {
 
     private AdminManager.ProfileInput createProfileInputFromEditor() {
         return new AdminManager.ProfileInput(
-                clean(profileNameField.getText()),
-                clean(profileCodeField.getText()),
-                clean(profileDescriptionArea.getText()),
+                Strings.clean(profileNameField.getText()),
+                Strings.clean(profileCodeField.getText()),
+                Strings.clean(profileDescriptionArea.getText()),
                 safeValue(profileStatusComboBox),
                 "",
-                clean(exportNamingField.getText()),
+                Strings.clean(exportNamingField.getText()),
                 barcodeSplitToggle.isSelected(),
                 safeValue(barcodeDetectedComboBox),
                 safeValue(barcodePageBehaviorComboBox),
@@ -844,10 +844,6 @@ public class ProfilesController {
                 ? new ConfigChip("Deskew", "chip-indigo")
                 : new ConfigChip("Deskew Off", "chip-neutral"));
 
-        if (profile.getName().toLowerCase(Locale.ROOT).contains("drawing")) {
-            chips.add(new ConfigChip("OCR Enabled", "chip-purple"));
-        }
-
         if (!profile.getBrightness().equalsIgnoreCase("Normal")) {
             chips.add(new ConfigChip("Brightness Correction", "chip-orange"));
         }
@@ -887,16 +883,16 @@ public class ProfilesController {
     }
 
     private boolean profileNameExists(String name) {
-        String normalizedName = normalize(name);
+        String normalizedName = Strings.normalize(name);
 
         return adminManager.getProfiles().stream()
                 .map(ScanProfile::getName)
-                .map(this::normalize)
+                .map(Strings::normalize)
                 .anyMatch(existingName -> existingName.equals(normalizedName));
     }
 
     private String createProfileCode(String name) {
-        String baseCode = clean(name).replaceAll("[^A-Za-z0-9]", "");
+        String baseCode = Strings.clean(name).replaceAll("[^A-Za-z0-9]", "");
 
         if (baseCode.isBlank()) {
             baseCode = "NewProfile";
@@ -918,7 +914,7 @@ public class ProfilesController {
     }
 
     private String statusClassFor(String status) {
-        return switch (normalize(status)) {
+        return switch (Strings.normalize(status)) {
             case "active" -> "profile-status-active";
             case "draft" -> "profile-status-draft";
             case "archived" -> "profile-status-archived";
@@ -930,19 +926,6 @@ public class ProfilesController {
         return assignedUsersCount + (assignedUsersCount == 1 ? " user assigned" : " users assigned");
     }
 
-    private String displayText(String value, String fallback) {
-        String cleanedValue = clean(value);
-        return cleanedValue.isBlank() ? fallback : cleanedValue;
-    }
-
-    private String normalize(String value) {
-        return clean(value).toLowerCase(Locale.ROOT);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
-
     private enum EditorTab {
         GENERAL,
         SCAN_RULES,
@@ -950,45 +933,6 @@ public class ProfilesController {
         PREVIEW
     }
 
-    static class ConfigChip {
-        private final String label;
-        private final String styleClass;
-
-        ConfigChip(String label, String styleClass) {
-            this.label = label;
-            this.styleClass = styleClass;
-        }
-
-        String getLabel() {
-            return label;
-        }
-
-        String getStyleClass() {
-            return styleClass;
-        }
-    }
-
-    static final class AccessUser {
-        private final String name;
-        private final String role;
-        private final String status;
-
-        AccessUser(String name, String role, String status) {
-            this.name = name;
-            this.role = role;
-            this.status = status;
-        }
-
-        String name() {
-            return name;
-        }
-
-        String role() {
-            return role;
-        }
-
-        String status() {
-            return status;
-        }
+    private record ConfigChip(String label, String styleClass) {
     }
 }

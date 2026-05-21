@@ -3,7 +3,9 @@ package easv.gui.controller.admin;
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
 import easv.gui.controller.utilities.AppDates;
+import easv.gui.controller.utilities.PaginationHelper;
 import easv.gui.controller.utilities.SearchableComboBoxes;
+import easv.util.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -34,7 +36,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
@@ -146,28 +147,15 @@ public class ReviewController {
     private void configureFilters() {
         configureDateRangePicker();
 
-        clientFilterComboBox.getItems().setAll(
-                ALL_CLIENTS,
-                "Aalborg Municipality",
-                "Maersk Archive",
-                "Copenhagen Airport"
-        );
+        // Client / archive / profile / scannedBy options are data-driven —
+        // refreshFilterOptions() rebuilds them from the loaded records.
+        clientFilterComboBox.getItems().setAll(ALL_CLIENTS);
         clientFilterComboBox.setValue(ALL_CLIENTS);
 
-        archiveFilterComboBox.getItems().setAll(
-                ALL_ARCHIVES,
-                "Building Archive",
-                "Technical Archive",
-                "Airport Archive"
-        );
+        archiveFilterComboBox.getItems().setAll(ALL_ARCHIVES);
         archiveFilterComboBox.setValue(ALL_ARCHIVES);
 
-        profileFilterComboBox.getItems().setAll(
-                ALL_PROFILES,
-                "Building Archive",
-                "Technical Drawings",
-                "Standard Scan"
-        );
+        profileFilterComboBox.getItems().setAll(ALL_PROFILES);
         profileFilterComboBox.setValue(ALL_PROFILES);
 
         qaStatusFilterComboBox.getItems().setAll(
@@ -191,13 +179,7 @@ public class ReviewController {
         );
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
 
-        scannedByFilterComboBox.getItems().setAll(
-                ALL_USERS,
-                "Sarah Smith",
-                "John Doe",
-                "Sofia Nielsen",
-                "System Import"
-        );
+        scannedByFilterComboBox.getItems().setAll(ALL_USERS);
         scannedByFilterComboBox.setValue(ALL_USERS);
 
         SearchableComboBoxes.configure(clientFilterComboBox);
@@ -223,12 +205,11 @@ public class ReviewController {
                 "Municipal Archive",
                 "Legal Department"
         );
-        departmentComboBox.setValue("Technical Services");
         SearchableComboBoxes.configure(documentTypeComboBox);
 
-        caseNumberField.setText("2026-042");
-        registrationDateField.setText("Invalid date");
-        buildingAddressField.setText("Skagerrakvej 16");
+        caseNumberField.clear();
+        registrationDateField.clear();
+        buildingAddressField.clear();
         notesTextArea.clear();
     }
 
@@ -292,7 +273,11 @@ public class ReviewController {
         );
 
         updateEmptyState(totalRecords);
-        renderPagination(pageSlice, totalRecords);
+        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, pageSlice,
+                totalRecords, "records", page -> {
+                    currentPage = page;
+                    renderRows();
+                });
         updateBatchBar();
         updateSummaryCards();
     }
@@ -521,88 +506,22 @@ public class ReviewController {
         paginationBar.setManaged(hasRows);
     }
 
-    private void renderPagination(PaginationHelper.PageSlice pageSlice, int totalRecords) {
-        paginationButtonsBox.getChildren().clear();
-
-        if (totalRecords == 0) {
-            paginationSummaryLabel.setText("Showing 0 records");
-            return;
-        }
-
-        paginationSummaryLabel.setText(
-                "Showing " + (pageSlice.fromIndex() + 1) + "-"
-                        + pageSlice.toIndex()
-                        + " of "
-                        + totalRecords
-                        + " records"
-        );
-
-        paginationButtonsBox.getChildren().add(createPaginationButton("<<", 1, currentPage == 1));
-        paginationButtonsBox.getChildren().add(createPaginationButton("<", currentPage - 1, currentPage == 1));
-
-        for (String pageItem : PaginationHelper.buildPageItems(currentPage, pageSlice.totalPages())) {
-            Node paginationItem = PaginationHelper.ELLIPSIS.equals(pageItem)
-                    ? createPaginationEllipsis()
-                    : createPaginationButton(pageItem, Integer.parseInt(pageItem), false);
-
-            paginationButtonsBox.getChildren().add(paginationItem);
-        }
-
-        paginationButtonsBox.getChildren().add(createPaginationButton(
-                ">",
-                currentPage + 1,
-                currentPage == pageSlice.totalPages()
-        ));
-        paginationButtonsBox.getChildren().add(createPaginationButton(
-                ">>",
-                pageSlice.totalPages(),
-                currentPage == pageSlice.totalPages()
-        ));
-    }
-
-    private Button createPaginationButton(String text, int targetPage, boolean disabled) {
-        Button button = new Button(text);
-        button.getStyleClass().add("pagination-button");
-        button.setFocusTraversable(false);
-        button.setDisable(disabled);
-
-        if (text.equals(String.valueOf(currentPage))) {
-            button.getStyleClass().add("pagination-button-active");
-            return button;
-        }
-
-        if (!disabled) {
-            button.setOnAction(event -> {
-                currentPage = targetPage;
-                renderRows();
-            });
-        }
-
-        return button;
-    }
-
-    private Label createPaginationEllipsis() {
-        Label ellipsis = new Label("...");
-        ellipsis.getStyleClass().add("pagination-ellipsis");
-        return ellipsis;
-    }
-
     private boolean matchesSearch(ReviewRow record) {
-        String searchText = normalize(searchField.getText());
+        String searchText = Strings.normalize(searchField.getText());
 
         if (searchText.isBlank()) {
             return true;
         }
 
-        return normalize(record.identity()).contains(searchText)
-                || normalize(record.client()).contains(searchText)
-                || normalize(record.archive()).contains(searchText)
-                || normalize(record.profile()).contains(searchText)
-                || normalize(record.qaStatus()).contains(searchText)
-                || normalize(record.assignedTo()).contains(searchText)
-                || normalize(record.scannedBy()).contains(searchText)
-                || normalize(record.lastUpdated()).contains(searchText)
-                || normalize(record.dateGroup()).contains(searchText)
+        return Strings.normalize(record.identity()).contains(searchText)
+                || Strings.normalize(record.client()).contains(searchText)
+                || Strings.normalize(record.archive()).contains(searchText)
+                || Strings.normalize(record.profile()).contains(searchText)
+                || Strings.normalize(record.qaStatus()).contains(searchText)
+                || Strings.normalize(record.assignedTo()).contains(searchText)
+                || Strings.normalize(record.scannedBy()).contains(searchText)
+                || Strings.normalize(record.lastUpdated()).contains(searchText)
+                || Strings.normalize(record.dateGroup()).contains(searchText)
                 || String.valueOf(record.pages()).contains(searchText);
     }
 
@@ -676,7 +595,7 @@ public class ReviewController {
 
     private LocalDate parseDateText(String value) {
         String dateText = value == null ? "" : value.trim();
-        String normalizedDateText = normalize(dateText);
+        String normalizedDateText = Strings.normalize(dateText);
 
         if (dateText.isBlank()) {
             return null;
@@ -721,18 +640,8 @@ public class ReviewController {
         return null;
     }
 
-    private String documentDetailsStatusClass(String status) {
-        return switch (normalize(status)) {
-            case "not started" -> "review-status-neutral";
-            case "incomplete" -> "review-status-warning";
-            case "missing required fields", "invalid" -> "review-status-danger";
-            case "complete", "approved" -> "review-status-success";
-            default -> "review-status-neutral";
-        };
-    }
-
     private String qaStatusClass(String status) {
-        return switch (normalize(status)) {
+        return switch (Strings.normalize(status)) {
             case "not started" -> "review-status-neutral";
             case "waiting for qa", "qa in progress", "ready for qa" -> "review-status-info";
             case "qa approved" -> "review-status-success";
@@ -997,7 +906,7 @@ public class ReviewController {
 
         workspaceWarningLabel.setText(
                 isBlocked
-                        ? "Export blocked: 2 required document fields are missing."
+                        ? "Export blocked: required document fields are missing."
                         : "Document details are complete. Ready for QA assignment or approval."
         );
 
@@ -1116,10 +1025,6 @@ public class ReviewController {
                 tabButton.getStyleClass().add("review-workspace-tab-button");
             }
         }
-    }
-
-    private String normalize(String value) {
-        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private void loadRecords() {

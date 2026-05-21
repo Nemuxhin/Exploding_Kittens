@@ -5,6 +5,7 @@ import easv.bll.AdminManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
+import easv.util.Strings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -30,7 +31,6 @@ import javafx.stage.StageStyle;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Locale;
 import java.util.prefs.Preferences;
 
 public class AdminController implements AdminNavigator {
@@ -122,7 +122,7 @@ public class AdminController implements AdminNavigator {
         }
 
         if (accountInitialsLabel != null) {
-            accountInitialsLabel.setText(initialsFor(displayName));
+            accountInitialsLabel.setText(Strings.initials(displayName, "AD"));
         }
 
         if (accountDropdownNameLabel != null) {
@@ -392,7 +392,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private VBox createAccountSettingsPage(String selectedSection) {
-        String safeSection = clean(selectedSection).isBlank() ? ACCOUNT_SECTION : selectedSection;
+        String safeSection = Strings.clean(selectedSection).isBlank() ? ACCOUNT_SECTION : selectedSection;
 
         Label titleLabel = new Label(safeSection);
         titleLabel.getStyleClass().add("page-title");
@@ -471,10 +471,10 @@ public class AdminController implements AdminNavigator {
         heading.getStyleClass().add("settings-section-heading");
 
         TextField nameField = createAccountTextField(displayNameFor(account));
-        TextField usernameField = createAccountTextField(account == null ? "" : clean(account.getUsername()));
-        TextField emailField = createAccountTextField(account == null ? "" : clean(account.getEmail()));
-        TextField roleField = createAccountTextField(account == null ? "Admin" : clean(account.getRole()));
-        TextField statusField = createAccountTextField(account == null ? "Active" : clean(account.getStatus()));
+        TextField usernameField = createAccountTextField(account == null ? "" : Strings.clean(account.getUsername()));
+        TextField emailField = createAccountTextField(account == null ? "" : Strings.clean(account.getEmail()));
+        TextField roleField = createAccountTextField(account == null ? "Admin" : Strings.clean(account.getRole()));
+        TextField statusField = createAccountTextField(account == null ? "Active" : Strings.clean(account.getStatus()));
 
         roleField.setEditable(false);
         statusField.setEditable(false);
@@ -623,7 +623,7 @@ public class AdminController implements AdminNavigator {
     private void showInlineMessage(Label messageLabel, String message, boolean success) {
         messageLabel.getStyleClass().removeAll("success", "error");
         messageLabel.getStyleClass().add(success ? "success" : "error");
-        messageLabel.setText(clean(message).isBlank() ? "Something went wrong." : message);
+        messageLabel.setText(Strings.clean(message).isBlank() ? "Something went wrong." : message);
         messageLabel.setVisible(true);
         messageLabel.setManaged(true);
     }
@@ -726,12 +726,12 @@ public class AdminController implements AdminNavigator {
             return "Admin";
         }
 
-        if (!clean(user.getName()).isBlank()) {
-            return clean(user.getName());
+        if (!Strings.clean(user.getName()).isBlank()) {
+            return Strings.clean(user.getName());
         }
 
-        if (!clean(user.getUsername()).isBlank()) {
-            return clean(user.getUsername());
+        if (!Strings.clean(user.getUsername()).isBlank()) {
+            return Strings.clean(user.getUsername());
         }
 
         return "Admin";
@@ -742,34 +742,15 @@ public class AdminController implements AdminNavigator {
             return "Admin account";
         }
 
-        if (!clean(user.getEmail()).isBlank()) {
-            return clean(user.getEmail());
+        if (!Strings.clean(user.getEmail()).isBlank()) {
+            return Strings.clean(user.getEmail());
         }
 
-        if (!clean(user.getUsername()).isBlank()) {
-            return clean(user.getUsername());
+        if (!Strings.clean(user.getUsername()).isBlank()) {
+            return Strings.clean(user.getUsername());
         }
 
-        return clean(user.getRole()).isBlank() ? "Admin account" : clean(user.getRole()) + " account";
+        return Strings.clean(user.getRole()).isBlank() ? "Admin account" : Strings.clean(user.getRole()) + " account";
     }
 
-    private String initialsFor(String displayName) {
-        String cleanedName = clean(displayName);
-
-        if (cleanedName.isBlank()) {
-            return "AD";
-        }
-
-        String[] parts = cleanedName.split("\\s+");
-
-        if (parts.length == 1) {
-            return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase(Locale.ROOT);
-        }
-
-        return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase(Locale.ROOT);
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value.trim();
-    }
 }

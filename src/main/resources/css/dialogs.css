@@ -4,7 +4,7 @@
    ========================================================= */
 
 /* =========================================================
-   18. USER HELP DIALOG
+   USER HELP DIALOG
    Project note:
    User portal help dialog only.
    Uses WebLager tokens, no native JavaFX gradient panes.
@@ -529,7 +529,7 @@
 /* Admin dialog styles split from app.css */
 
 /* =========================================================
-   13. USER EDITOR AND ADMIN DIALOG
+   USER EDITOR AND ADMIN DIALOG
    Project note: the user editor shares these form styles, and the
    field editor still uses JavaFX DialogPane with the
    app-shell/admin-dialog-pane/dark classes.
