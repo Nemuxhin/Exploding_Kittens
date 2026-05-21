@@ -183,7 +183,7 @@
                         <Button text="Back"
                                 onAction="#onBackToAssignedQaList"
                                 focusTraversable="false"
-                                styleClass="back-button"/>
+                                styleClass="scan-back-button"/>
                     </VBox>
                 </left>
 
@@ -433,19 +433,15 @@
       RIGHT QA TOOLS PANEL
       ===================================================== -->
 
-                <VBox spacing="6"
-                      prefWidth="272"
-                      minWidth="272"
-                      maxWidth="272"
+                <VBox spacing="12"
+                      prefWidth="240"
+                      minWidth="240"
+                      maxWidth="240"
                       minHeight="0"
                       maxHeight="Infinity"
                       styleClass="qa-tools-panel">
 
-                    <padding>
-                        <Insets top="10" right="10" bottom="10" left="10"/>
-                    </padding>
-
-                    <VBox spacing="8"
+                    <VBox spacing="9"
                           VBox.vgrow="ALWAYS"
                           minWidth="0"
                           minHeight="0"
@@ -465,7 +461,8 @@
                             <TextArea fx:id="qaCommentTextArea"
                                       promptText="Add QA note for this page..."
                                       wrapText="true"
-                                      prefRowCount="12"
+                                      prefRowCount="6"
+                                      VBox.vgrow="ALWAYS"
                                       maxWidth="Infinity"
                                       styleClass="qa-comment-textarea"/>
                         </VBox>
@@ -473,10 +470,10 @@
                         <Region styleClass="scan-panel-divider"/>
 
                         <!-- Decision actions -->
-                        <VBox spacing="4"
+                        <VBox spacing="9"
                               maxWidth="Infinity">
 
-                            <VBox spacing="4"
+                            <VBox spacing="9"
                                   maxWidth="Infinity"
                                   styleClass="qa-tools-section-box">
                                 <Label text="Apply To"
@@ -484,7 +481,7 @@
 
                                 <ComboBox fx:id="qaActionScopeComboBox"
                                           maxWidth="Infinity"
-                                          styleClass="exports-status-filter"/>
+                                          styleClass="scan-tool-button"/>
                             </VBox>
 
                             <Button text="Approve Page"
@@ -518,8 +515,16 @@
                         <Region styleClass="scan-panel-divider"/>
 
                         <!-- Page utility actions -->
-                        <VBox spacing="4"
+                        <VBox spacing="9"
                               maxWidth="Infinity">
+                            <Label text="Rotation"
+                                   styleClass="qa-tools-section-title"/>
+
+                            <ComboBox fx:id="qaRotationComboBox"
+                                      maxWidth="Infinity"
+                                      promptText="Enter rotation in degrees"
+                                      styleClass="scan-tool-button"/>
+
                             <Button text="Rotate Left"
                                     fx:id="qaRotateLeftButton"
                                     onAction="#onRotateLeft"
@@ -539,7 +544,7 @@
                                 onAction="#onOpenExportTypeDialog"
                                 maxWidth="Infinity"
                                 focusTraversable="false"
-                                styleClass="qa-neutral-button"/>
+                                styleClass="qa-export-type-button"/>
                     </VBox>
                 </VBox>
             </HBox>

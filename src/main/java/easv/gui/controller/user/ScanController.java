@@ -116,6 +116,8 @@ public class ScanController {
     @FXML private Label reviewDocumentsInfoLabel;
     @FXML private Label reviewZoomLabel;
 
+    @FXML private VBox scanLeftPanel;
+    @FXML private VBox scanToolsPanel;
     @FXML private VBox documentTreeContainer;
     @FXML private ScrollPane documentTreeScrollPane;
     @FXML private StackPane previewHost;
@@ -194,6 +196,7 @@ public class ScanController {
         configureValidation();
         configureDocumentTreeScroll();
         configureDocumentTreeViewToggle();
+        configureWorkspacePanelClipping();
         configurePreviewInteractions();
         configureReviewPreviewInteractions();
         updatePreviewZoomLabel();
@@ -222,6 +225,22 @@ public class ScanController {
     private void configureDocumentTreeViewToggle() {
         updateDocumentTreeViewToggleButtons();
         updateReviewDocumentViewToggleButtons();
+    }
+
+    private void configureWorkspacePanelClipping() {
+        installPanelClip(scanLeftPanel);
+        installPanelClip(scanToolsPanel);
+    }
+
+    private void installPanelClip(Region panel) {
+        if (panel == null) {
+            return;
+        }
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(panel.widthProperty());
+        clip.heightProperty().bind(panel.heightProperty());
+        panel.setClip(clip);
     }
 
     @FXML
@@ -316,6 +335,8 @@ public class ScanController {
         }
 
         boxRotationComboBox.getItems().setAll(BOX_ROTATION_OPTIONS);
+        boxRotationComboBox.setEditable(true);
+        boxRotationComboBox.setPromptText("Enter rotation in degrees");
         syncBoxRotationComboBox();
         boxRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null || newValue.isBlank()) {
@@ -324,6 +345,29 @@ public class ScanController {
 
             applyBoxRotationSelection(oldValue, newValue);
         });
+
+        if (boxRotationComboBox.getEditor() != null) {
+            boxRotationComboBox.getEditor().setOnAction(event -> commitCustomBoxRotation());
+            boxRotationComboBox.getEditor().focusedProperty().addListener((observable, oldValue, focused) -> {
+                if (!focused) {
+                    commitCustomBoxRotation();
+                }
+            });
+        }
+    }
+
+    private void commitCustomBoxRotation() {
+        if (boxRotationComboBox == null || boxRotationComboBox.getEditor() == null) {
+            return;
+        }
+
+        String editorValue = boxRotationComboBox.getEditor().getText();
+        if (editorValue == null || editorValue.isBlank()) {
+            syncBoxRotationComboBox();
+            return;
+        }
+
+        boxRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
     }
 
     private void applyBoxRotationSelection(String oldValue, String newValue) {
@@ -993,8 +1037,8 @@ public class ScanController {
             scale = 1;
         }
 
-        double scaledWidth = PREVIEW_PAGE_WIDTH * scale;
-        double scaledHeight = PREVIEW_PAGE_HEIGHT * scale;
+        double scaledWidth = getPreviewContentWidth() * scale;
+        double scaledHeight = getPreviewContentHeight() * scale;
 
         double hostWidth = Math.max(1, previewHost.getWidth());
         double hostHeight = Math.max(1, previewHost.getHeight());
@@ -1008,6 +1052,24 @@ public class ScanController {
         currentPreviewWrapper.setTranslateX(previewTranslateX);
         currentPreviewWrapper.setTranslateY(previewTranslateY);
         persistSelectedPreviewState();
+    }
+
+    private double getPreviewContentWidth() {
+        return rotatedBoundsWidth(PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT, selectedPage == null ? 0 : selectedPage.rotationDegrees);
+    }
+
+    private double getPreviewContentHeight() {
+        return rotatedBoundsHeight(PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT, selectedPage == null ? 0 : selectedPage.rotationDegrees);
+    }
+
+    private double rotatedBoundsWidth(double width, double height, int rotationDegrees) {
+        double radians = Math.toRadians(normalizeRotation(rotationDegrees));
+        return Math.abs(width * Math.cos(radians)) + Math.abs(height * Math.sin(radians));
+    }
+
+    private double rotatedBoundsHeight(double width, double height, int rotationDegrees) {
+        double radians = Math.toRadians(normalizeRotation(rotationDegrees));
+        return Math.abs(width * Math.sin(radians)) + Math.abs(height * Math.cos(radians));
     }
 
     private void loadSelectedPreviewState() {
@@ -1541,6 +1603,17 @@ public class ScanController {
             return 0;
         }
 
+        String normalizedValue = value
+                .replace("Â°", "")
+                .replace("°", "")
+                .trim();
+        if (!normalizedValue.isBlank()) {
+            try {
+                return normalizeRotation(Integer.parseInt(normalizedValue));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         String digitsOnly = value.replaceAll("[^0-9]", "");
         if (digitsOnly.isBlank()) {
             return 0;
@@ -2020,8 +2093,14 @@ public class ScanController {
         StackPane previewWrapper = new StackPane(previewNode);
         previewWrapper.setAlignment(Pos.CENTER);
         previewWrapper.setPickOnBounds(true);
-        previewWrapper.setMaxWidth(PREVIEW_PAGE_WIDTH);
-        previewWrapper.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+        double previewWidth = getPreviewContentWidth();
+        double previewHeight = getPreviewContentHeight();
+        previewWrapper.setMinWidth(previewWidth);
+        previewWrapper.setPrefWidth(previewWidth);
+        previewWrapper.setMaxWidth(previewWidth);
+        previewWrapper.setMinHeight(previewHeight);
+        previewWrapper.setPrefHeight(previewHeight);
+        previewWrapper.setMaxHeight(previewHeight);
 
         DoubleBinding scaleBinding = Bindings.createDoubleBinding(() -> {
             double availableWidth = Math.max(1, previewHost.getWidth() - PREVIEW_SAFE_HORIZONTAL_PADDING);
@@ -2276,7 +2355,15 @@ public class ScanController {
             return null;
         }
 
-        ImageView imageView = createThumbnailImageView(image, fitWidth, fitHeight);
+        double rotationDegrees = page == null ? 0 : page.rotationDegrees;
+        double rotatedWidth = rotatedBoundsWidth(fitWidth, fitHeight, (int) rotationDegrees);
+        double rotatedHeight = rotatedBoundsHeight(fitWidth, fitHeight, (int) rotationDegrees);
+        double fitScale = Math.min(
+                fitWidth / Math.max(1, rotatedWidth),
+                fitHeight / Math.max(1, rotatedHeight)
+        );
+
+        ImageView imageView = createThumbnailImageView(image, fitWidth * fitScale, fitHeight * fitScale);
         imageView.setRotate(page.rotationDegrees);
         return imageView;
     }

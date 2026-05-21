@@ -69,6 +69,7 @@ public class UserController implements UserNavigator {
 
     @FXML private ToggleButton dashboardNavItem;
     @FXML private ToggleButton scanNavItem;
+    @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
     @FXML private Button keyboardShortcutsButton;
     @FXML private Button accountMenuButton;
@@ -262,7 +263,12 @@ public class UserController implements UserNavigator {
 
     private void loadPage(UserPage page) {
         if (!page.hasFxml()) {
-            Node content = wrapScrollable(createProgrammaticPage(page));
+            Node content = createProgrammaticPage(page);
+            if (shouldWrapScrollable(page)) {
+                content = wrapScrollable(content);
+            } else if (content instanceof Region region) {
+                configureRegionPageSize(region);
+            }
             StackPane.setAlignment(content, Pos.TOP_CENTER);
             contentHost.getChildren().setAll(content);
             return;
@@ -292,6 +298,7 @@ public class UserController implements UserNavigator {
     private Node createProgrammaticPage(UserPage page) {
         return switch (page) {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
+            case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> createMissingPagePlaceholder("Exports");
             case SETTINGS -> new SettingsController(portalModel).create();
             default -> createMissingPagePlaceholder(page.title());
@@ -308,6 +315,10 @@ public class UserController implements UserNavigator {
         return scrollPane;
     }
 
+    private boolean shouldWrapScrollable(UserPage page) {
+        return page != UserPage.DASHBOARD;
+    }
+
     private void configureLoadedController(Object controller) {
         if (controller instanceof ScanController scanController) {
             scanController.setNavigator(this);
@@ -319,6 +330,10 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        configureRegionPageSize(region);
+    }
+
+    private void configureRegionPageSize(Region region) {
         region.setMinWidth(0);
         region.setMinHeight(0);
         region.setMaxWidth(Double.MAX_VALUE);
@@ -362,6 +377,7 @@ public class UserController implements UserNavigator {
         return List.of(
                 dashboardNavItem,
                 scanNavItem,
+                myScansNavItem,
                 assignedQANavItem
         );
     }
@@ -370,6 +386,7 @@ public class UserController implements UserNavigator {
         return switch (page) {
             case DASHBOARD -> dashboardNavItem;
             case SCAN -> scanNavItem;
+            case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
             case EXPORTS -> null;
             case EDIT_PROFILE -> null;

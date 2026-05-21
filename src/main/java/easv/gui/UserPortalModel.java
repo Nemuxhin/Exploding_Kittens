@@ -137,7 +137,7 @@ public class UserPortalModel {
 
     public List<RecentScanItem> fetchRecentScans() {
         return fetchScanHistory().stream()
-                .limit(4)
+                .limit(5)
                 .map(item -> new RecentScanItem(
                         item.boxId(),
                         item.profileName(),

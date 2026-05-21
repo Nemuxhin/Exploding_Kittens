@@ -97,6 +97,21 @@
                             </graphic>
                         </ToggleButton>
 
+                        <ToggleButton fx:id="myScansNavItem"
+                                      focusTraversable="false"
+                                      contentDisplay="GRAPHIC_ONLY">
+                            <styleClass>
+                                <String fx:value="admin-top-nav-button"/>
+                            </styleClass>
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <SVGPath content="M4 4h16v2H4V4zm0 5h16v2H4V9zm0 5h10v2H4v-2zm0 5h10v2H4v-2zm12-5h4v6h-4v-6z"
+                                             styleClass="admin-top-nav-icon"/>
+                                    <Label text="My Scans" styleClass="admin-top-nav-label"/>
+                                </HBox>
+                            </graphic>
+                        </ToggleButton>
+
                         <ToggleButton fx:id="assignedQANavItem"
                                       focusTraversable="false"
                                       contentDisplay="GRAPHIC_ONLY">
@@ -135,24 +150,24 @@
                         <Button fx:id="accountMenuButton"
                                 focusTraversable="false"
                                 contentDisplay="GRAPHIC_ONLY"
-                                styleClass="account-menu-trigger">
+                                styleClass="admin-account-menu-button">
                             <graphic>
                                 <HBox alignment="CENTER_LEFT"
                                       spacing="9"
-                                      styleClass="account-menu-content">
-                                    <StackPane styleClass="account-menu-avatar-shell">
+                                      styleClass="admin-account-menu-content">
+                                    <StackPane styleClass="admin-avatar-shell">
                                         <Label fx:id="accountInitialsLabel"
                                                text="JD"
-                                               styleClass="account-menu-avatar-label"/>
+                                               styleClass="admin-avatar-label"/>
                                     </StackPane>
 
                                     <Label fx:id="accountNameLabel"
                                            text="John Doe"
-                                           styleClass="account-menu-name"/>
+                                           styleClass="admin-account-name"/>
 
-                                    <StackPane styleClass="account-menu-caret-shell">
+                                    <StackPane styleClass="admin-account-chevron-shell">
                                         <SVGPath content="M7 9.5 12 14.5l5-5 1.4 1.4L12 17.3 5.6 10.9 7 9.5z"
-                                                 styleClass="account-menu-caret"/>
+                                                 styleClass="admin-account-chevron"/>
                                     </StackPane>
                                 </HBox>
                             </graphic>
@@ -175,28 +190,34 @@
     <VBox fx:id="accountDropdownPane"
           visible="false"
           maxWidth="270"
-          styleClass="account-dropdown-menu"
+          styleClass="admin-account-dropdown"
           StackPane.alignment="TOP_RIGHT">
         <StackPane.margin>
             <Insets top="60" right="24"/>
         </StackPane.margin>
 
-        <VBox spacing="3" styleClass="account-dropdown-header">
+        <VBox spacing="3" styleClass="admin-account-dropdown-header">
             <Label fx:id="accountDropdownNameLabel"
                    text="John Doe"
-                   styleClass="account-dropdown-name"/>
+                   styleClass="admin-account-menu-name"/>
             <Label fx:id="accountDropdownDetailLabel"
                    text="user@example.com"
-                   styleClass="account-dropdown-detail"/>
+                   styleClass="admin-account-menu-detail"/>
         </VBox>
 
-        <Region styleClass="account-dropdown-divider"/>
+        <Region styleClass="admin-account-dropdown-divider"/>
 
         <Button fx:id="editProfileMenuButton"
                 text="Edit Profile"
                 maxWidth="Infinity"
                 alignment="CENTER_LEFT"
-                styleClass="account-dropdown-button"/>
+                styleClass="admin-account-dropdown-item"/>
+
+        <Button fx:id="settingsPrivacyMenuButton"
+                text="Settings and Privacy"
+                maxWidth="Infinity"
+                alignment="CENTER_LEFT"
+                styleClass="admin-account-dropdown-item"/>
 
         <ToggleButton fx:id="darkModeToggleButton"
                       text="Light Mode"
@@ -204,19 +225,19 @@
                       contentDisplay="LEFT"
                       graphicTextGap="8"
                       focusTraversable="false"
-                      styleClass="account-dropdown-button">
+                      styleClass="admin-account-theme-toggle">
             <graphic>
                 <SVGPath fx:id="darkModeToggleIcon"
                          content="M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z"
-                         styleClass="account-dropdown-button-icon"/>
+                         styleClass="admin-account-theme-icon"/>
             </graphic>
         </ToggleButton>
 
-        <Region styleClass="account-dropdown-divider"/>
+        <Region styleClass="admin-account-dropdown-divider"/>
 
         <Button fx:id="logoutMenuButton"
                 text="Log Out"
                 maxWidth="Infinity"
-                styleClass="account-dropdown-button account-dropdown-logout-button"/>
+                styleClass="admin-account-logout-button"/>
     </VBox>
 </StackPane>

@@ -322,7 +322,8 @@
 
         <!-- Left document structure -->
         <left>
-            <VBox spacing="15"
+            <VBox fx:id="scanLeftPanel"
+                  spacing="15"
                   minWidth="320"
                   prefWidth="320"
                   maxWidth="320"
@@ -407,9 +408,9 @@
                         <!-- View toolbar -->
                         <HBox spacing="12"
                               alignment="CENTER_LEFT"
-                              minHeight="51"
-                              prefHeight="51"
-                              maxHeight="51"
+                              minHeight="42"
+                              prefHeight="42"
+                              maxHeight="42"
                               styleClass="scan-view-toolbar">
                             <padding>
                                 <Insets top="0" right="18" bottom="0" left="18"/>
@@ -469,7 +470,6 @@
                                maxWidth="Infinity"
                                maxHeight="Infinity"
                                styleClass="scan-preview-stage">
-
                         <HBox spacing="18"
                               alignment="CENTER"
                               minWidth="0"
@@ -545,16 +545,14 @@
 
         <!-- Right tools -->
         <right>
-            <VBox spacing="15"
-                  minWidth="285"
-                  prefWidth="285"
-                  maxWidth="285"
+            <VBox fx:id="scanToolsPanel"
+                  spacing="12"
+                  minWidth="240"
+                  prefWidth="240"
+                  maxWidth="240"
                   minHeight="0"
                   maxHeight="Infinity"
                   styleClass="scan-tools-panel">
-
-                <Label text="Tools"
-                       styleClass="scan-panel-title"/>
 
                 <VBox spacing="9">
                     <Label text="Page Tools"
@@ -565,10 +563,10 @@
 
                     <ComboBox fx:id="boxRotationComboBox"
                               maxWidth="Infinity"
-                              promptText="Select default rotation"
+                              promptText="Enter rotation in degrees"
                               styleClass="scan-tool-button"/>
 
-                    <Label text="Automatically applied to all pages/files scanned in this box session."
+                    <Label text="Automatically applied to all pages/files scanned in this box session. You can type any degree value."
                            wrapText="true"
                            styleClass="helper-text"/>
 

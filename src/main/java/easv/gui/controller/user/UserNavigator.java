@@ -18,11 +18,11 @@ interface UserNavigator {
     }
 
     default void showMyScans() {
-        showDashboard();
+        showPage(UserPage.MY_SCANS);
     }
 
     default void showScans() {
-        showDashboard();
+        showPage(UserPage.MY_SCANS);
     }
 
     default void showAssignedQA() {
