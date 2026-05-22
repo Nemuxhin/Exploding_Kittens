@@ -100,7 +100,6 @@ public class DatabaseConnection {
         if (currentSchema != null && !currentSchema.isBlank()) {
             candidates.add(currentSchema);
         }
-        candidates.add("PUBLIC");
         candidates.add("dbo");
         return new ArrayList<>(candidates);
     }

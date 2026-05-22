@@ -5,6 +5,7 @@ import easv.be.CaseFile;
 import easv.be.Client;
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.dal.BoxDAO;
 import easv.dal.CaseFileDAO;
@@ -12,6 +13,7 @@ import easv.dal.ClientDAO;
 import easv.dal.DatabaseConnection;
 import easv.dal.DocumentDAO;
 import easv.dal.PageImageDAO;
+import easv.dal.ScanProfileDAO;
 import easv.dal.ScanSessionDAO;
 
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ public class ScanManager {
     private final CaseFileDAO caseFileDAO;
     private final DocumentDAO documentDAO;
     private final ScanSessionDAO scanSessionDAO;
+    private final ScanProfileDAO scanProfileDAO;
 
     public ScanManager() {
         DatabaseConnection databaseConnection = new DatabaseConnection();
@@ -41,6 +44,7 @@ public class ScanManager {
         this.caseFileDAO = new CaseFileDAO(databaseConnection, documentDAO);
         this.documentDAO = documentDAO;
         this.scanSessionDAO = new ScanSessionDAO(databaseConnection);
+        this.scanProfileDAO = new ScanProfileDAO(databaseConnection);
     }
 
     public ScanManager(
@@ -50,7 +54,8 @@ public class ScanManager {
             BoxDAO boxDAO,
             CaseFileDAO caseFileDAO,
             DocumentDAO documentDAO,
-            ScanSessionDAO scanSessionDAO
+            ScanSessionDAO scanSessionDAO,
+            ScanProfileDAO scanProfileDAO
     ) {
         this.scannerApiClient = Objects.requireNonNull(scannerApiClient, "scannerApiClient");
         this.tiffFetchService = new TiffFetchService(this.scannerApiClient);
@@ -60,6 +65,7 @@ public class ScanManager {
         this.caseFileDAO = Objects.requireNonNull(caseFileDAO, "caseFileDAO");
         this.documentDAO = Objects.requireNonNull(documentDAO, "documentDAO");
         this.scanSessionDAO = Objects.requireNonNull(scanSessionDAO, "scanSessionDAO");
+        this.scanProfileDAO = Objects.requireNonNull(scanProfileDAO, "scanProfileDAO");
     }
 
     public Client registerClient(String clientNumber, String name) {
@@ -72,31 +78,22 @@ public class ScanManager {
 
     public ScanSession startSession(String boxId, String profileName) {
         ScanSession session = new ScanSession(registerBox(boxId, "Scanned box"), profileName);
+        applyProfileSettings(session, resolveProfileSettings(profileName));
         scanSessionDAO.save(session);
         return session;
     }
 
     public Optional<Document> importNextItem(ScanSession session) {
-        ScanImportResult result = scanNextItem(
-                session,
-                session.getSelectedBarcodeBehavior(),
-                "Keep barcode page in final document",
-                true
-        );
+        ScanImportResult result = scanNextItem(session);
         if (!result.getImportedDocuments().isEmpty()) {
             return Optional.of(result.getImportedDocuments().get(0));
         }
         return Optional.empty();
     }
 
-    public ScanImportResult scanNextItem(
-            ScanSession session,
-            String barcodeBehavior,
-            String barcodePageBehavior,
-            boolean barcodeSplittingEnabled
-    ) {
+    public ScanImportResult scanNextItem(ScanSession session) {
         Objects.requireNonNull(session, "session");
-        session.setSelectedBarcodeBehavior(barcodeBehavior);
+        ensureProfileSettings(session);
 
         TiffFetchService.FetchResult fetchResult = tiffFetchService.fetchNextItem();
         if (fetchResult.noMoreItems()) {
@@ -123,9 +120,9 @@ public class ScanManager {
                     item.itemId(),
                     fetchedItem.pages(),
                     session,
-                    barcodeBehavior,
-                    barcodePageBehavior,
-                    barcodeSplittingEnabled
+                    session.getSelectedBarcodeBehavior(),
+                    session.getBarcodePageBehavior(),
+                    session.isBarcodeSplittingEnabled()
             );
         } catch (IllegalArgumentException exception) {
             session.recordFailure(exception.getMessage());
@@ -151,15 +148,11 @@ public class ScanManager {
 
     public List<Document> importAllAvailable(ScanSession session) {
         Objects.requireNonNull(session, "session");
+        ensureProfileSettings(session);
         List<Document> imported = new ArrayList<>();
         while (true) {
             int failuresBefore = session.getFailures().size();
-            ScanImportResult result = scanNextItem(
-                    session,
-                    session.getSelectedBarcodeBehavior(),
-                    "Remove barcode page from final document",
-                    true
-            );
+            ScanImportResult result = scanNextItem(session);
             if (!result.getImportedDocuments().isEmpty()) {
                 imported.addAll(result.getImportedDocuments());
                 if (result.getStatus() == ScanImportResult.Status.STOPPED_ON_BARCODE) {
@@ -280,6 +273,46 @@ public class ScanManager {
         return id.substring(0, Math.min(12, id.length()));
     }
 
+    private void ensureProfileSettings(ScanSession session) {
+        if (session.getSelectedBarcodeBehavior().isBlank() || session.getBarcodePageBehavior().isBlank()) {
+            applyProfileSettings(session, resolveProfileSettings(session.getProfileName()));
+        }
+    }
+
+    private void applyProfileSettings(ScanSession session, ProfileScanSettings settings) {
+        session.setSelectedBarcodeBehavior(settings.barcodeBehavior());
+        session.setBarcodePageBehavior(settings.barcodePageBehavior());
+        session.setBarcodeSplittingEnabled(settings.barcodeSplittingEnabled());
+    }
+
+    private ProfileScanSettings resolveProfileSettings(String profileName) {
+        return scanProfileDAO.findByName(profileName)
+                .map(this::toProfileScanSettings)
+                .orElseGet(ScanManager::defaultProfileScanSettings);
+    }
+
+    private ProfileScanSettings toProfileScanSettings(ScanProfile profile) {
+        String barcodeBehavior = profile.getBarcodeDetectedBehavior().isBlank()
+                ? defaultProfileScanSettings().barcodeBehavior()
+                : profile.getBarcodeDetectedBehavior();
+        String barcodePageBehavior = profile.getBarcodePageBehavior().isBlank()
+                ? defaultProfileScanSettings().barcodePageBehavior()
+                : profile.getBarcodePageBehavior();
+        return new ProfileScanSettings(
+                barcodeBehavior,
+                barcodePageBehavior,
+                profile.isBarcodeSplitting()
+        );
+    }
+
+    private static ProfileScanSettings defaultProfileScanSettings() {
+        return new ProfileScanSettings(
+                "Continue scanning when barcode is found",
+                "Keep barcode page in final document",
+                true
+        );
+    }
+
     private boolean isGeneratedItemId(String itemId) {
         return itemId == null || itemId.isBlank() || itemId.startsWith("api-item-");
     }
@@ -300,5 +333,8 @@ public class ScanManager {
     }
 
     private record NormalizedItem(String itemId, String caseReference, String clientNumber, String clientName) {
+    }
+
+    private record ProfileScanSettings(String barcodeBehavior, String barcodePageBehavior, boolean barcodeSplittingEnabled) {
     }
 }

@@ -468,9 +468,6 @@ public class ScanController {
         updateScanActionState();
         try {
             activeScanSession = scanManager.startSession(getBoxId(), getSelectedProfile());
-            if (activeScanSession != null) {
-                activeScanSession.setSelectedBarcodeBehavior(activeBarcodeBehavior);
-            }
             updateScanActionState();
             updateScanStatus("Ready");
         } catch (RuntimeException exception) {
@@ -501,18 +498,10 @@ public class ScanController {
         updateScanStatus("Importing...");
 
         ScanSession session = activeScanSession;
-        String barcodeBehavior = activeBarcodeBehavior;
-        String barcodePageBehavior = selectedBarcodePageBehavior();
-        boolean barcodeSplittingEnabled = isBarcodeSplittingEnabled();
 
         BackgroundExecutor.scan().execute(() -> {
             try {
-                ScanImportResult result = scanManager.scanNextItem(
-                        session,
-                        barcodeBehavior,
-                        barcodePageBehavior,
-                        barcodeSplittingEnabled
-                );
+                ScanImportResult result = scanManager.scanNextItem(session);
 
                 Platform.runLater(() -> {
                     scanInProgress = false;
@@ -1236,19 +1225,6 @@ public class ScanController {
             return "Stop scanning when barcode is found";
         }
         return "Continue scanning when barcode is found";
-    }
-
-    private String selectedBarcodePageBehavior() {
-        ScanProfile profile = availableProfilesByName.get(profileComboBox.getValue());
-        if (profile == null || profile.getBarcodePageBehavior().isBlank()) {
-            return "Keep barcode page in final document";
-        }
-        return profile.getBarcodePageBehavior();
-    }
-
-    private boolean isBarcodeSplittingEnabled() {
-        ScanProfile profile = availableProfilesByName.get(profileComboBox.getValue());
-        return profile != null && profile.isBarcodeSplitting();
     }
 
     private void appendImportedPages(List<PageImage> scannedPages) {

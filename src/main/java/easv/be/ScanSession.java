@@ -14,6 +14,8 @@ public class ScanSession {
     private final List<Document> importedDocuments = new ArrayList<>();
     private final List<String> failures = new ArrayList<>();
     private String selectedBarcodeBehavior = "";
+    private String barcodePageBehavior = "";
+    private boolean barcodeSplittingEnabled = true;
     private String lastStatus = "READY";
     private int nextReferenceId = 1;
     private int nextImportedItemNumber = 1;
@@ -57,12 +59,28 @@ public class ScanSession {
         return selectedBarcodeBehavior;
     }
 
+    public String getBarcodePageBehavior() {
+        return barcodePageBehavior;
+    }
+
+    public boolean isBarcodeSplittingEnabled() {
+        return barcodeSplittingEnabled;
+    }
+
     public String getLastStatus() {
         return lastStatus;
     }
 
     public void setSelectedBarcodeBehavior(String selectedBarcodeBehavior) {
         this.selectedBarcodeBehavior = selectedBarcodeBehavior == null ? "" : selectedBarcodeBehavior.trim();
+    }
+
+    public void setBarcodePageBehavior(String barcodePageBehavior) {
+        this.barcodePageBehavior = barcodePageBehavior == null ? "" : barcodePageBehavior.trim();
+    }
+
+    public void setBarcodeSplittingEnabled(boolean barcodeSplittingEnabled) {
+        this.barcodeSplittingEnabled = barcodeSplittingEnabled;
     }
 
     public void setLastStatus(String lastStatus) {
