@@ -51,6 +51,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -187,9 +188,16 @@ public class ScanController {
     private boolean reviewDocumentListView = false;
 
     private UserNavigator navigator = UserNavigator.none();
+    private UserPortalModel portalModel = new UserPortalModel();
 
     public void setNavigator(UserNavigator navigator) {
         this.navigator = navigator == null ? UserNavigator.none() : navigator;
+    }
+
+    public void setPortalModel(UserPortalModel portalModel) {
+        if (portalModel != null) {
+            this.portalModel = portalModel;
+        }
     }
 
     public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
@@ -1014,7 +1022,7 @@ public class ScanController {
 
             currentDocumentPages.add(page);
 
-            if (page.splitReasonAfter != null && !page.splitReasonAfter.isBlank()) {
+            if ("Finish batch".equals(page.splitReasonAfter)) {
                 DocumentGroup document = createDocument(documentNumber, page.splitReasonAfter, currentDocumentPages);
                 documents.add(document);
                 documentNumber++;
@@ -1022,7 +1030,12 @@ public class ScanController {
             }
         }
 
-        pendingPages.addAll(currentDocumentPages);
+        if (!currentDocumentPages.isEmpty() && currentDocumentPages.get(0).barcode) {
+            DocumentGroup document = createDocument(documentNumber, null, currentDocumentPages);
+            documents.add(document);
+        } else {
+            pendingPages.addAll(currentDocumentPages);
+        }
         collapsedDocuments.removeIf(documentId -> documentId > documents.size());
     }
 
@@ -1494,20 +1507,17 @@ public class ScanController {
 
     @FXML
     private void onSplitHere() {
-        if (!hasNormalSelectedPage()) {
-            return;
-        }
-
-        saveUndoState();
-
-        selectedPage.splitReasonAfter = "Manual split";
-
-        rebuildDocumentsFromPages();
-        refreshWorkspace();
+        // Document boundaries are created by barcode pages only.
     }
 
     @FXML
     private void onSaveProgress() {
+        portalModel.saveScanProgress(createInMemoryScanProgress("Saved in memory"));
+        selectedFileRefLabel.setText("Progress saved in memory for this app session.");
+        setWorkspaceSessionSubtitle(
+                allPages.size() + " files scanned - "
+                        + documents.size() + " documents created - progress saved in memory"
+        );
         refreshWorkspace();
     }
 
@@ -1629,8 +1639,10 @@ public class ScanController {
         markScanSubmittedForQa();
     }
 
-        private void markScanSubmittedForQa() {
+    private void markScanSubmittedForQa() {
         hideFinishReviewModal();
+
+        portalModel.submitScanForQa(createInMemoryScanProgress("Submitted for QA"));
 
         setWorkspaceSessionSubtitle(
                 allPages.size() + " files scanned - "
@@ -1644,6 +1656,61 @@ public class ScanController {
 
         updateSubmitConfirmationModal();
         showSubmitConfirmationModal();
+    }
+
+    private UserPortalModel.InMemoryScanProgress createInMemoryScanProgress(String status) {
+        List<UserPortalModel.InMemoryScanPage> savedPages = allPages.stream()
+                .map(this::toInMemoryScanPage)
+                .toList();
+        List<UserPortalModel.InMemoryScanDocument> savedDocuments = buildInMemoryScanDocuments();
+
+        return new UserPortalModel.InMemoryScanProgress(
+                getBoxId(),
+                getSelectedProfile(),
+                savedDocuments,
+                savedPages,
+                LocalDateTime.now(),
+                status
+        );
+    }
+
+    private List<UserPortalModel.InMemoryScanDocument> buildInMemoryScanDocuments() {
+        List<UserPortalModel.InMemoryScanDocument> savedDocuments = new ArrayList<>();
+
+        for (DocumentGroup document : documents) {
+            savedDocuments.add(new UserPortalModel.InMemoryScanDocument(
+                    document.number,
+                    document.splitReason,
+                    document.pages.stream().map(this::toInMemoryScanPage).toList(),
+                    false
+            ));
+        }
+
+        if (!pendingPages.isEmpty()) {
+            savedDocuments.add(new UserPortalModel.InMemoryScanDocument(
+                    documents.size() + 1,
+                    "",
+                    pendingPages.stream().map(this::toInMemoryScanPage).toList(),
+                    true
+            ));
+        }
+
+        return savedDocuments;
+    }
+
+    private UserPortalModel.InMemoryScanPage toInMemoryScanPage(ScannedPage page) {
+        return new UserPortalModel.InMemoryScanPage(
+                page.referenceId,
+                page.fileId,
+                page.documentNumber,
+                page.barcode,
+                page.rotationDegrees,
+                page.needsRescan,
+                page.splitReasonAfter,
+                page.sourceReference,
+                page.displayContent,
+                page.previewContent
+        );
     }
 
     @FXML
@@ -1755,6 +1822,7 @@ public class ScanController {
         updateRotationButtons();
         syncPageRotationComboBox();
         renderDocumentTree();
+        renderPageTray();
         renderPreview();
         updateUndoButtonState();
     }
@@ -2088,36 +2156,7 @@ public class ScanController {
             renderDocumentTree();
         });
 
-        documentHeader.setOnDragOver(event -> {
-            if (event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
-                documentHeader.getStyleClass().add("document-tree-drop-target");
-            }
-
-            event.consume();
-        });
-
-        documentHeader.setOnDragExited(event ->
-                documentHeader.getStyleClass().remove("document-tree-drop-target")
-        );
-
-        documentHeader.setOnDragDropped(event -> {
-            Dragboard dragboard = event.getDragboard();
-            boolean success = false;
-
-            if (dragboard.hasString()) {
-                ScannedPage draggedPage = findPageByReferenceId(dragboard.getString());
-
-                if (draggedPage != null && !draggedPage.barcode) {
-                    movePageToDocumentEnd(draggedPage, document.number);
-                    success = true;
-                }
-            }
-
-            documentHeader.getStyleClass().remove("document-tree-drop-target");
-            event.setDropCompleted(success);
-            event.consume();
-        });
+        configureDocumentDropTarget(documentHeader, document.number);
 
         return documentHeader;
     }
@@ -2156,19 +2195,30 @@ public class ScanController {
             renderDocumentTree();
         });
 
-        documentHeader.setOnDragOver(event -> {
-            if (event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
-                documentHeader.getStyleClass().add("document-tree-drop-target");
+        configureDocumentDropTarget(documentHeader, documentNumber);
+
+        return documentHeader;
+    }
+
+    private void configureDocumentDropTarget(Node node, int targetDocumentNumber) {
+        node.setOnDragOver(event -> {
+            Dragboard dragboard = event.getDragboard();
+
+            if (dragboard.hasString()) {
+                ScannedPage draggedPage = findPageByReferenceId(dragboard.getString());
+
+                if (draggedPage != null && !draggedPage.barcode) {
+                    event.acceptTransferModes(TransferMode.MOVE);
+                    node.getStyleClass().add("document-tree-drop-target");
+                }
             }
+
             event.consume();
         });
 
-        documentHeader.setOnDragExited(event ->
-                documentHeader.getStyleClass().remove("document-tree-drop-target")
-        );
+        node.setOnDragExited(event -> node.getStyleClass().remove("document-tree-drop-target"));
 
-        documentHeader.setOnDragDropped(event -> {
+        node.setOnDragDropped(event -> {
             Dragboard dragboard = event.getDragboard();
             boolean success = false;
 
@@ -2176,17 +2226,15 @@ public class ScanController {
                 ScannedPage draggedPage = findPageByReferenceId(dragboard.getString());
 
                 if (draggedPage != null && !draggedPage.barcode) {
-                    movePageToDocumentEnd(draggedPage, documentNumber);
+                    movePageToDocumentEnd(draggedPage, targetDocumentNumber);
                     success = true;
                 }
             }
 
-            documentHeader.getStyleClass().remove("document-tree-drop-target");
+            node.getStyleClass().remove("document-tree-drop-target");
             event.setDropCompleted(success);
             event.consume();
         });
-
-        return documentHeader;
     }
 
     private boolean shouldShowTreeSplitRow(DocumentGroup document, int documentIndex) {
@@ -2196,8 +2244,7 @@ public class ScanController {
             return false;
         }
 
-        return "Barcode split".equals(document.splitReason)
-                || "Manual split".equals(document.splitReason);
+        return "Barcode split".equals(document.splitReason);
     }
 
     private HBox createDocumentTreeSplitRow(String splitReason) {
@@ -2658,18 +2705,17 @@ public class ScanController {
         }
 
         try {
-            String header = dataUri.substring(0, commaIndex).toLowerCase(Locale.ROOT);
             byte[] bytes = Base64.getDecoder().decode(dataUri.substring(commaIndex + 1));
-            if (header.contains("image/png") || header.contains("image/jpeg") || header.contains("image/jpg")) {
-                return new Image(new ByteArrayInputStream(bytes));
-            }
-
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
             if (bufferedImage != null) {
                 return SwingFXUtils.toFXImage(bufferedImage, null);
             }
 
-            return new Image(new ByteArrayInputStream(bytes));
+            Image image = new Image(new ByteArrayInputStream(bytes));
+            if (image.isError() || image.getWidth() <= 0 || image.getHeight() <= 0) {
+                return null;
+            }
+            return image;
         } catch (IllegalArgumentException exception) {
             return null;
         } catch (Exception exception) {
@@ -2714,8 +2760,6 @@ public class ScanController {
             pageTrayContainer.getChildren().add(pageCard);
 
             if (page.barcode) {
-                pageTrayContainer.getChildren().add(createTraySplitMarker());
-            } else if (page.splitReasonAfter != null && !"Finish batch".equals(page.splitReasonAfter)) {
                 pageTrayContainer.getChildren().add(createTraySplitMarker());
             }
         }
@@ -2794,10 +2838,6 @@ public class ScanController {
 
         if (page.barcode) {
             return "B";
-        }
-
-        if (page.splitReasonAfter != null && !"Finish batch".equals(page.splitReasonAfter)) {
-            return "S";
         }
 
         return "";
@@ -2970,6 +3010,7 @@ public class ScanController {
         selectedPage = draggedPage;
         rebuildDocumentsFromPages();
         refreshWorkspace();
+        refreshReviewWorkspace();
     }
 
     private List<DocumentMoveGroup> buildDocumentMoveGroups() {
@@ -2998,7 +3039,7 @@ public class ScanController {
                 page.splitReasonAfter = null;
             }
 
-            if (!group.pending && group.splitReason != null && !"Barcode split".equals(group.splitReason)) {
+            if (!group.pending && "Finish batch".equals(group.splitReason)) {
                 group.pages.get(group.pages.size() - 1).splitReasonAfter = group.splitReason;
             }
 
@@ -3038,6 +3079,7 @@ public class ScanController {
         );
         renderReviewDocumentList();
         renderReviewPreview();
+        renderReviewPageTray();
     }
 
     private void updateReviewHeader() {
@@ -3190,6 +3232,8 @@ public class ScanController {
                 refreshReviewWorkspace();
             });
 
+            configureDocumentDropTarget(documentCard, document.number);
+
             documentBlock.getChildren().add(documentCard);
 
             if (!collapsedDocuments.contains(document.number)) {
@@ -3297,6 +3341,8 @@ public class ScanController {
             refreshReviewWorkspace();
         });
 
+        configurePageDrag(card, page);
+
         return card;
     }
 
@@ -3316,6 +3362,8 @@ public class ScanController {
             selectedPage = page;
             refreshReviewWorkspace();
         });
+
+        configurePageDrag(row, page);
 
         return row;
     }
@@ -3760,6 +3808,8 @@ public class ScanController {
             selectedPage = page;
             refreshReviewWorkspace();
         });
+
+        configurePageDrag(card, page);
 
         return card;
     }

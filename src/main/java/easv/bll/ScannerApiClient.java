@@ -68,7 +68,7 @@ public class ScannerApiClient {
         queuedResponses.add(new ApiFailure(message));
     }
 
-    public Optional<ApiTiffItem> fetchNextItem() {
+    public synchronized Optional<ApiTiffItem> fetchNextItem() {
         if (!queuedResponses.isEmpty()) {
             Object next = queuedResponses.remove();
             if (next instanceof ApiFailure failure) {

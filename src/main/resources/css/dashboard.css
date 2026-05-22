@@ -542,3 +542,28 @@
     -fx-alignment: top-left;
 }
 
+/* =========================================================
+   TYPOGRAPHY OVERRIDES
+   Project note: dashboard section labels, cards, rows, and helper
+   content use 18px while larger numeric metrics stay prominent.
+   ========================================================= */
+
+.dashboard-stat-title,
+.dashboard-stat-subtitle,
+.dashboard-trend-neutral,
+.dashboard-trend-up,
+.dashboard-trend-down,
+.dashboard-summary-title,
+.dashboard-summary-subtitle,
+.dashboard-section-subtitle,
+.dashboard-activity-detail,
+.dashboard-simple-detail,
+.dashboard-section-title,
+.dashboard-activity-time,
+.dashboard-simple-metric,
+.dashboard-workflow-value,
+.dashboard-workflow-percent,
+.dashboard-quick-action-label {
+    -fx-font-size: 18px;
+}
+

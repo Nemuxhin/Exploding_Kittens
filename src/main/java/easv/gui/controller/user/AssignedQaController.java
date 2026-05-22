@@ -1,5 +1,6 @@
 package easv.gui.controller.user;
 
+import easv.gui.UserPortalModel;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
@@ -10,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -24,6 +26,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ZoomEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -36,9 +41,13 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -115,6 +124,13 @@ public class AssignedQaController {
     private boolean syncingQaControls = false;
     private boolean syncingQaRotationComboBox = false;
     private boolean qaDocumentListView = false;
+    private UserPortalModel portalModel;
+
+    public void setPortalModel(UserPortalModel portalModel) {
+        this.portalModel = portalModel;
+        loadAssignments();
+        renderAssignments();
+    }
 
     @FXML
     private void initialize() {
@@ -123,7 +139,7 @@ public class AssignedQaController {
         configureQaRotation();
         configureQaControls();
         configureQaPreviewInteractions();
-        loadMockAssignments();
+        loadAssignments();
         renderAssignments();
         showAssignedQaListView();
     }
@@ -564,8 +580,35 @@ public class AssignedQaController {
     // MOCK ASSIGNMENT DATA
     // =========================================================
 
-    private void loadMockAssignments() {
+    private void loadAssignments() {
         allAssignments.clear();
+
+        if (portalModel != null) {
+            for (UserPortalModel.InMemoryQaAssignment assignment : portalModel.getInMemoryQaAssignments()) {
+                allAssignments.add(new QaAssignment(
+                        assignment.boxId(),
+                        assignment.profileName(),
+                        assignment.scannedBy(),
+                        assignment.documentCount(),
+                        assignment.totalPages(),
+                        assignment.assignedDate(),
+                        assignment.assignedTimeLabel(),
+                        assignment.reviewedPages(),
+                        toQaStatus(assignment.status()),
+                        assignment.issueCount(),
+                        portalModel.getSavedScanProgress().stream()
+                                .filter(progress -> progress.boxId().equalsIgnoreCase(assignment.boxId())
+                                        && progress.profileName().equalsIgnoreCase(assignment.profileName()))
+                                .findFirst()
+                                .map(UserPortalModel.InMemoryScanProgress::documents)
+                                .orElse(List.of())
+                ));
+            }
+        }
+
+        if (!allAssignments.isEmpty()) {
+            return;
+        }
 
         allAssignments.add(new QaAssignment(
                 "BOX-2026-007",
@@ -639,6 +682,16 @@ public class AssignedQaController {
                 21,
                 QaStatus.QA_COMPLETED
         ));
+    }
+
+    private QaStatus toQaStatus(String status) {
+        String normalizedStatus = status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
+        return switch (normalizedStatus) {
+            case "in review" -> QaStatus.IN_REVIEW;
+            case "issues found", "qa rejected" -> QaStatus.ISSUES_FOUND;
+            case "qa completed", "qa approved", "completed" -> QaStatus.QA_COMPLETED;
+            default -> QaStatus.WAITING_FOR_QA;
+        };
     }
 
     // =========================================================
@@ -972,6 +1025,35 @@ public class AssignedQaController {
         int extraPages = totalPages % documentCount;
 
         int globalPageCounter = 0;
+        List<UserPortalModel.InMemoryScanDocument> submittedDocuments = assignment.submittedDocuments;
+
+        if (!submittedDocuments.isEmpty()) {
+            for (UserPortalModel.InMemoryScanDocument submittedDocument : submittedDocuments) {
+                QaDocument document = new QaDocument("Document " + submittedDocument.number());
+
+                for (UserPortalModel.InMemoryScanPage submittedPage : submittedDocument.pages()) {
+                    if (submittedPage.barcode()) {
+                        continue;
+                    }
+
+                    globalPageCounter++;
+                    QaPage page = new QaPage(document.pages.size() + 1, globalPageCounter);
+                    page.rotationDegrees = submittedPage.rotationDegrees();
+                    page.sourceReference = submittedPage.sourceReference();
+                    page.displayContent = submittedPage.displayContent();
+                    page.previewContent = submittedPage.previewContent();
+                    document.pages.add(page);
+                }
+
+                if (!document.pages.isEmpty()) {
+                    reviewDocuments.add(document);
+                }
+            }
+
+            applyAssignmentReviewState(assignment);
+            selectPageByGlobalNumber(1);
+            return;
+        }
 
         for (int documentIndex = 0; documentIndex < documentCount; documentIndex++) {
             int pagesInDocument = basePagesPerDocument + (documentIndex < extraPages ? 1 : 0);
@@ -987,6 +1069,19 @@ public class AssignedQaController {
             reviewDocuments.add(document);
         }
 
+        applyAssignmentReviewState(assignment);
+
+        int selectedGlobalPage = assignment.reviewedPages <= 0 ? 1 : Math.min(assignment.reviewedPages, totalPages);
+
+        if (assignment.status == QaStatus.ISSUES_FOUND) {
+            selectedGlobalPage = Math.max(1, assignment.reviewedPages - Math.max(1, assignment.issueCount) + 1);
+        }
+
+        selectPageByGlobalNumber(selectedGlobalPage);
+    }
+
+    private void applyAssignmentReviewState(QaAssignment assignment) {
+        int totalPages = Math.max(1, getTotalReviewPageCount());
         int reviewedCount = assignment.status == QaStatus.QA_COMPLETED
                 ? totalPages
                 : Math.max(0, Math.min(assignment.reviewedPages, totalPages));
@@ -1017,13 +1112,6 @@ public class AssignedQaController {
             }
         }
 
-        int selectedGlobalPage = reviewedCount <= 0 ? 1 : Math.min(reviewedCount, totalPages);
-
-        if (assignment.status == QaStatus.ISSUES_FOUND) {
-            selectedGlobalPage = firstIssueGlobalIndex;
-        }
-
-        selectPageByGlobalNumber(selectedGlobalPage);
     }
 
     // =========================================================
@@ -1237,8 +1325,8 @@ public class AssignedQaController {
             return;
         }
 
-        Node mockPage = createMockDocumentPage(document, page);
-        qaPreviewHost.getChildren().add(wrapQaPreviewWithAutoScale(mockPage));
+        Node previewPage = createSubmittedDocumentPage(document, page);
+        qaPreviewHost.getChildren().add(wrapQaPreviewWithAutoScale(previewPage));
     }
 
     private Node wrapQaPreviewWithAutoScale(Node previewNode) {
@@ -1408,9 +1496,20 @@ public class AssignedQaController {
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("page-tray-thumbnail");
 
-        Region pageBlock = new Region();
-        pageBlock.getStyleClass().add("qa-tray-page-block");
-        thumbnail.getChildren().add(pageBlock);
+        Image pageImage = decodeDataUriImage(page.imageContent());
+        if (pageImage == null) {
+            Region pageBlock = new Region();
+            pageBlock.getStyleClass().add("qa-tray-page-block");
+            thumbnail.getChildren().add(pageBlock);
+        } else {
+            ImageView imageView = new ImageView(pageImage);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            imageView.setFitWidth(104);
+            imageView.setFitHeight(126);
+            imageView.setRotate(page.rotationDegrees);
+            thumbnail.getChildren().add(imageView);
+        }
 
         HBox labelRow = createQaPageLabelRow(page, true);
         card.getChildren().addAll(thumbnail, labelRow);
@@ -1600,6 +1699,79 @@ public class AssignedQaController {
         }
 
         return issueCount;
+    }
+
+    private Node createSubmittedDocumentPage(QaDocument document, QaPage page) {
+        Image image = decodeDataUriImage(page.imageContent());
+        if (image == null) {
+            return createMockDocumentPage(document, page);
+        }
+
+        StackPane documentPage = new StackPane();
+        documentPage.getStyleClass().add("mock-document-page");
+        documentPage.setMinWidth(QA_PREVIEW_PAGE_WIDTH);
+        documentPage.setPrefWidth(QA_PREVIEW_PAGE_WIDTH);
+        documentPage.setMaxWidth(QA_PREVIEW_PAGE_WIDTH);
+        documentPage.setMinHeight(QA_PREVIEW_PAGE_HEIGHT);
+        documentPage.setPrefHeight(QA_PREVIEW_PAGE_HEIGHT);
+        documentPage.setMaxHeight(QA_PREVIEW_PAGE_HEIGHT);
+
+        ImageView imageView = new ImageView(image);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        imageView.setFitWidth(QA_PREVIEW_PAGE_WIDTH - 36);
+        imageView.setFitHeight(QA_PREVIEW_PAGE_HEIGHT - 48);
+
+        Label pageLabel = new Label(document.name + " · Page " + page.pageNumber);
+        pageLabel.getStyleClass().add("qa-preview-page-label");
+        StackPane.setAlignment(pageLabel, Pos.BOTTOM_CENTER);
+
+        documentPage.getChildren().addAll(imageView, pageLabel);
+        return documentPage;
+    }
+
+    private Image decodeDataUriImage(String imageContent) {
+        if (imageContent == null || imageContent.isBlank()) {
+            return null;
+        }
+
+        try {
+            String encoded = imageContent.trim();
+            int separator = encoded.indexOf("base64,");
+            if (separator >= 0) {
+                encoded = encoded.substring(separator + 7);
+            }
+
+            byte[] imageBytes = Base64.getDecoder().decode(encoded);
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            if (bufferedImage != null) {
+                return SwingFXUtils.toFXImage(bufferedImage, null);
+            }
+
+            Image image = new Image(new ByteArrayInputStream(imageBytes));
+            if (image.isError() || image.getWidth() <= 0 || image.getHeight() <= 0) {
+                return null;
+            }
+            return image;
+        } catch (IllegalArgumentException exception) {
+            return null;
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private int getApprovedPageCount() {
+        int approvedPages = 0;
+
+        for (QaDocument document : reviewDocuments) {
+            for (QaPage page : document.pages) {
+                if (page.status == QaPageStatus.APPROVED) {
+                    approvedPages++;
+                }
+            }
+        }
+
+        return approvedPages;
     }
 
     private int getTotalReviewPageCount() {
@@ -1871,13 +2043,32 @@ public class AssignedQaController {
     @FXML
     private void onCompleteQa() {
         updateSelectedAssignmentFromReview();
+        showCompletedQaMessage();
         renderAssignments();
         showAssignedQaListView();
+    }
+
+    private void showCompletedQaMessage() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Completed QA");
+        alert.setHeaderText(null);
+        alert.setContentText("Completed QA");
+
+        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
+            alert.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+        }
+
+        alert.showAndWait();
     }
 
     @FXML
     private void onOpenExportTypeDialog() {
         if (selectedAssignment == null) {
+            return;
+        }
+
+        if (!areAllQaDocumentsApproved()) {
+            showExportBlockedMessage();
             return;
         }
 
@@ -1903,6 +2094,44 @@ public class AssignedQaController {
         stage.setScene(scene);
         stage.sizeToScene();
         stage.showAndWait();
+    }
+
+    private boolean areAllQaDocumentsApproved() {
+        if (reviewDocuments.isEmpty()) {
+            return false;
+        }
+
+        for (QaDocument document : reviewDocuments) {
+            if (document.pages.isEmpty()) {
+                return false;
+            }
+
+            for (QaPage page : document.pages) {
+                if (page.status != QaPageStatus.APPROVED) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private void showExportBlockedMessage() {
+        int totalPages = getTotalReviewPageCount();
+        int approvedPages = getApprovedPageCount();
+        int remainingPages = Math.max(0, totalPages - approvedPages);
+
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Export blocked");
+        alert.setHeaderText(null);
+        alert.setContentText("You can export only after all QA documents are approved. "
+                + remainingPages + " pages still need approval.");
+
+        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
+            alert.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+        }
+
+        alert.showAndWait();
     }
 
     private VBox buildExportDialogContent(Stage stage) {
@@ -2219,6 +2448,7 @@ public class AssignedQaController {
         private int reviewedPages;
         private QaStatus status;
         private int issueCount;
+        private final List<UserPortalModel.InMemoryScanDocument> submittedDocuments;
 
         private QaAssignment(
                 String boxId,
@@ -2241,7 +2471,8 @@ public class AssignedQaController {
                     assignedTimeLabel,
                     reviewedPages,
                     status,
-                    0
+                    0,
+                    List.of()
             );
         }
 
@@ -2257,6 +2488,34 @@ public class AssignedQaController {
                 QaStatus status,
                 int issueCount
         ) {
+            this(
+                    boxId,
+                    profile,
+                    scannedBy,
+                    documentCount,
+                    totalPages,
+                    assignedDate,
+                    assignedTimeLabel,
+                    reviewedPages,
+                    status,
+                    issueCount,
+                    List.of()
+            );
+        }
+
+        private QaAssignment(
+                String boxId,
+                String profile,
+                String scannedBy,
+                int documentCount,
+                int totalPages,
+                LocalDate assignedDate,
+                String assignedTimeLabel,
+                int reviewedPages,
+                QaStatus status,
+                int issueCount,
+                List<UserPortalModel.InMemoryScanDocument> submittedDocuments
+        ) {
             this.boxId = Objects.requireNonNull(boxId);
             this.profile = Objects.requireNonNull(profile);
             this.scannedBy = Objects.requireNonNull(scannedBy);
@@ -2267,6 +2526,7 @@ public class AssignedQaController {
             this.reviewedPages = reviewedPages;
             this.status = Objects.requireNonNull(status);
             this.issueCount = issueCount;
+            this.submittedDocuments = submittedDocuments == null ? List.of() : List.copyOf(submittedDocuments);
         }
     }
 
@@ -2294,10 +2554,20 @@ public class AssignedQaController {
         private boolean splitCorrect = false;
         private boolean pageCountCorrect = false;
         private String comment = "";
+        private String sourceReference = "";
+        private String displayContent = "";
+        private String previewContent = "";
 
         private QaPage(int pageNumber, int globalPageNumber) {
             this.pageNumber = pageNumber;
             this.globalPageNumber = globalPageNumber;
+        }
+
+        private String imageContent() {
+            if (previewContent != null && !previewContent.isBlank()) {
+                return previewContent;
+            }
+            return displayContent == null ? "" : displayContent;
         }
     }
 

@@ -14,6 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -46,6 +47,7 @@ public class UserController implements UserNavigator {
     private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
 
     private static final String ACCOUNT_SECTION = "Edit Profile";
+    private static final String PRIVACY_SECTION = "Settings and Privacy";
 
     private static final String LIGHT_MODE_LOGO =
             "/images/weblager/styleguide/Main Blue/LogoBlueH.png";
@@ -72,10 +74,15 @@ public class UserController implements UserNavigator {
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
     @FXML private Button keyboardShortcutsButton;
+    @FXML private Button notificationMenuButton;
+    @FXML private Button markNotificationsReadButton;
+    @FXML private Button viewAllNotificationsButton;
     @FXML private Button accountMenuButton;
     @FXML private Label accountNameLabel;
     @FXML private Label accountInitialsLabel;
     @FXML private VBox accountDropdownPane;
+    @FXML private VBox notificationDropdownPane;
+    @FXML private Region notificationUnreadDot;
     @FXML private Label accountDropdownNameLabel;
     @FXML private Label accountDropdownDetailLabel;
     @FXML private Button editProfileMenuButton;
@@ -101,6 +108,7 @@ public class UserController implements UserNavigator {
     private void initialize() {
         configureAccount();
         configureAccountMenu();
+        configureNotificationMenu();
         configureKeyboardShortcutsButton();
         configureThemeToggle();
         configureNavigation();
@@ -142,14 +150,11 @@ public class UserController implements UserNavigator {
         }
 
         if (editProfileMenuButton != null) {
-            editProfileMenuButton.setOnAction(event -> showAccountSettingsPage());
+            editProfileMenuButton.setOnAction(event -> showAccountSettingsPage(ACCOUNT_SECTION));
         }
 
         if (settingsPrivacyMenuButton != null) {
-            settingsPrivacyMenuButton.setOnAction(event -> {
-                hideAccountDropdown();
-                showPage(UserPage.SETTINGS);
-            });
+            settingsPrivacyMenuButton.setOnAction(event -> showAccountSettingsPage(PRIVACY_SECTION));
         }
 
         if (logoutMenuButton != null) {
@@ -160,6 +165,26 @@ public class UserController implements UserNavigator {
     private void configureKeyboardShortcutsButton() {
         if (keyboardShortcutsButton != null) {
             keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
+        }
+    }
+
+    private void configureNotificationMenu() {
+        if (notificationDropdownPane != null) {
+            notificationDropdownPane.setMaxHeight(Region.USE_PREF_SIZE);
+            notificationDropdownPane.setVisible(false);
+            notificationDropdownPane.setManaged(false);
+        }
+
+        if (notificationMenuButton != null) {
+            notificationMenuButton.setOnAction(event -> toggleNotificationDropdown());
+        }
+
+        if (markNotificationsReadButton != null) {
+            markNotificationsReadButton.setOnAction(event -> markAllNotificationsRead());
+        }
+
+        if (viewAllNotificationsButton != null) {
+            viewAllNotificationsButton.setOnAction(event -> expandNotificationDropdown());
         }
     }
 
@@ -249,6 +274,7 @@ public class UserController implements UserNavigator {
     @Override
     public void showPage(UserPage page) {
         hideAccountDropdown();
+        hideNotificationDropdown();
         loadPage(page);
         setActiveNavItem(getNavItem(page));
     }
@@ -306,7 +332,8 @@ public class UserController implements UserNavigator {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> createMissingPagePlaceholder("Exports");
-            case SETTINGS -> new SettingsController(portalModel).create();
+            case EDIT_PROFILE -> createAccountSettingsPage(ACCOUNT_SECTION);
+            case SETTINGS -> createAccountSettingsPage(PRIVACY_SECTION);
             default -> createMissingPagePlaceholder(page.title());
         };
     }
@@ -328,6 +355,7 @@ public class UserController implements UserNavigator {
     private void configureLoadedController(Object controller) {
         if (controller instanceof ScanController scanController) {
             scanController.setNavigator(this);
+            scanController.setPortalModel(portalModel);
             if (pendingHistoryScanItem != null) {
                 scanController.resumeHistoryScan(pendingHistoryScanItem);
                 pendingHistoryScanItem = null;
@@ -336,6 +364,10 @@ public class UserController implements UserNavigator {
                 scanController.resumeRecentScan(pendingRecentScanItem);
                 pendingRecentScanItem = null;
             }
+        }
+
+        if (controller instanceof AssignedQaController assignedQaController) {
+            assignedQaController.setPortalModel(portalModel);
         }
     }
 
@@ -414,10 +446,26 @@ public class UserController implements UserNavigator {
         }
 
         boolean shouldShow = !accountDropdownPane.isVisible();
+        hideNotificationDropdown();
         accountDropdownPane.setVisible(shouldShow);
 
         if (shouldShow) {
             accountDropdownPane.toFront();
+        }
+    }
+
+    private void toggleNotificationDropdown() {
+        if (notificationDropdownPane == null) {
+            return;
+        }
+
+        boolean shouldShow = !notificationDropdownPane.isVisible();
+        hideAccountDropdown();
+        notificationDropdownPane.setVisible(shouldShow);
+        notificationDropdownPane.setManaged(shouldShow);
+
+        if (shouldShow) {
+            notificationDropdownPane.toFront();
         }
     }
 
@@ -427,35 +475,143 @@ public class UserController implements UserNavigator {
         }
     }
 
-    private void showAccountSettingsPage() {
+    private void hideNotificationDropdown() {
+        if (notificationDropdownPane != null) {
+            notificationDropdownPane.setVisible(false);
+            notificationDropdownPane.setManaged(false);
+        }
+    }
+
+    private void markAllNotificationsRead() {
+        if (notificationDropdownPane != null) {
+            for (Node node : notificationDropdownPane.lookupAll(".user-notification-unread-dot")) {
+                node.getStyleClass().setAll("user-notification-read-spacer");
+            }
+        }
+
+        if (notificationUnreadDot != null) {
+            notificationUnreadDot.setVisible(false);
+            notificationUnreadDot.setManaged(false);
+        }
+
+        if (markNotificationsReadButton != null) {
+            markNotificationsReadButton.setText("All read");
+            markNotificationsReadButton.setDisable(true);
+        }
+    }
+
+    private void expandNotificationDropdown() {
+        if (notificationDropdownPane == null) {
+            return;
+        }
+
+        for (Node node : notificationDropdownPane.lookupAll(".user-notification-extra-item")) {
+            node.setVisible(true);
+            node.setManaged(true);
+        }
+
+        if (viewAllNotificationsButton != null) {
+            viewAllNotificationsButton.setVisible(false);
+            viewAllNotificationsButton.setManaged(false);
+        }
+    }
+
+    private void showAccountSettingsPage(String selectedSection) {
         hideAccountDropdown();
+        hideNotificationDropdown();
         setActiveNavItem(null);
-        Node content = wrapScrollable(createAccountSettingsPage());
+        Node content = wrapScrollable(createAccountSettingsPage(selectedSection));
         StackPane.setAlignment(content, Pos.TOP_CENTER);
         contentHost.getChildren().setAll(content);
     }
 
-    private VBox createAccountSettingsPage() {
-        Label titleLabel = new Label(ACCOUNT_SECTION);
+    private VBox createAccountSettingsPage(String selectedSection) {
+        String safeSection = clean(selectedSection).isBlank() ? ACCOUNT_SECTION : selectedSection;
+
+        Label titleLabel = new Label(safeSection);
         titleLabel.getStyleClass().add("page-title");
 
-        Label subtitleLabel = new Label("Manage your account information and password.");
+        Label subtitleLabel = new Label(accountPageSubtitle(safeSection));
         subtitleLabel.getStyleClass().add("page-subtitle");
 
         VBox intro = new VBox(3, titleLabel, subtitleLabel);
         intro.getStyleClass().add("page-heading-copy");
 
+        VBox nav = buildAccountSectionNav(safeSection);
         VBox detailsPanel = new VBox(20);
         detailsPanel.getStyleClass().addAll("portal-card", "settings-panel");
         detailsPanel.setMaxWidth(Double.MAX_VALUE);
-        detailsPanel.getChildren().setAll(buildAccountProfileSection());
+        detailsPanel.getChildren().setAll(
+                switch (safeSection) {
+                    case ACCOUNT_SECTION -> buildAccountProfileSection();
+                    case PRIVACY_SECTION -> buildEmptyAccountSection(PRIVACY_SECTION);
+                    default -> buildEmptyAccountSection(safeSection);
+                }
+        );
 
-        VBox page = new VBox(18, intro, detailsPanel);
+        HBox layout = new HBox(24, nav, detailsPanel);
+        layout.getStyleClass().add("settings-layout");
+        layout.setFillHeight(false);
+        HBox.setHgrow(detailsPanel, Priority.ALWAYS);
+
+        VBox page = new VBox(18, intro, layout);
         page.getStyleClass().addAll("portal-page", "main-content");
         page.setMaxWidth(Double.MAX_VALUE);
         page.setMaxHeight(Double.MAX_VALUE);
 
         return page;
+    }
+
+    private String accountPageSubtitle(String section) {
+        return switch (section) {
+            case ACCOUNT_SECTION -> "Manage your account information and password.";
+            case PRIVACY_SECTION -> "Settings and privacy options.";
+            default -> "";
+        };
+    }
+
+    private VBox buildAccountSectionNav(String selectedSection) {
+        VBox nav = new VBox();
+        nav.getStyleClass().add("settings-nav");
+        nav.setMaxHeight(Region.USE_PREF_SIZE);
+
+        List<String> sections = List.of(ACCOUNT_SECTION, PRIVACY_SECTION);
+
+        for (int index = 0; index < sections.size(); index++) {
+            String section = sections.get(index);
+            Button button = new Button();
+            button.setMaxWidth(Double.MAX_VALUE);
+            button.setAlignment(Pos.CENTER_LEFT);
+            button.getStyleClass().addAll("settings-nav-button", "admin-account-section-button");
+            button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
+            HBox row = new HBox();
+            row.getStyleClass().add("settings-nav-row");
+            row.setAlignment(Pos.CENTER_LEFT);
+
+            Label label = new Label(section);
+            label.getStyleClass().add("settings-nav-label");
+            row.getChildren().add(label);
+
+            button.setGraphic(row);
+
+            if (index == 0) {
+                button.getStyleClass().add("settings-nav-button-first");
+            }
+
+            if (index == sections.size() - 1) {
+                button.getStyleClass().add("settings-nav-button-last");
+            }
+
+            if (section.equals(selectedSection)) {
+                button.getStyleClass().add(ACTIVE_NAV_CLASS);
+            }
+
+            button.setOnAction(event -> showAccountSettingsPage(section));
+            nav.getChildren().add(button);
+        }
+
+        return nav;
     }
 
     private Node buildAccountProfileSection() {
@@ -525,6 +681,15 @@ public class UserController implements UserNavigator {
         );
         content.getStyleClass().add("settings-form");
 
+        return content;
+    }
+
+    private Node buildEmptyAccountSection(String title) {
+        Label heading = new Label(title);
+        heading.getStyleClass().add("settings-section-heading");
+
+        VBox content = new VBox(20, heading);
+        content.getStyleClass().add("settings-form");
         return content;
     }
 

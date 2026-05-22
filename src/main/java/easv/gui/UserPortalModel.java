@@ -13,6 +13,8 @@ import easv.dal.ScanSessionDAO;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -32,6 +34,8 @@ public class UserPortalModel {
     private final CaseFileDAO caseFileDAO;
     private final ScanSessionDAO scanSessionDAO;
     private AccountProfile accountProfile = DEFAULT_ACCOUNT;
+    private final List<InMemoryScanProgress> savedScanProgress = new ArrayList<>();
+    private final List<InMemoryQaAssignment> inMemoryQaAssignments = new ArrayList<>();
 
     public UserPortalModel() {
         this(new ScanProfileDAO(), new CaseFileDAO(), new ScanSessionDAO());
@@ -63,6 +67,54 @@ public class UserPortalModel {
     public record RecentScanItem(String boxId, String profileName, String status, String startedAt, int pages) {}
     public record HistoryItem(String boxId, String profileName, int documents, String status, String startedAt, String completedAt, int pages, String size) {}
     public record ExportItem(String fileName, String boxId, String profileName, int documents, String createdAt, String size, String status) {}
+    public record InMemoryScanPage(
+            int referenceId,
+            int fileId,
+            int documentNumber,
+            boolean barcode,
+            int rotationDegrees,
+            boolean needsRescan,
+            String splitReasonAfter,
+            String sourceReference,
+            String displayContent,
+            String previewContent
+    ) {}
+    public record InMemoryScanDocument(int number, String splitReason, List<InMemoryScanPage> pages, boolean pending) {
+        public InMemoryScanDocument {
+            pages = pages == null ? List.of() : List.copyOf(pages);
+        }
+    }
+    public record InMemoryScanProgress(
+            String boxId,
+            String profileName,
+            List<InMemoryScanDocument> documents,
+            List<InMemoryScanPage> pages,
+            LocalDateTime savedAt,
+            String status
+    ) {
+        public InMemoryScanProgress {
+            documents = documents == null ? List.of() : List.copyOf(documents);
+            pages = pages == null ? List.of() : List.copyOf(pages);
+            savedAt = savedAt == null ? LocalDateTime.now() : savedAt;
+            status = status == null || status.isBlank() ? "Saved in memory" : status.trim();
+        }
+
+        public int normalPageCount() {
+            return (int) pages.stream().filter(page -> !page.barcode()).count();
+        }
+    }
+    public record InMemoryQaAssignment(
+            String boxId,
+            String profileName,
+            String scannedBy,
+            int documentCount,
+            int totalPages,
+            LocalDate assignedDate,
+            String assignedTimeLabel,
+            int reviewedPages,
+            String status,
+            int issueCount
+    ) {}
     public record PortalSession(ProfileItem profile, BoxItem box) {
         public String exportName() {
             return profile.name() + "_" + box.id();
@@ -220,6 +272,57 @@ public class UserPortalModel {
                 normalizedValue(email, accountProfile.email()),
                 normalizedValue(department, accountProfile.department())
         );
+    }
+
+    public void saveScanProgress(InMemoryScanProgress progress) {
+        if (progress == null) {
+            return;
+        }
+
+        savedScanProgress.removeIf(existing ->
+                existing.boxId().equalsIgnoreCase(progress.boxId())
+                        && existing.profileName().equalsIgnoreCase(progress.profileName()));
+        savedScanProgress.add(0, progress);
+    }
+
+    public List<InMemoryScanProgress> getSavedScanProgress() {
+        return List.copyOf(savedScanProgress);
+    }
+
+    public void submitScanForQa(InMemoryScanProgress progress) {
+        if (progress == null) {
+            return;
+        }
+
+        saveScanProgress(new InMemoryScanProgress(
+                progress.boxId(),
+                progress.profileName(),
+                progress.documents(),
+                progress.pages(),
+                LocalDateTime.now(),
+                "Submitted for QA"
+        ));
+
+        inMemoryQaAssignments.removeIf(existing ->
+                existing.boxId().equalsIgnoreCase(progress.boxId())
+                        && existing.profileName().equalsIgnoreCase(progress.profileName()));
+
+        inMemoryQaAssignments.add(0, new InMemoryQaAssignment(
+                progress.boxId(),
+                progress.profileName(),
+                fetchAccountProfile().fullName(),
+                Math.max(1, progress.documents().stream().filter(document -> !document.pending()).toList().size()),
+                progress.normalPageCount(),
+                LocalDate.now(),
+                "Just now",
+                0,
+                "Waiting for QA",
+                0
+        ));
+    }
+
+    public List<InMemoryQaAssignment> getInMemoryQaAssignments() {
+        return List.copyOf(inMemoryQaAssignments);
     }
 
     public String formatExportName(String profileName, String boxId) {

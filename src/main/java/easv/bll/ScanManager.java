@@ -186,6 +186,7 @@ public class ScanManager {
                 session.setLastStatus(handlingResult.stoppedOnBarcode() ? "STOPPED_ON_BARCODE" : "IMPORTED");
                 scanSessionDAO.updateSessionState(connection, session);
                 connection.commit();
+                session.replacePendingPages(handlingResult.pendingPages());
                 long persistMs = elapsedMs(persistStartNs);
                 long totalMs = elapsedMs(totalStartNs);
                 int barcodePages = countBarcodePages(handlingResult.scannedPages());
@@ -220,7 +221,7 @@ public class ScanManager {
         List<Document> imported = new ArrayList<>();
         while (true) {
             int failuresBefore = session.getFailures().size();
-            ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Remove barcode page from final document");
+            ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Keep barcode page in final document");
             if (!result.getImportedDocuments().isEmpty()) {
                 imported.addAll(result.getImportedDocuments());
                 if (result.getStatus() == ScanImportResult.Status.STOPPED_ON_BARCODE) {
@@ -257,7 +258,7 @@ public class ScanManager {
     ) {
         List<Document> documents = new ArrayList<>();
         List<PageImage> scannedPages = new ArrayList<>();
-        List<PageImage> currentPages = new ArrayList<>();
+        List<PageImage> currentPages = new ArrayList<>(session.getPendingPages());
         int documentIndex = 1;
         boolean stopOnBarcode = barcodeBehavior != null && barcodeBehavior.toLowerCase().contains("stop");
 
@@ -291,7 +292,7 @@ public class ScanManager {
                 }
 
                 if (stopOnBarcode) {
-                    return new BarcodeHandlingResult(documents, scannedPages, true, "Scanning stopped because a barcode was detected.");
+                    return new BarcodeHandlingResult(documents, scannedPages, currentPages, true, "Scanning stopped because a barcode was detected.");
                 }
                 continue;
             }
@@ -299,11 +300,7 @@ public class ScanManager {
             currentPages.add(pageImage);
         }
 
-        if (!currentPages.isEmpty()) {
-            documents.add(new Document(itemId + "-" + documentIndex, currentPages));
-        }
-
-        return new BarcodeHandlingResult(documents, scannedPages, false, "");
+        return new BarcodeHandlingResult(documents, scannedPages, currentPages, false, "");
     }
 
     private NormalizedItem normalizeImportedItem(ScanSession session, ScannerApiClient.ApiTiffItem item) {
@@ -390,7 +387,13 @@ public class ScanManager {
         );
     }
 
-    private record BarcodeHandlingResult(List<Document> documents, List<PageImage> scannedPages, boolean stoppedOnBarcode, String message) {
+    private record BarcodeHandlingResult(
+            List<Document> documents,
+            List<PageImage> scannedPages,
+            List<PageImage> pendingPages,
+            boolean stoppedOnBarcode,
+            String message
+    ) {
     }
 
     private record NormalizedItem(String itemId, String caseReference, String clientNumber, String clientName) {

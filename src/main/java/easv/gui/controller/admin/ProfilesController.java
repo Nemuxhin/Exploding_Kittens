@@ -12,7 +12,9 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -100,6 +102,7 @@ public class ProfilesController {
 
     private FilteredList<ScanProfile> filteredProfiles;
     private ScanProfile currentProfile;
+    private Integer pendingCreatedProfileMessageId;
 
     private AdminManager adminManager;
     private AdminNavigator navigator = AdminNavigator.none();
@@ -640,6 +643,7 @@ public class ProfilesController {
     @FXML
     private void showOverview() {
         currentProfile = null;
+        pendingCreatedProfileMessageId = null;
         showOverviewPane();
         Platform.runLater(() -> pageScrollPane.setVvalue(0));
     }
@@ -653,6 +657,7 @@ public class ProfilesController {
 
         loadProfiles();
         applyFilters();
+        pendingCreatedProfileMessageId = newProfile.getId();
         openProfile(newProfile);
     }
 
@@ -671,6 +676,12 @@ public class ProfilesController {
             loadProfiles();
             applyFilters();
             openProfile(savedProfile);
+            if (pendingCreatedProfileMessageId != null
+                    && pendingCreatedProfileMessageId == savedProfile.getId()) {
+                pendingCreatedProfileMessageId = null;
+                showProfileMessage("Profile created", savedProfile.getName() + " was created.");
+                showOverview();
+            }
         } catch (IllegalArgumentException exception) {
             editorSubtitleLabel.setText(exception.getMessage());
         }
@@ -683,6 +694,10 @@ public class ProfilesController {
 
     private void deleteProfile(ScanProfile profile) {
         if (profile == null || adminManager == null) {
+            return;
+        }
+
+        if (!confirmDeleteProfile(profile)) {
             return;
         }
 
@@ -712,6 +727,34 @@ public class ProfilesController {
         }
 
         return message;
+    }
+
+    private boolean confirmDeleteProfile(ScanProfile profile) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete profile");
+        alert.setHeaderText(null);
+        alert.setContentText("Are you sure you want to delete the profile \"" + profile.getName() + "\"?");
+
+        if (pageScrollPane != null && pageScrollPane.getScene() != null) {
+            alert.initOwner(pageScrollPane.getScene().getWindow());
+        }
+
+        return alert.showAndWait()
+                .filter(buttonType -> buttonType == ButtonType.OK)
+                .isPresent();
+    }
+
+    private void showProfileMessage(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        if (pageScrollPane != null && pageScrollPane.getScene() != null) {
+            alert.initOwner(pageScrollPane.getScene().getWindow());
+        }
+
+        alert.showAndWait();
     }
 
     private AdminManager.ProfileInput createDefaultProfileInput() {
