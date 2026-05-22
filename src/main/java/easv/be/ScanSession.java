@@ -69,6 +69,14 @@ public class ScanSession {
         this.lastStatus = lastStatus == null || lastStatus.isBlank() ? "READY" : lastStatus.trim();
     }
 
+    public void seedNextReferenceId(int nextReferenceId) {
+        this.nextReferenceId = Math.max(1, nextReferenceId);
+    }
+
+    public void seedNextImportedItemNumber(int nextImportedItemNumber) {
+        this.nextImportedItemNumber = Math.max(1, nextImportedItemNumber);
+    }
+
     public int allocateReferenceId() {
         return nextReferenceId++;
     }

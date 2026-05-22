@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
@@ -12,6 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
 <StackPane xmlns="http://javafx.com/javafx/21"
@@ -42,72 +44,102 @@
 
         <content>
             <VBox spacing="24"
-                  alignment="TOP_CENTER"
+                  alignment="TOP_LEFT"
                   minWidth="0"
                   maxWidth="Infinity"
-                  fillWidth="false"
+                  fillWidth="true"
                   styleClass="assigned-qa-content">
 
                 <padding>
-                    <Insets top="36" right="24" bottom="36" left="24"/>
+                    <Insets top="30" right="30" bottom="30" left="30"/>
                 </padding>
 
                 <!-- =========================================================
                      LIST HEADER
                      ========================================================= -->
 
-                <VBox spacing="6"
+                <HBox alignment="TOP_LEFT"
+                      spacing="0"
+                      maxWidth="Infinity"
+                      styleClass="assigned-qa-header-row">
+
+                    <VBox spacing="6"
                       alignment="TOP_LEFT"
-                      prefWidth="1080"
-                      maxWidth="1080"
+                      HBox.hgrow="ALWAYS"
+                      maxWidth="Infinity"
                       styleClass="assigned-qa-header">
 
-                    <Label text="Assigned QA"
+                    <Label text="QA Review"
                            styleClass="assigned-qa-title"/>
 
                     <Label text="Review scan sessions assigned to you."
                            styleClass="assigned-qa-subtitle"/>
-                </VBox>
+                    </VBox>
+                </HBox>
 
                 <!-- =========================================================
                      LIST FILTERS
                      ========================================================= -->
 
-                <HBox spacing="18"
+                <HBox fx:id="assignedQaFilterPanel"
+                      spacing="18"
                       alignment="CENTER_LEFT"
-                      prefWidth="1080"
-                      maxWidth="1080"
-                      styleClass="assigned-qa-toolbar">
+                      maxWidth="Infinity"
+                      styleClass="exports-filter-panel">
 
-                    <TextField fx:id="searchField"
-                               promptText="Search box ID or profile..."
-                               HBox.hgrow="ALWAYS"
-                               maxWidth="Infinity"
-                               styleClass="assigned-qa-search-field"/>
+                    <VBox spacing="6"
+                          HBox.hgrow="ALWAYS"
+                          styleClass="exports-filter-wrap">
+                        <Label text="Search"
+                               styleClass="exports-filter-label"/>
+                        <TextField fx:id="searchField"
+                                   promptText="Search by box, profile, or status"
+                                   maxWidth="Infinity"
+                                   styleClass="exports-filter-input"/>
+                    </VBox>
 
-                    <ComboBox fx:id="statusFilterComboBox"
-                              prefWidth="210"
-                              minWidth="210"
-                              maxWidth="210"
-                              styleClass="assigned-qa-filter-combo"/>
+                    <VBox spacing="6"
+                          styleClass="exports-filter-wrap">
+                        <Label text="Status"
+                               styleClass="exports-filter-label"/>
+                        <ComboBox fx:id="statusFilterComboBox"
+                                  prefWidth="240"
+                                  minWidth="240"
+                                  maxWidth="240"
+                                  styleClass="exports-status-filter"/>
+                    </VBox>
 
-                    <ComboBox fx:id="profileFilterComboBox"
-                              prefWidth="252"
-                              minWidth="252"
-                              maxWidth="252"
-                              styleClass="assigned-qa-filter-combo"/>
+                    <VBox spacing="6"
+                          HBox.hgrow="ALWAYS"
+                          styleClass="exports-filter-wrap">
+                        <Label text="From Date"
+                               styleClass="exports-filter-label"/>
+                        <DatePicker fx:id="fromDatePicker"
+                                    maxWidth="Infinity"/>
+                    </VBox>
+
+                    <VBox spacing="6"
+                          HBox.hgrow="ALWAYS"
+                          styleClass="exports-filter-wrap">
+                        <Label text="To Date"
+                               styleClass="exports-filter-label"/>
+                        <DatePicker fx:id="toDatePicker"
+                                    maxWidth="Infinity"/>
+                    </VBox>
                 </HBox>
 
                 <!-- =========================================================
                      LIST CARDS
                      ========================================================= -->
 
-                <VBox fx:id="qaCardListContainer"
-                      spacing="15"
-                      prefWidth="1080"
-                      maxWidth="1080"
-                      fillWidth="true"
-                      styleClass="assigned-qa-card-list"/>
+                <TilePane fx:id="qaCardListContainer"
+                          hgap="16"
+                          vgap="16"
+                          prefColumns="4"
+                          prefTileWidth="280"
+                          prefTileHeight="350"
+                          maxWidth="Infinity"
+                          styleClass="assigned-qa-card-list"/>
             </VBox>
         </content>
     </ScrollPane>
@@ -130,56 +162,62 @@
              ========================================================= -->
 
         <top>
-            <HBox alignment="CENTER_LEFT"
-                  spacing="18"
-                  minHeight="111"
-                  prefHeight="111"
-                  maxHeight="111"
-                  styleClass="qa-review-header">
+            <BorderPane minWidth="0"
+                        maxWidth="Infinity"
+                        styleClass="qa-review-header">
 
                 <padding>
-                    <Insets top="12" right="21" bottom="12" left="21"/>
+                    <Insets top="12" right="18" bottom="12" left="18"/>
                 </padding>
 
-                <VBox spacing="6"
-                      HBox.hgrow="ALWAYS"
-                      maxWidth="Infinity">
+                <left>
+                    <VBox spacing="6"
+                          alignment="CENTER_LEFT"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          style="-fx-padding: 0 15 0 15;">
+                        <Label text="QA Review"
+                               styleClass="qa-review-title"/>
 
-                    <Button text="Back"
-                            onAction="#onBackToAssignedQaList"
-                            focusTraversable="false"
-                            styleClass="back-button"/>
+                        <Button text="Back"
+                                onAction="#onBackToAssignedQaList"
+                                focusTraversable="false"
+                                styleClass="scan-back-button"/>
+                    </VBox>
+                </left>
 
-                    <Label text="QA Review"
-                           styleClass="qa-review-title"/>
-
-                    <HBox alignment="CENTER_LEFT"
-                          spacing="18">
-
+                <center>
+                    <HBox spacing="9"
+                          alignment="CENTER"
+                          BorderPane.alignment="CENTER">
                         <Label fx:id="qaBoxIdLabel"
                                text="BOX-2026-007"
-                               styleClass="qa-review-meta-strong"/>
-
-                        <Label text="·"
-                               styleClass="qa-review-meta-separator"/>
+                               styleClass="scan-session-info-chip"/>
 
                         <Label fx:id="qaProfileLabel"
                                text="Building Archive"
-                               styleClass="qa-review-meta"/>
-
-                        <Label text="·"
-                               styleClass="qa-review-meta-separator"/>
+                               styleClass="scan-session-info-chip"/>
 
                         <Label fx:id="qaProgressLabel"
                                text="0 / 0 pages reviewed"
-                               styleClass="qa-review-meta"/>
+                               styleClass="scan-session-info-chip"/>
                     </HBox>
-                </VBox>
+                </center>
 
-                <Label fx:id="reviewStatusBadge"
-                       text="In Review"
-                       styleClass="qa-review-status-badge qa-review-status-review"/>
-            </HBox>
+                <right>
+                    <HBox alignment="CENTER_RIGHT"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          style="-fx-padding: 0 15 0 15;"
+                          BorderPane.alignment="CENTER_RIGHT">
+                        <Label fx:id="reviewStatusBadge"
+                               text="In Review"
+                               styleClass="qa-review-status-badge qa-review-status-review"/>
+                    </HBox>
+                </right>
+            </BorderPane>
         </top>
 
         <!-- =========================================================
@@ -197,16 +235,34 @@
                      LEFT DOCUMENTS PANEL
                      ===================================================== -->
 
-                <VBox spacing="12"
-                      prefWidth="300"
-                      minWidth="300"
-                      maxWidth="300"
+                <VBox spacing="9"
+                      prefWidth="320"
+                      minWidth="320"
+                      maxWidth="320"
                       minHeight="0"
                       maxHeight="Infinity"
                       styleClass="qa-review-left-panel">
 
-                    <Label text="Documents"
-                           styleClass="qa-review-panel-title"/>
+                    <HBox alignment="CENTER_LEFT"
+                          spacing="9"
+                          maxWidth="Infinity">
+                        <Label text="Box Structure"
+                               styleClass="qa-review-panel-title"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button fx:id="qaDocumentGridViewButton"
+                                text="⧉"
+                                onAction="#onShowQaDocumentGridView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+
+                        <Button fx:id="qaDocumentListViewButton"
+                                text="☰"
+                                onAction="#onShowQaDocumentListView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+                    </HBox>
 
                     <ScrollPane fitToWidth="true"
                                 fitToHeight="false"
@@ -270,7 +326,7 @@
                             <Label text="View"
                                    styleClass="qa-view-label"/>
 
-                            <Button text="−"
+                            <Button text="-"
                                     onAction="#onZoomOut"
                                     focusTraversable="false"
                                     styleClass="qa-view-icon-button"/>
@@ -307,7 +363,7 @@
                               maxWidth="Infinity"
                               maxHeight="Infinity">
 
-                            <Button text="‹"
+                            <Button text="&#x2039;"
                                     onAction="#onPreviousPage"
                                     focusTraversable="false"
                                     styleClass="preview-arrow-button"/>
@@ -321,7 +377,7 @@
                                        HBox.hgrow="ALWAYS"
                                        styleClass="preview-host"/>
 
-                            <Button text="›"
+                            <Button text="&#x203A;"
                                     onAction="#onNextPage"
                                     focusTraversable="false"
                                     styleClass="preview-arrow-button"/>
@@ -329,9 +385,12 @@
                     </StackPane>
 
                     <VBox spacing="6"
-                          minHeight="111"
-                          prefHeight="111"
-                          maxHeight="111"
+                          visible="false"
+                          managed="false"
+                          minHeight="0"
+                          prefHeight="0"
+                          maxHeight="0"
+                          opacity="0"
                           maxWidth="Infinity"
                           styleClass="page-tray-shell">
 
@@ -375,154 +434,122 @@
       ===================================================== -->
 
                 <VBox spacing="12"
-                      prefWidth="342"
-                      minWidth="342"
-                      maxWidth="342"
+                      prefWidth="240"
+                      minWidth="240"
+                      maxWidth="240"
                       minHeight="0"
                       maxHeight="Infinity"
                       styleClass="qa-tools-panel">
 
-                    <padding>
-                        <Insets top="15" right="15" bottom="15" left="15"/>
-                    </padding>
+                    <VBox spacing="9"
+                          VBox.vgrow="ALWAYS"
+                          minWidth="0"
+                          minHeight="0"
+                          maxWidth="Infinity"
+                          maxHeight="Infinity"
+                          fillWidth="true"
+                          styleClass="qa-tools-content">
 
-                    <Label text="Page QA"
-                           styleClass="qa-review-panel-title"/>
+                        <!-- Comment -->
+                        <VBox spacing="4"
+                              maxWidth="Infinity"
+                              styleClass="qa-tools-section-box">
 
-                    <ScrollPane fitToWidth="true"
-                                fitToHeight="false"
-                                hbarPolicy="NEVER"
-                                vbarPolicy="AS_NEEDED"
-                                pannable="true"
-                                VBox.vgrow="ALWAYS"
-                                minWidth="0"
-                                minHeight="0"
-                                maxWidth="Infinity"
-                                maxHeight="Infinity"
-                                styleClass="qa-tools-scroll">
+                            <Label text="Comment"
+                                   styleClass="qa-tools-section-title"/>
 
-                        <content>
-                            <VBox spacing="15"
-                                  minWidth="0"
+                            <TextArea fx:id="qaCommentTextArea"
+                                      promptText="Add QA note for this page..."
+                                      wrapText="true"
+                                      prefRowCount="6"
+                                      VBox.vgrow="ALWAYS"
+                                      maxWidth="Infinity"
+                                      styleClass="qa-comment-textarea"/>
+                        </VBox>
+
+                        <Region styleClass="scan-panel-divider"/>
+
+                        <!-- Decision actions -->
+                        <VBox spacing="9"
+                              maxWidth="Infinity">
+
+                            <VBox spacing="9"
                                   maxWidth="Infinity"
-                                  fillWidth="true"
-                                  styleClass="qa-tools-content">
+                                  styleClass="qa-tools-section-box">
+                                <Label text="Apply To"
+                                       styleClass="qa-tools-section-title"/>
 
-                                <!-- Current status -->
-                                <VBox spacing="9"
-                                      maxWidth="Infinity"
-                                      styleClass="qa-tools-section-box">
-
-                                    <Label text="Current Status"
-                                           styleClass="qa-tools-section-title"/>
-
-                                    <Label fx:id="currentPageStatusLabel"
-                                           text="Not Reviewed"
-                                           maxWidth="Infinity"
-                                           styleClass="qa-current-status-chip qa-current-status-pending"/>
-                                </VBox>
-
-                                <!-- Checklist -->
-                                <VBox spacing="9"
-                                      maxWidth="Infinity"
-                                      styleClass="qa-tools-section-box">
-
-                                    <Label text="QA Checklist"
-                                           styleClass="qa-tools-section-title"/>
-
-                                    <CheckBox fx:id="pageReadableCheckBox"
-                                              text="Page readable"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-
-                                    <CheckBox fx:id="rotationCorrectCheckBox"
-                                              text="Rotation correct"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-
-                                    <CheckBox fx:id="splitCorrectCheckBox"
-                                              text="Document split correct"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-
-                                    <CheckBox fx:id="pageCountCorrectCheckBox"
-                                              text="No missing or duplicate page"
-                                              focusTraversable="false"
-                                              styleClass="qa-checklist-check-box"/>
-                                </VBox>
-
-                                <!-- Comment -->
-                                <VBox spacing="9"
-                                      maxWidth="Infinity"
-                                      styleClass="qa-tools-section-box">
-
-                                    <Label text="Comment"
-                                           styleClass="qa-tools-section-title"/>
-
-                                    <TextArea fx:id="qaCommentTextArea"
-                                              promptText="Add QA note for this page..."
-                                              wrapText="true"
-                                              prefRowCount="4"
-                                              maxWidth="Infinity"
-                                              styleClass="qa-comment-textarea"/>
-                                </VBox>
-
-                                <Region styleClass="scan-panel-divider"/>
-
-                                <!-- Decision actions -->
-                                <VBox spacing="9"
-                                      maxWidth="Infinity">
-
-                                    <Button text="Approve Page"
-                                            onAction="#onApprovePage"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-approve-button"/>
-
-                                    <Button text="Mark Needs Fix"
-                                            onAction="#onMarkNeedsFix"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-fix-button"/>
-                                </VBox>
-
-                                <Region styleClass="scan-panel-divider"/>
-
-                                <!-- Fast navigation -->
-                                <Button text="Next Unreviewed"
-                                        onAction="#onNextUnreviewed"
-                                        maxWidth="Infinity"
-                                        focusTraversable="false"
-                                        styleClass="qa-neutral-button"/>
-
-                                <Region styleClass="scan-panel-divider"/>
-
-                                <!-- Page utility actions -->
-                                <HBox spacing="9"
-                                      maxWidth="Infinity">
-                                    <Button text="Rotate Left"
-                                            onAction="#onRotateLeft"
-                                            HBox.hgrow="ALWAYS"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-neutral-button"/>
-
-                                    <Button text="Rotate Right"
-                                            onAction="#onRotateRight"
-                                            HBox.hgrow="ALWAYS"
-                                            maxWidth="Infinity"
-                                            focusTraversable="false"
-                                            styleClass="qa-neutral-button"/>
-                                </HBox>
-
-                                <Button text="Complete QA"
-                                        onAction="#onCompleteQa"
-                                        maxWidth="Infinity"
-                                        focusTraversable="false"
-                                        styleClass="qa-complete-button"/>
+                                <ComboBox fx:id="qaActionScopeComboBox"
+                                          maxWidth="Infinity"
+                                          styleClass="scan-tool-button"/>
                             </VBox>
-                        </content>
-                    </ScrollPane>
+
+                            <Button text="Approve Page"
+                                    onAction="#onApprovePage"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-approve-button"/>
+
+                            <Button text="Mark Needs Fix"
+                                    onAction="#onMarkNeedsFix"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-fix-button"/>
+
+                            <Button text="Clear Review Status"
+                                    onAction="#onClearReviewStatus"
+                                    maxWidth="Infinity"
+                                    focusTraversable="false"
+                                    styleClass="qa-neutral-button"/>
+                        </VBox>
+
+                        <Region styleClass="scan-panel-divider"/>
+
+                        <!-- Fast navigation -->
+                        <Button text="Next Unreviewed"
+                                onAction="#onNextUnreviewed"
+                                maxWidth="Infinity"
+                                focusTraversable="false"
+                                styleClass="qa-neutral-button"/>
+
+                        <Region styleClass="scan-panel-divider"/>
+
+                        <!-- Page utility actions -->
+                        <VBox spacing="9"
+                              maxWidth="Infinity">
+                            <Label text="Rotation"
+                                   styleClass="qa-tools-section-title"/>
+
+                            <ComboBox fx:id="qaRotationComboBox"
+                                      maxWidth="Infinity"
+                                      promptText="Enter rotation in degrees"
+                                      styleClass="scan-tool-button"/>
+
+                            <Button text="Rotate Left"
+                                    fx:id="qaRotateLeftButton"
+                                    onAction="#onRotateLeft"
+                                    maxWidth="Infinity"
+                                    visible="false"
+                                    managed="false"
+                                    focusTraversable="false"
+                                    styleClass="qa-neutral-button"/>
+
+                            <Button text="Rotate Right"
+                                    fx:id="qaRotateRightButton"
+                                    onAction="#onRotateRight"
+                                    maxWidth="Infinity"
+                                    visible="false"
+                                    managed="false"
+                                    focusTraversable="false"
+                                    styleClass="qa-neutral-button"/>
+                        </VBox>
+
+                        <Button text="Export Type"
+                                onAction="#onOpenExportTypeDialog"
+                                maxWidth="Infinity"
+                                focusTraversable="false"
+                                styleClass="qa-export-type-button"/>
+                    </VBox>
                 </VBox>
             </HBox>
         </center>

@@ -1,7 +1,6 @@
 package easv.gui.controller.user;
 
 import easv.gui.BackgroundExecutor;
-import easv.gui.PrimeIcons;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -20,10 +19,10 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 
 public class DashboardController {
+    private static final int MAX_RECENT_SCAN_ROWS = 5;
+
     private final UserPortalModel portalModel;
     private final UserNavigator navigator;
-    private GridPane metricsSection;
-    private HBox lowerSection;
 
     public DashboardController(UserPortalModel portalModel, UserNavigator navigator) {
         this.portalModel = portalModel;
@@ -31,15 +30,13 @@ public class DashboardController {
     }
 
     public Node create() {
-        VBox page = new VBox(28);
+        VBox page = new VBox(18);
         page.getStyleClass().addAll("portal-page", "dashboard-page");
-        metricsSection = buildMetricsSkeleton();
-        lowerSection = buildLowerSectionSkeleton();
         page.getChildren().setAll(
                 buildIntro(),
-                metricsSection,
+                buildMetricsSkeleton(),
                 buildActions(),
-                lowerSection
+                buildLowerSectionSkeleton()
         );
         loadDashboardAsync(page);
         return page;
@@ -52,7 +49,7 @@ public class DashboardController {
         Label subtitle = new Label("Monitor scan activity, recent sessions, and queue handoffs.");
         subtitle.getStyleClass().add("page-subtitle");
 
-        VBox intro = new VBox(10, title, subtitle);
+        VBox intro = new VBox(6, title, subtitle);
         intro.getStyleClass().add("page-heading-copy");
         return intro;
     }
@@ -63,8 +60,8 @@ public class DashboardController {
         }
 
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
+        grid.setHgap(14);
+        grid.setVgap(14);
         grid.setMaxWidth(Double.MAX_VALUE);
         grid.getColumnConstraints().setAll(
                 percentColumn(25),
@@ -110,8 +107,8 @@ public class DashboardController {
 
     private GridPane buildActions() {
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
+        grid.setHgap(14);
+        grid.setVgap(14);
         grid.setMaxWidth(Double.MAX_VALUE);
         grid.getColumnConstraints().setAll(percentColumn(50), percentColumn(50));
 
@@ -123,50 +120,34 @@ public class DashboardController {
                 navigator::showNewScan
         ), 0, 0);
         grid.add(createActionTile(
-                "scans",
-                "My Scans",
-                "Browse scan history and reopen sessions.",
-                false,
-                navigator::showScans
-        ), 1, 0);
-        grid.add(createActionTile(
                 "dashboard",
                 "Assigned QA",
                 "Open the QA queue for work assigned to you.",
                 false,
                 navigator::showAssignedQa
-        ), 0, 1);
-        grid.add(createActionTile(
-                "exports",
-                "Exports",
-                "Track completed files and download ready batches.",
-                false,
-                navigator::showExports
-        ), 1, 1);
+        ), 1, 0);
+
         return grid;
     }
 
-    private HBox buildLowerSection(List<UserPortalModel.RecentScanItem> recentScans,
-                                   UserPortalModel.AccountProfile accountProfile) {
-        HBox layout = new HBox(20);
+    private HBox buildLowerSection(List<UserPortalModel.HistoryItem> recentScans) {
+        HBox layout = new HBox(14);
         layout.setAlignment(Pos.TOP_LEFT);
         layout.getStyleClass().add("admin-dashboard-layout");
 
-        VBox main = new VBox(24, buildRecentScansCard(recentScans));
+        VBox main = new VBox(16, buildRecentScansCard(recentScans));
         main.getStyleClass().add("admin-dashboard-main");
         HBox.setHgrow(main, Priority.ALWAYS);
 
-        VBox side = new VBox(24, buildQuickAccessPanel(recentScans), buildAccountPanel(accountProfile));
-        side.getStyleClass().add("admin-dashboard-side");
-        side.setPrefWidth(390);
-        side.setMinWidth(340);
-        side.setMaxWidth(420);
-
-        layout.getChildren().addAll(main, side);
+        layout.getChildren().add(main);
         return layout;
     }
 
-    private VBox buildRecentScansCard(List<UserPortalModel.RecentScanItem> recentScans) {
+    private VBox buildRecentScansCard(List<UserPortalModel.HistoryItem> recentScans) {
+        List<UserPortalModel.HistoryItem> visibleRecentScans = recentScans.stream()
+                .limit(MAX_RECENT_SCAN_ROWS)
+                .toList();
+
         VBox card = new VBox(0);
         card.getStyleClass().add("admin-panel-card");
         card.setMaxWidth(Double.MAX_VALUE);
@@ -177,26 +158,28 @@ public class DashboardController {
         subtitle.getStyleClass().add("dashboard-section-subtitle");
         subtitle.setWrapText(true);
 
-        Button link = new Button("View All ->");
-        link.getStyleClass().add("admin-link-button");
+        Button link = new Button("View All");
+        link.getStyleClass().addAll("admin-secondary-button", "dashboard-view-all-button");
         link.setOnAction(event -> navigator.showScans());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(12, new VBox(3, title, subtitle), spacer, link);
+        HBox header = new HBox(10, new VBox(2, title, subtitle), spacer, link);
         header.getStyleClass().add("admin-panel-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox table = new VBox();
-        table.getStyleClass().add("portal-table");
-        table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "DATE", "PAGES", "STATUS"));
-        if (recentScans.isEmpty()) {
+        table.getStyleClass().add("exports-table");
+        table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS"));
+        if (visibleRecentScans.isEmpty()) {
             Label empty = new Label("No scan activity has been stored yet.");
-            empty.getStyleClass().add("dashboard-section-subtitle");
+            empty.getStyleClass().add("exports-footer-text");
             empty.setWrapText(true);
-            table.getChildren().add(empty);
+            HBox emptyRow = new HBox(empty);
+            emptyRow.getStyleClass().add("exports-empty-row");
+            table.getChildren().add(emptyRow);
         } else {
-            for (UserPortalModel.RecentScanItem item : recentScans) {
+            for (UserPortalModel.HistoryItem item : visibleRecentScans) {
                 table.getChildren().add(createDataRow(item));
             }
         }
@@ -205,77 +188,17 @@ public class DashboardController {
         return card;
     }
 
-    private VBox buildQuickAccessPanel(List<UserPortalModel.RecentScanItem> recentScans) {
-        VBox card = new VBox(18);
-        card.getStyleClass().add("admin-panel-card");
-
-        Label title = new Label("Quick Access");
-        title.getStyleClass().add("dashboard-section-title");
-        Label subtitle = new Label("Fast entry points for the next step in your workflow.");
-        subtitle.getStyleClass().add("dashboard-section-subtitle");
-        subtitle.setWrapText(true);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(12);
-        grid.setVgap(12);
-        grid.getColumnConstraints().setAll(percentColumn(50), percentColumn(50));
-
-        grid.add(quickButton("New Scan", true, navigator::showNewScan), 0, 0);
-        grid.add(quickButton("Assigned QA", false, navigator::showAssignedQa), 1, 0);
-        grid.add(quickButton("Exports", false, navigator::showExports), 0, 1);
-        grid.add(quickButton("Settings", false, navigator::showSettings), 1, 1);
-
-        UserPortalModel.RecentScanItem processingItem = recentScans.stream()
-                .filter(item -> "Processing".equalsIgnoreCase(item.status()))
-                .findFirst()
-                .orElse(null);
-
-        Label processingTitle = new Label(processingItem == null ? "No in-progress batch" : processingItem.boxId());
-        processingTitle.getStyleClass().add("dashboard-simple-title");
-
-        Label processingDetail = new Label(processingItem == null
-                ? "All recent scans are complete or ready for export."
-                : processingItem.profileName() + " is still in progress and can be resumed from My Scans.");
-        processingDetail.getStyleClass().add("dashboard-simple-detail");
-        processingDetail.setWrapText(true);
-
-        card.getChildren().addAll(title, subtitle, grid, processingTitle, processingDetail);
-        return card;
-    }
-
-    private VBox buildAccountPanel(UserPortalModel.AccountProfile accountProfile) {
-        VBox card = new VBox(18);
-        card.getStyleClass().add("admin-panel-card");
-
-        Label title = new Label("Account Summary");
-        title.getStyleClass().add("dashboard-section-title");
-        Label subtitle = new Label("Current user context for scanning and export work.");
-        subtitle.getStyleClass().add("dashboard-section-subtitle");
-        subtitle.setWrapText(true);
-
-        card.getChildren().addAll(
-                title,
-                subtitle,
-                detailBlock("Name", accountProfile.fullName()),
-                detailBlock("Email", accountProfile.email()),
-                detailBlock("Department", accountProfile.department())
-        );
-
-        return card;
-    }
-
     private void loadDashboardAsync(VBox page) {
         BackgroundExecutor.io().execute(() -> {
             try {
                 DashboardSnapshot snapshot = new DashboardSnapshot(
                         portalModel.fetchDashboardMetrics(),
-                        portalModel.fetchRecentScans(),
-                        portalModel.fetchAccountProfile()
+                        portalModel.fetchScanHistory().stream().limit(MAX_RECENT_SCAN_ROWS).toList()
                 );
 
                 Platform.runLater(() -> {
                     page.getChildren().set(1, buildMetrics(snapshot.metrics()));
-                    page.getChildren().set(3, buildLowerSection(snapshot.recentScans(), snapshot.accountProfile()));
+                    page.getChildren().set(3, buildLowerSection(snapshot.recentScans()));
                 });
             } catch (RuntimeException exception) {
                 Platform.runLater(() -> {
@@ -288,20 +211,8 @@ public class DashboardController {
 
     private record DashboardSnapshot(
             List<UserPortalModel.DashboardMetric> metrics,
-            List<UserPortalModel.RecentScanItem> recentScans,
-            UserPortalModel.AccountProfile accountProfile
+            List<UserPortalModel.HistoryItem> recentScans
     ) {
-    }
-
-    private VBox detailBlock(String labelText, String valueText) {
-        Label label = new Label(labelText);
-        label.getStyleClass().add("dashboard-section-subtitle");
-
-        Label value = new Label(valueText);
-        value.getStyleClass().add("dashboard-simple-title");
-        value.setWrapText(true);
-
-        return new VBox(4, label, value);
     }
 
     private VBox metricCard(String iconBoxClass,
@@ -338,8 +249,8 @@ public class DashboardController {
 
     private GridPane buildMetricsSkeleton() {
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
+        grid.setHgap(14);
+        grid.setVgap(14);
         grid.setMaxWidth(Double.MAX_VALUE);
         grid.getColumnConstraints().setAll(
                 percentColumn(25),
@@ -356,28 +267,22 @@ public class DashboardController {
     }
 
     private HBox buildLowerSectionSkeleton() {
-        HBox layout = new HBox(20);
+        HBox layout = new HBox(14);
         layout.setAlignment(Pos.TOP_LEFT);
         layout.getStyleClass().add("admin-dashboard-layout");
 
-        VBox main = new VBox(24, buildRecentScansSkeleton());
+        VBox main = new VBox(16, buildRecentScansSkeleton());
         main.getStyleClass().add("admin-dashboard-main");
         HBox.setHgrow(main, Priority.ALWAYS);
 
-        VBox side = new VBox(24, buildQuickAccessSkeleton(), buildAccountSkeleton());
-        side.getStyleClass().add("admin-dashboard-side");
-        side.setPrefWidth(390);
-        side.setMinWidth(340);
-        side.setMaxWidth(420);
-
-        layout.getChildren().addAll(main, side);
+        layout.getChildren().add(main);
         return layout;
     }
 
     private GridPane buildMetricsFailureState() {
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
+        grid.setHgap(14);
+        grid.setVgap(14);
         grid.setMaxWidth(Double.MAX_VALUE);
         grid.getColumnConstraints().setAll(percentColumn(100));
         grid.add(sectionFailureCard("Dashboard metrics could not be loaded."), 0, 0);
@@ -385,21 +290,15 @@ public class DashboardController {
     }
 
     private HBox buildLowerSectionFailureState() {
-        HBox layout = new HBox(20);
+        HBox layout = new HBox(14);
         layout.setAlignment(Pos.TOP_LEFT);
         layout.getStyleClass().add("admin-dashboard-layout");
 
-        VBox main = new VBox(24, sectionFailureCard("Recent scan history is unavailable right now."));
+        VBox main = new VBox(16, sectionFailureCard("Recent scan history is unavailable right now."));
         main.getStyleClass().add("admin-dashboard-main");
         HBox.setHgrow(main, Priority.ALWAYS);
 
-        VBox side = new VBox(24, buildQuickAccessSkeleton(), buildAccountSkeleton());
-        side.getStyleClass().add("admin-dashboard-side");
-        side.setPrefWidth(390);
-        side.setMinWidth(340);
-        side.setMaxWidth(420);
-
-        layout.getChildren().addAll(main, side);
+        layout.getChildren().add(main);
         return layout;
     }
 
@@ -442,78 +341,28 @@ public class DashboardController {
         subtitle.getStyleClass().add("dashboard-section-subtitle");
         subtitle.setWrapText(true);
 
-        Button link = new Button("View All ->");
-        link.getStyleClass().add("admin-link-button");
+        Button link = new Button("View All");
+        link.getStyleClass().addAll("admin-secondary-button", "dashboard-view-all-button");
         link.setOnAction(event -> navigator.showScans());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(12, new VBox(3, title, subtitle), spacer, link);
+        HBox header = new HBox(10, new VBox(2, title, subtitle), spacer, link);
         header.getStyleClass().add("admin-panel-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox table = new VBox();
-        table.getStyleClass().add("portal-table");
-        table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "DATE", "PAGES", "STATUS"));
+        table.getStyleClass().add("exports-table");
+        table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS"));
         table.getChildren().addAll(
+                skeletonRow("Loading scans..."),
+                skeletonRow("Loading scans..."),
                 skeletonRow("Loading scans..."),
                 skeletonRow("Loading scans..."),
                 skeletonRow("Loading scans...")
         );
 
         card.getChildren().addAll(header, table);
-        return card;
-    }
-
-    private VBox buildQuickAccessSkeleton() {
-        VBox card = new VBox(18);
-        card.getStyleClass().add("admin-panel-card");
-
-        Label title = new Label("Quick Access");
-        title.getStyleClass().add("dashboard-section-title");
-        Label subtitle = new Label("Fast entry points for the next step in your workflow.");
-        subtitle.getStyleClass().add("dashboard-section-subtitle");
-        subtitle.setWrapText(true);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(12);
-        grid.setVgap(12);
-        grid.getColumnConstraints().setAll(percentColumn(50), percentColumn(50));
-
-        grid.add(quickButton("New Scan", true, navigator::showNewScan), 0, 0);
-        grid.add(quickButton("Assigned QA", false, navigator::showAssignedQa), 1, 0);
-        grid.add(quickButton("Exports", false, navigator::showExports), 0, 1);
-        grid.add(quickButton("Settings", false, navigator::showSettings), 1, 1);
-
-        Label processingTitle = new Label("Checking active work...");
-        processingTitle.getStyleClass().add("dashboard-simple-title");
-
-        Label processingDetail = new Label("Recent scan state is loading.");
-        processingDetail.getStyleClass().add("dashboard-simple-detail");
-        processingDetail.setWrapText(true);
-
-        card.getChildren().addAll(title, subtitle, grid, processingTitle, processingDetail);
-        return card;
-    }
-
-    private VBox buildAccountSkeleton() {
-        VBox card = new VBox(18);
-        card.getStyleClass().add("admin-panel-card");
-
-        Label title = new Label("Account Summary");
-        title.getStyleClass().add("dashboard-section-title");
-        Label subtitle = new Label("Current user context for scanning and export work.");
-        subtitle.getStyleClass().add("dashboard-section-subtitle");
-        subtitle.setWrapText(true);
-
-        card.getChildren().addAll(
-                title,
-                subtitle,
-                detailBlock("Name", "Loading..."),
-                detailBlock("Email", "Loading..."),
-                detailBlock("Department", "Loading...")
-        );
-
         return card;
     }
 
@@ -532,11 +381,11 @@ public class DashboardController {
 
     private GridPane skeletonRow(String message) {
         GridPane row = createRowSkeleton();
-        row.getStyleClass().add("portal-table-row");
+        row.getStyleClass().add("exports-table-row");
         Label label = new Label(message);
-        label.getStyleClass().add("portal-table-cell");
+        label.getStyleClass().add("exports-table-cell");
         row.add(label, 0, 0);
-        GridPane.setColumnSpan(label, 5);
+        GridPane.setColumnSpan(label, 6);
         return row;
     }
 
@@ -546,9 +395,9 @@ public class DashboardController {
         tile.getStyleClass().add(primary ? "admin-action-tile-primary" : "admin-action-tile-secondary");
         tile.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         tile.setMaxWidth(Double.MAX_VALUE);
-        tile.setMinHeight(144);
-        tile.setPrefHeight(144);
-        tile.setMaxHeight(144);
+        tile.setMinHeight(120);
+        tile.setPrefHeight(120);
+        tile.setMaxHeight(120);
         tile.setOnAction(event -> action.run());
 
         Label title = new Label(titleText);
@@ -558,7 +407,7 @@ public class DashboardController {
         body.getStyleClass().add("admin-action-text");
         body.setWrapText(true);
 
-        VBox content = new VBox(12,
+        VBox content = new VBox(8,
                 UserPortalUi.buildIcon(iconKey, primary ? "admin-action-icon-inverse" : "admin-action-icon"),
                 title,
                 body
@@ -568,38 +417,41 @@ public class DashboardController {
         return tile;
     }
 
-    private Button quickButton(String text, boolean primary, Runnable action) {
-        Button button = new Button(text);
-        button.getStyleClass().add(primary ? "admin-primary-button" : "admin-secondary-button");
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setOnAction(event -> action.run());
-        return button;
-    }
-
     private Label createIcon(String glyph, String styleClass) {
-        return PrimeIcons.create(glyph, styleClass);
+        String iconKey = switch (glyph) {
+            case "\ue941" -> "dashboard";
+            case "\ue958" -> "exports";
+            case "\ue9e4" -> "scan";
+            case "\ue922" -> "settings";
+            default -> "dashboard";
+        };
+
+        Label iconLabel = new Label();
+        iconLabel.setGraphic(UserPortalUi.buildIcon(iconKey, styleClass));
+        return iconLabel;
     }
 
     private GridPane createHeaderRow(String... values) {
         GridPane row = createRowSkeleton();
-        row.getStyleClass().add("portal-table-head");
+        row.getStyleClass().add("exports-table-header-row");
         for (int index = 0; index < values.length; index++) {
             Label label = new Label(values[index]);
-            label.getStyleClass().add("portal-table-cell-head");
+            label.getStyleClass().add("exports-table-header");
             row.add(label, index, 0);
         }
         return row;
     }
 
-    private GridPane createDataRow(UserPortalModel.RecentScanItem item) {
+    private GridPane createDataRow(UserPortalModel.HistoryItem item) {
         GridPane row = createRowSkeleton();
-        row.getStyleClass().add("portal-table-row");
+        row.getStyleClass().add("exports-table-row");
 
         row.add(primaryCell(item.boxId()), 0, 0);
         row.add(dataLabel(item.profileName()), 1, 0);
-        row.add(dataLabel(item.startedAt()), 2, 0);
-        row.add(dataLabel(String.valueOf(item.pages())), 3, 0);
-        row.add(UserPortalUi.buildStatusChip(item.status()), 4, 0);
+        row.add(dataLabel(String.valueOf(item.pages())), 2, 0);
+        row.add(dataLabel(item.size()), 3, 0);
+        row.add(dataLabel(item.startedAt()), 4, 0);
+        row.add(statusCell(item.status()), 5, 0);
         return row;
     }
 
@@ -611,20 +463,28 @@ public class DashboardController {
 
     private Label dataLabel(String value) {
         Label label = new Label(value);
-        label.getStyleClass().add("portal-table-cell");
+        label.getStyleClass().add("exports-table-cell");
         return label;
+    }
+
+    private HBox statusCell(String status) {
+        HBox wrap = new HBox(UserPortalUi.buildStatusChip(status));
+        wrap.getStyleClass().add("exports-table-cell-wrap");
+        return wrap;
     }
 
     private GridPane createRowSkeleton() {
         GridPane row = new GridPane();
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMaxWidth(Double.MAX_VALUE);
+        row.setHgap(12);
         row.getColumnConstraints().setAll(
-                percentColumn(22),
-                percentColumn(23),
-                percentColumn(25),
+                percentColumn(18),
+                percentColumn(20),
                 percentColumn(10),
-                percentColumn(20)
+                percentColumn(12),
+                percentColumn(24),
+                percentColumn(16)
         );
         return row;
     }

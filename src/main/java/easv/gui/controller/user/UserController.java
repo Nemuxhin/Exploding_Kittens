@@ -38,6 +38,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.SVGPath;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ import java.net.URL;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.prefs.Preferences;
 
 public class UserController implements UserNavigator {
@@ -52,10 +54,8 @@ public class UserController implements UserNavigator {
     private static final String ACTIVE_NAV_CLASS = "active";
     private static final String DARK_MODE_CLASS = "dark";
 
-    private static final String THEME_PREFERENCES_NODE = "easv.gui.weblager";
-    private static final String DARK_MODE_PREFERENCE_KEY = "darkMode";
-    private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
-    private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
+    private static final String PREFERENCES_NODE = "easv.gui.portal";
+    private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
 
     private static final String ACCOUNT_SECTION = "Edit Profile";
 
@@ -65,13 +65,11 @@ public class UserController implements UserNavigator {
     private static final String DARK_MODE_LOGO =
             "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
 
-    private static final String MOON_ICON = "\ue9c7";
-    private static final String SUN_ICON = "\ue9c8";
+    private static final String MOON_ICON_PATH =
+            "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
 
-    private static final String HELP_SCAN_ICON = "\ue934";
-    private static final String HELP_QA_ICON = "\uea1b";
-    private static final String HELP_EXPORT_ICON = "\ue956";
-    private static final String HELP_SETTINGS_ICON = "\ue94a";
+    private static final String SUN_ICON_PATH =
+            "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
 
     @FXML private StackPane appShell;
     @FXML private BorderPane appRoot;
@@ -85,11 +83,7 @@ public class UserController implements UserNavigator {
     @FXML private ToggleButton scanNavItem;
     @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
-    @FXML private ToggleButton exportsNavItem;
-
     @FXML private Button keyboardShortcutsButton;
-    @FXML private Button helpButton;
-
     @FXML private Button accountMenuButton;
     @FXML private Label accountNameLabel;
     @FXML private Label accountInitialsLabel;
@@ -100,12 +94,12 @@ public class UserController implements UserNavigator {
     @FXML private Button settingsPrivacyMenuButton;
     @FXML private Button logoutMenuButton;
     @FXML private ToggleButton darkModeToggleButton;
-    @FXML private Label darkModeToggleIcon;
+    @FXML private SVGPath darkModeToggleIcon;
 
     private final UserPortalModel portalModel = new UserPortalModel();
     private final ShortcutManager shortcutManager = new ShortcutManager();
     private final UserManager userManager = new UserManager();
-    private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
+    private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
 
     private MainApp mainApp;
     private Object activePageController;
@@ -114,6 +108,8 @@ public class UserController implements UserNavigator {
     private UserPage currentPage;
     private Scene shortcutScene;
     private boolean userEditingTextInput;
+    private UserPortalModel.RecentScanItem pendingRecentScanItem;
+    private UserPortalModel.HistoryItem pendingHistoryScanItem;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -124,7 +120,6 @@ public class UserController implements UserNavigator {
         configureAccount();
         configureAccountMenu();
         configureKeyboardShortcutsButton();
-        configureHelpButton();
         configureThemeToggle();
         configureNavigation();
         configureGlobalShortcuts();
@@ -143,7 +138,7 @@ public class UserController implements UserNavigator {
         }
 
         if (accountInitialsLabel != null) {
-            accountInitialsLabel.setText(Strings.initials(displayName, "U"));
+            accountInitialsLabel.setText(initialsFor(displayName));
         }
 
         if (accountDropdownNameLabel != null) {
@@ -187,12 +182,6 @@ public class UserController implements UserNavigator {
         }
     }
 
-    private void configureHelpButton() {
-        if (helpButton != null) {
-            helpButton.setOnAction(event -> showHelpDialog());
-        }
-    }
-
     private void configureThemeToggle() {
         updateTheme(isDarkModeEnabled());
 
@@ -204,12 +193,7 @@ public class UserController implements UserNavigator {
     }
 
     private boolean isDarkModeEnabled() {
-        Preferences legacyUserPreferences = Preferences.userRoot().node(LEGACY_USER_PREFERENCES_NODE);
-
-        return preferences.getBoolean(
-                DARK_MODE_PREFERENCE_KEY,
-                legacyUserPreferences.getBoolean(LEGACY_USER_DARK_MODE_KEY, false)
-        );
+        return preferences.getBoolean(DARK_MODE_PREFERENCE_KEY, false);
     }
 
     private void updateTheme(boolean isDark) {
@@ -267,8 +251,7 @@ public class UserController implements UserNavigator {
         }
 
         if (darkModeToggleIcon != null) {
-            darkModeToggleIcon.setText(isDark ? MOON_ICON : SUN_ICON);
-            PrimeIcons.applyFont(darkModeToggleIcon);
+            darkModeToggleIcon.setContent(isDark ? MOON_ICON_PATH : SUN_ICON_PATH);
         }
     }
 
@@ -404,30 +387,16 @@ public class UserController implements UserNavigator {
 
     @Override
     public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
+        pendingRecentScanItem = item;
+        pendingHistoryScanItem = null;
         showPage(UserPage.SCAN);
-        prepareScanResume(item);
     }
 
     @Override
     public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
+        pendingHistoryScanItem = item;
+        pendingRecentScanItem = null;
         showPage(UserPage.SCAN);
-        prepareScanResume(item);
-    }
-
-    private void prepareScanResume(UserPortalModel.RecentScanItem item) {
-        if (item == null || !(activePageController instanceof ScanController scanController)) {
-            return;
-        }
-
-        scanController.prepareResumeFromHistory(item.boxId(), item.profileName());
-    }
-
-    private void prepareScanResume(UserPortalModel.HistoryItem item) {
-        if (item == null || !(activePageController instanceof ScanController scanController)) {
-            return;
-        }
-
-        scanController.prepareResumeFromHistory(item);
     }
 
     private void showAdjacentUserPage(int step) {
@@ -459,8 +428,14 @@ public class UserController implements UserNavigator {
 
         if (!page.hasFxml()) {
             activePageController = null;
-            Node programmaticPage = wrapScrollable(createProgrammaticPage(page));
-            showAndRememberPage(page, programmaticPage, null);
+            Node content = createProgrammaticPage(page);
+            if (shouldWrapScrollable(page)) {
+                content = wrapScrollable(content);
+            } else if (content instanceof Region region) {
+                configureRegionPageSize(region);
+            }
+            StackPane.setAlignment(content, Pos.TOP_CENTER);
+            showAndRememberPage(page, content, null);
             return;
         }
 
@@ -478,7 +453,7 @@ public class UserController implements UserNavigator {
             activePageController = loader.getController();
             configureLoadedController(activePageController);
             configureLoadedPageSize(loadedPage);
-            PrimeIcons.applyFont(loadedPage);
+            StackPane.setAlignment(loadedPage, Pos.TOP_CENTER);
 
             showAndRememberPage(page, loadedPage, activePageController);
         } catch (IOException exception) {
@@ -537,9 +512,21 @@ public class UserController implements UserNavigator {
         return scrollPane;
     }
 
+    private boolean shouldWrapScrollable(UserPage page) {
+        return page != UserPage.DASHBOARD;
+    }
+
     private void configureLoadedController(Object controller) {
         if (controller instanceof ScanController scanController) {
             scanController.setNavigator(this);
+            if (pendingHistoryScanItem != null) {
+                scanController.resumeHistoryScan(pendingHistoryScanItem);
+                pendingHistoryScanItem = null;
+                pendingRecentScanItem = null;
+            } else if (pendingRecentScanItem != null) {
+                scanController.resumeRecentScan(pendingRecentScanItem);
+                pendingRecentScanItem = null;
+            }
         }
     }
 
@@ -548,6 +535,10 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        configureRegionPageSize(region);
+    }
+
+    private void configureRegionPageSize(Region region) {
         region.setMinWidth(0);
         region.setMinHeight(0);
         region.setMaxWidth(Double.MAX_VALUE);
@@ -596,8 +587,7 @@ public class UserController implements UserNavigator {
                 dashboardNavItem,
                 scanNavItem,
                 myScansNavItem,
-                assignedQANavItem,
-                exportsNavItem
+                assignedQANavItem
         );
     }
 
@@ -607,7 +597,7 @@ public class UserController implements UserNavigator {
             case SCAN -> scanNavItem;
             case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
-            case EXPORTS -> exportsNavItem;
+            case EXPORTS -> null;
             case EDIT_PROFILE -> null;
             case SETTINGS -> null;
         };
@@ -635,7 +625,9 @@ public class UserController implements UserNavigator {
     private void showAccountSettingsPage() {
         hideAccountDropdown();
         setActiveNavItem(null);
-        contentHost.getChildren().setAll(wrapScrollable(createAccountSettingsPage()));
+        Node content = wrapScrollable(createAccountSettingsPage());
+        StackPane.setAlignment(content, Pos.TOP_CENTER);
+        contentHost.getChildren().setAll(content);
         resetShortcutFocus();
     }
 
@@ -709,10 +701,10 @@ public class UserController implements UserNavigator {
         heading.getStyleClass().add("settings-section-heading");
 
         TextField nameField = createAccountTextField(displayNameFor(account, fallbackProfile));
-        TextField usernameField = createAccountTextField(account == null ? "" : Strings.clean(account.getUsername()));
-        TextField emailField = createAccountTextField(account == null ? "" : Strings.clean(account.getEmail()));
-        TextField roleField = createAccountTextField(account == null ? "User" : Strings.clean(account.getRole()));
-        TextField statusField = createAccountTextField(account == null ? "Active" : Strings.clean(account.getStatus()));
+        TextField usernameField = createAccountTextField(account == null ? "" : clean(account.getUsername()));
+        TextField emailField = createAccountTextField(account == null ? "" : clean(account.getEmail()));
+        TextField roleField = createAccountTextField(account == null ? "User" : clean(account.getRole()));
+        TextField statusField = createAccountTextField(account == null ? "Active" : clean(account.getStatus()));
 
         roleField.setEditable(false);
         statusField.setEditable(false);
@@ -855,7 +847,7 @@ public class UserController implements UserNavigator {
     private void showInlineMessage(Label messageLabel, String message, boolean success) {
         messageLabel.getStyleClass().removeAll("success", "error");
         messageLabel.getStyleClass().add(success ? "success" : "error");
-        messageLabel.setText(Strings.clean(message).isBlank() ? "Something went wrong." : message);
+        messageLabel.setText(clean(message).isBlank() ? "Something went wrong." : message);
         messageLabel.setVisible(true);
         messageLabel.setManaged(true);
     }
@@ -1063,200 +1055,21 @@ public class UserController implements UserNavigator {
     private record ShortcutData(String icon, String label, String key, String description) {
     }
 
-    private void showHelpDialog() {
-        hideAccountDropdown();
+    private HBox shortcutRow(String shortcut, String description) {
+        Label shortcutLabel = new Label(shortcut);
+        shortcutLabel.getStyleClass().add("portal-section-title");
+        shortcutLabel.setMinWidth(72);
 
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.initStyle(StageStyle.UNDECORATED);
-        dialog.setHeaderText(null);
+        Label descriptionLabel = new Label(description);
+        descriptionLabel.getStyleClass().add("portal-muted");
+        descriptionLabel.setWrapText(true);
 
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-
-        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
-        if (defaultCloseButton != null) {
-            defaultCloseButton.setVisible(false);
-            defaultCloseButton.setManaged(false);
-        }
-
-        dialog.getDialogPane().getStyleClass().addAll(
-                "app-shell",
-                "weblager-help-dialog-pane"
-        );
-
-        if (isDarkModeEnabled()) {
-            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
-        }
-
-        if (appShell != null && appShell.getScene() != null) {
-            dialog.initOwner(appShell.getScene().getWindow());
-            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
-        }
-
-        dialog.getDialogPane().setContent(createHelpDialogContent(dialog));
-        dialog.showAndWait();
-    }
-
-    private VBox createHelpDialogContent(Dialog<ButtonType> dialog) {
-        VBox root = new VBox();
-        root.getStyleClass().add("weblager-help-root");
-
-        root.getChildren().addAll(
-                createHelpDialogHeader(dialog),
-                createHelpDialogBody()
-        );
-
-        return root;
-    }
-
-    private HBox createHelpDialogHeader(Dialog<ButtonType> dialog) {
-        Label title = new Label("Help & Documentation");
-        title.getStyleClass().add("weblager-help-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button closeButton = new Button("×");
-        closeButton.getStyleClass().add("weblager-help-close-button");
-        closeButton.setFocusTraversable(false);
-        closeButton.setOnAction(event -> {
-            dialog.setResult(ButtonType.CLOSE);
-            dialog.close();
-        });
-
-        HBox header = new HBox(12, title, spacer, closeButton);
-        header.getStyleClass().add("weblager-help-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        return header;
-    }
-
-    private ScrollPane createHelpDialogBody() {
-        VBox content = new VBox(18);
-        content.getStyleClass().add("weblager-help-content");
-
-        VBox gettingStartedRows = new VBox(15,
-                createHelpRow(
-                        HELP_SCAN_ICON,
-                        "Starting a Scan",
-                        "Navigate to New Scan, select your scan type, choose a profile, and enter the Box ID. The system will guide you through each page for quality approval."
-                ),
-                createHelpRow(
-                        HELP_QA_ICON,
-                        "Quality Assurance",
-                        "During scanning, review each page as it appears. Use Space to approve, F to flag for rescan, or Delete to remove. Flagged pages can be rescanned later."
-                ),
-                createHelpRow(
-                        HELP_EXPORT_ICON,
-                        "Exporting Files",
-                        "After scanning, configure your export settings including format, quality level, and OCR options. Files are available in the Exports page."
-                ),
-                createHelpRow(
-                        HELP_SETTINGS_ICON,
-                        "Customizing Settings",
-                        "Open your account menu to access Settings and Privacy, dark mode, account details, and logout."
-                )
-        );
-
-        VBox commonQuestions = new VBox(6,
-                createHelpSectionTitle("Common Questions"),
-                createQuestion(
-                        "What's the difference between single and multi scan?",
-                        "Single scan is for one document with multiple pages. Multi scan allows you to scan multiple separate documents in one session."
-                ),
-                createQuestion(
-                        "Can I edit a scan after completion?",
-                        "Once completed, you can view and export scans but cannot modify them. You can flag pages for rescan or delete unwanted pages during the scanning process."
-                ),
-                createQuestion(
-                        "How long are exports stored?",
-                        "Exports are stored for 30 days. Download important files promptly to avoid data loss."
-                )
-        );
-        commonQuestions.getStyleClass().add("weblager-help-questions");
-
-        content.getChildren().addAll(
-                createHelpSectionTitle("Getting Started"),
-                gettingStartedRows,
-                createHelpDivider(),
-                commonQuestions,
-                createHelpDivider(),
-                createHelpSupportSection()
-        );
-
-        ScrollPane scrollPane = new ScrollPane(content);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(false);
-        scrollPane.setPrefViewportWidth(690);
-        scrollPane.setPrefViewportHeight(510);
-        scrollPane.getStyleClass().add("weblager-help-scroll");
-
-        return scrollPane;
-    }
-
-    private VBox createHelpSupportSection() {
-        Label title = new Label("Need More Help?");
-        title.getStyleClass().add("weblager-help-section-title");
-
-        Label copy = new Label("Contact your system administrator or IT support team for additional assistance.");
-        copy.setWrapText(true);
-        copy.getStyleClass().add("weblager-help-support-copy");
-
-        VBox section = new VBox(12, title, copy);
-        section.getStyleClass().add("weblager-help-support-section");
-
-        return section;
-    }
-
-    private HBox createHelpRow(String iconGlyph, String titleText, String bodyText) {
-        Label icon = PrimeIcons.create(iconGlyph, "weblager-help-icon");
-
-        StackPane iconShell = new StackPane(icon);
-        iconShell.getStyleClass().add("weblager-help-icon-shell");
-
-        Label title = new Label(titleText);
-        title.getStyleClass().add("weblager-help-row-title");
-
-        Label body = new Label(bodyText);
-        body.setWrapText(true);
-        body.getStyleClass().add("weblager-help-row-copy");
-
-        VBox textBox = new VBox(4, title, body);
-        textBox.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(textBox, Priority.ALWAYS);
-
-        HBox row = new HBox(15, iconShell, textBox);
-        row.setAlignment(Pos.TOP_LEFT);
-        row.getStyleClass().add("weblager-help-row");
+        HBox row = new HBox(12, shortcutLabel, descriptionLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(descriptionLabel, Priority.ALWAYS);
 
         return row;
     }
-
-    private TitledPane createQuestion(String questionText, String answerText) {
-        Label answer = new Label(answerText);
-        answer.setWrapText(true);
-        answer.getStyleClass().add("weblager-help-answer");
-
-        TitledPane question = new TitledPane(questionText, answer);
-        question.setExpanded(false);
-        question.setAnimated(false);
-        question.setFocusTraversable(false);
-        question.getStyleClass().add("weblager-help-question");
-
-        return question;
-    }
-
-    private Label createHelpSectionTitle(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("weblager-help-section-title");
-        return label;
-    }
-
-    private Region createHelpDivider() {
-        Region divider = new Region();
-        divider.getStyleClass().add("weblager-help-divider");
-        return divider;
-    }
-
     private void logout() {
         UserSession.clearCurrentUser();
         hideAccountDropdown();
@@ -1274,17 +1087,17 @@ public class UserController implements UserNavigator {
 
     private String displayNameFor(User user, UserPortalModel.AccountProfile fallbackProfile) {
         if (user != null) {
-            if (!Strings.clean(user.getName()).isBlank()) {
-                return Strings.clean(user.getName());
+            if (!clean(user.getName()).isBlank()) {
+                return clean(user.getName());
             }
 
-            if (!Strings.clean(user.getUsername()).isBlank()) {
-                return Strings.clean(user.getUsername());
+            if (!clean(user.getUsername()).isBlank()) {
+                return clean(user.getUsername());
             }
         }
 
-        if (fallbackProfile != null && !Strings.clean(fallbackProfile.fullName()).isBlank()) {
-            return Strings.clean(fallbackProfile.fullName());
+        if (fallbackProfile != null && !clean(fallbackProfile.fullName()).isBlank()) {
+            return clean(fallbackProfile.fullName());
         }
 
         return "User";
@@ -1295,15 +1108,34 @@ public class UserController implements UserNavigator {
             return "User account";
         }
 
-        if (!Strings.clean(user.getEmail()).isBlank()) {
-            return Strings.clean(user.getEmail());
+        if (!clean(user.getEmail()).isBlank()) {
+            return clean(user.getEmail());
         }
 
-        if (!Strings.clean(user.getUsername()).isBlank()) {
-            return Strings.clean(user.getUsername());
+        if (!clean(user.getUsername()).isBlank()) {
+            return clean(user.getUsername());
         }
 
-        return Strings.clean(user.getRole()).isBlank() ? "User account" : Strings.clean(user.getRole()) + " account";
+        return clean(user.getRole()).isBlank() ? "User account" : clean(user.getRole()) + " account";
     }
 
+    private String initialsFor(String name) {
+        String cleanedName = clean(name);
+
+        if (cleanedName.isBlank()) {
+            return "U";
+        }
+
+        String[] parts = cleanedName.split("\\s+");
+
+        if (parts.length == 1) {
+            return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase(Locale.ROOT);
+        }
+
+        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase(Locale.ROOT);
+    }
+
+    private String clean(String value) {
+        return value == null ? "" : value.trim();
+    }
 }
