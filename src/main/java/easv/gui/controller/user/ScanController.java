@@ -226,7 +226,34 @@ public class ScanController {
             return false;
         }
 
+        return handlePrioritizedGlobalShortcut(event);
+    }
+
+    public boolean handlePrioritizedGlobalShortcut(KeyEvent event) {
+        if (event.isConsumed()) {
+            return false;
+        }
+
         return runShortcut(event.getCode(), event.isShortcutDown(), event.getText());
+    }
+
+    public boolean handleSelectedPageArrowShortcut(KeyEvent event) {
+        if (event.isConsumed() || !hasSelectedWorkspacePage()) {
+            return false;
+        }
+
+        KeyCode code = event.getCode();
+        if (code != KeyCode.LEFT && code != KeyCode.RIGHT) {
+            return false;
+        }
+
+        return handlePrioritizedGlobalShortcut(event);
+    }
+
+    private boolean hasSelectedWorkspacePage() {
+        return selectedPage != null
+                && ((scanWorkspaceView != null && scanWorkspaceView.isVisible())
+                || isReviewWorkspaceVisible());
     }
 
     public boolean runShortcut(KeyCode code, boolean shortcutDown, String typedText) {

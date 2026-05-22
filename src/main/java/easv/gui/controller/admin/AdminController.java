@@ -26,8 +26,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -94,6 +94,7 @@ public class AdminController implements AdminNavigator {
     private AdminPage currentPage = AdminPage.DASHBOARD;
     private Scene shortcutScene;
     private boolean sceneListenerRegistered;
+    private boolean userEditingTextInput;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -113,6 +114,10 @@ public class AdminController implements AdminNavigator {
     }
 
     private void configureKeyboardShortcuts() {
+        if (appShell != null) {
+            appShell.setFocusTraversable(true);
+        }
+
         if (keyboardShortcutsButton != null) {
             keyboardShortcutsButton.setOnAction(event -> showAdminShortcutsDialog("Keyboard Shortcuts"));
         }
@@ -138,11 +143,13 @@ public class AdminController implements AdminNavigator {
         if (shortcutScene != null) {
             shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleAdminShortcut);
             shortcutScene.removeEventFilter(KeyEvent.KEY_TYPED, this::handleAdminTypedShortcut);
+            shortcutScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
         }
 
         shortcutScene = scene;
         shortcutScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleAdminShortcut);
         shortcutScene.addEventFilter(KeyEvent.KEY_TYPED, this::handleAdminTypedShortcut);
+        shortcutScene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
     }
 
     private void registerSceneListener() {
@@ -163,8 +170,7 @@ public class AdminController implements AdminNavigator {
             return;
         }
 
-        // Don't intercept keys while the user is typing in a text field.
-        if (event.getTarget() instanceof TextInputControl) {
+        if (isUserEditingTextInput(event)) {
             return;
         }
 
@@ -195,7 +201,7 @@ public class AdminController implements AdminNavigator {
 
     // ? is handled via KEY_TYPED so it works on every keyboard layout.
     private void handleAdminTypedShortcut(KeyEvent event) {
-        if (event.isConsumed() || event.getTarget() instanceof TextInputControl) {
+        if (event.isConsumed() || isUserEditingTextInput(event)) {
             return;
         }
 
@@ -214,6 +220,45 @@ public class AdminController implements AdminNavigator {
         int currentIndex = Math.max(0, java.util.Arrays.asList(pages).indexOf(currentPage));
         int nextIndex = Math.max(0, Math.min(pages.length - 1, currentIndex + step));
         showPage(pages[nextIndex]);
+    }
+
+    private void rememberTextInputFocusIntent(MouseEvent event) {
+        userEditingTextInput = isTextInputTarget(event.getTarget());
+    }
+
+    private boolean isUserEditingTextInput(KeyEvent event) {
+        return userEditingTextInput
+                && (isTextInputTarget(event.getTarget()) || isTextInputTarget(focusedNode()));
+    }
+
+    private Node focusedNode() {
+        return shortcutScene == null ? null : shortcutScene.getFocusOwner();
+    }
+
+    private boolean isTextInputTarget(Object target) {
+        if (target instanceof TextInputControl) {
+            return true;
+        }
+
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (current instanceof TextInputControl) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void resetShortcutFocus() {
+        userEditingTextInput = false;
+
+        if (appShell != null) {
+            Platform.runLater(appShell::requestFocus);
+        }
     }
 
     private void showAdminShortcutsDialog(String titleText) {
@@ -242,17 +287,10 @@ public class AdminController implements AdminNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
-        dialog.getDialogPane().setPrefSize(560, 460);
-        dialog.getDialogPane().setMaxSize(560, 460);
+        dialog.getDialogPane().setPrefSize(560, 390);
+        dialog.getDialogPane().setMaxSize(560, 390);
         dialog.getDialogPane().setContent(createAdminShortcutsContent(dialog, titleText));
         PrimeIcons.applyFont(dialog.getDialogPane());
-
-        // Let keyboard scrolling work regardless of which element has focus inside the dialog.
-        ScrollPane dialogScroll = (ScrollPane) dialog.getDialogPane().lookup(".weblager-shortcuts-scroll");
-        if (dialogScroll != null) {
-            dialog.getDialogPane().addEventFilter(KeyEvent.KEY_PRESSED,
-                    event -> scrollShortcutDialog(dialogScroll, event));
-        }
 
         dialog.showAndWait();
     }
@@ -305,9 +343,9 @@ public class AdminController implements AdminNavigator {
     }
 
     private VBox createAdminShortcutsBody(Dialog<ButtonType> dialog) {
-        VBox sections = new VBox(12,
+        VBox sections = new VBox(8,
                 createShortcutSection("General shortcuts",
-                        "F1 / ? - Open shortcut help",
+                        "Fn + F1 / ? - Open shortcut help",
                         "Ctrl + F - Open search help",
                         "Ctrl + S - Refresh current admin page",
                         "Esc - Close menus or dialogs"),
@@ -318,10 +356,7 @@ public class AdminController implements AdminNavigator {
                         "Scanning shortcuts are mainly handled in the User portal.")
         );
 
-        ScrollPane sectionsScroll = new ScrollPane(sections);
-        configureShortcutScroll(sectionsScroll);
-
-        Label footerText = new Label("Open this dialog anytime from the keyboard button, F1, or ?.");
+        Label footerText = new Label("Open this dialog anytime from the keyboard button, Fn + F1, or ?.");
         footerText.getStyleClass().add("weblager-shortcuts-footer-text");
 
         Button closeButton = new Button("Close");
@@ -331,42 +366,18 @@ public class AdminController implements AdminNavigator {
             dialog.close();
         });
 
-        VBox body = new VBox(12, sectionsScroll, footerText, closeButton);
+        VBox body = new VBox(9, sections, footerText, closeButton);
         body.getStyleClass().add("weblager-shortcuts-body");
         body.setAlignment(Pos.TOP_CENTER);
 
         return body;
     }
 
-    private void configureShortcutScroll(ScrollPane scrollPane) {
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPannable(true);
-        scrollPane.setFocusTraversable(true);
-        scrollPane.setPrefViewportHeight(260);
-        scrollPane.setMaxHeight(260);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        scrollPane.getStyleClass().add("weblager-shortcuts-scroll");
-        scrollPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> scrollShortcutDialog(scrollPane, event));
-    }
-
-    private void scrollShortcutDialog(ScrollPane scrollPane, KeyEvent event) {
-        double step = 0.10;
-
-        if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.PAGE_DOWN) {
-            scrollPane.setVvalue(Math.min(1.0, scrollPane.getVvalue() + step));
-            event.consume();
-        } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.PAGE_UP) {
-            scrollPane.setVvalue(Math.max(0.0, scrollPane.getVvalue() - step));
-            event.consume();
-        }
-    }
-
     private VBox createShortcutSection(String titleText, String... lines) {
         Label title = new Label(titleText);
         title.getStyleClass().add("weblager-shortcuts-section-title");
 
-        VBox rows = new VBox(6);
+        VBox rows = new VBox(4);
 
         for (String line : lines) {
             rows.getChildren().add(createAdminShortcutLine(line));
@@ -552,11 +563,7 @@ public class AdminController implements AdminNavigator {
         currentPage = page;
         setActiveNavItem(getNavItem(page));
 
-        // Keep focus on the shell so keyboard shortcuts work immediately.
-        // The user can click a text field when they need to type.
-        if (appShell != null) {
-            Platform.runLater(appShell::requestFocus);
-        }
+        resetShortcutFocus();
     }
 
     private void loadAdminDataAsync() {
@@ -726,6 +733,7 @@ public class AdminController implements AdminNavigator {
         hideAccountDropdown();
         setActiveNavItem(null);
         contentHost.getChildren().setAll(wrapScrollable(createAccountSettingsPage(selectedSection)));
+        resetShortcutFocus();
     }
 
     private ScrollPane wrapScrollable(Node page) {

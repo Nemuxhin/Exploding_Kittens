@@ -30,6 +30,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -112,6 +113,7 @@ public class UserController implements UserNavigator {
     private final Map<UserPage, Object> controllerCache = new EnumMap<>(UserPage.class);
     private UserPage currentPage;
     private Scene shortcutScene;
+    private boolean userEditingTextInput;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -284,6 +286,10 @@ public class UserController implements UserNavigator {
     }
 
     private void configureGlobalShortcuts() {
+        if (appShell != null) {
+            appShell.setFocusTraversable(true);
+        }
+
         Platform.runLater(() -> {
             Scene scene = appShell == null ? null : appShell.getScene();
 
@@ -310,11 +316,13 @@ public class UserController implements UserNavigator {
         if (shortcutScene != null) {
             shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
             shortcutScene.removeEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+            shortcutScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
         }
 
         shortcutScene = scene;
         scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
         scene.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
     }
 
     private void handleGlobalShortcut(KeyEvent event) {
@@ -322,8 +330,7 @@ public class UserController implements UserNavigator {
             return;
         }
 
-        // Don't intercept keys while the user is typing in a text field.
-        if (event.getTarget() instanceof TextInputControl) {
+        if (isUserEditingTextInput(event)) {
             return;
         }
 
@@ -340,16 +347,34 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        if (activePageController instanceof ScanController scanController
+                && scanController.handleSelectedPageArrowShortcut(event)) {
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.LEFT) {
+            showAdjacentUserPage(-1);
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.RIGHT) {
+            showAdjacentUserPage(1);
+            event.consume();
+            return;
+        }
+
         // Forward to the active scan controller — only when the scan page is showing.
         if (activePageController instanceof ScanController scanController
-                && scanController.handleGlobalShortcut(event)) {
+                && scanController.handlePrioritizedGlobalShortcut(event)) {
             event.consume();
         }
     }
 
     // ? and +/- are handled via KEY_TYPED so they work on every keyboard layout.
     private void handleGlobalTypedShortcut(KeyEvent event) {
-        if (event.isConsumed() || event.getTarget() instanceof TextInputControl) {
+        if (event.isConsumed() || isUserEditingTextInput(event)) {
             return;
         }
 
@@ -374,6 +399,7 @@ public class UserController implements UserNavigator {
         loadPage(page);
         currentPage = page;
         setActiveNavItem(getNavItem(page));
+        resetShortcutFocus();
     }
 
     @Override
@@ -402,6 +428,28 @@ public class UserController implements UserNavigator {
         }
 
         scanController.prepareResumeFromHistory(item);
+    }
+
+    private void showAdjacentUserPage(int step) {
+        List<UserPage> pages = getShortcutNavigationPages();
+        int currentIndex = pages.indexOf(currentPage);
+
+        if (currentIndex < 0) {
+            currentIndex = 0;
+        }
+
+        int nextIndex = Math.max(0, Math.min(pages.size() - 1, currentIndex + step));
+        showPage(pages.get(nextIndex));
+    }
+
+    private List<UserPage> getShortcutNavigationPages() {
+        return List.of(
+                UserPage.DASHBOARD,
+                UserPage.SCAN,
+                UserPage.MY_SCANS,
+                UserPage.ASSIGNED_QA,
+                UserPage.EXPORTS
+        );
     }
 
     private void loadPage(UserPage page) {
@@ -537,36 +585,9 @@ public class UserController implements UserNavigator {
     private void setNavItemActive(ToggleButton navItem, boolean active) {
         navItem.setSelected(active);
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
-        removeNavCloseButton(navItem);
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
-            if (navItem != dashboardNavItem) {
-                addNavCloseButton(navItem);
-            }
-        }
-    }
-
-    private void addNavCloseButton(ToggleButton navItem) {
-        if (navItem == null || navItem == dashboardNavItem || !(navItem.getGraphic() instanceof HBox graphic)) {
-            return;
-        }
-
-        Label closeLabel = new Label("x");
-        closeLabel.getStyleClass().add("admin-top-nav-close");
-        closeLabel.setOnMousePressed(event -> event.consume());
-        closeLabel.setOnMouseReleased(event -> event.consume());
-        closeLabel.setOnMouseClicked(event -> {
-            event.consume();
-            showPage(UserPage.DASHBOARD);
-        });
-
-        graphic.getChildren().add(closeLabel);
-    }
-
-    private void removeNavCloseButton(ToggleButton navItem) {
-        if (navItem != null && navItem.getGraphic() instanceof HBox graphic) {
-            graphic.getChildren().removeIf(node -> node.getStyleClass().contains("admin-top-nav-close"));
         }
     }
 
@@ -615,6 +636,46 @@ public class UserController implements UserNavigator {
         hideAccountDropdown();
         setActiveNavItem(null);
         contentHost.getChildren().setAll(wrapScrollable(createAccountSettingsPage()));
+        resetShortcutFocus();
+    }
+
+    private void rememberTextInputFocusIntent(MouseEvent event) {
+        userEditingTextInput = isTextInputTarget(event.getTarget());
+    }
+
+    private boolean isUserEditingTextInput(KeyEvent event) {
+        return userEditingTextInput
+                && (isTextInputTarget(event.getTarget()) || isTextInputTarget(focusedNode()));
+    }
+
+    private Node focusedNode() {
+        return shortcutScene == null ? null : shortcutScene.getFocusOwner();
+    }
+
+    private boolean isTextInputTarget(Object target) {
+        if (target instanceof TextInputControl) {
+            return true;
+        }
+
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (current instanceof TextInputControl) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void resetShortcutFocus() {
+        userEditingTextInput = false;
+
+        if (appShell != null) {
+            Platform.runLater(appShell::requestFocus);
+        }
     }
 
     private VBox createAccountSettingsPage() {
@@ -829,16 +890,9 @@ public class UserController implements UserNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
-        dialog.getDialogPane().setPrefSize(560, 460);
-        dialog.getDialogPane().setMaxSize(560, 460);
+        dialog.getDialogPane().setPrefSize(560, 430);
+        dialog.getDialogPane().setMaxSize(560, 430);
         dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
-
-        // Let keyboard scrolling work regardless of which element has focus inside the dialog.
-        ScrollPane dialogScroll = (ScrollPane) dialog.getDialogPane().lookup(".weblager-shortcuts-scroll");
-        if (dialogScroll != null) {
-            dialog.getDialogPane().addEventFilter(KeyEvent.KEY_PRESSED,
-                    event -> scrollShortcutDialog(dialogScroll, event));
-        }
 
         dialog.showAndWait();
     }
@@ -891,17 +945,14 @@ public class UserController implements UserNavigator {
     }
 
     private VBox createKeyboardShortcutsBody(Dialog<ButtonType> dialog) {
-        VBox sections = new VBox(12);
+        VBox sections = new VBox(8);
         sections.getChildren().setAll(
                 createShortcutSection("General shortcuts", "Save", "Undo", "Search / jump", "Escape", "Shortcut help"),
-                createShortcutSection("Navigation shortcuts", "Next page", "Previous page", "Export"),
+                createShortcutSection("Navigation shortcuts", "Next section / scan page", "Previous section / scan page", "Export"),
                 createShortcutSection("Scanning shortcuts", "Rotate", "Delete", "Zoom in", "Zoom out")
         );
 
-        ScrollPane sectionsScroll = new ScrollPane(sections);
-        configureShortcutScroll(sectionsScroll);
-
-        Label footerText = new Label("Open this dialog anytime from the keyboard button, F1, or ?.");
+        Label footerText = new Label("Open this dialog anytime from the keyboard button, Fn + F1, or ?.");
         footerText.getStyleClass().add("weblager-shortcuts-footer-text");
 
         Button closeButton = new Button("Close");
@@ -911,42 +962,18 @@ public class UserController implements UserNavigator {
             dialog.close();
         });
 
-        VBox body = new VBox(12, sectionsScroll, footerText, closeButton);
+        VBox body = new VBox(9, sections, footerText, closeButton);
         body.getStyleClass().add("weblager-shortcuts-body");
         body.setAlignment(Pos.TOP_CENTER);
 
         return body;
     }
 
-    private void configureShortcutScroll(ScrollPane scrollPane) {
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPannable(true);
-        scrollPane.setFocusTraversable(true);
-        scrollPane.setPrefViewportHeight(260);
-        scrollPane.setMaxHeight(260);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        scrollPane.getStyleClass().add("weblager-shortcuts-scroll");
-        scrollPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> scrollShortcutDialog(scrollPane, event));
-    }
-
-    private void scrollShortcutDialog(ScrollPane scrollPane, KeyEvent event) {
-        double step = 0.10;
-
-        if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.PAGE_DOWN) {
-            scrollPane.setVvalue(Math.min(1.0, scrollPane.getVvalue() + step));
-            event.consume();
-        } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.PAGE_UP) {
-            scrollPane.setVvalue(Math.max(0.0, scrollPane.getVvalue() - step));
-            event.consume();
-        }
-    }
-
     private VBox createShortcutSection(String titleText, String... actionNames) {
         Label title = new Label(titleText);
         title.getStyleClass().add("weblager-shortcuts-section-title");
 
-        VBox rows = new VBox(6);
+        VBox rows = new VBox(4);
         for (String actionName : actionNames) {
             findShortcut(actionName).ifPresent(shortcut -> rows.getChildren().add(createShortcutLine(shortcut)));
         }
@@ -1017,8 +1044,8 @@ public class UserController implements UserNavigator {
 
     private String shortcutIcon(String actionName) {
         return switch (actionName) {
-            case "Next page" -> "→";
-            case "Previous page" -> "←";
+            case "Next section / scan page" -> "→";
+            case "Previous section / scan page" -> "←";
             case "Rotate" -> "↻";
             case "Delete" -> "⌫";
             case "Undo" -> "↶";

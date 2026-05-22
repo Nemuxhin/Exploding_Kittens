@@ -20,8 +20,8 @@ class ShortcutManagerTest {
                 .map(KeyboardShortcut::getActionName)
                 .toList();
 
-        assertTrue(actionNames.contains("Next page"));
-        assertTrue(actionNames.contains("Previous page"));
+        assertTrue(actionNames.contains("Next section / scan page"));
+        assertTrue(actionNames.contains("Previous section / scan page"));
         assertTrue(actionNames.contains("Rotate"));
         assertTrue(actionNames.contains("Delete"));
         assertTrue(actionNames.contains("Undo"));
@@ -35,13 +35,13 @@ class ShortcutManagerTest {
     }
 
     @Test
-    void shortcutListHasThirteenEntriesIncludingF1AndQuestionMarkHelp() {
+    void shortcutListHasThirteenEntriesIncludingFnF1AndQuestionMarkHelp() {
         ShortcutManager shortcutManager = new ShortcutManager();
 
         List<KeyboardShortcut> shortcuts = shortcutManager.getShortcuts();
 
         assertEquals(13, shortcuts.size());
-        assertTrue(shortcuts.stream().anyMatch(shortcut -> "F1".equals(shortcut.getDisplayKeys())));
+        assertTrue(shortcuts.stream().anyMatch(shortcut -> "Fn + F1".equals(shortcut.getDisplayKeys())));
         assertTrue(shortcuts.stream().anyMatch(shortcut -> "?".equals(shortcut.getDisplayKeys())));
         assertTrue(shortcuts.stream().anyMatch(shortcut -> shortcut.getDisplayKeys().contains("Backspace")));
     }
