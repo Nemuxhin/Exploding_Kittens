@@ -571,3 +571,35 @@
     -fx-padding: 0;
     -fx-alignment: center-left;
 }
+
+/* =========================================================
+   TYPOGRAPHY OVERRIDES
+   Project note: review queue and workspace body text, controls,
+   warnings, thumbnails, and validation copy use 18px.
+   ========================================================= */
+
+.review-batch-label,
+.review-workspace-warning-text,
+.review-workspace-tree-root,
+.review-workspace-tree-case,
+.review-workspace-tree-title,
+.review-workspace-tree-title-active,
+.review-workspace-tree-status-text,
+.review-workspace-tree-status-complete,
+.review-workspace-tree-status-warning,
+.review-workspace-tree-status-danger,
+.review-workspace-tree-status-neutral,
+.review-workspace-viewer-page-label,
+.review-workspace-tool-button,
+.review-workspace-paper-placeholder,
+.review-workspace-thumbnail-label,
+.review-workspace-thumbnail-label-active,
+.review-workspace-thumbnail-note,
+.review-workspace-validation-copy,
+.review-workspace-field-error,
+.review-workspace-check-complete,
+.review-workspace-check-warning,
+.review-workspace-check-neutral,
+.review-workspace-check-text {
+    -fx-font-size: 18px;
+}

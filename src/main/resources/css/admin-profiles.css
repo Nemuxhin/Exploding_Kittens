@@ -661,3 +661,50 @@
     -fx-border-color: -wl-border;
     -fx-text-fill: transparent;
 }
+
+/* =========================================================
+   TYPOGRAPHY OVERRIDES
+   Project note: profiles and access pages use 18px for section
+   labels, helper copy, row text, filters, and editor content.
+   ========================================================= */
+
+.profile-card-title,
+.profile-card-description,
+.profile-info-label,
+.profile-info-value,
+.profile-info-code,
+.assignment-code-label,
+.profile-editor-tab-button,
+.admin-tab-button,
+.profile-editor-section-title,
+.assignment-panel-title,
+.admin-section-title,
+.review-workspace-panel-title,
+.dashboard-section-title,
+.profile-editor-subtitle,
+.profile-editor-helper-text,
+.admin-helper-text,
+.review-workspace-panel-subtitle,
+.assignment-list-subtitle,
+.assignment-row-subtitle,
+.assignment-selected-subtitle,
+.profile-editor-strong-text,
+.profile-editor-field-label,
+.admin-field-label,
+.review-workspace-field-label,
+.profile-editor-code-preview,
+.profile-editor-field-preview-item,
+.profile-editor-access-name,
+.profile-editor-preview-key,
+.profile-editor-preview-value,
+.assignment-list-title,
+.assignment-row-title,
+.assignment-selected-title,
+.assignment-save-status,
+.document-field-name,
+.document-drag-handle,
+.profile-access-title,
+.profile-access-code,
+.profile-access-check {
+    -fx-font-size: 18px;
+}

@@ -1150,3 +1150,55 @@
 .app-shell.dark .activity-log-page.logs-page .logs-payload-card {
     -fx-effect: none;
 }
+
+/* =========================================================
+   TYPOGRAPHY OVERRIDES
+   Project note: activity log filters, rows, chips, payload labels,
+   and expanded content use 18px for consistent admin readability.
+   ========================================================= */
+
+.activity-log-page.logs-page .logs-subtitle,
+.activity-log-page.logs-page .search-field-input,
+.activity-log-page.logs-page .search-field-input:hover,
+.activity-log-page.logs-page .search-field-input:focused,
+.activity-log-page.logs-page .logs-filter-heading,
+.activity-log-page.logs-page .logs-filter-value,
+.activity-log-page.logs-page .logs-reset-button,
+.activity-log-page.logs-page .logs-date-mode-button,
+.activity-log-page.logs-page .logs-date-label,
+.activity-log-page.logs-page .logs-popover-date-picker > .text-field,
+.activity-log-page.logs-page .logs-date-clear-button,
+.activity-log-page.logs-page .logs-date-apply-button,
+.activity-log-page.logs-page .logs-event-group-title,
+.activity-log-page.logs-page .logs-event-count-badge,
+.activity-log-page.logs-page .logs-event-time,
+.activity-log-page.logs-page .logs-event-title,
+.activity-log-page.logs-page .logs-event-meta,
+.activity-log-page.logs-page .logs-area-chip,
+.activity-log-page.logs-page .logs-result-pill,
+.activity-log-page.logs-page .logs-inline-rail-label,
+.activity-log-page.logs-page .logs-inline-rail-change-field,
+.activity-log-page.logs-page .logs-inline-rail-value,
+.activity-log-page.logs-page .logs-inline-rail-before-pill,
+.activity-log-page.logs-page .logs-inline-rail-after-pill,
+.activity-log-page.logs-page .logs-inline-rail-arrow,
+.activity-log-page.logs-page .logs-load-more-button,
+.activity-log-page.logs-page .logs-payload-error-title,
+.activity-log-page.logs-page .logs-payload-error-copy,
+.activity-log-page.logs-page .logs-payload-hero-subject,
+.activity-log-page.logs-page .logs-payload-hero-meta,
+.activity-log-page.logs-page .logs-payload-hero-actor,
+.activity-log-page.logs-page .logs-payload-hero-status-text,
+.activity-log-page.logs-page .logs-payload-sidebar-label,
+.activity-log-page.logs-page .logs-payload-sidebar-value,
+.activity-log-page.logs-page .logs-payload-section-title,
+.activity-log-page.logs-page .logs-payload-kv-label,
+.activity-log-page.logs-page .logs-payload-kv-value,
+.activity-log-page.logs-page .logs-payload-change-field-label,
+.activity-log-page.logs-page .logs-payload-change-subtitle,
+.activity-log-page.logs-page .logs-payload-change-before-value,
+.activity-log-page.logs-page .logs-payload-change-after-value,
+.activity-log-page.logs-page .logs-payload-tile-label,
+.activity-log-page.logs-page .logs-payload-tile-value {
+    -fx-font-size: 18px;
+}

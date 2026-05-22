@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class BarcodeSplitService {
+    private static final double MAX_SEPARATOR_DARK_PIXEL_RATIO = 0.08;
     private static final Map<DecodeHintType, Object> DECODE_HINTS = createDecodeHints();
 
     public DetectionResult classify(String sourceReference, String barcodeValue, String displayContent) {
@@ -35,7 +36,11 @@ public class BarcodeSplitService {
 
         String normalized = sourceReference.toLowerCase(Locale.ROOT);
         if (normalized.contains("barcode") || normalized.contains("separator") || normalized.startsWith("bc_")) {
-            return new DetectionResult(PageImage.PageType.BARCODE, barcodeValue == null ? "" : barcodeValue.trim());
+            String markerValue = barcodeValue == null ? "" : barcodeValue.trim();
+            return new DetectionResult(
+                    PageImage.PageType.BARCODE,
+                    markerValue.isBlank() ? "BARCODE:" + sourceReference : markerValue
+            );
         }
 
         String providedBarcodeValue = barcodeValue == null ? "" : barcodeValue.trim();
@@ -43,7 +48,7 @@ public class BarcodeSplitService {
             return new DetectionResult(PageImage.PageType.BARCODE, providedBarcodeValue);
         }
 
-        String decodedBarcodeValue = decodeBarcodeValue(displayContent);
+        String decodedBarcodeValue = decodeSeparatorBarcodeValue(displayContent);
         if (!decodedBarcodeValue.isBlank()) {
             return new DetectionResult(PageImage.PageType.BARCODE, decodedBarcodeValue);
         }
@@ -51,24 +56,33 @@ public class BarcodeSplitService {
         return new DetectionResult(PageImage.PageType.TIFF, "");
     }
 
-    private String decodeBarcodeValue(String displayContent) {
-        if (displayContent == null || displayContent.isBlank()) {
+    private String decodeSeparatorBarcodeValue(String displayContent) {
+        DecodedPageBarcode decodedPageBarcode = decodePageBarcode(displayContent);
+        if (decodedPageBarcode.barcodeValue().isBlank() || !isLikelySeparatorPage(decodedPageBarcode.image())) {
             return "";
+        }
+
+        return decodedPageBarcode.barcodeValue();
+    }
+
+    private DecodedPageBarcode decodePageBarcode(String displayContent) {
+        if (displayContent == null || displayContent.isBlank()) {
+            return DecodedPageBarcode.empty();
         }
 
         byte[] imageBytes = extractImageBytes(displayContent);
         if (imageBytes.length == 0) {
-            return "";
+            return DecodedPageBarcode.empty();
         }
 
         try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
             if (imageInputStream == null) {
-                return "";
+                return DecodedPageBarcode.empty();
             }
 
             var readers = ImageIO.getImageReaders(imageInputStream);
             if (!readers.hasNext()) {
-                return "";
+                return DecodedPageBarcode.empty();
             }
 
             ImageReader reader = readers.next();
@@ -76,16 +90,41 @@ public class BarcodeSplitService {
                 reader.setInput(imageInputStream, true, true);
                 BufferedImage image = reader.read(0);
                 if (image == null) {
-                    return "";
+                    return DecodedPageBarcode.empty();
                 }
 
-                return tryDecodeVariants(image);
+                return new DecodedPageBarcode(tryDecodeVariants(image), image);
             } finally {
                 reader.dispose();
             }
         } catch (Exception exception) {
-            return "";
+            return DecodedPageBarcode.empty();
         }
+    }
+
+    private boolean isLikelySeparatorPage(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int stride = Math.max(1, Math.max(width, height) / 700);
+        int darkPixels = 0;
+        int sampledPixels = 0;
+
+        for (int y = 0; y < height; y += stride) {
+            for (int x = 0; x < width; x += stride) {
+                int rgb = image.getRGB(x, y);
+                int red = (rgb >> 16) & 0xff;
+                int green = (rgb >> 8) & 0xff;
+                int blue = rgb & 0xff;
+                int brightness = (red + green + blue) / 3;
+
+                if (brightness < 220) {
+                    darkPixels++;
+                }
+                sampledPixels++;
+            }
+        }
+
+        return sampledPixels > 0 && ((double) darkPixels / (double) sampledPixels) <= MAX_SEPARATOR_DARK_PIXEL_RATIO;
     }
 
     private String tryDecodeVariants(BufferedImage image) {
@@ -204,5 +243,11 @@ public class BarcodeSplitService {
     }
 
     public record DetectionResult(PageImage.PageType pageType, String barcodeValue) {
+    }
+
+    private record DecodedPageBarcode(String barcodeValue, BufferedImage image) {
+        private static DecodedPageBarcode empty() {
+            return new DecodedPageBarcode("", null);
+        }
     }
 }

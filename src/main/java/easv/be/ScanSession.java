@@ -12,6 +12,7 @@ public class ScanSession {
     private final Box box;
     private final String profileName;
     private final List<Document> importedDocuments = new ArrayList<>();
+    private final List<PageImage> pendingPages = new ArrayList<>();
     private final List<String> failures = new ArrayList<>();
     private String selectedBarcodeBehavior = "";
     private String lastStatus = "READY";
@@ -53,6 +54,10 @@ public class ScanSession {
         return List.copyOf(failures);
     }
 
+    public List<PageImage> getPendingPages() {
+        return List.copyOf(pendingPages);
+    }
+
     public String getSelectedBarcodeBehavior() {
         return selectedBarcodeBehavior;
     }
@@ -91,6 +96,13 @@ public class ScanSession {
                 .anyMatch(existing -> existing.getSourceItemId().equals(document.getSourceItemId()));
         if (!exists) {
             importedDocuments.add(document);
+        }
+    }
+
+    public void replacePendingPages(List<PageImage> pages) {
+        pendingPages.clear();
+        if (pages != null) {
+            pendingPages.addAll(pages);
         }
     }
 

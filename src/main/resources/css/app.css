@@ -704,9 +704,9 @@
 .profile-editor-back-button,
 .template-editor-back-button,
 .back-button {
-    -fx-min-width: 63;
-    -fx-pref-width: 63;
-    -fx-max-width: 63;
+    -fx-min-width: 96;
+    -fx-pref-width: 96;
+    -fx-max-width: 96;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -7807,6 +7807,168 @@
 
 .account-utility-icon {
     -fx-fill: -wl-text;
+}
+
+.admin-notification-dot {
+    -fx-min-width: 8;
+    -fx-pref-width: 8;
+    -fx-max-width: 8;
+    -fx-min-height: 8;
+    -fx-pref-height: 8;
+    -fx-max-height: 8;
+    -fx-background-color: -wl-error;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-surface;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 999;
+    -fx-translate-x: 2;
+    -fx-translate-y: -2;
+}
+
+.user-notification-dropdown {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.16), 24, 0.16, 0, 8);
+}
+
+.app-shell.dark .user-notification-dropdown {
+    -fx-effect: none;
+}
+
+.user-notification-header,
+.user-notification-footer {
+    -fx-padding: 15 18;
+}
+
+.user-notification-header {
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.user-notification-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.user-notification-list {
+    -fx-background-color: transparent;
+}
+
+.user-notification-item {
+    -fx-padding: 12 18;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.user-notification-item:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.user-notification-unread-dot,
+.user-notification-read-spacer {
+    -fx-min-width: 6;
+    -fx-pref-width: 6;
+    -fx-max-width: 6;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+}
+
+.user-notification-unread-dot {
+    -fx-background-color: #2563EB;
+    -fx-background-radius: 999;
+}
+
+.user-notification-icon-shell {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-radius: 12;
+    -fx-alignment: center;
+}
+
+.user-notification-icon {
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.user-notification-icon-danger {
+    -fx-background-color: #FEE2E2;
+}
+
+.user-notification-icon-danger .user-notification-icon {
+    -fx-fill: #EF4444;
+}
+
+.user-notification-icon-success {
+    -fx-background-color: #D1FAE5;
+}
+
+.user-notification-icon-success .user-notification-icon {
+    -fx-fill: #10B981;
+}
+
+.user-notification-icon-info {
+    -fx-background-color: #DBEAFE;
+}
+
+.user-notification-icon-info .user-notification-icon {
+    -fx-fill: #2563EB;
+}
+
+.user-notification-icon-warning {
+    -fx-background-color: #FEF3C7;
+}
+
+.user-notification-icon-warning .user-notification-icon {
+    -fx-fill: #F59E0B;
+}
+
+.user-notification-item-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.user-notification-item-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 11px;
+}
+
+.user-notification-time {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+}
+
+.user-notification-link-button,
+.user-notification-footer-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-font-size: 11px;
+}
+
+.user-notification-link-button {
+    -fx-text-fill: #2563EB;
+    -fx-font-weight: 700;
+}
+
+.user-notification-footer-button {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.user-notification-footer {
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 0 0 10 10;
 }
 
 .account-dropdown-item-row {

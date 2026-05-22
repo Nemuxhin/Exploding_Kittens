@@ -2,6 +2,7 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.CaseMetadata;
+import easv.be.Document;
 import easv.be.MetadataTemplate;
 import easv.be.PageImage;
 import easv.be.ReviewRecord;
@@ -262,14 +263,24 @@ class AuditMetadataExportTest {
         PageImage pageTwo = new PageImage(2, PageImage.PageType.TIFF, "DOC-2");
 
         TiffExportPlan singlePagePlan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
-        TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan("", "", List.of(pageOne, pageTwo));
+        TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan(
+                "",
+                "",
+                "{profileCode}_{boxId}_{documentNumber}",
+                "",
+                List.of(
+                        new Document("DOC-1", List.of(pageOne)),
+                        new Document("DOC-2", List.of(pageTwo))
+                )
+        );
 
         assertEquals(2, singlePagePlan.getFileCount());
         assertEquals(2, singlePagePlan.getPageCount());
         assertEquals("Profile_A_BOX-1_DOC-1_page-1.tiff", singlePagePlan.getItems().get(0).getFileName());
-        assertEquals(1, multiPagePlan.getFileCount());
+        assertEquals(2, multiPagePlan.getFileCount());
         assertEquals(2, multiPagePlan.getPageCount());
-        assertEquals("MULTI_PAGE_TIFF_FILE", multiPagePlan.getExportType());
+        assertEquals("missing_box_1.tiff", multiPagePlan.getItems().get(0).getFileName());
+        assertEquals("MULTI_PAGE_TIFFS_BY_DOCUMENT", multiPagePlan.getExportType());
         assertEquals(2, multiPagePlan.getWarnings().size());
     }
 

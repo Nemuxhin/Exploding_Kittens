@@ -544,6 +544,12 @@
                                     styleClass="qa-neutral-button"/>
                         </VBox>
 
+                        <Button text="Complete QA"
+                                onAction="#onCompleteQa"
+                                maxWidth="Infinity"
+                                focusTraversable="false"
+                                styleClass="qa-complete-button"/>
+
                         <Button text="Export Type"
                                 onAction="#onOpenExportTypeDialog"
                                 maxWidth="Infinity"

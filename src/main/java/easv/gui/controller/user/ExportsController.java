@@ -1,10 +1,16 @@
 package easv.gui.controller.user;
 
+import easv.be.Document;
+import easv.be.PageImage;
+import easv.be.ScanProfile;
+import easv.be.TiffExportPlan;
+import easv.bll.TiffExportManager;
 import easv.gui.UserPortalModel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
@@ -24,7 +30,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +54,7 @@ public class ExportsController {
     private final Label paginationSummaryLabel = new Label();
     private final HBox paginationButtonsBox = new HBox();
     private final ComboBox<Integer> rowsPerPageFilter = new ComboBox<>();
+    private final TiffExportManager tiffExportManager = new TiffExportManager();
     private int currentPage = 1;
 
     public ExportsController(UserPortalModel portalModel) {
@@ -272,10 +281,9 @@ public class ExportsController {
     }
 
     private VBox buildExportDialogContent(Stage stage, UserPortalModel.ExportItem item) {
-        List<String> boxFiles = buildBoxFiles(item);
-        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(
-                boxFiles.size() > 1 ? TiffExportType.MULTI_PAGE : TiffExportType.SINGLE_PAGE
-        );
+        List<Document> documents = portalModel.fetchExportDocuments(item);
+        List<String> boxFiles = buildBoxFiles(documents);
+        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(TiffExportType.MULTI_PAGE);
 
         Label title = new Label("TIFF Export");
         title.getStyleClass().add("exports-dialog-title");
@@ -286,7 +294,7 @@ public class ExportsController {
         Label boxValue = new Label(item.boxId());
         boxValue.getStyleClass().add("exports-dialog-box-value");
 
-        Label boxDetail = new Label("Only files from this box can be exported in this dialog.");
+        Label boxDetail = new Label("Only documents from this box can be exported in this dialog.");
         boxDetail.getStyleClass().add("exports-dialog-box-detail");
 
         VBox boxCard = new VBox(6, boxValue, boxDetail);
@@ -300,7 +308,7 @@ public class ExportsController {
         );
         Button multiPageCard = buildExportTypeCard(
                 "Multi-page TIFF",
-                "One combined TIFF",
+                "One TIFF per document",
                 TiffExportType.MULTI_PAGE,
                 selectedType
         );
@@ -310,10 +318,10 @@ public class ExportsController {
         HBox typeRow = new HBox(18, singlePageCard, multiPageCard);
         typeRow.getStyleClass().add("exports-dialog-type-row");
 
-        Label selectedFilesTitle = new Label("Files in box");
+        Label selectedFilesTitle = new Label("Documents in box");
         selectedFilesTitle.getStyleClass().add("exports-dialog-files-title");
 
-        Label selectedFilesCount = new Label(formatSelectedFileCount(boxFiles.size()));
+        Label selectedFilesCount = new Label(formatSelectedDocumentCount(boxFiles.size()));
         selectedFilesCount.getStyleClass().add("exports-dialog-files-count");
 
         Region filesSpacer = new Region();
@@ -368,7 +376,7 @@ public class ExportsController {
         Button exportButton = new Button("Export");
         exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
         exportButton.setDefaultButton(true);
-        exportButton.setOnAction(event -> stage.close());
+        exportButton.setOnAction(event -> handleExport(stage, item, selectedType.get(), documents));
 
         HBox footerActions = new HBox(9, cancelButton, exportButton);
         footerActions.getStyleClass().add("exports-dialog-footer-actions");
@@ -446,7 +454,7 @@ public class ExportsController {
         );
 
         if (selectedFiles.isEmpty()) {
-            Label emptyState = new Label("No files available for this export.");
+            Label emptyState = new Label("No scanned documents available for this export.");
             emptyState.getStyleClass().add("exports-dialog-empty-state");
             fileGrid.add(emptyState, 0, 0, 3, 1);
             return;
@@ -474,28 +482,116 @@ public class ExportsController {
         return cell;
     }
 
-    private List<String> buildBoxFiles(UserPortalModel.ExportItem item) {
-        if (item == null) {
+    private List<String> buildBoxFiles(List<Document> documents) {
+        if (documents == null) {
             return List.of();
         }
 
-        int documentCount = Math.max(1, item.documents());
-        List<String> files = new ArrayList<>(documentCount);
-        for (int index = 1; index <= documentCount; index++) {
-            files.add("file_" + String.format(Locale.US, "%03d", index));
+        List<String> files = new ArrayList<>(documents.size());
+        for (int index = 0; index < documents.size(); index++) {
+            Document document = documents.get(index);
+            String documentName = firstNonBlank(document.getSourceItemId(), "document_" + String.format(Locale.US, "%03d", index + 1));
+            int pageCount = document.getPages().size();
+            files.add(documentName + " (" + pageCount + " " + pluralize(pageCount, "page") + ")");
         }
         return files;
     }
 
     private String buildOutputText(TiffExportType type, int selectedFileCount, String boxId) {
+        if (selectedFileCount == 0) {
+            return "No scanned documents are available for this box";
+        }
+
         return switch (type) {
-            case SINGLE_PAGE -> selectedFileCount + " separate .tiff " + pluralize(selectedFileCount, "file") + " will be generated";
-            case MULTI_PAGE -> "All selected files will be combined into one .tiff file";
+            case SINGLE_PAGE -> "Separate .tiff files will be generated for each page";
+            case MULTI_PAGE -> selectedFileCount + " multi-page .tiff " + pluralize(selectedFileCount, "file")
+                    + " will be generated, one per document";
         };
     }
 
-    private String formatSelectedFileCount(int count) {
-        return count + " " + pluralize(count, "file");
+    private String formatSelectedDocumentCount(int count) {
+        return count + " " + pluralize(count, "document");
+    }
+
+    private void handleExport(
+            Stage stage,
+            UserPortalModel.ExportItem item,
+            TiffExportType exportType,
+            List<Document> documents
+    ) {
+        if (documents == null || documents.isEmpty()) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "No documents to export",
+                    "This completed scan does not have any saved document pages yet.");
+            return;
+        }
+
+        ScanProfile profile = portalModel.fetchExportProfile(item);
+        String profileName = firstNonBlank(profile == null ? null : profile.getName(), item.profileName());
+        String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), "{profileCode}_{boxId}");
+
+        TiffExportPlan plan = exportType == TiffExportType.SINGLE_PAGE
+                ? tiffExportManager.createSinglePagePlan(
+                profileName,
+                profileCode,
+                exportNaming,
+                item.boxId(),
+                flattenPages(documents)
+        )
+                : tiffExportManager.createMultiPagePlan(
+                profileName,
+                profileCode,
+                exportNaming,
+                item.boxId(),
+                documents
+        );
+
+        try {
+            Path outputDirectory = Path.of(
+                    System.getProperty("user.home"),
+                    "Downloads",
+                    "WebLager Exports",
+                    safeFolderName(item.boxId())
+            );
+            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(plan, outputDirectory);
+            showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
+                    result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
+                            + " written to " + result.outputDirectory());
+            stage.close();
+        } catch (IOException | RuntimeException exception) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "Export failed", exception.getMessage());
+        }
+    }
+
+    private List<PageImage> flattenPages(List<Document> documents) {
+        List<PageImage> pages = new ArrayList<>();
+        if (documents == null) {
+            return pages;
+        }
+
+        for (Document document : documents) {
+            pages.addAll(document.getPages());
+        }
+        return pages;
+    }
+
+    private void showExportAlert(Stage owner, Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message == null || message.isBlank() ? "The export could not be completed." : message);
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        alert.showAndWait();
+    }
+
+    private String safeFolderName(String value) {
+        return firstNonBlank(value, "export").replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred.trim();
     }
 
     private String pluralize(int count, String singular) {

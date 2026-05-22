@@ -147,6 +147,21 @@
                             </graphic>
                         </Button>
 
+                        <Button fx:id="notificationMenuButton"
+                                focusTraversable="false"
+                                contentDisplay="GRAPHIC_ONLY"
+                                styleClass="account-utility-button">
+                            <graphic>
+                                <StackPane styleClass="account-utility-icon-shell">
+                                    <SVGPath content="M10 2a4 4 0 0 0-4 4v2.7L4.7 11v1h10.6v-1L14 8.7V6a4 4 0 0 0-4-4zm0 14a2 2 0 0 0 1.9-1.3H8.1A2 2 0 0 0 10 16z"
+                                             styleClass="account-utility-icon"/>
+                                    <Region fx:id="notificationUnreadDot"
+                                            styleClass="admin-notification-dot"
+                                            StackPane.alignment="TOP_RIGHT"/>
+                                </StackPane>
+                            </graphic>
+                        </Button>
+
                         <Button fx:id="accountMenuButton"
                                 focusTraversable="false"
                                 contentDisplay="GRAPHIC_ONLY"
@@ -240,4 +255,103 @@
                 maxWidth="Infinity"
                 styleClass="admin-account-logout-button"/>
     </VBox>
+
+    <VBox fx:id="notificationDropdownPane"
+          visible="false"
+          managed="false"
+          maxWidth="420"
+          styleClass="user-notification-dropdown"
+          StackPane.alignment="TOP_RIGHT">
+        <StackPane.margin>
+            <Insets top="60" right="146"/>
+        </StackPane.margin>
+
+        <HBox alignment="CENTER_LEFT"
+              spacing="12"
+              styleClass="user-notification-header">
+            <Label text="Notifications"
+                   styleClass="user-notification-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="markNotificationsReadButton"
+                    text="Mark all as read"
+                    focusTraversable="false"
+                    styleClass="user-notification-link-button"/>
+        </HBox>
+
+        <VBox styleClass="user-notification-list">
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="user-notification-item">
+                <Region styleClass="user-notification-unread-dot"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="QA rejected Box BL-2026-014" styleClass="user-notification-item-title"/>
+                    <Label text="Reason: Barcode split needs correction before resubmitting." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="2m ago" styleClass="user-notification-time"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="user-notification-item">
+                <Region styleClass="user-notification-unread-dot"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="Profile access was updated" styleClass="user-notification-item-title"/>
+                    <Label text="You can now scan using the Building Archive profile." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="15m ago" styleClass="user-notification-time"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="user-notification-item">
+                <Region styleClass="user-notification-unread-dot"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="Document ready for QA" styleClass="user-notification-item-title"/>
+                    <Label text="3 documents from Box BL-2026-011 are waiting for review." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="1h ago" styleClass="user-notification-time"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="user-notification-item">
+                <Region styleClass="user-notification-read-spacer"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="File needs attention" styleClass="user-notification-item-title"/>
+                    <Label text="Page 4 in Accident Report has low readability." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="3h ago" styleClass="user-notification-time"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" visible="false" managed="false" styleClass="user-notification-item user-notification-extra-item">
+                <Region styleClass="user-notification-read-spacer"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="QA approved your scan" styleClass="user-notification-item-title"/>
+                    <Label text="Box BL-2026-009 is approved and ready for export." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="5h ago" styleClass="user-notification-time"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" visible="false" managed="false" styleClass="user-notification-item user-notification-extra-item">
+                <Region styleClass="user-notification-read-spacer"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="Document split was changed" styleClass="user-notification-item-title"/>
+                    <Label text="A reviewer moved 2 pages in Building Permit files." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="1d ago" styleClass="user-notification-time"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" visible="false" managed="false" styleClass="user-notification-item user-notification-extra-item">
+                <Region styleClass="user-notification-read-spacer"/>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label text="New QA work assigned" styleClass="user-notification-item-title"/>
+                    <Label text="You have 5 files assigned in the Court Records profile." styleClass="user-notification-item-copy"/>
+                </VBox>
+                <Label text="2d ago" styleClass="user-notification-time"/>
+            </HBox>
+        </VBox>
+
+        <HBox alignment="CENTER_LEFT"
+              spacing="12"
+              styleClass="user-notification-footer">
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="viewAllNotificationsButton"
+                    text="View all notifications  >"
+                    focusTraversable="false"
+                    styleClass="user-notification-link-button"/>
+        </HBox>
+    </VBox>
 </StackPane>
+

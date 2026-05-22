@@ -121,3 +121,19 @@
 .login-page .message-success {
     -fx-text-fill: #4CD07D;
 }
+
+/* =========================================================
+   TYPOGRAPHY OVERRIDES
+   Project note: keep login headings prominent while normal copy,
+   fields, buttons, and status text render at the requested 18px.
+   ========================================================= */
+
+.login-page .login-brand-copy,
+.login-page .login-helper-text,
+.login-page .login-field-label,
+.login-page .text-field,
+.login-page .password-field,
+.login-page .primary-button,
+.login-page .message-label {
+    -fx-font-size: 18px;
+}

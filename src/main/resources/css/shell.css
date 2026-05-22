@@ -61,9 +61,9 @@
 
 .back-button,
 .profile-editor-back-button {
-    -fx-min-width: 63;
-    -fx-pref-width: 63;
-    -fx-max-width: 63;
+    -fx-min-width: 96;
+    -fx-pref-width: 96;
+    -fx-max-width: 96;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -264,8 +264,9 @@
 .settings-nav {
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
     -fx-min-width: 240;
     -fx-pref-width: 240;
 }
@@ -273,21 +274,40 @@
 .settings-nav-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
-    -fx-padding: 12;
-    -fx-min-height: 42;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-padding: 6 18 6 18;
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-alignment: center-left;
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
+.settings-nav-button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
 .settings-nav-button-first {
-    -fx-background-radius: 6 6 0 0;
-    -fx-border-radius: 6 6 0 0;
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-radius: 10 10 0 0;
 }
 
 .settings-nav-button:hover,
 .settings-nav-button.active {
     -fx-background-color: -wl-surface-hover;
+}
+
+.settings-nav-button-last {
+    -fx-border-width: 0;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-radius: 0 0 10 10;
 }
 
 .settings-nav-label,
@@ -880,4 +900,46 @@
 .admin-keyboard-shortcuts-dialog {
     -fx-background-color: -wl-surface;
     -fx-padding: 15;
+}
+
+/* =========================================================
+   TYPOGRAPHY OVERRIDES
+   Project note: admin shell and shared portal content use 18px for
+   standard navigation, form, status, and account text.
+   ========================================================= */
+
+.page-subtitle,
+.back-button,
+.profile-editor-back-button,
+.searchable-combo-box .text-field,
+.searchable-combo-box .text-input,
+.inline-feedback,
+.portal-section-title,
+.portal-muted,
+.portal-inline-message,
+.form-label,
+.portal-text-field,
+.portal-primary-button,
+.portal-secondary-button,
+.settings-nav-label,
+.settings-section-heading,
+.pagination-summary-label,
+.rows-per-page-label,
+.pagination-button,
+.pagination-ellipsis,
+.admin-brand-subtitle,
+.admin-top-nav-label,
+.admin-account-name,
+.admin-avatar-label,
+.admin-account-role,
+.admin-account-menu-name,
+.admin-account-menu-detail,
+.admin-account-dropdown-item,
+.admin-account-theme-toggle,
+.admin-account-logout-button,
+.admin-status-label,
+.admin-breadcrumb,
+.admin-status-chip,
+.admin-account-section-button {
+    -fx-font-size: 18px;
 }
