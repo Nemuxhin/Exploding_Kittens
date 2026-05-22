@@ -29,7 +29,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -113,7 +112,6 @@ public class UserController implements UserNavigator {
     private final Map<UserPage, Object> controllerCache = new EnumMap<>(UserPage.class);
     private UserPage currentPage;
     private Scene shortcutScene;
-    private boolean rootShortcutFiltersRegistered;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -286,8 +284,6 @@ public class UserController implements UserNavigator {
     }
 
     private void configureGlobalShortcuts() {
-        registerRootShortcutFilters();
-
         Platform.runLater(() -> {
             Scene scene = appShell == null ? null : appShell.getScene();
 
@@ -306,17 +302,6 @@ public class UserController implements UserNavigator {
         });
     }
 
-    private void registerRootShortcutFilters() {
-        if (appShell == null || rootShortcutFiltersRegistered) {
-            return;
-        }
-
-        // Root filters keep scan shortcuts reachable even when focus is inside child pages.
-        appShell.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
-        appShell.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
-        rootShortcutFiltersRegistered = true;
-    }
-
     private void registerSceneShortcuts(Scene scene) {
         if (scene == shortcutScene) {
             return;
@@ -330,8 +315,6 @@ public class UserController implements UserNavigator {
         shortcutScene = scene;
         scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
         scene.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
-        scene.getAccelerators().put(KeyCombination.valueOf("F1"), this::showKeyboardShortcutsDialog);
-        scene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), this::showKeyboardShortcutsDialog);
     }
 
     private void handleGlobalShortcut(KeyEvent event) {
@@ -339,7 +322,13 @@ public class UserController implements UserNavigator {
             return;
         }
 
-        if (isShortcutHelp(event)) {
+        // Don't intercept keys while the user is typing in a text field.
+        if (event.getTarget() instanceof TextInputControl) {
+            return;
+        }
+
+        // F1 opens shortcut help from anywhere outside text fields.
+        if (event.getCode() == KeyCode.F1) {
             showKeyboardShortcutsDialog();
             event.consume();
             return;
@@ -351,23 +340,14 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        // Forward to the active scan controller — only when the scan page is showing.
         if (activePageController instanceof ScanController scanController
                 && scanController.handleGlobalShortcut(event)) {
-            event.consume();
-            return;
-        }
-
-        if (!(event.getTarget() instanceof TextInputControl) && isScanShortcut(event)) {
-            KeyCode code = event.getCode();
-            boolean shortcutDown = event.isShortcutDown();
-            String typedText = event.getText();
-
-            showPage(UserPage.SCAN);
-            Platform.runLater(() -> runShortcutOnActiveScanPage(code, shortcutDown, typedText));
             event.consume();
         }
     }
 
+    // ? and +/- are handled via KEY_TYPED so they work on every keyboard layout.
     private void handleGlobalTypedShortcut(KeyEvent event) {
         if (event.isConsumed() || event.getTarget() instanceof TextInputControl) {
             return;
@@ -381,55 +361,10 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        // Forward typed scan shortcuts only when the scan page is already active.
         if (activePageController instanceof ScanController scanController
                 && scanController.runTypedShortcut(character)) {
             event.consume();
-            return;
-        }
-
-        if ("+".equals(character) || "-".equals(character)) {
-            showPage(UserPage.SCAN);
-            Platform.runLater(() -> runTypedShortcutOnActiveScanPage(character));
-            event.consume();
-        }
-    }
-
-    private boolean isShortcutHelp(KeyEvent event) {
-        return event.getCode() == KeyCode.F1
-                || (event.isShiftDown() && event.getCode() == KeyCode.SLASH)
-                || "?".equals(event.getText());
-    }
-
-    private boolean isScanShortcut(KeyEvent event) {
-        return event.getCode() == KeyCode.RIGHT
-                || event.getCode() == KeyCode.LEFT
-                || event.getCode() == KeyCode.R
-                || event.getCode() == KeyCode.DELETE
-                || event.getCode() == KeyCode.BACK_SPACE
-                || event.getCode() == KeyCode.PLUS
-                || event.getCode() == KeyCode.ADD
-                || event.getCode() == KeyCode.EQUALS
-                || event.getCode() == KeyCode.MINUS
-                || event.getCode() == KeyCode.SUBTRACT
-                || event.getCode() == KeyCode.ESCAPE
-                || "+".equals(event.getText())
-                || "-".equals(event.getText())
-                || (event.isShortcutDown() && (
-                event.getCode() == KeyCode.Z
-                        || event.getCode() == KeyCode.S
-                        || event.getCode() == KeyCode.F
-        ));
-    }
-
-    private void runShortcutOnActiveScanPage(KeyCode code, boolean shortcutDown, String typedText) {
-        if (activePageController instanceof ScanController scanController) {
-            scanController.runShortcut(code, shortcutDown, typedText);
-        }
-    }
-
-    private void runTypedShortcutOnActiveScanPage(String character) {
-        if (activePageController instanceof ScanController scanController) {
-            scanController.runTypedShortcut(character);
         }
     }
 
@@ -897,6 +832,14 @@ public class UserController implements UserNavigator {
         dialog.getDialogPane().setPrefSize(560, 460);
         dialog.getDialogPane().setMaxSize(560, 460);
         dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
+
+        // Let keyboard scrolling work regardless of which element has focus inside the dialog.
+        ScrollPane dialogScroll = (ScrollPane) dialog.getDialogPane().lookup(".weblager-shortcuts-scroll");
+        if (dialogScroll != null) {
+            dialog.getDialogPane().addEventFilter(KeyEvent.KEY_PRESSED,
+                    event -> scrollShortcutDialog(dialogScroll, event));
+        }
+
         dialog.showAndWait();
     }
 

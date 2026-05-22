@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -92,7 +93,6 @@ public class AdminController implements AdminNavigator {
     private AdminPage pendingPage = AdminPage.DASHBOARD;
     private AdminPage currentPage = AdminPage.DASHBOARD;
     private Scene shortcutScene;
-    private boolean shortcutFiltersRegistered;
     private boolean sceneListenerRegistered;
 
     public void setMainApp(MainApp mainApp) {
@@ -125,12 +125,6 @@ public class AdminController implements AdminNavigator {
             return;
         }
 
-        if (!shortcutFiltersRegistered) {
-            appShell.addEventFilter(KeyEvent.KEY_PRESSED, this::handleAdminShortcut);
-            appShell.addEventFilter(KeyEvent.KEY_TYPED, this::handleAdminTypedShortcut);
-            shortcutFiltersRegistered = true;
-        }
-
         Scene scene = appShell.getScene();
         if (scene == null) {
             registerSceneListener();
@@ -149,10 +143,6 @@ public class AdminController implements AdminNavigator {
         shortcutScene = scene;
         shortcutScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleAdminShortcut);
         shortcutScene.addEventFilter(KeyEvent.KEY_TYPED, this::handleAdminTypedShortcut);
-        shortcutScene.getAccelerators().put(KeyCombination.valueOf("F1"), () ->
-                showAdminShortcutsDialog("Keyboard Shortcuts"));
-        shortcutScene.getAccelerators().put(KeyCombination.valueOf("SHIFT+SLASH"), () ->
-                showAdminShortcutsDialog("Keyboard Shortcuts"));
     }
 
     private void registerSceneListener() {
@@ -173,10 +163,19 @@ public class AdminController implements AdminNavigator {
             return;
         }
 
-        if (event.getCode() == KeyCode.F1 || isQuestionMarkShortcut(event)) {
+        // Don't intercept keys while the user is typing in a text field.
+        if (event.getTarget() instanceof TextInputControl) {
+            return;
+        }
+
+        // F1 opens shortcut help from anywhere outside text fields.
+        if (event.getCode() == KeyCode.F1) {
             showAdminShortcutsDialog("Keyboard Shortcuts");
             event.consume();
-        } else if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
+            return;
+        }
+
+        if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
             showAdminShortcutsDialog("Search Help");
             event.consume();
         } else if (event.isShortcutDown() && event.getCode() == KeyCode.S) {
@@ -194,8 +193,9 @@ public class AdminController implements AdminNavigator {
         }
     }
 
+    // ? is handled via KEY_TYPED so it works on every keyboard layout.
     private void handleAdminTypedShortcut(KeyEvent event) {
-        if (event.isConsumed()) {
+        if (event.isConsumed() || event.getTarget() instanceof TextInputControl) {
             return;
         }
 
@@ -203,11 +203,6 @@ public class AdminController implements AdminNavigator {
             showAdminShortcutsDialog("Keyboard Shortcuts");
             event.consume();
         }
-    }
-
-    private boolean isQuestionMarkShortcut(KeyEvent event) {
-        return (event.isShiftDown() && event.getCode() == KeyCode.SLASH)
-                || "?".equals(event.getText());
     }
 
     private void reloadCurrentPage() {
@@ -251,6 +246,14 @@ public class AdminController implements AdminNavigator {
         dialog.getDialogPane().setMaxSize(560, 460);
         dialog.getDialogPane().setContent(createAdminShortcutsContent(dialog, titleText));
         PrimeIcons.applyFont(dialog.getDialogPane());
+
+        // Let keyboard scrolling work regardless of which element has focus inside the dialog.
+        ScrollPane dialogScroll = (ScrollPane) dialog.getDialogPane().lookup(".weblager-shortcuts-scroll");
+        if (dialogScroll != null) {
+            dialog.getDialogPane().addEventFilter(KeyEvent.KEY_PRESSED,
+                    event -> scrollShortcutDialog(dialogScroll, event));
+        }
+
         dialog.showAndWait();
     }
 
@@ -548,6 +551,12 @@ public class AdminController implements AdminNavigator {
         loadPage(page);
         currentPage = page;
         setActiveNavItem(getNavItem(page));
+
+        // Keep focus on the shell so keyboard shortcuts work immediately.
+        // The user can click a text field when they need to type.
+        if (appShell != null) {
+            Platform.runLater(appShell::requestFocus);
+        }
     }
 
     private void loadAdminDataAsync() {
@@ -666,32 +675,9 @@ public class AdminController implements AdminNavigator {
     private void setNavItemActive(ToggleButton navItem, boolean active) {
         navItem.setSelected(active);
         navItem.getStyleClass().remove(ACTIVE_NAV_CLASS);
-        removeNavCloseButton(navItem);
 
         if (active) {
             navItem.getStyleClass().add(ACTIVE_NAV_CLASS);
-            addNavCloseButton(navItem);
-        }
-    }
-
-    private void addNavCloseButton(ToggleButton navItem) {
-        if (navItem == null || navItem == dashboardNavItem || !(navItem.getGraphic() instanceof HBox graphic)) {
-            return;
-        }
-
-        Label closeLabel = new Label("x");
-        closeLabel.getStyleClass().add("admin-top-nav-close");
-        closeLabel.setOnMouseClicked(event -> {
-            event.consume();
-            showPage(AdminPage.DASHBOARD);
-        });
-
-        graphic.getChildren().add(closeLabel);
-    }
-
-    private void removeNavCloseButton(ToggleButton navItem) {
-        if (navItem != null && navItem.getGraphic() instanceof HBox graphic) {
-            graphic.getChildren().removeIf(node -> node.getStyleClass().contains("admin-top-nav-close"));
         }
     }
 
