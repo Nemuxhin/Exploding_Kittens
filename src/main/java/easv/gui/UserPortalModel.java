@@ -8,6 +8,7 @@ import easv.be.User;
 import easv.bll.UserSession;
 import easv.dal.CaseFileDAO;
 import easv.dal.DataAccessException;
+import easv.dal.DocumentDAO;
 import easv.dal.ScanProfileDAO;
 import easv.dal.ScanSessionDAO;
 
@@ -33,18 +34,24 @@ public class UserPortalModel {
     private final ScanProfileDAO scanProfileDAO;
     private final CaseFileDAO caseFileDAO;
     private final ScanSessionDAO scanSessionDAO;
+    private final DocumentDAO documentDAO;
     private AccountProfile accountProfile = DEFAULT_ACCOUNT;
     private final List<InMemoryScanProgress> savedScanProgress = new ArrayList<>();
     private final List<InMemoryQaAssignment> inMemoryQaAssignments = new ArrayList<>();
 
     public UserPortalModel() {
-        this(new ScanProfileDAO(), new CaseFileDAO(), new ScanSessionDAO());
+        this(new ScanProfileDAO(), new CaseFileDAO(), new ScanSessionDAO(), new DocumentDAO());
     }
 
     UserPortalModel(ScanProfileDAO scanProfileDAO, CaseFileDAO caseFileDAO, ScanSessionDAO scanSessionDAO) {
+        this(scanProfileDAO, caseFileDAO, scanSessionDAO, new DocumentDAO());
+    }
+
+    UserPortalModel(ScanProfileDAO scanProfileDAO, CaseFileDAO caseFileDAO, ScanSessionDAO scanSessionDAO, DocumentDAO documentDAO) {
         this.scanProfileDAO = scanProfileDAO;
         this.caseFileDAO = caseFileDAO;
         this.scanSessionDAO = scanSessionDAO;
+        this.documentDAO = documentDAO;
         syncAccountFromSession();
     }
 
@@ -223,7 +230,7 @@ public class UserPortalModel {
         return fetchScanHistory().stream()
                 .filter(item -> isCompletedStatus(item.status()))
                 .map(item -> new ExportItem(
-                        formatExportName(item.profileName(), item.boxId()) + ".pdf",
+                        formatExportName(item.profileName(), item.boxId()) + ".tiff",
                         item.boxId(),
                         item.profileName(),
                         item.documents(),
@@ -232,6 +239,50 @@ public class UserPortalModel {
                         item.status()
                 ))
                 .toList();
+    }
+
+    public List<Document> fetchExportDocuments(ExportItem item) {
+        if (item == null || item.boxId() == null || item.boxId().isBlank()) {
+            return List.of();
+        }
+
+        try {
+            var session = scanSessionDAO.findLatestSession(item.boxId(), item.profileName()).orElse(null);
+            if (session != null) {
+                return documentDAO.findBySessionId(session.sessionId()).stream()
+                        .filter(document -> !document.getPages().isEmpty())
+                        .toList();
+            }
+        } catch (DataAccessException exception) {
+            // Fall back to the case-file view when session data is not reachable.
+        }
+
+        return fetchAllCaseFiles().stream()
+                .filter(caseFile -> caseFile.getBox() != null
+                        && caseFile.getBox().getBoxId() != null
+                        && caseFile.getBox().getBoxId().equalsIgnoreCase(item.boxId()))
+                .flatMap(caseFile -> caseFile.getDocuments().stream())
+                .filter(document -> !document.getPages().isEmpty())
+                .toList();
+    }
+
+    public ScanProfile fetchExportProfile(ExportItem item) {
+        if (item == null || item.profileName() == null || item.profileName().isBlank()) {
+            return null;
+        }
+
+        return fetchScanProfileByName(item.profileName());
+    }
+
+    public ScanProfile fetchScanProfileByName(String profileName) {
+        if (profileName == null || profileName.isBlank()) {
+            return null;
+        }
+
+        return safeProfiles().stream()
+                .filter(profile -> profile.getName().equalsIgnoreCase(profileName))
+                .findFirst()
+                .orElse(null);
     }
 
     public List<ProfileSetting> fetchProfileSettings(ProfileItem profile) {

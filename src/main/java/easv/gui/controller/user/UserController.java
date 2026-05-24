@@ -12,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
@@ -20,7 +21,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -99,6 +104,10 @@ public class UserController implements UserNavigator {
     private MainApp mainApp;
     private UserPortalModel.RecentScanItem pendingRecentScanItem;
     private UserPortalModel.HistoryItem pendingHistoryScanItem;
+    private ScanController activeScanController;
+    private Scene shortcutScene;
+    private UserPage currentPage;
+    private boolean userEditingTextInput;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -110,6 +119,7 @@ public class UserController implements UserNavigator {
         configureAccountMenu();
         configureNotificationMenu();
         configureKeyboardShortcutsButton();
+        configureGlobalShortcuts();
         configureThemeToggle();
         configureNavigation();
         showPage(UserPage.DASHBOARD);
@@ -165,6 +175,100 @@ public class UserController implements UserNavigator {
     private void configureKeyboardShortcutsButton() {
         if (keyboardShortcutsButton != null) {
             keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
+        }
+    }
+
+    private void configureGlobalShortcuts() {
+        if (appShell == null) {
+            return;
+        }
+
+        if (appShell.getScene() != null) {
+            registerSceneShortcuts(appShell.getScene());
+        }
+
+        appShell.sceneProperty().addListener((observable, oldScene, newScene) -> registerSceneShortcuts(newScene));
+    }
+
+    private void registerSceneShortcuts(Scene scene) {
+        if (scene == null || scene == shortcutScene) {
+            return;
+        }
+
+        if (shortcutScene != null) {
+            shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
+            shortcutScene.removeEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+            shortcutScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
+        }
+
+        shortcutScene = scene;
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
+        scene.addEventFilter(KeyEvent.KEY_TYPED, this::handleGlobalTypedShortcut);
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
+    }
+
+    private void handleGlobalShortcut(KeyEvent event) {
+        if (event.isConsumed()) {
+            return;
+        }
+
+        if (isUserEditingTextInput(event)) {
+            return;
+        }
+
+        if (event.getCode() == KeyCode.F1) {
+            showKeyboardShortcutsDialog();
+            event.consume();
+            return;
+        }
+
+        if (event.isShortcutDown() && event.getCode() == KeyCode.E) {
+            showPage(UserPage.EXPORTS);
+            event.consume();
+            return;
+        }
+
+        if (currentPage == UserPage.SCAN
+                && activeScanController != null
+                && activeScanController.handleSelectedPageArrowShortcut(event)) {
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.LEFT) {
+            showAdjacentShortcutPage(-1);
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.RIGHT) {
+            showAdjacentShortcutPage(1);
+            event.consume();
+            return;
+        }
+
+        if (currentPage == UserPage.SCAN
+                && activeScanController != null
+                && activeScanController.handlePrioritizedGlobalShortcut(event)) {
+            event.consume();
+        }
+    }
+
+    private void handleGlobalTypedShortcut(KeyEvent event) {
+        if (event.isConsumed() || isUserEditingTextInput(event)) {
+            return;
+        }
+
+        if ("?".equals(event.getCharacter())) {
+            showKeyboardShortcutsDialog();
+            event.consume();
+            return;
+        }
+
+        if (currentPage == UserPage.SCAN
+                && activeScanController != null
+                && activeScanController.runTypedShortcut(event.getCharacter())) {
+            event.consume();
         }
     }
 
@@ -266,17 +370,22 @@ public class UserController implements UserNavigator {
             ToggleButton navItem = getNavItem(page);
 
             if (navItem != null) {
-                navItem.setOnAction(event -> showPage(page));
+                navItem.setOnAction(event -> {
+                    resetShortcutFocus();
+                    showPage(page);
+                });
             }
         }
     }
 
     @Override
     public void showPage(UserPage page) {
+        resetShortcutFocus();
         hideAccountDropdown();
         hideNotificationDropdown();
         loadPage(page);
         setActiveNavItem(getNavItem(page));
+        currentPage = page;
     }
 
     @Override
@@ -294,6 +403,8 @@ public class UserController implements UserNavigator {
     }
 
     private void loadPage(UserPage page) {
+        activeScanController = null;
+
         if (!page.hasFxml()) {
             Node content = createProgrammaticPage(page);
             if (shouldWrapScrollable(page)) {
@@ -331,11 +442,33 @@ public class UserController implements UserNavigator {
         return switch (page) {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
             case MY_SCANS -> new MyScansController(portalModel, this).create();
-            case EXPORTS -> createMissingPagePlaceholder("Exports");
+            case EXPORTS -> new ExportsController(portalModel).create();
             case EDIT_PROFILE -> createAccountSettingsPage(ACCOUNT_SECTION);
             case SETTINGS -> createAccountSettingsPage(PRIVACY_SECTION);
             default -> createMissingPagePlaceholder(page.title());
         };
+    }
+
+    private void showAdjacentShortcutPage(int direction) {
+        List<UserPage> pages = getShortcutNavigationPages();
+        int currentIndex = pages.indexOf(currentPage);
+
+        if (currentIndex < 0) {
+            currentIndex = 0;
+        }
+
+        int nextIndex = Math.floorMod(currentIndex + direction, pages.size());
+        showPage(pages.get(nextIndex));
+    }
+
+    private List<UserPage> getShortcutNavigationPages() {
+        return List.of(
+                UserPage.DASHBOARD,
+                UserPage.SCAN,
+                UserPage.MY_SCANS,
+                UserPage.ASSIGNED_QA,
+                UserPage.EXPORTS
+        );
     }
 
     private ScrollPane wrapScrollable(Node page) {
@@ -354,6 +487,7 @@ public class UserController implements UserNavigator {
 
     private void configureLoadedController(Object controller) {
         if (controller instanceof ScanController scanController) {
+            activeScanController = scanController;
             scanController.setNavigator(this);
             scanController.setPortalModel(portalModel);
             if (pendingHistoryScanItem != null) {
@@ -438,6 +572,43 @@ public class UserController implements UserNavigator {
             case EDIT_PROFILE -> null;
             case SETTINGS -> null;
         };
+    }
+
+    private void rememberTextInputFocusIntent(MouseEvent event) {
+        userEditingTextInput = isTextInputTarget(event.getTarget());
+    }
+
+    private boolean isUserEditingTextInput(KeyEvent event) {
+        return isTextInputTarget(event.getTarget())
+                || isTextInputTarget(focusedNode())
+                || (userEditingTextInput
+                && (isTextInputTarget(event.getTarget()) || isTextInputTarget(focusedNode())));
+    }
+
+    private Node focusedNode() {
+        return shortcutScene == null ? null : shortcutScene.getFocusOwner();
+    }
+
+    private boolean isTextInputTarget(Object target) {
+        if (target instanceof TextInputControl) {
+            return true;
+        }
+
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (current instanceof TextInputControl) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void resetShortcutFocus() {
+        userEditingTextInput = false;
     }
 
     private void toggleAccountDropdown() {

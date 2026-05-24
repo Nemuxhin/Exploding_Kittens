@@ -2,9 +2,11 @@ package easv.gui.controller.user;
 
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
+import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.BackgroundExecutor;
 import easv.gui.UserPortalModel;
@@ -20,12 +22,15 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TextField;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -51,7 +56,9 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.ArrayDeque;
@@ -166,6 +173,7 @@ public class ScanController {
     private final Map<Integer, String> previewLoadFailures = new HashMap<>();
     private final Set<Integer> previewLoadsInProgress = new HashSet<>();
     private final ScanManager scanManager = new ScanManager();
+    private final TiffExportManager tiffExportManager = new TiffExportManager();
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
     private final DoubleProperty reviewZoomMultiplier = new SimpleDoubleProperty(1.0);
@@ -796,6 +804,165 @@ public class ScanController {
             nudgePreview(PREVIEW_NUDGE_AMOUNT, 0);
             event.consume();
         }
+    }
+
+    public boolean handleGlobalShortcut(KeyEvent event) {
+        if (event.isConsumed() || isTextInputShortcutTarget(event)) {
+            return false;
+        }
+
+        return handlePrioritizedGlobalShortcut(event);
+    }
+
+    private boolean isTextInputShortcutTarget(KeyEvent event) {
+        return event != null
+                && (isTextInputTarget(event.getTarget()) || isTextInputTarget(focusedNode()));
+    }
+
+    private Node focusedNode() {
+        Scene scene = null;
+        if (scanWorkspaceView != null && scanWorkspaceView.getScene() != null) {
+            scene = scanWorkspaceView.getScene();
+        } else if (reviewWorkspaceView != null) {
+            scene = reviewWorkspaceView.getScene();
+        }
+        return scene == null ? null : scene.getFocusOwner();
+    }
+
+    private boolean isTextInputTarget(Object target) {
+        if (target instanceof TextInputControl) {
+            return true;
+        }
+
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (current instanceof TextInputControl) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean handlePrioritizedGlobalShortcut(KeyEvent event) {
+        if (event.isConsumed()) {
+            return false;
+        }
+
+        return runShortcut(event.getCode(), event.isShortcutDown(), event.getText());
+    }
+
+    public boolean handleSelectedPageArrowShortcut(KeyEvent event) {
+        if (event.isConsumed() || !hasSelectedWorkspacePage()) {
+            return false;
+        }
+
+        KeyCode code = event.getCode();
+        if (code != KeyCode.LEFT && code != KeyCode.RIGHT) {
+            return false;
+        }
+
+        return handlePrioritizedGlobalShortcut(event);
+    }
+
+    private boolean hasSelectedWorkspacePage() {
+        return selectedPage != null
+                && ((scanWorkspaceView != null && scanWorkspaceView.isVisible())
+                || isReviewWorkspaceVisible());
+    }
+
+    public boolean runShortcut(KeyCode code, boolean shortcutDown, String typedText) {
+        if (code == KeyCode.RIGHT) {
+            if (isReviewWorkspaceVisible()) {
+                onNextReviewPage();
+            } else {
+                onNextFile();
+            }
+            return true;
+        } else if (code == KeyCode.LEFT) {
+            if (isReviewWorkspaceVisible()) {
+                onPreviousReviewPage();
+            } else {
+                onPreviousFile();
+            }
+            return true;
+        } else if (shortcutDown && code == KeyCode.Z) {
+            onUndoLastAction();
+            return true;
+        } else if (shortcutDown && code == KeyCode.S) {
+            onSaveProgress();
+            return true;
+        } else if (shortcutDown && code == KeyCode.F) {
+            showSearchOrJumpDialog();
+            return true;
+        } else if (shortcutDown && code == KeyCode.E) {
+            navigator.showExports();
+            return true;
+        } else if (code == KeyCode.DELETE || code == KeyCode.BACK_SPACE) {
+            onDeleteSelectedPage();
+            return true;
+        } else if (code == KeyCode.R) {
+            onRotateShortcut();
+            return true;
+        } else if (isZoomInShortcut(code, typedText)) {
+            onZoomIn();
+            return true;
+        } else if (isZoomOutShortcut(code, typedText)) {
+            onZoomOut();
+            return true;
+        } else if (code == KeyCode.ESCAPE) {
+            return closeVisibleModal();
+        }
+
+        return false;
+    }
+
+    public boolean runTypedShortcut(String character) {
+        if ("+".equals(character)) {
+            onZoomIn();
+            return true;
+        }
+
+        if ("-".equals(character)) {
+            onZoomOut();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isZoomInShortcut(KeyCode code, String typedText) {
+        return code == KeyCode.PLUS
+                || code == KeyCode.ADD
+                || code == KeyCode.EQUALS
+                || "+".equals(typedText);
+    }
+
+    private boolean isZoomOutShortcut(KeyCode code, String typedText) {
+        return code == KeyCode.MINUS
+                || code == KeyCode.SUBTRACT
+                || "-".equals(typedText);
+    }
+
+    private boolean closeVisibleModal() {
+        if (finishReviewOverlay != null && finishReviewOverlay.isVisible()) {
+            hideFinishReviewModal();
+            return true;
+        }
+
+        if (submitConfirmationOverlay != null && submitConfirmationOverlay.isVisible()) {
+            hideSubmitConfirmationModal();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isReviewWorkspaceVisible() {
+        return reviewWorkspaceView != null && reviewWorkspaceView.isVisible();
     }
 
     private void saveUndoState() {
@@ -1449,6 +1616,30 @@ public class ScanController {
 
         page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
         refreshWorkspace();
+    }
+
+    private void onRotateShortcut() {
+        ScannedPage page = resolveActiveNormalPage();
+        if (page == null) {
+            return;
+        }
+
+        saveUndoState();
+
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
+        if (isReviewWorkspaceVisible()) {
+            refreshReviewWorkspace();
+        } else {
+            refreshWorkspace();
+        }
+    }
+
+    private void refreshVisibleWorkspace() {
+        if (isReviewWorkspaceVisible()) {
+            refreshReviewWorkspace();
+        } else {
+            refreshWorkspace();
+        }
     }
 
     private int normalizeRotation(int rotationDegrees) {
@@ -3101,6 +3292,60 @@ public class ScanController {
         return null;
     }
 
+    private void showSearchOrJumpDialog() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Search or jump");
+        dialog.setHeaderText("Search scanned pages");
+        dialog.setContentText("Enter a reference, file name, or document number:");
+
+        dialog.showAndWait().ifPresent(value -> {
+            ScannedPage page = findPageBySearchText(value);
+
+            if (page != null) {
+                selectedPage = page;
+                refreshVisibleWorkspace();
+            }
+        });
+    }
+
+    private ScannedPage findPageBySearchText(String searchText) {
+        String query = normalizeSearchText(searchText);
+
+        if (query.isBlank()) {
+            return null;
+        }
+
+        ScannedPage pageByReference = findPageByReferenceId(query);
+
+        if (pageByReference != null) {
+            return pageByReference;
+        }
+
+        for (ScannedPage page : allPages) {
+            if (normalizeSearchText(page.referenceIdLabel()).contains(query)
+                    || normalizeSearchText(page.fileName()).contains(query)
+                    || normalizeSearchText(page.sourceReference).contains(query)
+                    || normalizeSearchText("document " + page.documentNumber).contains(query)
+                    || normalizeSearchText("doc " + page.documentNumber).contains(query)) {
+                return page;
+            }
+        }
+
+        return null;
+    }
+
+    private String normalizeSearchText(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text.trim()
+                .toLowerCase(Locale.ROOT)
+                .replace("ref-", "")
+                .replace("ref", "")
+                .replace("#", "");
+    }
+
     private void movePageBefore(ScannedPage draggedPage, ScannedPage targetPage) {
         if (draggedPage == null || targetPage == null || draggedPage == targetPage) {
             return;
@@ -3545,7 +3790,12 @@ public class ScanController {
     }
 
     @FXML
-    private void onOpenExportTypeDialog() {
+    public void onOpenScanExport() {
+        onOpenExportTypeDialog();
+    }
+
+    @FXML
+    public void onOpenExportTypeDialog() {
         Stage stage = new Stage();
         stage.setTitle("TIFF Export");
         stage.initModality(Modality.WINDOW_MODAL);
@@ -3571,10 +3821,9 @@ public class ScanController {
     }
 
     private VBox buildExportDialogContent(Stage stage) {
-        List<String> boxFiles = buildExportFiles();
-        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(
-                boxFiles.size() > 1 ? TiffExportType.MULTI_PAGE : TiffExportType.SINGLE_PAGE
-        );
+        List<Document> exportDocuments = buildExportDocuments();
+        List<String> boxFiles = buildExportFiles(exportDocuments);
+        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(TiffExportType.MULTI_PAGE);
 
         Label title = new Label("TIFF Export");
         title.getStyleClass().add("exports-dialog-title");
@@ -3585,7 +3834,7 @@ public class ScanController {
         Label boxValue = new Label(getBoxId());
         boxValue.getStyleClass().add("exports-dialog-box-value");
 
-        Label boxDetail = new Label("Only files from this box can be exported in this dialog.");
+        Label boxDetail = new Label("Only scanned documents from this box can be exported in this dialog.");
         boxDetail.getStyleClass().add("exports-dialog-box-detail");
 
         VBox boxCard = new VBox(6, boxValue, boxDetail);
@@ -3599,7 +3848,7 @@ public class ScanController {
         );
         Button multiPageCard = buildExportTypeCard(
                 "Multi-page TIFF",
-                "One combined TIFF",
+                "One TIFF per document",
                 TiffExportType.MULTI_PAGE,
                 selectedType
         );
@@ -3609,10 +3858,10 @@ public class ScanController {
         HBox typeRow = new HBox(18, singlePageCard, multiPageCard);
         typeRow.getStyleClass().add("exports-dialog-type-row");
 
-        Label selectedFilesTitle = new Label("Files in box");
+        Label selectedFilesTitle = new Label("Documents in box");
         selectedFilesTitle.getStyleClass().add("exports-dialog-files-title");
 
-        Label selectedFilesCount = new Label(formatSelectedFileCount(boxFiles.size()));
+        Label selectedFilesCount = new Label(formatSelectedDocumentCount(boxFiles.size()));
         selectedFilesCount.getStyleClass().add("exports-dialog-files-count");
 
         Region filesSpacer = new Region();
@@ -3642,14 +3891,14 @@ public class ScanController {
         Label outputLabel = new Label("Output:");
         outputLabel.getStyleClass().add("exports-dialog-output-label");
 
-        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size()));
+        Label outputValue = new Label(buildOutputText(selectedType.get(), exportDocuments));
         outputValue.getStyleClass().add("exports-dialog-output-value");
         outputValue.setWrapText(false);
         outputValue.setMinHeight(Region.USE_PREF_SIZE);
         outputValue.setPrefWidth(420);
         outputValue.setMaxWidth(420);
         selectedType.addListener((observable, oldValue, newValue) ->
-                outputValue.setText(buildOutputText(newValue, boxFiles.size()))
+                outputValue.setText(buildOutputText(newValue, exportDocuments))
         );
 
         HBox outputBox = new HBox(9, outputLabel, outputValue);
@@ -3667,7 +3916,7 @@ public class ScanController {
         Button exportButton = new Button("Export");
         exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
         exportButton.setDefaultButton(true);
-        exportButton.setOnAction(event -> stage.close());
+        exportButton.setOnAction(event -> handleWorkspaceExport(stage, selectedType.get(), exportDocuments));
 
         HBox footerActions = new HBox(9, cancelButton, exportButton);
         footerActions.getStyleClass().add("exports-dialog-footer-actions");
@@ -3745,7 +3994,7 @@ public class ScanController {
         );
 
         if (selectedFiles.isEmpty()) {
-            Label emptyState = new Label("No files available for this export.");
+            Label emptyState = new Label("No scanned documents available for this export.");
             emptyState.getStyleClass().add("exports-dialog-empty-state");
             fileGrid.add(emptyState, 0, 0, 3, 1);
             return;
@@ -3773,24 +4022,174 @@ public class ScanController {
         return cell;
     }
 
-    private List<String> buildExportFiles() {
-        int count = Math.max(1, documents.size());
-        List<String> files = new ArrayList<>(count);
-        for (int index = 1; index <= count; index++) {
-            files.add("file_" + String.format(Locale.US, "%03d", index));
+    private List<Document> buildExportDocuments() {
+        List<Document> exportDocuments = new ArrayList<>();
+
+        for (DocumentGroup document : documents) {
+            List<PageImage> pages = toExportPages(document.pages);
+            if (!pages.isEmpty()) {
+                exportDocuments.add(new Document("document_" + String.format(Locale.US, "%03d", document.number), pages));
+            }
+        }
+
+        List<PageImage> pendingExportPages = toExportPages(pendingPages);
+        if (!pendingExportPages.isEmpty()) {
+            exportDocuments.add(new Document("pending_document_" + String.format(Locale.US, "%03d", documents.size() + 1), pendingExportPages));
+        }
+
+        return exportDocuments;
+    }
+
+    private List<PageImage> toExportPages(List<ScannedPage> scannedPages) {
+        if (scannedPages == null || scannedPages.isEmpty()) {
+            return List.of();
+        }
+
+        List<PageImage> pages = new ArrayList<>();
+        int pageNumber = 1;
+        for (ScannedPage scannedPage : scannedPages) {
+            if (scannedPage == null || scannedPage.needsRescan) {
+                continue;
+            }
+
+            PageImage pageImage = new PageImage(
+                    pageNumber++,
+                    scannedPage.barcode ? PageImage.PageType.BARCODE : PageImage.PageType.TIFF,
+                    firstNonBlank(scannedPage.sourceReference, scannedPage.fileName())
+            );
+            pageImage.setReferenceId(scannedPage.referenceId);
+            pageImage.setRotationDegrees(scannedPage.rotationDegrees);
+            pageImage.setDisplayContent(scannedPage.displayContent);
+            pageImage.setPreviewSourceBytes(scannedPage.previewSourceBytes);
+            pages.add(pageImage);
+        }
+        return pages;
+    }
+
+    private List<String> buildExportFiles(List<Document> exportDocuments) {
+        if (exportDocuments == null || exportDocuments.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> files = new ArrayList<>(exportDocuments.size());
+        for (Document document : exportDocuments) {
+            int pageCount = document.getPages().size();
+            files.add(document.getSourceItemId() + " (" + pageCount + " " + pluralize(pageCount, "page") + ")");
         }
         return files;
     }
 
-    private String formatSelectedFileCount(int fileCount) {
-        return fileCount + " " + (fileCount == 1 ? "file" : "files");
+    private String formatSelectedDocumentCount(int documentCount) {
+        return documentCount + " " + pluralize(documentCount, "document");
     }
 
-    private String buildOutputText(TiffExportType type, int selectedFileCount) {
+    private String buildOutputText(TiffExportType type, List<Document> exportDocuments) {
+        int documentCount = exportDocuments == null ? 0 : exportDocuments.size();
+        if (documentCount == 0) {
+            return "No scanned documents are available for export";
+        }
+
         return switch (type) {
-            case SINGLE_PAGE -> selectedFileCount + " separate .tiff " + (selectedFileCount == 1 ? "file" : "files") + " will be generated";
-            case MULTI_PAGE -> "All selected files will be combined into one .tiff file";
+            case SINGLE_PAGE -> countExportPages(exportDocuments) + " separate .tiff "
+                    + pluralize(countExportPages(exportDocuments), "file") + " will be generated";
+            case MULTI_PAGE -> documentCount + " multi-page .tiff " + pluralize(documentCount, "file")
+                    + " will be generated, one per document";
         };
+    }
+
+    private int countExportPages(List<Document> exportDocuments) {
+        if (exportDocuments == null) {
+            return 0;
+        }
+
+        int pageCount = 0;
+        for (Document document : exportDocuments) {
+            pageCount += document.getPages().size();
+        }
+        return pageCount;
+    }
+
+    private void handleWorkspaceExport(Stage stage, TiffExportType exportType, List<Document> exportDocuments) {
+        if (exportDocuments == null || exportDocuments.isEmpty()) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "No documents to export",
+                    "There are no saved scanned pages ready for TIFF export.");
+            return;
+        }
+
+        String profileName = getSelectedProfile();
+        ScanProfile profile = portalModel.fetchScanProfileByName(profileName);
+        String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), "{profileCode}_{boxId}");
+
+        try {
+            Path outputDirectory = Path.of(
+                    System.getProperty("user.home"),
+                    "Downloads",
+                    "WebLager Exports",
+                    safeFolderName(profileName, getBoxId())
+            );
+            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+                    exportType == TiffExportType.SINGLE_PAGE
+                            ? tiffExportManager.createSinglePagePlan(
+                            profileName,
+                            profileCode,
+                            exportNaming,
+                            getBoxId(),
+                            flattenExportPages(exportDocuments)
+                    )
+                            : tiffExportManager.createMultiPagePlan(
+                            profileName,
+                            profileCode,
+                            exportNaming,
+                            getBoxId(),
+                            exportDocuments
+                    ),
+                    outputDirectory
+            );
+
+            showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
+                    result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
+                            + " written to " + result.outputDirectory());
+            stage.close();
+        } catch (IOException | RuntimeException exception) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "Export failed", exception.getMessage());
+        }
+    }
+
+    private List<PageImage> flattenExportPages(List<Document> exportDocuments) {
+        List<PageImage> pages = new ArrayList<>();
+        if (exportDocuments == null) {
+            return pages;
+        }
+
+        for (Document document : exportDocuments) {
+            pages.addAll(document.getPages());
+        }
+        return pages;
+    }
+
+    private void showExportAlert(Stage owner, Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message == null || message.isBlank() ? "The export could not be completed." : message);
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        alert.showAndWait();
+    }
+
+    private String safeFolderName(String profileName, String boxId) {
+        return firstNonBlank(profileName, "profile").replaceAll("[^a-zA-Z0-9._-]", "_")
+                + "_" + firstNonBlank(boxId, "box").replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred.trim();
+    }
+
+    private String pluralize(int count, String singular) {
+        return count == 1 ? singular : singular + "s";
     }
 
     private javafx.scene.layout.ColumnConstraints percentColumn(double percentWidth) {

@@ -2,6 +2,7 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.CaseMetadata;
+import easv.be.Document;
 import easv.be.MetadataTemplate;
 import easv.be.PageImage;
 import easv.be.ReviewRecord;
@@ -13,8 +14,15 @@ import easv.dal.MetadataDAO;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -262,15 +270,68 @@ class AuditMetadataExportTest {
         PageImage pageTwo = new PageImage(2, PageImage.PageType.TIFF, "DOC-2");
 
         TiffExportPlan singlePagePlan = tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(pageOne, pageTwo));
-        TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan("", "", List.of(pageOne, pageTwo));
+        TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan(
+                "",
+                "",
+                "{profileCode}_{boxId}_{documentNumber}",
+                "",
+                List.of(
+                        new Document("DOC-1", List.of(pageOne)),
+                        new Document("DOC-2", List.of(pageTwo))
+                )
+        );
 
         assertEquals(2, singlePagePlan.getFileCount());
         assertEquals(2, singlePagePlan.getPageCount());
         assertEquals("Profile_A_BOX-1_DOC-1_page-1.tiff", singlePagePlan.getItems().get(0).getFileName());
-        assertEquals(1, multiPagePlan.getFileCount());
+        assertEquals(2, multiPagePlan.getFileCount());
         assertEquals(2, multiPagePlan.getPageCount());
-        assertEquals("MULTI_PAGE_TIFF_FILE", multiPagePlan.getExportType());
+        assertEquals("missing_box_1.tiff", multiPagePlan.getItems().get(0).getFileName());
+        assertEquals("MULTI_PAGE_TIFFS_BY_DOCUMENT", multiPagePlan.getExportType());
         assertEquals(2, multiPagePlan.getWarnings().size());
+    }
+
+    @Test
+    void tiffExportAppliesPageRotation(@TempDir Path tempDirectory) throws IOException {
+        TiffExportManager tiffExportManager = new TiffExportManager();
+        PageImage page = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
+        page.setRotationDegrees(90);
+        page.setDisplayContent(createPngDataUri(30, 10));
+
+        TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+                tiffExportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(page)),
+                tempDirectory
+        );
+
+        BufferedImage exportedImage = ImageIO.read(result.writtenFiles().get(0).toFile());
+
+        assertNotNull(exportedImage);
+        assertTrue(exportedImage.getHeight() > exportedImage.getWidth());
+    }
+
+    @Test
+    void singlePageExportPlanKeepsDuplicateNamesUnique() {
+        TiffExportManager tiffExportManager = new TiffExportManager();
+        PageImage documentOnePageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
+        PageImage documentTwoPageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-2");
+
+        TiffExportPlan plan = tiffExportManager.createSinglePagePlan(
+                "Profile A",
+                "PA",
+                "{profileCode}_{boxId}_{documentNumber}",
+                "BOX-1",
+                List.of(documentOnePageOne, documentTwoPageOne)
+        );
+
+        assertEquals(2, plan.getFileCount());
+        assertFalse(plan.getItems().get(0).getFileName().equals(plan.getItems().get(1).getFileName()));
+    }
+
+    private String createPngDataUri(int width, int height) throws IOException {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", outputStream);
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(outputStream.toByteArray());
     }
 
     private boolean hasChange(AuditLog log, String field, String oldValue, String newValue) {
