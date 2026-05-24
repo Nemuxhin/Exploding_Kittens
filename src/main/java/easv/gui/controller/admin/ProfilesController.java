@@ -738,14 +738,43 @@ public class ProfilesController {
         Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
 
         if (createButton != null) {
-            createButton.getStyleClass().add("create-user-button");
-            createButton.addEventFilter(ActionEvent.ACTION, event ->
-                    submitCreateProfileDialog(event, fields)
-            );
+            configureCreateProfileButton(createButton, fields);
         }
 
         dialog.setOnShown(event -> fields.nameField.requestFocus());
         dialog.showAndWait();
+    }
+
+    private void configureCreateProfileButton(Node createButton, ProfileDialogFields fields) {
+        createButton.getStyleClass().add("create-user-button");
+        createButton.setDisable(!isCreateProfileDialogReady(fields));
+        createButton.addEventFilter(ActionEvent.ACTION, event ->
+                submitCreateProfileDialog(event, fields)
+        );
+
+        fields.nameField.textProperty().addListener((observable, oldValue, newValue) ->
+                updateCreateProfileButtonState(createButton, fields)
+        );
+        fields.clientField.textProperty().addListener((observable, oldValue, newValue) ->
+                updateCreateProfileButtonState(createButton, fields)
+        );
+        fields.statusComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                updateCreateProfileButtonState(createButton, fields)
+        );
+    }
+
+    private void updateCreateProfileButtonState(Node createButton, ProfileDialogFields fields) {
+        createButton.setDisable(!isCreateProfileDialogReady(fields));
+
+        if (isCreateProfileDialogReady(fields)) {
+            setVisibleAndManaged(fields.validationLabel, false);
+        }
+    }
+
+    private boolean isCreateProfileDialogReady(ProfileDialogFields fields) {
+        return !Strings.clean(fields.nameField.getText()).isBlank()
+                && !Strings.clean(fields.clientField.getText()).isBlank()
+                && !Strings.clean(fields.statusComboBox.getValue()).isBlank();
     }
 
     private void configureCreateProfileDialogShell(Dialog<?> dialog) {
