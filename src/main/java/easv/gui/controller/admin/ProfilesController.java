@@ -64,6 +64,9 @@ public class ProfilesController {
     @FXML private Label editorTitleLabel;
     @FXML private Label editorSubtitleLabel;
     @FXML private Label editorStatusBadge;
+    @FXML private Button deleteProfileButton;
+    @FXML private Button previewExportButton;
+    @FXML private Button saveProfileButton;
 
     @FXML private Button generalTabButton;
     @FXML private Button scanRulesTabButton;
@@ -109,6 +112,7 @@ public class ProfilesController {
 
     private FilteredList<ScanProfile> filteredProfiles;
     private ScanProfile currentProfile;
+    private boolean creatingProfile;
 
     private AdminManager adminManager;
     private AdminNavigator navigator = AdminNavigator.none();
@@ -186,6 +190,10 @@ public class ProfilesController {
         brightnessComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         contrastComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         exportFormatComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+
+        profileNameField.textProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
+        profileClientField.textProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
+        profileStatusComboBox.valueProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
     }
 
     private void configureFiltering() {
@@ -539,6 +547,7 @@ public class ProfilesController {
     }
 
     private void openProfile(ScanProfile profile) {
+        creatingProfile = false;
         currentProfile = profile;
 
         populateEditor(profile);
@@ -574,7 +583,66 @@ public class ProfilesController {
         exportNamingField.setText(profile.getExportNaming());
 
         populateAccessRows(profile);
+        updateEditorActionState();
         syncPreview();
+    }
+
+    private void populateCreateProfileEditor() {
+        creatingProfile = true;
+        currentProfile = null;
+
+        editorTitleLabel.setText("Create Profile");
+        editorSubtitleLabel.setText("Add the required details, then save to create the profile.");
+        editorStatusBadge.setText("Draft");
+        editorStatusBadge.getStyleClass().setAll("profile-status-badge", statusClassFor("Draft"));
+
+        profileNameField.clear();
+        profileClientField.clear();
+        profileDescriptionArea.clear();
+        profileStatusComboBox.setValue("Draft");
+
+        barcodeSplitToggle.setSelected(false);
+        barcodeDetectedComboBox.setValue("Start new document");
+        barcodePageBehaviorComboBox.setValue("Remove barcode page from final document");
+
+        defaultRotationComboBox.setValue("0 deg");
+        brightnessComboBox.setValue("Normal");
+        contrastComboBox.setValue("Normal");
+        deskewToggle.setSelected(true);
+        qaRequiredToggle.setSelected(true);
+
+        exportFormatComboBox.setValue("Multi-page TIFF");
+        exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
+
+        populateCreateAccessRows();
+        updateEditorActionState();
+        syncPreview();
+    }
+
+    private void populateCreateAccessRows() {
+        accessCountLabel.setText("0 users assigned");
+        accessRowsContainer.getChildren().clear();
+
+        Label emptyLabel = new Label("Create the profile before assigning users.");
+        emptyLabel.getStyleClass().add("profile-editor-helper-text");
+        accessRowsContainer.getChildren().add(emptyLabel);
+    }
+
+    private void updateEditorActionState() {
+        if (saveProfileButton != null) {
+            saveProfileButton.setText(creatingProfile ? "Create Profile" : "Save Changes");
+            saveProfileButton.setDisable(creatingProfile && !isEditorProfileReady());
+        }
+
+        setVisibleAndManaged(deleteProfileButton, !creatingProfile);
+        setVisibleAndManaged(previewExportButton, true);
+        setVisibleAndManaged(accessTabButton, !creatingProfile);
+    }
+
+    private boolean isEditorProfileReady() {
+        return !Strings.clean(profileNameField.getText()).isBlank()
+                && !Strings.clean(profileClientField.getText()).isBlank()
+                && !Strings.clean(profileStatusComboBox.getValue()).isBlank();
     }
 
     private void populateAccessRows(ScanProfile profile) {
@@ -710,6 +778,7 @@ public class ProfilesController {
     @FXML
     private void showOverview() {
         currentProfile = null;
+        creatingProfile = false;
         showOverviewPane();
         Platform.runLater(() -> pageScrollPane.setVvalue(0));
     }
@@ -720,7 +789,14 @@ public class ProfilesController {
             return;
         }
 
-        showCreateProfileDialog();
+        populateCreateProfileEditor();
+        showEditorPane();
+        selectTab(EditorTab.GENERAL);
+
+        Platform.runLater(() -> {
+            pageScrollPane.setVvalue(0);
+            profileNameField.requestFocus();
+        });
     }
 
     private void showCreateProfileDialog() {
@@ -1290,15 +1366,17 @@ public class ProfilesController {
 
     @FXML
     private void saveChanges() {
-        if (currentProfile == null) {
+        if (adminManager == null || (!creatingProfile && currentProfile == null)) {
             return;
         }
 
         try {
-            ScanProfile savedProfile = adminManager.updateProfile(
-                    currentProfile.getId(),
-                    createProfileInputFromEditor()
-            );
+            ScanProfile savedProfile = creatingProfile
+                    ? adminManager.createProfile(createProfileInputFromEditor())
+                    : adminManager.updateProfile(
+                            currentProfile.getId(),
+                            createProfileInputFromEditor()
+                    );
 
             loadProfiles();
             applyFilters();
@@ -1310,6 +1388,10 @@ public class ProfilesController {
 
     @FXML
     private void deleteCurrentProfile() {
+        if (creatingProfile) {
+            return;
+        }
+
         deleteProfile(currentProfile);
     }
 
@@ -1380,6 +1462,10 @@ public class ProfilesController {
 
     @FXML
     private void manageAccess() {
+        if (creatingProfile || currentProfile == null) {
+            return;
+        }
+
         navigator.showAssignments();
     }
 
@@ -1395,6 +1481,11 @@ public class ProfilesController {
 
     @FXML
     private void showAccessTab() {
+        if (creatingProfile) {
+            selectTab(EditorTab.GENERAL);
+            return;
+        }
+
         selectTab(EditorTab.ACCESS);
     }
 
@@ -1404,6 +1495,10 @@ public class ProfilesController {
     }
 
     private void selectTab(EditorTab tab) {
+        if (creatingProfile && tab == EditorTab.ACCESS) {
+            tab = EditorTab.GENERAL;
+        }
+
         syncPreview();
 
         setTabButtonActive(generalTabButton, tab == EditorTab.GENERAL);

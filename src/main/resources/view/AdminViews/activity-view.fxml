@@ -61,7 +61,7 @@
                   styleClass="logs-toolbar">
 
                 <HBox prefWidth="315"
-                      minWidth="315"
+                      minWidth="255"
                       maxWidth="315"
                       styleClass="logs-search">
 
@@ -70,29 +70,17 @@
                     </StackPane>
 
                     <TextField fx:id="searchField"
-                               promptText="Search logs..."
+                               promptText="Search logs, users, actions..."
                                styleClass="search-field-input"
                                maxWidth="Infinity"
                                HBox.hgrow="ALWAYS"/>
                 </HBox>
 
-                <ComboBox fx:id="typeFilterComboBox"
-                          prefWidth="234"
-                          minWidth="234"
-                          maxWidth="234"
-                          styleClass="logs-filter"/>
-
-                <ComboBox fx:id="statusFilterComboBox"
-                          prefWidth="234"
-                          minWidth="234"
-                          maxWidth="234"
-                          styleClass="logs-filter"/>
-
                 <MenuButton fx:id="dateFilterMenuButton"
-                            text="All dates"
-                            prefWidth="193"
-                            minWidth="193"
-                            maxWidth="193"
+                            text="Date &amp; Time"
+                            prefWidth="153"
+                            minWidth="153"
+                            maxWidth="153"
                             styleClass="logs-date-filter">
 
                     <items>
@@ -147,14 +135,14 @@
 
                                             <DatePicker fx:id="rangeStartDatePicker"
                                                         editable="false"
-                                                        prefWidth="150"
+                                                        prefWidth="102"
                                                         GridPane.rowIndex="1"
                                                         GridPane.columnIndex="0"
                                                         styleClass="logs-popover-date-picker"/>
 
                                             <DatePicker fx:id="rangeEndDatePicker"
                                                         editable="false"
-                                                        prefWidth="150"
+                                                        prefWidth="102"
                                                         GridPane.rowIndex="1"
                                                         GridPane.columnIndex="1"
                                                         styleClass="logs-popover-date-picker"/>
@@ -178,15 +166,51 @@
                     </items>
                 </MenuButton>
 
-                <Region HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="statusFilterComboBox"
+                          prefWidth="132"
+                          minWidth="132"
+                          maxWidth="132"
+                          styleClass="logs-filter"/>
 
-                <Button text="Reset"
+                <ComboBox fx:id="typeFilterComboBox"
+                          prefWidth="120"
+                          minWidth="120"
+                          maxWidth="120"
+                          styleClass="logs-filter"/>
+
+                <ComboBox fx:id="sortFilterComboBox"
+                          prefWidth="159"
+                          minWidth="159"
+                          maxWidth="159"
+                          styleClass="logs-filter"/>
+
+                <Button text="Clear"
                         onAction="#clearFilters"
+                        minWidth="54"
+                        prefWidth="54"
+                        maxWidth="54"
+                        styleClass="logs-clear-button"
+                        focusTraversable="false"/>
+
+                <Button text="Export"
+                        onAction="#exportLogs"
                         minWidth="99"
                         prefWidth="99"
                         maxWidth="99"
-                        styleClass="logs-reset-button"
-                        focusTraversable="false"/>
+                        styleClass="logs-export-button"
+                        focusTraversable="false">
+                    <graphic>
+                        <Label text="&#xe956;" styleClass="prime-icon logs-export-icon"/>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT"
+                  maxWidth="Infinity"
+                  styleClass="logs-count-row">
+                <Label fx:id="logsShowingLabel"
+                       text="Showing 0 events"
+                       styleClass="logs-showing-label"/>
             </HBox>
 
             <VBox spacing="0"

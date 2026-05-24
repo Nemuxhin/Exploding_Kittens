@@ -41,8 +41,14 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import javafx.util.StringConverter;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -67,9 +73,11 @@ public class ActivityController {
 
     private static final String ALL_AREAS = "All areas";
     private static final String ALL_USERS = "All users";
-    private static final String ALL_RESULTS = "All results";
+    private static final String ALL_RESULTS = "All statuses";
     private static final String SORT_NEWEST_FIRST = "Newest first";
     private static final String SORT_OLDEST_FIRST = "Oldest first";
+    private static final String SORT_ACTION_ASC = "A to Z (Action)";
+    private static final String SORT_ACTION_DESC = "Z to A (Action)";
 
     private static final String UPLOAD_ICON_GLYPH = "\ue934";
     private static final String CHECK_ICON_GLYPH = "\ue90a";
@@ -137,6 +145,7 @@ public class ActivityController {
     @FXML private VBox logsPageRoot;
     @FXML private VBox timelineContainer;
     @FXML private VBox emptyStateBox;
+    @FXML private Label logsShowingLabel;
 
     @FXML
     private void initialize() {
@@ -185,13 +194,20 @@ public class ActivityController {
             statusFilterComboBox.getItems().setAll(
                     ALL_RESULTS,
                     "Success",
-                    "Failed"
+                    "Failed",
+                    "Warning",
+                    "Info"
             );
             statusFilterComboBox.setValue(ALL_RESULTS);
         }
 
         if (sortFilterComboBox != null) {
-            sortFilterComboBox.getItems().setAll(SORT_NEWEST_FIRST, SORT_OLDEST_FIRST);
+            sortFilterComboBox.getItems().setAll(
+                    SORT_NEWEST_FIRST,
+                    SORT_OLDEST_FIRST,
+                    SORT_ACTION_ASC,
+                    SORT_ACTION_DESC
+            );
             sortFilterComboBox.setValue(SORT_NEWEST_FIRST);
         }
 
@@ -200,15 +216,15 @@ public class ActivityController {
     }
 
     private void configureToolbarGraphics() {
-        configureFilterComboBox(typeFilterComboBox, "Area", AREA_FILTER_ICON_GLYPH);
+        configureFilterComboBox(typeFilterComboBox, "Filters", AREA_FILTER_ICON_GLYPH);
         configureFilterComboBox(userFilterComboBox, "User", USER_ICON_GLYPH);
-        configureFilterComboBox(statusFilterComboBox, "Result", RESULT_FILTER_ICON_GLYPH);
+        configureFilterComboBox(statusFilterComboBox, "Status", RESULT_FILTER_ICON_GLYPH);
         configureFilterComboBox(sortFilterComboBox, "Sort", SORT_FILTER_ICON_GLYPH);
 
         if (dateFilterMenuButton != null) {
             dateFilterMenuButton.setText(null);
             dateFilterMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            setDateFilterButtonDisplay("All dates");
+            setDateFilterButtonDisplay("Date & Time");
         }
     }
 
@@ -248,31 +264,48 @@ public class ActivityController {
         StackPane iconShell = new StackPane(createPrimeIcon(iconPath, "logs-filter-icon-path"));
         iconShell.getStyleClass().add("logs-filter-icon-shell");
 
-        Label headingLabel = new Label(heading);
-        headingLabel.getStyleClass().add("logs-filter-heading");
-        headingLabel.setMinWidth(0);
-        headingLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        headingLabel.setWrapText(false);
-
-        Label valueLabel = new Label(Strings.displayText(value, ""));
-        valueLabel.getStyleClass().add("logs-filter-value");
+        Label valueLabel = new Label(displayFilterButtonText(heading, value));
+        valueLabel.getStyleClass().add("logs-filter-button-text");
         valueLabel.setMinWidth(0);
         valueLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
         valueLabel.setWrapText(false);
 
-        VBox copy = new VBox(0, headingLabel, valueLabel);
-        copy.getStyleClass().add("logs-filter-copy");
-        copy.setMinWidth(0);
-
-        HBox graphic = new HBox(9, iconShell, copy);
+        HBox graphic = new HBox(9, iconShell, valueLabel);
         graphic.getStyleClass().add("logs-filter-graphic");
         graphic.setAlignment(Pos.CENTER_LEFT);
         graphic.setMinWidth(0);
         graphic.setMaxWidth(Double.MAX_VALUE);
 
-        HBox.setHgrow(copy, Priority.ALWAYS);
+        HBox.setHgrow(valueLabel, Priority.ALWAYS);
 
         return graphic;
+    }
+
+    private String displayFilterButtonText(String heading, String value) {
+        String cleanHeading = Strings.displayText(heading, "");
+        String cleanValue = Strings.displayText(value, "");
+
+        if ("Date".equals(cleanHeading)) {
+            return cleanValue.isBlank() || "All dates".equals(cleanValue) ? "Date & Time" : cleanValue;
+        }
+
+        if ("Sort".equals(cleanHeading)) {
+            return cleanValue.isBlank() ? SORT_NEWEST_FIRST : cleanValue;
+        }
+
+        if ("Filters".equals(cleanHeading)) {
+            return cleanValue.isBlank() || ALL_AREAS.equals(cleanValue) ? "Filters" : cleanValue;
+        }
+
+        if ("Status".equals(cleanHeading)) {
+            return cleanValue.isBlank() || ALL_RESULTS.equals(cleanValue) ? "Status" : cleanValue;
+        }
+
+        if ("User".equals(cleanHeading)) {
+            return cleanValue.isBlank() || ALL_USERS.equals(cleanValue) ? "User" : cleanValue;
+        }
+
+        return cleanValue.isBlank() ? cleanHeading : cleanValue;
     }
 
     private void configureListeners() {
@@ -312,6 +345,11 @@ public class ActivityController {
     private void renderTimeline() {
         List<ActivityLogEntry> filteredEntries = filteredActivityEntries();
         boolean hasEntries = !filteredEntries.isEmpty();
+
+        if (logsShowingLabel != null) {
+            String noun = filteredEntries.size() == 1 ? "event" : "events";
+            logsShowingLabel.setText("Showing " + filteredEntries.size() + " " + noun);
+        }
 
         if (timelineContainer != null) {
             timelineContainer.getChildren().clear();
@@ -552,8 +590,15 @@ public class ActivityController {
         rowContent.prefWidthProperty().bind(row.widthProperty());
 
         row.setOnAction(event -> {
-            selectedEntryId = entry.id();
-            detailClosed = false;
+            if (selected) {
+                selectedEntryId = null;
+                selectedLogRow = null;
+                detailClosed = true;
+            } else {
+                selectedEntryId = entry.id();
+                detailClosed = false;
+            }
+
             renderTimeline();
         });
 
@@ -3512,6 +3557,71 @@ public class ActivityController {
     }
 
     @FXML
+    private void exportLogs() {
+        List<ActivityLogEntry> entries = filteredActivityEntries();
+
+        if (entries.isEmpty()) {
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export activity logs");
+        fileChooser.setInitialFileName("activity-logs.csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV files", "*.csv"));
+
+        Window owner = logsPageRoot == null || logsPageRoot.getScene() == null
+                ? null
+                : logsPageRoot.getScene().getWindow();
+        File targetFile = fileChooser.showSaveDialog(owner);
+
+        if (targetFile == null) {
+            return;
+        }
+
+        try {
+            Files.writeString(targetFile.toPath(), buildActivityLogCsv(entries), StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            if (logsShowingLabel != null) {
+                logsShowingLabel.setText("Could not export logs.");
+            }
+        }
+    }
+
+    private String buildActivityLogCsv(List<ActivityLogEntry> entries) {
+        StringBuilder csv = new StringBuilder("Timestamp,Area,Actor,Action,Target,Status,Description\n");
+
+        for (ActivityLogEntry entry : entries) {
+            appendCsvRow(csv,
+                    entry.fullTimestamp(),
+                    displayArea(entry),
+                    displayActor(entry.actor()),
+                    formatAction(entry.action()),
+                    entry.target(),
+                    displayStatus(entry.status()),
+                    entry.description());
+        }
+
+        return csv.toString();
+    }
+
+    private void appendCsvRow(StringBuilder csv, String... values) {
+        for (int index = 0; index < values.length; index++) {
+            if (index > 0) {
+                csv.append(',');
+            }
+
+            csv.append(csvValue(values[index]));
+        }
+
+        csv.append('\n');
+    }
+
+    private String csvValue(String value) {
+        String cleanValue = Strings.displayText(value, "");
+        return "\"" + cleanValue.replace("\"", "\"\"") + "\"";
+    }
+
+    @FXML
     private void showSpecificDateMode() {
         dateFilterMode = DateFilterMode.SPECIFIC;
 
@@ -3648,7 +3758,7 @@ public class ActivityController {
         } else if (dateFilterMode == DateFilterMode.RANGE && rangeEndDate != null) {
             displayValue = "Until " + DATE_RANGE_FORMATTER.format(rangeEndDate);
         } else {
-            displayValue = "All dates";
+            displayValue = "Date & Time";
         }
 
         setDateFilterButtonDisplay(displayValue);
@@ -3736,6 +3846,18 @@ public class ActivityController {
     }
 
     private Comparator<ActivityLogEntry> activitySortComparator() {
+        if (SORT_ACTION_ASC.equals(comboValue(sortFilterComboBox))) {
+            return Comparator
+                    .comparing((ActivityLogEntry entry) -> formatAction(entry.action()), String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(this::parseActivityTimestamp, Comparator.nullsLast(Comparator.reverseOrder()));
+        }
+
+        if (SORT_ACTION_DESC.equals(comboValue(sortFilterComboBox))) {
+            return Comparator
+                    .comparing((ActivityLogEntry entry) -> formatAction(entry.action()), String.CASE_INSENSITIVE_ORDER.reversed())
+                    .thenComparing(this::parseActivityTimestamp, Comparator.nullsLast(Comparator.reverseOrder()));
+        }
+
         Comparator<LocalDateTime> timestampComparator = SORT_OLDEST_FIRST.equals(comboValue(sortFilterComboBox))
                 ? Comparator.naturalOrder()
                 : Comparator.reverseOrder();

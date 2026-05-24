@@ -33,10 +33,9 @@
 
 .activity-log-page.logs-page .logs-search,
 .activity-log-page.logs-page .logs-filter,
-.activity-log-page.logs-page .logs-date-filter,
-.activity-log-page.logs-page .logs-reset-button {
-    -fx-min-height: 42;
-    -fx-pref-height: 42;
+.activity-log-page.logs-page .logs-date-filter {
+    -fx-min-height: 46;
+    -fx-pref-height: 46;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-border-color: -wl-border;
@@ -55,8 +54,7 @@
 
 .activity-log-page.logs-page .logs-search:hover,
 .activity-log-page.logs-page .logs-filter:hover,
-.activity-log-page.logs-page .logs-date-filter:hover,
-.activity-log-page.logs-page .logs-reset-button:hover {
+.activity-log-page.logs-page .logs-date-filter:hover {
     -fx-background-color: -wl-surface-hover;
     -fx-border-color: -wl-border;
 }
@@ -110,7 +108,7 @@
 
 .activity-log-page.logs-page .logs-filter,
 .activity-log-page.logs-page .logs-date-filter {
-    -fx-padding: 0 12 0 12;
+    -fx-padding: 0 11 0 11;
 }
 
 .activity-log-page.logs-page .logs-filter > .list-cell,
@@ -123,6 +121,12 @@
 .activity-log-page.logs-page .logs-filter-graphic {
     -fx-alignment: center-left;
     -fx-spacing: 9;
+}
+
+.activity-log-page.logs-page .logs-filter-button-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-filter-copy {
@@ -152,27 +156,103 @@
     -fx-background-color: -wl-primary;
 }
 
-.activity-log-page.logs-page .logs-reset-button {
-    -fx-padding: 0 18 0 18;
-    -fx-text-fill: -wl-text;
+.activity-log-page.logs-page .logs-clear-button {
+    -fx-min-height: 46;
+    -fx-pref-height: 46;
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-clear-button:hover,
+.activity-log-page.logs-page .logs-clear-button:pressed {
+    -fx-text-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-export-button {
+    -fx-min-height: 46;
+    -fx-pref-height: 46;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-primary;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 0 16 0 16;
+    -fx-graphic-text-gap: 9;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-export-button:hover,
+.activity-log-page.logs-page .logs-export-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.activity-log-page.logs-page .logs-export-button .text {
+    -fx-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-export-icon,
+.activity-log-page.logs-page .logs-export-icon .text {
+    -fx-text-fill: -wl-on-primary;
+    -fx-fill: -wl-on-primary;
+    -fx-font-size: 15px;
+}
+
+.activity-log-page.logs-page .logs-count-row {
+    -fx-padding: 2 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-showing-label {
+    -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 500;
 }
 
-.activity-log-page.logs-page .logs-reset-button .text {
-    -fx-fill: -wl-text;
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, #00000026, 15, 0, 0, 4);
+}
+
+.combo-box-popup .list-cell {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-background-radius: 5;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-primary;
 }
 
 /* Date menu */
 .activity-log-page.logs-page .logs-date-popover {
-    -fx-padding: 15;
+    -fx-padding: 14;
     -fx-spacing: 12;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-pref-width: 408;
+    -fx-pref-width: 252;
     -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
 }
 
@@ -187,8 +267,8 @@
 .activity-log-page.logs-page .logs-date-mode-button {
     -fx-min-height: 30;
     -fx-pref-height: 30;
-    -fx-min-width: 120;
-    -fx-pref-width: 120;
+    -fx-min-width: 102;
+    -fx-pref-width: 102;
     -fx-background-color: transparent;
     -fx-background-radius: 6;
     -fx-border-color: transparent;
