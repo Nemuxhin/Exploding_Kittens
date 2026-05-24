@@ -11,6 +11,11 @@ public class User {
     private String role;
     private String status;
     private List<String> assignedProfiles;
+    /**
+     * Persisted flag from the {@code users.is_current_user} column — marks this
+     * row as the workstation owner. NOT the runtime logged-in user.
+     * See {@link #isCurrentUser()}.
+     */
     private final boolean currentUser;
 
     public User(int id, String name, String username, String email, String role,
@@ -43,6 +48,17 @@ public class User {
     public String getRole() { return role; }
     public String getStatus() { return status; }
     public List<String> getAssignedProfiles() { return assignedProfiles; }
+    /**
+     * Returns the persisted workstation-owner flag from the database row.
+     *
+     * <p><strong>This is NOT the logged-in user.</strong> For "who is logged in
+     * right now in this JVM", use {@link easv.bll.UserSession#getCurrentUser()}.
+     *
+     * <p>This flag is checked by {@code AdminManager.deactivateUser()} and
+     * {@code AdminManager.deleteUser()} so an admin cannot lock the workstation
+     * owner out of their own machine. It is set once when the account is
+     * provisioned on a PC and never auto-updated on login.
+     */
     public boolean isCurrentUser() { return currentUser; }
 
     public boolean isActive() {

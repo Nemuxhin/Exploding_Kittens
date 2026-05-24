@@ -1,125 +1,115 @@
 package easv.bll;
 
-import easv.be.ExportJob;
+import easv.be.PageImage;
+import easv.be.TiffExportItem;
+import easv.be.TiffExportPlan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * These tests intentionally test export planning, not low-level TIFF encoding.
+ * Export planning is tested here, not actual TIFF encoding.
  *
- * Why: JUnit should prove that the business rules are correct:
- * - multi-page export creates one TIFF per document.
- * - single-page export creates one TIFF per scanned page.
- * - export names are connected to profile/client and box.
- * - no non-TIFF export plan is allowed.
- *
- * Actual image encoding can be tested later with a smaller integration test.
+ * TiffExportManager builds a plan (file names, page assignments, warnings)
+ * that the GUI shows before any files are written. These tests verify that
+ * the plan is correct — encoding is a separate concern.
  */
 class ExportServiceTest {
 
-    @TempDir
-    Path exportDirectory;
-
-    private ScanManager scanManager;
-    private ExportService exportService;
+    private TiffExportManager exportManager;
+    private PageImage pageOne;
+    private PageImage pageTwo;
+    private PageImage pageThree;
 
     @BeforeEach
     void setUp() {
-        scanManager = new ScanManager();
-        exportService = new ExportService();
+        exportManager = new TiffExportManager();
+        pageOne   = new PageImage(1, PageImage.PageType.TIFF, "DOC-001");
+        pageTwo   = new PageImage(2, PageImage.PageType.TIFF, "DOC-001");
+        pageThree = new PageImage(3, PageImage.PageType.TIFF, "DOC-002");
     }
 
     @Test
-    void planMultiPageExport_shouldCreateOneTiffPerDocument() {
-        scanManager.scanFile("page-001.png");
-        scanManager.scanFile("page-002.png");
-        scanManager.scanBarcode("REG-2026-0001");
-        scanManager.scanFile("page-003.png");
-
-        List<ExportJob> jobs = exportService.planExport(
-                scanManager.getDocuments(),
-                ExportMode.MULTI_PAGE,
-                "ClientA",
-                "BOX-42",
-                exportDirectory
-        );
+    void createSinglePagePlan_shouldCreateOneItemPerPage() {
+        TiffExportPlan plan = exportManager.createSinglePagePlan("Medical", "BOX-1",
+                List.of(pageOne, pageTwo, pageThree));
 
         assertAll(
-                () -> assertEquals(2, jobs.size(), "Multi-page export should create one output TIFF per document."),
-                () -> assertEquals(2, jobs.get(0).getPages().size(), "The first document contains two pages."),
-                () -> assertEquals(1, jobs.get(1).getPages().size(), "The second document contains one page."),
-                () -> assertTrue(fileNameOf(jobs.get(0)).startsWith("ClientA_BOX-42_"), "Export name should include profile/client and box id."),
-                () -> assertTrue(fileNameOf(jobs.get(0)).endsWith(".tiff"), "Export must be TIFF."),
-                () -> assertTrue(fileNameOf(jobs.get(1)).endsWith(".tiff"), "Export must be TIFF.")
+                () -> assertEquals("SINGLE_PAGE_TIFFS", plan.getExportType()),
+                () -> assertEquals(3, plan.getFileCount(), "One TIFF file per page."),
+                () -> assertEquals(3, plan.getPageCount()),
+                () -> assertTrue(plan.getItems().stream().allMatch(item -> item.getPages().size() == 1),
+                        "Each export item must contain exactly one page.")
         );
     }
 
     @Test
-    void planSinglePageExport_shouldCreateOneTiffPerScannedFile() {
-        scanManager.scanFile("page-001.png");
-        scanManager.scanFile("page-002.png");
-        scanManager.scanBarcode("REG-2026-0001");
-        scanManager.scanFile("page-003.png");
-
-        List<ExportJob> jobs = exportService.planExport(
-                scanManager.getDocuments(),
-                ExportMode.SINGLE_PAGE,
-                "ClientA",
-                "BOX-42",
-                exportDirectory
-        );
+    void createMultiPagePlan_shouldCombineAllPagesIntoOneItem() {
+        TiffExportPlan plan = exportManager.createMultiPagePlan("Medical", "BOX-1",
+                List.of(pageOne, pageTwo, pageThree));
 
         assertAll(
-                () -> assertEquals(3, jobs.size(), "Single-page export should create one output TIFF per scanned file."),
-                () -> assertTrue(jobs.stream().allMatch(job -> job.getPages().size() == 1), "Each single-page job should contain exactly one page."),
-                () -> assertTrue(jobs.stream().allMatch(job -> fileNameOf(job).startsWith("ClientA_BOX-42_")), "Every export name should include profile/client and box id."),
-                () -> assertTrue(jobs.stream().allMatch(job -> fileNameOf(job).endsWith(".tiff")), "Every export job must output TIFF.")
+                () -> assertEquals("MULTI_PAGE_TIFF_FILE", plan.getExportType()),
+                () -> assertEquals(1, plan.getFileCount(), "Multi-page export produces exactly one TIFF file."),
+                () -> assertEquals(3, plan.getPageCount(), "All three pages go into the single file.")
         );
     }
 
     @Test
-    void planExport_shouldRejectMissingBoxIdBecauseBoxesMustBeAttachedToExport() {
-        scanManager.scanFile("page-001.png");
+    void singlePageFileName_shouldFollowProfileBoxDocumentPagePattern() {
+        TiffExportPlan plan = exportManager.createSinglePagePlan("Medical", "BOX-1", List.of(pageOne));
+
+        String fileName = plan.getItems().get(0).getFileName();
 
         assertAll(
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.planExport(scanManager.getDocuments(), ExportMode.MULTI_PAGE, "ClientA", null, exportDirectory)),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.planExport(scanManager.getDocuments(), ExportMode.MULTI_PAGE, "ClientA", "", exportDirectory)),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.planExport(scanManager.getDocuments(), ExportMode.MULTI_PAGE, "ClientA", "   ", exportDirectory))
+                () -> assertTrue(fileName.startsWith("Medical_BOX-1_"), "Profile and box must prefix the filename."),
+                () -> assertTrue(fileName.endsWith(".tiff"), "Export must be TIFF.")
         );
     }
 
     @Test
-    void planExport_shouldRejectMissingProfileNameBecauseProfileLabelsTheExport() {
-        scanManager.scanFile("page-001.png");
+    void specialCharactersInProfileName_shouldBeReplacedWithUnderscores() {
+        TiffExportPlan plan = exportManager.createSinglePagePlan("Building Archive", "BOX-1", List.of(pageOne));
+
+        String fileName = plan.getItems().get(0).getFileName();
+
+        assertTrue(fileName.startsWith("Building_Archive_BOX-1_"),
+                "Spaces in profile name should be replaced by underscores.");
+    }
+
+    @Test
+    void warnings_shouldBeEmptyWhenProfileAndBoxAreProvided() {
+        TiffExportPlan plan = exportManager.createSinglePagePlan("Medical", "BOX-1", List.of(pageOne));
+
+        assertTrue(plan.getWarnings().isEmpty(), "No warnings expected when profile and box are both set.");
+    }
+
+    @Test
+    void warnings_shouldBeAddedWhenProfileOrBoxIsMissing() {
+        TiffExportPlan missingProfile = exportManager.createSinglePagePlan("", "BOX-1", List.of(pageOne));
+        TiffExportPlan missingBox     = exportManager.createSinglePagePlan("Medical", "", List.of(pageOne));
+        TiffExportPlan bothMissing    = exportManager.createMultiPagePlan("", "", List.of(pageOne));
 
         assertAll(
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.planExport(scanManager.getDocuments(), ExportMode.MULTI_PAGE, null, "BOX-42", exportDirectory)),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.planExport(scanManager.getDocuments(), ExportMode.MULTI_PAGE, "", "BOX-42", exportDirectory)),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.planExport(scanManager.getDocuments(), ExportMode.MULTI_PAGE, "   ", "BOX-42", exportDirectory))
+                () -> assertEquals(1, missingProfile.getWarnings().size(), "Missing profile → one warning."),
+                () -> assertEquals(1, missingBox.getWarnings().size(),     "Missing box → one warning."),
+                () -> assertEquals(2, bothMissing.getWarnings().size(),    "Both missing → two warnings.")
         );
     }
 
     @Test
-    void validateExportFormat_shouldRejectAnythingExceptTiff() {
-        assertAll(
-                () -> exportService.validateExportFormat("tiff"),
-                () -> exportService.validateExportFormat("tif"),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.validateExportFormat("pdf")),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.validateExportFormat("png")),
-                () -> assertThrows(IllegalArgumentException.class, () -> exportService.validateExportFormat("jpg"))
-        );
-    }
+    void nullPageList_shouldProduceEmptyPlanWithoutThrowing() {
+        TiffExportPlan single = exportManager.createSinglePagePlan("Medical", "BOX-1", null);
+        TiffExportPlan multi  = exportManager.createMultiPagePlan( "Medical", "BOX-1", null);
 
-    private static String fileNameOf(ExportJob job) {
-        return job.getOutputPath().getFileName().toString();
+        assertAll(
+                () -> assertEquals(0, single.getFileCount()),
+                () -> assertEquals(0, multi.getFileCount())
+        );
     }
 }

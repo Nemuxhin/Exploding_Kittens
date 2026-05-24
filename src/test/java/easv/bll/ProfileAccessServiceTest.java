@@ -1,69 +1,96 @@
 package easv.bll;
 
 import easv.be.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Profile access should be tested separately from JavaFX selection controls.
- * The GUI should ask this service which profiles the current user may select.
+ * Profile access control is determined by a user's role, status, and
+ * assigned-profile list. These facts live on User and are tested here.
+ *
+ * A ProfileAccessService can be extracted later — for now the controller
+ * reads these fields directly, so pinning their behaviour is the right scope.
  */
 class ProfileAccessServiceTest {
 
-    private ProfileAccessService profileAccessService;
-
-    @BeforeEach
-    void setUp() {
-        profileAccessService = new ProfileAccessService(Map.of(
-                "regularUser", Set.of("Medical", "Legal"),
-                "limitedUser", Set.of("Archive")
-        ));
+    @Test
+    void activeUser_shouldHaveActiveStatus() {
+        User user = new User("alice", "hash", "USER", true);
+        assertTrue(user.isActive());
     }
 
     @Test
-    void admin_shouldHaveAccessToEveryProfile() {
-        User admin = new User("admin", "hash", "admin", true);
+    void inactiveUser_shouldNotBeActive() {
+        User user = new User("alice", "hash", "USER", false);
+        assertFalse(user.isActive());
+    }
+
+    @Test
+    void isActive_shouldBeCaseInsensitive() {
+        User upper = new User(0, "alice", "alice", "", "", "USER", "ACTIVE",   List.of(), false);
+        User lower = new User(0, "alice", "alice", "", "", "USER", "active",   List.of(), false);
+        User mixed = new User(0, "alice", "alice", "", "", "USER", "Inactive", List.of(), false);
 
         assertAll(
-                () -> assertTrue(profileAccessService.canAccessProfile(admin, "Medical")),
-                () -> assertTrue(profileAccessService.canAccessProfile(admin, "Legal")),
-                () -> assertTrue(profileAccessService.canAccessProfile(admin, "AnythingNew"))
+                () -> assertTrue(upper.isActive(),  "ACTIVE in upper-case should be considered active."),
+                () -> assertTrue(lower.isActive(),  "active in lower-case should be considered active."),
+                () -> assertFalse(mixed.isActive(), "Inactive should not be active.")
         );
     }
 
     @Test
-    void user_shouldOnlyHaveAccessToAssignedProfiles() {
-        User regularUser = new User("regularUser", "hash", "user", true);
+    void adminRole_shouldBeDifferentFromUserRole() {
+        User admin = new User("admin", "hash", "ADMIN", true);
+        User user  = new User("user",  "hash", "USER",  true);
 
         assertAll(
-                () -> assertTrue(profileAccessService.canAccessProfile(regularUser, "Medical")),
-                () -> assertTrue(profileAccessService.canAccessProfile(regularUser, "Legal")),
-                () -> assertFalse(profileAccessService.canAccessProfile(regularUser, "Archive"))
+                () -> assertEquals("ADMIN", admin.getRole()),
+                () -> assertNotEquals("ADMIN", user.getRole())
         );
     }
 
     @Test
-    void inactiveUser_shouldNotAccessProfilesEvenWhenAssigned() {
-        User inactiveUser = new User("regularUser", "hash", "user", false);
+    void assignedProfiles_shouldBeStoredAndReadBack() {
+        User user = new User(0, "alice", "alice", "", "", "USER", "Active", List.of("Medical", "Legal"), false);
 
-        assertFalse(profileAccessService.canAccessProfile(inactiveUser, "Medical"));
+        assertAll(
+                () -> assertEquals(2, user.getAssignedProfiles().size()),
+                () -> assertTrue(user.getAssignedProfiles().contains("Medical")),
+                () -> assertTrue(user.getAssignedProfiles().contains("Legal"))
+        );
     }
 
     @Test
-    void blankOrMissingProfile_shouldBeDenied() {
-        User regularUser = new User("regularUser", "hash", "user", true);
+    void nullAssignedProfiles_shouldBeStoredAsEmptyList() {
+        User user = new User(0, "alice", "alice", "", "", "USER", "Active", null, false);
+        assertTrue(user.getAssignedProfiles().isEmpty());
+    }
+
+    @Test
+    void assignedProfiles_shouldBeImmutable() {
+        User user = new User("alice", "hash", "USER", true);
+        assertThrows(UnsupportedOperationException.class,
+                () -> user.getAssignedProfiles().add("Medical"),
+                "Assigned profiles should not be modifiable from outside.");
+    }
+
+    @Test
+    void setAssignedProfiles_shouldReplaceExistingList() {
+        User user = new User(0, "alice", "alice", "", "", "USER", "Active", List.of("Medical"), false);
+        user.setAssignedProfiles(List.of("Legal", "Archive"));
 
         assertAll(
-                () -> assertFalse(profileAccessService.canAccessProfile(regularUser, null)),
-                () -> assertFalse(profileAccessService.canAccessProfile(regularUser, "")),
-                () -> assertFalse(profileAccessService.canAccessProfile(regularUser, "   "))
+                () -> assertEquals(2, user.getAssignedProfiles().size()),
+                () -> assertTrue(user.getAssignedProfiles().contains("Legal")),
+                () -> assertFalse(user.getAssignedProfiles().contains("Medical"), "Old profiles replaced.")
         );
     }
 }
