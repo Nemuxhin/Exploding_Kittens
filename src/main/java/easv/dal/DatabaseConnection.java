@@ -1,5 +1,8 @@
 package easv.dal;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -22,26 +25,37 @@ public class DatabaseConnection {
     private static final String DEFAULT_USERNAME = "";
     private static final String DEFAULT_PASSWORD = "";
     private static final Properties FILE_PROPERTIES = loadFileProperties();
+    private static final HikariDataSource SHARED_DATA_SOURCE = createSharedDataSource();
 
     private final String jdbcUrl;
     private final String username;
     private final String password;
+    private final boolean useSharedDataSource;
 
     public DatabaseConnection() {
         this(
                 readConfiguredValue("EXPLODING_KITTENS_DB_URL", "exploding-kittens.db.url", DEFAULT_JDBC_URL),
                 readConfiguredValue("EXPLODING_KITTENS_DB_USER", "exploding-kittens.db.user", DEFAULT_USERNAME),
-                readConfiguredValue("EXPLODING_KITTENS_DB_PASSWORD", "exploding-kittens.db.password", DEFAULT_PASSWORD)
+                readConfiguredValue("EXPLODING_KITTENS_DB_PASSWORD", "exploding-kittens.db.password", DEFAULT_PASSWORD),
+                true
         );
     }
 
     public DatabaseConnection(String jdbcUrl, String username, String password) {
+        this(jdbcUrl, username, password, false);
+    }
+
+    private DatabaseConnection(String jdbcUrl, String username, String password, boolean useSharedDataSource) {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
+        this.useSharedDataSource = useSharedDataSource;
     }
 
     public Connection getConnection() throws SQLException {
+        if (useSharedDataSource) {
+            return SHARED_DATA_SOURCE.getConnection();
+        }
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
 
@@ -86,7 +100,6 @@ public class DatabaseConnection {
         if (currentSchema != null && !currentSchema.isBlank()) {
             candidates.add(currentSchema);
         }
-        candidates.add("PUBLIC");
         candidates.add("dbo");
         return new ArrayList<>(candidates);
     }
@@ -144,5 +157,21 @@ public class DatabaseConnection {
         } catch (IOException exception) {
             throw new DataAccessException("Failed to load classpath " + DATABASE_PROPERTIES_FILE, exception);
         }
+    }
+
+    private static HikariDataSource createSharedDataSource() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(readConfiguredValue("EXPLODING_KITTENS_DB_URL", "exploding-kittens.db.url", DEFAULT_JDBC_URL));
+        config.setUsername(readConfiguredValue("EXPLODING_KITTENS_DB_USER", "exploding-kittens.db.user", DEFAULT_USERNAME));
+        config.setPassword(readConfiguredValue("EXPLODING_KITTENS_DB_PASSWORD", "exploding-kittens.db.password", DEFAULT_PASSWORD));
+        config.setPoolName("exploding-kittens-db");
+        config.setMinimumIdle(1);
+        config.setMaximumPoolSize(Math.max(4, Runtime.getRuntime().availableProcessors()));
+        config.setConnectionTimeout(5000);
+        config.setValidationTimeout(2000);
+        config.setIdleTimeout(60000);
+        config.setMaxLifetime(600000);
+        config.setAutoCommit(true);
+        return new HikariDataSource(config);
     }
 }

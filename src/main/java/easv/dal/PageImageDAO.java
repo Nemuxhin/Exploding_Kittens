@@ -53,33 +53,36 @@ public class PageImageDAO {
             throw new IllegalArgumentException("connection must not be null");
         }
         try (PreparedStatement deleteStatement = connection.prepareStatement(
-                "DELETE FROM document_pages WHERE document_id = ?")) {
-            deleteStatement.setString(1, documentId.toString());
-            deleteStatement.executeUpdate();
-
-            for (PageImage pageImage : pageImages) {
-                try (PreparedStatement statement = connection.prepareStatement("""
+                "DELETE FROM document_pages WHERE document_id = ?");
+             PreparedStatement insertStatement = connection.prepareStatement("""
                         INSERT INTO document_pages (
                             id, document_id, page_number, page_order, page_type, source_reference,
                             reference_id, rotation_degrees, display_content, deleted_at
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """)) {
-                    statement.setString(1, pageImage.getId().toString());
-                    statement.setString(2, documentId.toString());
-                    statement.setInt(3, pageImage.getPageNumber());
-                    statement.setInt(4, pageImage.getPageNumber());
-                    statement.setString(5, pageImage.getPageType().name());
-                    statement.setString(6, pageImage.getSourceReference());
-                    statement.setInt(7, pageImage.getReferenceId());
-                    statement.setInt(8, pageImage.getRotationDegrees());
-                    statement.setString(9, pageImage.getDisplayContent());
-                    if (pageImage.getDeletedAt() == null) {
-                        statement.setNull(10, java.sql.Types.TIMESTAMP);
-                    } else {
-                        statement.setTimestamp(10, Timestamp.from(pageImage.getDeletedAt()));
-                    }
-                    statement.executeUpdate();
+            deleteStatement.setString(1, documentId.toString());
+            deleteStatement.executeUpdate();
+
+            for (PageImage pageImage : pageImages) {
+                insertStatement.setString(1, pageImage.getId().toString());
+                insertStatement.setString(2, documentId.toString());
+                insertStatement.setInt(3, pageImage.getPageNumber());
+                insertStatement.setInt(4, pageImage.getPageNumber());
+                insertStatement.setString(5, pageImage.getPageType().name());
+                insertStatement.setString(6, pageImage.getSourceReference());
+                insertStatement.setInt(7, pageImage.getReferenceId());
+                insertStatement.setInt(8, pageImage.getRotationDegrees());
+                insertStatement.setString(9, pageImage.getDisplayContent());
+                if (pageImage.getDeletedAt() == null) {
+                    insertStatement.setNull(10, java.sql.Types.TIMESTAMP);
+                } else {
+                    insertStatement.setTimestamp(10, Timestamp.from(pageImage.getDeletedAt()));
                 }
+                insertStatement.addBatch();
+            }
+
+            if (!pageImages.isEmpty()) {
+                insertStatement.executeBatch();
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to store pages for document " + documentId, e);

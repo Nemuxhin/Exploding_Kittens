@@ -25,15 +25,15 @@ public class ClientDAO {
     public Client saveOrGetExisting(String clientNumber, String name) {
         validateKey(clientNumber, "clientNumber");
         validateKey(name, "name");
-        return findByClientNumber(clientNumber)
-                .orElseGet(() -> insert(clientNumber, name));
-    }
-
-    public Client saveOrGetExisting(Connection connection, String clientNumber, String name) {
-        validateKey(clientNumber, "clientNumber");
-        validateKey(name, "name");
-        return findByClientNumber(connection, clientNumber)
-                .orElseGet(() -> insert(connection, clientNumber, name));
+        try (Connection connection = databaseConnection.getConnection()) {
+            Optional<Client> existing = findByClientNumber(connection, clientNumber);
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+            return insert(connection, clientNumber, name);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to store client " + clientNumber, e);
+        }
     }
 
     public Optional<Client> findByClientNumber(String clientNumber) {
@@ -53,8 +53,7 @@ public class ClientDAO {
         }
     }
 
-    public Optional<Client> findByClientNumber(Connection connection, String clientNumber) {
-        validateKey(clientNumber, "clientNumber");
+    private Optional<Client> findByClientNumber(Connection connection, String clientNumber) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT id, client_number, name FROM clients WHERE client_number = ?")) {
             statement.setString(1, clientNumber);
@@ -64,8 +63,6 @@ public class ClientDAO {
                 }
                 return Optional.empty();
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to fetch client " + clientNumber, e);
         }
     }
 
@@ -90,28 +87,10 @@ public class ClientDAO {
         }
     }
 
-    private Client insert(String clientNumber, String name) {
-        Client client = new Client(UUID.randomUUID(), clientNumber, name);
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO clients (id, client_number, name) VALUES (?, ?, ?)")) {
-            statement.setString(1, client.getId().toString());
-            statement.setString(2, client.getClientNumber());
-            statement.setString(3, client.getName());
-            statement.executeUpdate();
-            return client;
-        } catch (SQLException e) {
-            if (isUniqueViolation(e)) {
-                return findByClientNumber(clientNumber).orElseThrow();
-            }
-            throw new DataAccessException("Failed to store client " + clientNumber, e);
-        }
-    }
-
-    private Client insert(Connection connection, String clientNumber, String name) {
+    private Client insert(Connection connection, String clientNumber, String name) throws SQLException {
         Client client = new Client(UUID.randomUUID(), clientNumber, name);
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO clients (id, client_number, name) VALUES (?, ?, ?)")) {
+                     "INSERT INTO clients (id, client_number, name) VALUES (?, ?, ?)")) {
             statement.setString(1, client.getId().toString());
             statement.setString(2, client.getClientNumber());
             statement.setString(3, client.getName());
@@ -121,7 +100,7 @@ public class ClientDAO {
             if (isUniqueViolation(e)) {
                 return findByClientNumber(connection, clientNumber).orElseThrow();
             }
-            throw new DataAccessException("Failed to store client " + clientNumber, e);
+            throw e;
         }
     }
 

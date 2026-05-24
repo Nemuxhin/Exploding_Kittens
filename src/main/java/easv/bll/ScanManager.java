@@ -5,6 +5,7 @@ import easv.be.CaseFile;
 import easv.be.Client;
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.dal.BoxDAO;
 import easv.dal.CaseFileDAO;
@@ -12,17 +13,15 @@ import easv.dal.ClientDAO;
 import easv.dal.DatabaseConnection;
 import easv.dal.DocumentDAO;
 import easv.dal.PageImageDAO;
+import easv.dal.ScanProfileDAO;
 import easv.dal.ScanSessionDAO;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 public class ScanManager {
-    private final DatabaseConnection databaseConnection;
     private final ScannerApiClient scannerApiClient;
     private final TiffFetchService tiffFetchService;
     private final BarcodeSplitService barcodeSplitService;
@@ -31,9 +30,10 @@ public class ScanManager {
     private final CaseFileDAO caseFileDAO;
     private final DocumentDAO documentDAO;
     private final ScanSessionDAO scanSessionDAO;
+    private final ScanProfileDAO scanProfileDAO;
 
     public ScanManager() {
-        this.databaseConnection = new DatabaseConnection();
+        DatabaseConnection databaseConnection = new DatabaseConnection();
         PageImageDAO pageImageDAO = new PageImageDAO(databaseConnection);
         DocumentDAO documentDAO = new DocumentDAO(databaseConnection, pageImageDAO);
         this.scannerApiClient = new ScannerApiClient();
@@ -44,6 +44,7 @@ public class ScanManager {
         this.caseFileDAO = new CaseFileDAO(databaseConnection, documentDAO);
         this.documentDAO = documentDAO;
         this.scanSessionDAO = new ScanSessionDAO(databaseConnection);
+        this.scanProfileDAO = new ScanProfileDAO(databaseConnection);
     }
 
     public ScanManager(
@@ -53,9 +54,9 @@ public class ScanManager {
             BoxDAO boxDAO,
             CaseFileDAO caseFileDAO,
             DocumentDAO documentDAO,
-            ScanSessionDAO scanSessionDAO
+            ScanSessionDAO scanSessionDAO,
+            ScanProfileDAO scanProfileDAO
     ) {
-        this.databaseConnection = new DatabaseConnection();
         this.scannerApiClient = Objects.requireNonNull(scannerApiClient, "scannerApiClient");
         this.tiffFetchService = new TiffFetchService(this.scannerApiClient);
         this.barcodeSplitService = Objects.requireNonNull(barcodeSplitService, "barcodeSplitService");
@@ -64,6 +65,7 @@ public class ScanManager {
         this.caseFileDAO = Objects.requireNonNull(caseFileDAO, "caseFileDAO");
         this.documentDAO = Objects.requireNonNull(documentDAO, "documentDAO");
         this.scanSessionDAO = Objects.requireNonNull(scanSessionDAO, "scanSessionDAO");
+        this.scanProfileDAO = Objects.requireNonNull(scanProfileDAO, "scanProfileDAO");
     }
 
     public Client registerClient(String clientNumber, String name) {
@@ -76,8 +78,8 @@ public class ScanManager {
 
     public ScanSession startSession(String boxId, String profileName) {
         ScanSession session = new ScanSession(registerBox(boxId, "Scanned box"), profileName);
+        applyProfileSettings(session, resolveProfileSettings(profileName));
         scanSessionDAO.save(session);
-        tiffFetchService.prefetchNextItem();
         return session;
     }
 
@@ -100,6 +102,7 @@ public class ScanManager {
                 box,
                 stored.profileName()
         );
+        applyProfileSettings(resumedSession, resolveProfileSettings(stored.profileName()));
         resumedSession.setSelectedBarcodeBehavior(stored.selectedBarcodeBehavior());
         resumedSession.setLastStatus(stored.lastStatus());
 
@@ -118,7 +121,7 @@ public class ScanManager {
     }
 
     public Optional<Document> importNextItem(ScanSession session) {
-        ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Keep barcode page in final document");
+        ScanImportResult result = scanNextItem(session);
         if (!result.getImportedDocuments().isEmpty()) {
             return Optional.of(result.getImportedDocuments().get(0));
         }
@@ -128,100 +131,72 @@ public class ScanManager {
     public ScanImportResult scanNextItem(ScanSession session, String barcodeBehavior, String barcodePageBehavior) {
         Objects.requireNonNull(session, "session");
         session.setSelectedBarcodeBehavior(barcodeBehavior);
-        long totalStartNs = System.nanoTime();
-        long fetchStartNs = totalStartNs;
+        session.setBarcodePageBehavior(barcodePageBehavior);
+        return scanNextItem(session);
+    }
+
+    public ScanImportResult scanNextItem(ScanSession session) {
+        Objects.requireNonNull(session, "session");
+        ensureProfileSettings(session);
 
         TiffFetchService.FetchResult fetchResult = tiffFetchService.fetchNextItem();
-        long fetchMs = elapsedMs(fetchStartNs);
         if (fetchResult.noMoreItems()) {
             session.setLastStatus("NO_MORE_FILES");
             scanSessionDAO.updateSessionState(session);
-            logScanPerf("NO_MORE_FILES", fetchMs, 0, 0, 0, 0, 0, 0, 0, elapsedMs(totalStartNs));
             return ScanImportResult.noMoreFiles();
         }
 
         if (fetchResult.isFailure()) {
             session.recordFailure(fetchResult.message());
             scanSessionDAO.recordFailure(session, fetchResult.message());
-            logScanPerf("FETCH_FAILED", fetchMs, 0, 0, 0, 0, 0, 0, 0, elapsedMs(totalStartNs));
             return ScanImportResult.failed(fetchResult.message());
         }
 
         TiffFetchService.FetchedItem fetchedItem = fetchResult.item();
-        int fetchedPageCount = fetchedItem.pages().size();
-        try (Connection connection = databaseConnection.getConnection()) {
-            connection.setAutoCommit(false);
-            try {
-                long normalizeStartNs = System.nanoTime();
-                NormalizedItem item = normalizeImportedItem(session, fetchedItem.source());
-                Client client = clientDAO.saveOrGetExisting(connection, item.clientNumber(), item.clientName());
-                Box box = session.getBox();
-                CaseFile caseFile = caseFileDAO.saveOrGetExisting(connection, item.caseReference(), client, box);
-                long normalizeMs = elapsedMs(normalizeStartNs);
-                long splitMs;
+        NormalizedItem item = normalizeImportedItem(session, fetchedItem.source());
+        Client client = registerClient(item.clientNumber(), item.clientName());
+        Box box = session.getBox();
+        CaseFile caseFile = caseFileDAO.saveOrGetExisting(item.caseReference(), client, box);
 
-                final BarcodeHandlingResult handlingResult;
-                try {
-                    long splitStartNs = System.nanoTime();
-                    handlingResult = splitIntoDocuments(item.itemId(), fetchedItem.pages(), session, barcodeBehavior, barcodePageBehavior);
-                    splitMs = elapsedMs(splitStartNs);
-                } catch (IllegalArgumentException exception) {
-                    connection.rollback();
-                    session.recordFailure(exception.getMessage());
-                    scanSessionDAO.recordFailure(session, exception.getMessage());
-                    logScanPerf("BARCODE_FAILED", fetchMs, normalizeMs, 0, 0, fetchedPageCount, 0, 0, 0, elapsedMs(totalStartNs));
-                    return ScanImportResult.failed(exception.getMessage());
-                }
-
-                long persistStartNs = System.nanoTime();
-                List<Document> storedDocuments = new ArrayList<>();
-                for (Document document : handlingResult.documents()) {
-                    Document storedDocument = documentDAO.saveOrGetExisting(connection, document, caseFile.getId());
-                    caseFile.addDocument(storedDocument);
-                    session.addImportedDocument(storedDocument);
-                    scanSessionDAO.linkDocument(connection, session, storedDocument);
-                    storedDocuments.add(storedDocument);
-                }
-
-                session.setLastStatus(handlingResult.stoppedOnBarcode() ? "STOPPED_ON_BARCODE" : "IMPORTED");
-                scanSessionDAO.updateSessionState(connection, session);
-                connection.commit();
-                session.replacePendingPages(handlingResult.pendingPages());
-                long persistMs = elapsedMs(persistStartNs);
-                long totalMs = elapsedMs(totalStartNs);
-                int barcodePages = countBarcodePages(handlingResult.scannedPages());
-                logScanPerf(
-                        handlingResult.stoppedOnBarcode() ? "STOPPED_ON_BARCODE" : "IMPORTED",
-                        fetchMs,
-                        normalizeMs,
-                        splitMs,
-                        persistMs,
-                        fetchedPageCount,
-                        handlingResult.scannedPages().size(),
-                        handlingResult.documents().size(),
-                        barcodePages,
-                        totalMs
-                );
-
-                if (handlingResult.stoppedOnBarcode()) {
-                    return ScanImportResult.stoppedOnBarcode(storedDocuments, handlingResult.scannedPages(), handlingResult.message());
-                }
-                return ScanImportResult.imported(storedDocuments, handlingResult.scannedPages());
-            } catch (SQLException | RuntimeException exception) {
-                connection.rollback();
-                throw exception;
-            }
-        } catch (SQLException exception) {
-            throw new RuntimeException("Failed to persist scan item.", exception);
+        final BarcodeHandlingResult handlingResult;
+        try {
+            handlingResult = splitIntoDocuments(
+                    item.itemId(),
+                    fetchedItem.pages(),
+                    session,
+                    session.getSelectedBarcodeBehavior(),
+                    session.getBarcodePageBehavior(),
+                    session.isBarcodeSplittingEnabled()
+            );
+        } catch (IllegalArgumentException exception) {
+            session.recordFailure(exception.getMessage());
+            scanSessionDAO.recordFailure(session, exception.getMessage());
+            return ScanImportResult.failed(exception.getMessage());
         }
+        List<Document> storedDocuments = new ArrayList<>();
+        for (Document document : handlingResult.documents()) {
+            Document storedDocument = documentDAO.saveOrGetExisting(document, caseFile.getId());
+            caseFile.addDocument(storedDocument);
+            session.addImportedDocument(storedDocument);
+            scanSessionDAO.linkDocument(session, storedDocument);
+            storedDocuments.add(storedDocument);
+        }
+
+        session.setLastStatus(handlingResult.stoppedOnBarcode() ? "STOPPED_ON_BARCODE" : "IMPORTED");
+        scanSessionDAO.updateSessionState(session);
+        if (handlingResult.stoppedOnBarcode()) {
+            return ScanImportResult.stoppedOnBarcode(storedDocuments, handlingResult.scannedPages(), handlingResult.message());
+        }
+        return ScanImportResult.imported(storedDocuments, handlingResult.scannedPages());
     }
 
     public List<Document> importAllAvailable(ScanSession session) {
         Objects.requireNonNull(session, "session");
+        ensureProfileSettings(session);
         List<Document> imported = new ArrayList<>();
         while (true) {
             int failuresBefore = session.getFailures().size();
-            ScanImportResult result = scanNextItem(session, session.getSelectedBarcodeBehavior(), "Keep barcode page in final document");
+            ScanImportResult result = scanNextItem(session);
             if (!result.getImportedDocuments().isEmpty()) {
                 imported.addAll(result.getImportedDocuments());
                 if (result.getStatus() == ScanImportResult.Status.STOPPED_ON_BARCODE) {
@@ -254,25 +229,28 @@ public class ScanManager {
             List<TiffFetchService.FetchedPage> pages,
             ScanSession session,
             String barcodeBehavior,
-            String barcodePageBehavior
+            String barcodePageBehavior,
+            boolean barcodeSplittingEnabled
     ) {
         List<Document> documents = new ArrayList<>();
         List<PageImage> scannedPages = new ArrayList<>();
-        List<PageImage> currentPages = new ArrayList<>(session.getPendingPages());
+        List<PageImage> currentPages = new ArrayList<>();
         int documentIndex = 1;
         boolean stopOnBarcode = barcodeBehavior != null && barcodeBehavior.toLowerCase().contains("stop");
 
         for (TiffFetchService.FetchedPage page : pages) {
-            BarcodeSplitService.DetectionResult detectionResult = barcodeSplitService.classify(
+            BarcodeSplitService.DetectionResult detectionResult = barcodeSplittingEnabled
+                    ? barcodeSplitService.classify(
                     page.sourceReference(),
                     page.barcodeValue(),
-                    page.displayContent()
-            );
+                    page.fileData()
+            )
+                    : new BarcodeSplitService.DetectionResult(PageImage.PageType.TIFF, "");
             PageImage.PageType pageType = detectionResult.pageType();
             PageImage pageImage = new PageImage(page.pageNumber(), pageType, page.sourceReference());
             pageImage.setReferenceId(session.allocateReferenceId());
             pageImage.setDisplayContent(page.displayContent());
-            pageImage.setPreviewContent(page.previewContent());
+            pageImage.setPreviewSourceBytes(page.fileData());
             scannedPages.add(pageImage);
 
             if (pageType == PageImage.PageType.BARCODE) {
@@ -292,7 +270,11 @@ public class ScanManager {
                 }
 
                 if (stopOnBarcode) {
-                    return new BarcodeHandlingResult(documents, scannedPages, currentPages, true, "Scanning stopped because a barcode was detected.");
+                    if (!currentPages.isEmpty()) {
+                        documents.add(new Document(itemId + "-" + documentIndex++, currentPages));
+                        currentPages = new ArrayList<>();
+                    }
+                    return new BarcodeHandlingResult(documents, scannedPages, true, "Scanning stopped because a barcode was detected.");
                 }
                 continue;
             }
@@ -300,7 +282,11 @@ public class ScanManager {
             currentPages.add(pageImage);
         }
 
-        return new BarcodeHandlingResult(documents, scannedPages, currentPages, false, "");
+        if (!currentPages.isEmpty()) {
+            documents.add(new Document(itemId + "-" + documentIndex, currentPages));
+        }
+
+        return new BarcodeHandlingResult(documents, scannedPages, false, "");
     }
 
     private NormalizedItem normalizeImportedItem(ScanSession session, ScannerApiClient.ApiTiffItem item) {
@@ -331,6 +317,46 @@ public class ScanManager {
         return id.substring(0, Math.min(12, id.length()));
     }
 
+    private void ensureProfileSettings(ScanSession session) {
+        if (session.getSelectedBarcodeBehavior().isBlank() || session.getBarcodePageBehavior().isBlank()) {
+            applyProfileSettings(session, resolveProfileSettings(session.getProfileName()));
+        }
+    }
+
+    private void applyProfileSettings(ScanSession session, ProfileScanSettings settings) {
+        session.setSelectedBarcodeBehavior(settings.barcodeBehavior());
+        session.setBarcodePageBehavior(settings.barcodePageBehavior());
+        session.setBarcodeSplittingEnabled(settings.barcodeSplittingEnabled());
+    }
+
+    private ProfileScanSettings resolveProfileSettings(String profileName) {
+        return scanProfileDAO.findByName(profileName)
+                .map(this::toProfileScanSettings)
+                .orElseGet(ScanManager::defaultProfileScanSettings);
+    }
+
+    private ProfileScanSettings toProfileScanSettings(ScanProfile profile) {
+        String barcodeBehavior = profile.getBarcodeDetectedBehavior().isBlank()
+                ? defaultProfileScanSettings().barcodeBehavior()
+                : profile.getBarcodeDetectedBehavior();
+        String barcodePageBehavior = profile.getBarcodePageBehavior().isBlank()
+                ? defaultProfileScanSettings().barcodePageBehavior()
+                : profile.getBarcodePageBehavior();
+        return new ProfileScanSettings(
+                barcodeBehavior,
+                barcodePageBehavior,
+                profile.isBarcodeSplitting()
+        );
+    }
+
+    private static ProfileScanSettings defaultProfileScanSettings() {
+        return new ProfileScanSettings(
+                "Continue scanning when barcode is found",
+                "Keep barcode page in final document",
+                true
+        );
+    }
+
     private boolean isGeneratedItemId(String itemId) {
         return itemId == null || itemId.isBlank() || itemId.startsWith("api-item-");
     }
@@ -347,56 +373,13 @@ public class ScanManager {
         return clientName == null || clientName.isBlank() || "Imported Client".equalsIgnoreCase(clientName.trim());
     }
 
-    private static int countBarcodePages(List<PageImage> pages) {
-        int count = 0;
-        for (PageImage page : pages) {
-            if (page.getPageType() == PageImage.PageType.BARCODE) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private static long elapsedMs(long startNs) {
-        return (System.nanoTime() - startNs) / 1_000_000L;
-    }
-
-    private static void logScanPerf(
-            String status,
-            long fetchMs,
-            long normalizeMs,
-            long splitMs,
-            long persistMs,
-            int fetchedPages,
-            int scannedPages,
-            int documents,
-            int barcodePages,
-            long totalMs
-    ) {
-        System.out.println(
-                "SCAN_PERF status=" + status
-                        + " totalMs=" + totalMs
-                        + " fetchMs=" + fetchMs
-                        + " normalizeMs=" + normalizeMs
-                        + " barcodeSplitMs=" + splitMs
-                        + " persistMs=" + persistMs
-                        + " fetchedPages=" + fetchedPages
-                        + " scannedPages=" + scannedPages
-                        + " documents=" + documents
-                        + " barcodePages=" + barcodePages
-        );
-    }
-
-    private record BarcodeHandlingResult(
-            List<Document> documents,
-            List<PageImage> scannedPages,
-            List<PageImage> pendingPages,
-            boolean stoppedOnBarcode,
-            String message
-    ) {
+    private record BarcodeHandlingResult(List<Document> documents, List<PageImage> scannedPages, boolean stoppedOnBarcode, String message) {
     }
 
     private record NormalizedItem(String itemId, String caseReference, String clientNumber, String clientName) {
+    }
+
+    private record ProfileScanSettings(String barcodeBehavior, String barcodePageBehavior, boolean barcodeSplittingEnabled) {
     }
 
     public record ResumedSession(ScanSession session, List<Document> documents) {

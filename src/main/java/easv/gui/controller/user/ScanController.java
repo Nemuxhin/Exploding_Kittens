@@ -5,6 +5,7 @@ import easv.be.PageImage;
 import easv.be.ScanSession;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
+import easv.bll.TiffImageSupport;
 import easv.gui.BackgroundExecutor;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
@@ -55,10 +56,13 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public class ScanController {
@@ -158,6 +162,9 @@ public class ScanController {
     private final List<DocumentGroup> documents = new ArrayList<>();
     private final Set<Integer> collapsedDocuments = new HashSet<>();
     private final Deque<ScanSnapshot> undoStack = new ArrayDeque<>();
+    private final Map<Integer, Image> previewImageCache = new HashMap<>();
+    private final Map<Integer, String> previewLoadFailures = new HashMap<>();
+    private final Set<Integer> previewLoadsInProgress = new HashSet<>();
     private final ScanManager scanManager = new ScanManager();
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
@@ -475,6 +482,9 @@ public class ScanController {
         documents.clear();
         collapsedDocuments.clear();
         undoStack.clear();
+        previewImageCache.clear();
+        previewLoadFailures.clear();
+        previewLoadsInProgress.clear();
 
         nextReferenceId = 1;
         nextFileId = 1;
@@ -858,6 +868,9 @@ public class ScanController {
         documents.clear();
         collapsedDocuments.clear();
         undoStack.clear();
+        previewImageCache.clear();
+        previewLoadFailures.clear();
+        previewLoadsInProgress.clear();
 
         nextReferenceId = 1;
         nextFileId = 1;
@@ -886,7 +899,7 @@ public class ScanController {
         selectedFileRefLabel.setText("Please wait while we process your document.");
         refreshWorkspace();
 
-        BackgroundExecutor.io().execute(() -> {
+        BackgroundExecutor.scan().execute(() -> {
             try {
                 ScanImportResult result = scanManager.scanNextItem(
                         activeScanSession,
@@ -971,7 +984,8 @@ public class ScanController {
                 false,
                 pageImage.getSourceReference(),
                 pageImage.getDisplayContent(),
-                pageImage.getPreviewContent()
+                pageImage.getPreviewContent(),
+                pageImage.getPreviewSourceBytes()
         );
         page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees() + sessionRotationDegrees);
         nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
@@ -988,7 +1002,8 @@ public class ScanController {
                 false,
                 pageImage.getSourceReference(),
                 pageImage.getDisplayContent(),
-                pageImage.getPreviewContent()
+                pageImage.getPreviewContent(),
+                pageImage.getPreviewSourceBytes()
         );
         page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees());
         nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
@@ -1726,6 +1741,9 @@ public class ScanController {
         documents.clear();
         collapsedDocuments.clear();
         undoStack.clear();
+        previewImageCache.clear();
+        previewLoadFailures.clear();
+        previewLoadsInProgress.clear();
 
         nextReferenceId = 1;
         nextFileId = 1;
@@ -2423,23 +2441,9 @@ public class ScanController {
     }
 
     private Node createBarcodePreview(ScannedPage page) {
-        Image image = resolvePageImage(page);
-        if (image != null) {
-            StackPane preview = new StackPane(createPreviewImageView(image, PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT));
-            preview.getStyleClass().add("mock-document-page");
-            preview.setMinWidth(PREVIEW_PAGE_WIDTH);
-            preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
-            preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
-            preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
-            preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
-            preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
-            preview.setRotate(page.rotationDegrees);
-
-            Label badge = new Label("BARCODE");
-            badge.getStyleClass().add("barcode-preview-badge");
-            StackPane.setAlignment(badge, Pos.TOP_CENTER);
-            preview.getChildren().add(badge);
-            return preview;
+        Node actualPreview = createActualDocumentPreview(page);
+        if (actualPreview != null) {
+            return actualPreview;
         }
 
         VBox barcodePreview = new VBox(15);
@@ -2472,18 +2476,9 @@ public class ScanController {
     }
 
     private Node createDocumentPreview(ScannedPage page) {
-        Image image = resolvePageImage(page);
-        if (image != null) {
-            StackPane preview = new StackPane(createPreviewImageView(image, PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT));
-            preview.getStyleClass().add("mock-document-page");
-            preview.setMinWidth(PREVIEW_PAGE_WIDTH);
-            preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
-            preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
-            preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
-            preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
-            preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
-            preview.setRotate(page.rotationDegrees);
-            return preview;
+        Node actualPreview = createActualDocumentPreview(page);
+        if (actualPreview != null) {
+            return actualPreview;
         }
 
         VBox documentPage = new VBox(15);
@@ -2581,6 +2576,101 @@ public class ScanController {
         documentPage.getChildren().addAll(topSection, textLines, formArea, bottomText, bottomRow);
 
         return documentPage;
+    }
+
+    private Node createActualDocumentPreview(ScannedPage page) {
+        if (page == null || (page.displayContent.isBlank() && page.previewSourceBytes.length == 0)) {
+            return null;
+        }
+
+        String failureMessage = previewLoadFailures.get(page.referenceId);
+        if (failureMessage != null) {
+            return createPreviewUnavailableState(failureMessage);
+        }
+
+        Image image = previewImageCache.get(page.referenceId);
+        if (image == null) {
+            ensurePreviewImageLoaded(page);
+            return createPreviewLoadingState();
+        }
+
+        ImageView imageView = new ImageView(image);
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(PREVIEW_PAGE_WIDTH);
+        imageView.setFitHeight(PREVIEW_PAGE_HEIGHT);
+        imageView.setRotate(page.rotationDegrees);
+        imageView.setSmooth(true);
+
+        StackPane preview = new StackPane(imageView);
+        preview.setAlignment(Pos.CENTER);
+        preview.getStyleClass().add("mock-document-page");
+        preview.setMinWidth(PREVIEW_PAGE_WIDTH);
+        preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        if (page.needsRescan) {
+            Label warning = new Label("Marked for rescan");
+            warning.getStyleClass().add("preview-warning-banner");
+            StackPane.setAlignment(warning, Pos.TOP_CENTER);
+            preview.getChildren().add(warning);
+        }
+
+        if (page.barcode) {
+            Label barcodeLabel = new Label("Barcode Page");
+            barcodeLabel.getStyleClass().add("barcode-preview-badge");
+            StackPane.setAlignment(barcodeLabel, Pos.TOP_LEFT);
+            preview.getChildren().add(barcodeLabel);
+        }
+
+        return preview;
+    }
+
+    private Node createPreviewLoadingState() {
+        VBox loading = new VBox(9);
+        loading.setAlignment(Pos.CENTER);
+        loading.getStyleClass().add("mock-document-page");
+        loading.setMinWidth(PREVIEW_PAGE_WIDTH);
+        loading.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        loading.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        loading.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        loading.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        loading.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        Label title = new Label("Loading TIFF preview");
+        title.getStyleClass().add("scan-preview-empty-title");
+
+        Label copy = new Label("The scanned page is being decoded from the API response.");
+        copy.getStyleClass().add("scan-preview-empty-copy");
+        copy.setWrapText(true);
+
+        loading.getChildren().addAll(title, copy);
+        return loading;
+    }
+
+    private Node createPreviewUnavailableState(String message) {
+        VBox unavailable = new VBox(9);
+        unavailable.setAlignment(Pos.CENTER);
+        unavailable.getStyleClass().add("mock-document-page");
+        unavailable.setMinWidth(PREVIEW_PAGE_WIDTH);
+        unavailable.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        unavailable.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        unavailable.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        unavailable.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        unavailable.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        Label title = new Label("TIFF preview unavailable");
+        title.getStyleClass().add("scan-preview-empty-title");
+
+        Label copy = new Label(message);
+        copy.getStyleClass().add("scan-preview-empty-copy");
+        copy.setWrapText(true);
+        copy.setMaxWidth(360);
+
+        unavailable.getChildren().addAll(title, copy);
+        return unavailable;
     }
 
     private ImageView createPreviewImageView(Image image, double fitWidth, double fitHeight) {
@@ -2681,45 +2771,114 @@ public class ScanController {
         if (page == null) {
             return null;
         }
-        if (page.cachedPreviewImage != null) {
-            return page.cachedPreviewImage;
-        }
-
-        String imageContent = page.imageContent();
-        if (imageContent.isBlank()) {
-            return null;
-        }
-
-        page.cachedPreviewImage = decodeDataUriImage(imageContent);
-        return page.cachedPreviewImage;
+        return previewImageCache.get(page.referenceId);
     }
 
-    private Image decodeDataUriImage(String dataUri) {
-        if (dataUri == null || dataUri.isBlank()) {
-            return null;
+    private void ensurePreviewImageLoaded(ScannedPage page) {
+        if (page == null || (page.displayContent.isBlank() && page.previewSourceBytes.length == 0)) {
+            return;
+        }
+        if (previewImageCache.containsKey(page.referenceId) || previewLoadsInProgress.contains(page.referenceId)) {
+            return;
         }
 
-        int commaIndex = dataUri.indexOf(',');
-        if (commaIndex < 0 || commaIndex >= dataUri.length() - 1) {
-            return null;
-        }
+        previewLoadsInProgress.add(page.referenceId);
+        int referenceId = page.referenceId;
+        String displayContent = page.displayContent;
+        byte[] previewSourceBytes = Arrays.copyOf(page.previewSourceBytes, page.previewSourceBytes.length);
 
-        try {
-            byte[] bytes = Base64.getDecoder().decode(dataUri.substring(commaIndex + 1));
-            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
-            if (bufferedImage != null) {
-                return SwingFXUtils.toFXImage(bufferedImage, null);
+        BackgroundExecutor.preview().execute(() -> {
+            PreviewDecodeResult result = decodePreviewImage(previewSourceBytes, displayContent);
+            Platform.runLater(() -> {
+                previewLoadsInProgress.remove(referenceId);
+                if (result.image() != null) {
+                    previewImageCache.put(referenceId, result.image());
+                    previewLoadFailures.remove(referenceId);
+                } else {
+                    previewLoadFailures.put(referenceId, result.message());
+                }
+
+                if (selectedPage != null && selectedPage.referenceId == referenceId) {
+                    if (reviewWorkspaceView.isVisible()) {
+                        renderReviewPreview();
+                    } else {
+                        renderPreview();
+                    }
+                }
+            });
+        });
+    }
+
+    private PreviewDecodeResult decodePreviewImage(byte[] previewSourceBytes, String displayContent) {
+        if (previewSourceBytes.length > 0) {
+            Image directPreview = loadStandardPreviewImage(previewSourceBytes);
+            if (directPreview != null) {
+                return PreviewDecodeResult.success(directPreview);
             }
 
-            Image image = new Image(new ByteArrayInputStream(bytes));
+            PreviewDecodeResult decodedTiff = decodeTiffPreviewImage(previewSourceBytes);
+            if (decodedTiff.image() != null) {
+                return decodedTiff;
+            }
+        }
+
+        byte[] bytes = extractDisplayContentBytes(displayContent);
+        if (bytes.length == 0) {
+            return PreviewDecodeResult.failed("The API response did not contain previewable TIFF data.");
+        }
+
+        Image directImage = loadStandardPreviewImage(bytes);
+        if (directImage != null) {
+            return PreviewDecodeResult.success(directImage);
+        }
+
+        return decodeTiffPreviewImage(bytes);
+    }
+
+    private PreviewDecodeResult decodeTiffPreviewImage(byte[] bytes) {
+        BufferedImage bufferedImage = TiffImageSupport.readFirstFrame(
+                bytes,
+                (int) PREVIEW_PAGE_WIDTH,
+                (int) PREVIEW_PAGE_HEIGHT
+        );
+        if (bufferedImage == null) {
+            return PreviewDecodeResult.failed("The TIFF preview could not be decoded.");
+        }
+
+        Image convertedImage = SwingFXUtils.toFXImage(bufferedImage, null);
+        if (convertedImage == null) {
+            return PreviewDecodeResult.failed("The TIFF preview image could not be loaded.");
+        }
+
+        return PreviewDecodeResult.success(convertedImage);
+    }
+
+    private Image loadStandardPreviewImage(byte[] bytes) {
+        try {
+            Image image = new Image(new ByteArrayInputStream(bytes), 0, 0, true, true);
             if (image.isError() || image.getWidth() <= 0 || image.getHeight() <= 0) {
                 return null;
             }
             return image;
-        } catch (IllegalArgumentException exception) {
-            return null;
         } catch (Exception exception) {
             return null;
+        }
+    }
+
+    private byte[] extractDisplayContentBytes(String displayContent) {
+        if (displayContent == null || displayContent.isBlank()) {
+            return new byte[0];
+        }
+
+        int commaIndex = displayContent.indexOf(',');
+        if (commaIndex < 0 || commaIndex >= displayContent.length() - 1) {
+            return new byte[0];
+        }
+
+        try {
+            return Base64.getDecoder().decode(displayContent.substring(commaIndex + 1));
+        } catch (IllegalArgumentException exception) {
+            return new byte[0];
         }
     }
 
@@ -3867,6 +4026,7 @@ public class ScanController {
         private final String sourceReference;
         private final String displayContent;
         private final String previewContent;
+        private final byte[] previewSourceBytes;
         private final double previewZoomMultiplier;
         private final double previewTranslateX;
         private final double previewTranslateY;
@@ -3882,6 +4042,7 @@ public class ScanController {
             this.sourceReference = page.sourceReference;
             this.displayContent = page.displayContent;
             this.previewContent = page.previewContent;
+            this.previewSourceBytes = Arrays.copyOf(page.previewSourceBytes, page.previewSourceBytes.length);
             this.previewZoomMultiplier = page.previewZoomMultiplier;
             this.previewTranslateX = page.previewTranslateX;
             this.previewTranslateY = page.previewTranslateY;
@@ -3895,7 +4056,8 @@ public class ScanController {
                     needsRescan,
                     sourceReference,
                     displayContent,
-                    previewContent
+                    previewContent,
+                    previewSourceBytes
             );
             page.documentNumber = documentNumber;
             page.rotationDegrees = rotationDegrees;
@@ -3954,6 +4116,7 @@ public class ScanController {
         private final String sourceReference;
         private final String displayContent;
         private final String previewContent;
+        private final byte[] previewSourceBytes;
 
         private int documentNumber;
         private int rotationDegrees;
@@ -3965,7 +4128,7 @@ public class ScanController {
         private transient Image cachedPreviewImage;
 
         private ScannedPage(int referenceId, int fileId, boolean barcode, boolean needsRescan) {
-            this(referenceId, fileId, barcode, needsRescan, "", "", "");
+            this(referenceId, fileId, barcode, needsRescan, "", "", "", new byte[0]);
         }
 
         private ScannedPage(
@@ -3975,7 +4138,8 @@ public class ScanController {
                 boolean needsRescan,
                 String sourceReference,
                 String displayContent,
-                String previewContent
+                String previewContent,
+                byte[] previewSourceBytes
         ) {
             this.referenceId = referenceId;
             this.fileId = fileId;
@@ -3984,6 +4148,7 @@ public class ScanController {
             this.sourceReference = sourceReference == null ? "" : sourceReference;
             this.displayContent = displayContent == null ? "" : displayContent;
             this.previewContent = previewContent == null ? "" : previewContent;
+            this.previewSourceBytes = previewSourceBytes == null ? new byte[0] : Arrays.copyOf(previewSourceBytes, previewSourceBytes.length);
             this.rotationDegrees = 0;
             this.previewZoomMultiplier = 1.0;
         }
@@ -4010,8 +4175,14 @@ public class ScanController {
             return displayContent;
         }
     }
+
+    private record PreviewDecodeResult(Image image, String message) {
+        private static PreviewDecodeResult success(Image image) {
+            return new PreviewDecodeResult(image, "");
+        }
+
+        private static PreviewDecodeResult failed(String message) {
+            return new PreviewDecodeResult(null, message == null ? "The TIFF preview could not be decoded." : message);
+        }
+    }
 }
-
-
-
-

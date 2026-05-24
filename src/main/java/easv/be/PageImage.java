@@ -1,6 +1,8 @@
 package easv.be;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,7 +19,7 @@ public class PageImage {
     private int referenceId;
     private int rotationDegrees;
     private String displayContent;
-    private String previewContent;
+    private byte[] previewSourceBytes = new byte[0];
     private Instant deletedAt;
 
     public PageImage(int pageNumber, PageType pageType, String sourceReference) {
@@ -48,7 +50,6 @@ public class PageImage {
         this.referenceId = Math.max(referenceId, 0);
         this.rotationDegrees = normalizeRotation(rotationDegrees);
         this.displayContent = displayContent == null ? "" : displayContent;
-        this.previewContent = "";
         this.deletedAt = deletedAt;
     }
 
@@ -80,12 +81,19 @@ public class PageImage {
         return displayContent;
     }
 
-    public String getPreviewContent() {
-        return previewContent;
-    }
-
     public Instant getDeletedAt() {
         return deletedAt;
+    }
+
+    public byte[] getPreviewSourceBytes() {
+        return Arrays.copyOf(previewSourceBytes, previewSourceBytes.length);
+    }
+
+    public String getPreviewContent() {
+        if (previewSourceBytes.length == 0) {
+            return "";
+        }
+        return "data:image/tiff;base64," + Base64.getEncoder().encodeToString(previewSourceBytes);
     }
 
     public boolean isDeleted() {
@@ -111,8 +119,8 @@ public class PageImage {
         this.displayContent = displayContent == null ? "" : displayContent;
     }
 
-    public void setPreviewContent(String previewContent) {
-        this.previewContent = previewContent == null ? "" : previewContent;
+    public void setPreviewSourceBytes(byte[] previewSourceBytes) {
+        this.previewSourceBytes = previewSourceBytes == null ? new byte[0] : Arrays.copyOf(previewSourceBytes, previewSourceBytes.length);
     }
 
     public void markDeleted(Instant deletedAt) {

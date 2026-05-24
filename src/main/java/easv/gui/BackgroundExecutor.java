@@ -11,12 +11,26 @@ public final class BackgroundExecutor {
             Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
             new BackgroundThreadFactory()
     );
+    private static final ExecutorService SCAN_EXECUTOR = Executors.newSingleThreadExecutor(
+            new BackgroundThreadFactory()
+    );
+    private static final ExecutorService PREVIEW_EXECUTOR = Executors.newSingleThreadExecutor(
+            new BackgroundThreadFactory()
+    );
 
     private BackgroundExecutor() {
     }
 
     public static ExecutorService io() {
         return IO_EXECUTOR;
+    }
+
+    public static ExecutorService scan() {
+        return SCAN_EXECUTOR;
+    }
+
+    public static ExecutorService preview() {
+        return PREVIEW_EXECUTOR;
     }
 
     private static final class BackgroundThreadFactory implements ThreadFactory {
