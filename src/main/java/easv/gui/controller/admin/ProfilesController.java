@@ -17,6 +17,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -28,7 +29,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -730,31 +734,248 @@ public class ProfilesController {
     }
 
     private boolean confirmDeleteProfile(ScanProfile profile) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete profile");
-        alert.setHeaderText(null);
-        alert.setContentText("Are you sure you want to delete the profile \"" + profile.getName() + "\"?");
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Delete profile");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
-        if (pageScrollPane != null && pageScrollPane.getScene() != null) {
-            alert.initOwner(pageScrollPane.getScene().getWindow());
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
         }
 
-        return alert.showAndWait()
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-delete-dialog-pane");
+
+        if (pageScrollPane != null && pageScrollPane.getScene() != null) {
+            dialog.initOwner(pageScrollPane.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(pageScrollPane.getScene().getStylesheets());
+
+            if (pageScrollPane.getScene().getRoot() != null
+                    && pageScrollPane.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(540);
+        dialog.getDialogPane().setMaxWidth(540);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setContent(createDeleteProfileDialogContent(dialog, profile));
+
+        return dialog.showAndWait()
                 .filter(buttonType -> buttonType == ButtonType.OK)
                 .isPresent();
     }
 
     private void showProfileMessage(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle(title);
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
-        if (pageScrollPane != null && pageScrollPane.getScene() != null) {
-            alert.initOwner(pageScrollPane.getScene().getWindow());
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
         }
 
-        alert.showAndWait();
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (pageScrollPane != null && pageScrollPane.getScene() != null) {
+            dialog.initOwner(pageScrollPane.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(pageScrollPane.getScene().getStylesheets());
+
+            if (pageScrollPane.getScene().getRoot() != null
+                    && pageScrollPane.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(540);
+        dialog.getDialogPane().setMaxWidth(540);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(createProfileCreatedDialogContent(dialog, title, message));
+
+        dialog.showAndWait();
+    }
+
+    private VBox createDeleteProfileDialogContent(Dialog<ButtonType> dialog, ScanProfile profile) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-delete-dialog-root");
+
+        HBox header = createDeleteProfileDialogHeader(dialog);
+        makeDialogDraggable(dialog, header);
+
+        root.getChildren().addAll(
+                header,
+                createDeleteProfileDialogBody(dialog, profile)
+        );
+
+        return root;
+    }
+
+    private HBox createDeleteProfileDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-delete-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-delete-dialog-brand-shell");
+
+        Label titleLabel = new Label("Delete profile");
+        titleLabel.getStyleClass().add("profile-delete-dialog-title");
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("profile-delete-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-delete-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private VBox createDeleteProfileDialogBody(Dialog<ButtonType> dialog, ScanProfile profile) {
+        Label messageLabel = new Label("Are you sure you want to delete the profile \"" + profile.getName() + "\"?");
+        messageLabel.getStyleClass().add("profile-delete-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button confirmButton = new Button("Delete");
+        confirmButton.getStyleClass().addAll("profile-delete-dialog-confirm-button", "profile-danger-button");
+        confirmButton.setFocusTraversable(false);
+        confirmButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().addAll("profile-delete-dialog-cancel-button", "profile-secondary-button");
+        cancelButton.setFocusTraversable(false);
+        cancelButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CANCEL);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, confirmButton, cancelButton);
+        actions.getStyleClass().add("profile-delete-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-delete-dialog-body");
+
+        return body;
+    }
+
+    private VBox createProfileCreatedDialogContent(Dialog<ButtonType> dialog, String title, String message) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+
+        HBox header = createProfileCreatedDialogHeader(dialog, title);
+        makeDialogDraggable(dialog, header);
+
+        root.getChildren().addAll(
+                header,
+                createProfileCreatedDialogBody(dialog, message)
+        );
+
+        return root;
+    }
+
+    private HBox createProfileCreatedDialogHeader(Dialog<ButtonType> dialog, String title) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private VBox createProfileCreatedDialogBody(Dialog<ButtonType> dialog, String message) {
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.getStyleClass().addAll("profile-created-dialog-ok-button", "profile-open-button");
+        okButton.setFocusTraversable(false);
+        okButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, okButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+
+        return body;
+    }
+
+    private void makeDialogDraggable(Dialog<?> dialog, Node dragHandle) {
+        if (dialog == null || dragHandle == null) {
+            return;
+        }
+
+        final double[] dragOffset = new double[2];
+
+        dragHandle.setOnMousePressed(event -> {
+            if (!(dialog.getDialogPane().getScene().getWindow() instanceof Stage stage)) {
+                return;
+            }
+
+            dragOffset[0] = event.getScreenX() - stage.getX();
+            dragOffset[1] = event.getScreenY() - stage.getY();
+        });
+
+        dragHandle.setOnMouseDragged(event -> {
+            if (!(dialog.getDialogPane().getScene().getWindow() instanceof Stage stage)) {
+                return;
+            }
+
+            stage.setX(event.getScreenX() - dragOffset[0]);
+            stage.setY(event.getScreenY() - dragOffset[1]);
+        });
     }
 
     private AdminManager.ProfileInput createDefaultProfileInput() {

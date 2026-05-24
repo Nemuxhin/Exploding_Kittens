@@ -13,10 +13,12 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -40,6 +42,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -2049,16 +2052,39 @@ public class AssignedQaController {
     }
 
     private void showCompletedQaMessage() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Completed QA");
-        alert.setHeaderText(null);
-        alert.setContentText("Completed QA");
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Completed QA");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
-        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
-            alert.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
         }
 
-        alert.showAndWait();
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
+            dialog.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(qaReviewWorkspaceView.getScene().getStylesheets());
+
+            if (qaReviewWorkspaceView.getScene().getRoot() != null
+                    && qaReviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(540);
+        dialog.getDialogPane().setMaxWidth(540);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(createCompletedQaDialogContent(dialog));
+
+        dialog.showAndWait();
     }
 
     @FXML
@@ -2121,17 +2147,213 @@ public class AssignedQaController {
         int approvedPages = getApprovedPageCount();
         int remainingPages = Math.max(0, totalPages - approvedPages);
 
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Export blocked");
-        alert.setHeaderText(null);
-        alert.setContentText("You can export only after all QA documents are approved. "
-                + remainingPages + " pages still need approval.");
+        String message = "You can export only after all QA documents are approved. "
+                + remainingPages + " pages still need approval.";
 
-        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
-            alert.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Export blocked");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
         }
 
-        alert.showAndWait();
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
+            dialog.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(qaReviewWorkspaceView.getScene().getStylesheets());
+
+            if (qaReviewWorkspaceView.getScene().getRoot() != null
+                    && qaReviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(540);
+        dialog.getDialogPane().setMaxWidth(540);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(createExportBlockedDialogContent(dialog, message));
+
+        dialog.showAndWait();
+    }
+
+    private VBox createCompletedQaDialogContent(Dialog<ButtonType> dialog) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+
+        HBox header = createCompletedQaDialogHeader(dialog);
+        makeDialogDraggable(dialog, header);
+
+        root.getChildren().addAll(
+                header,
+                createCompletedQaDialogBody(dialog)
+        );
+
+        return root;
+    }
+
+    private HBox createCompletedQaDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label("Completed QA");
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private VBox createCompletedQaDialogBody(Dialog<ButtonType> dialog) {
+        int completedDocuments = selectedAssignment == null
+                ? reviewDocuments.size()
+                : Math.max(reviewDocuments.size(), selectedAssignment.documentCount);
+        String boxId = selectedAssignment == null ? "this box" : selectedAssignment.boxId;
+        String message = boxId + " completed with "
+                + completedDocuments + " document" + (completedDocuments == 1 ? "" : "s") + ".";
+
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.getStyleClass().addAll("profile-created-dialog-ok-button", "profile-open-button");
+        okButton.setFocusTraversable(false);
+        okButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, okButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+
+        return body;
+    }
+
+    private VBox createExportBlockedDialogContent(Dialog<ButtonType> dialog, String message) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+
+        HBox header = createExportBlockedDialogHeader(dialog);
+        makeDialogDraggable(dialog, header);
+
+        root.getChildren().addAll(
+                header,
+                createExportBlockedDialogBody(dialog, message)
+        );
+
+        return root;
+    }
+
+    private HBox createExportBlockedDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label("Export blocked");
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private VBox createExportBlockedDialogBody(Dialog<ButtonType> dialog, String message) {
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.getStyleClass().addAll("profile-created-dialog-ok-button", "profile-open-button");
+        okButton.setFocusTraversable(false);
+        okButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, okButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+
+        return body;
+    }
+
+    private void makeDialogDraggable(Dialog<?> dialog, Node dragHandle) {
+        if (dialog == null || dragHandle == null) {
+            return;
+        }
+
+        final double[] dragOffset = new double[2];
+
+        dragHandle.setOnMousePressed(event -> {
+            if (!(dialog.getDialogPane().getScene().getWindow() instanceof Stage stage)) {
+                return;
+            }
+
+            dragOffset[0] = event.getScreenX() - stage.getX();
+            dragOffset[1] = event.getScreenY() - stage.getY();
+        });
+
+        dragHandle.setOnMouseDragged(event -> {
+            if (!(dialog.getDialogPane().getScene().getWindow() instanceof Stage stage)) {
+                return;
+            }
+
+            stage.setX(event.getScreenX() - dragOffset[0]);
+            stage.setY(event.getScreenY() - dragOffset[1]);
+        });
     }
 
     private VBox buildExportDialogContent(Stage stage) {
