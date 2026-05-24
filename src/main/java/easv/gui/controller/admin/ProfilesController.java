@@ -8,17 +8,22 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -26,6 +31,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
@@ -42,6 +48,7 @@ public class ProfilesController {
     private static final double MIN_CARD_WIDTH = 330;
 
     private static final String PREVIEW_BOX_ID = "BOX-2026-004";
+    private static final int MAX_VISIBLE_ASSIGNED_USERS = 5;
 
     @FXML private ScrollPane pageScrollPane;
 
@@ -69,7 +76,7 @@ public class ProfilesController {
     @FXML private VBox previewTabPane;
 
     @FXML private TextField profileNameField;
-    @FXML private TextField profileCodeField;
+    @FXML private TextField profileClientField;
     @FXML private TextArea profileDescriptionArea;
     @FXML private ComboBox<String> profileStatusComboBox;
 
@@ -81,6 +88,7 @@ public class ProfilesController {
     @FXML private ComboBox<String> brightnessComboBox;
     @FXML private ComboBox<String> contrastComboBox;
     @FXML private ToggleButton deskewToggle;
+    @FXML private ToggleButton qaRequiredToggle;
 
     @FXML private ComboBox<String> exportFormatComboBox;
     @FXML private TextField exportNamingField;
@@ -94,6 +102,7 @@ public class ProfilesController {
     @FXML private Label previewExportFolderLabel;
     @FXML private Label previewBarcodeLabel;
     @FXML private Label previewPageCorrectionLabel;
+    @FXML private Label previewQaRequiredLabel;
     @FXML private Label previewExportFormatLabel;
 
     private final ObservableList<ScanProfile> masterProfiles = FXCollections.observableArrayList();
@@ -161,17 +170,15 @@ public class ProfilesController {
 
         exportFormatComboBox.getItems().setAll(
                 "Multi-page TIFF",
-                "PDF",
-                "PDF/A",
                 "Single-page TIFF"
         );
 
         profileNameField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        profileCodeField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         exportNamingField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeSplitToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         deskewToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+        qaRequiredToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         barcodePageBehaviorComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
@@ -226,7 +233,6 @@ public class ProfilesController {
         }
 
         return Strings.normalize(profile.getName()).contains(searchText)
-                || Strings.normalize(profile.getCode()).contains(searchText)
                 || Strings.normalize(profile.getDescription()).contains(searchText)
                 || Strings.normalize(profile.getExportNaming()).contains(searchText)
                 || Strings.normalize(displayStatus(profile)).contains(searchText)
@@ -409,8 +415,8 @@ public class ProfilesController {
     private VBox buildInfoBox(ScanProfile profile) {
         VBox infoBox = new VBox(10);
         infoBox.getChildren().addAll(
-                buildInfoBlock("Export Naming", Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), true),
-                buildInfoBlock("Assigned Users", formatAssignedUsers(assignedUserCountFor(profile)), false),
+                buildInfoBlock("Export Naming", Strings.displayText(profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING), true),
+                buildAssignedUsersBlock(profile),
                 buildInfoBlock("Updated", Strings.displayText(profile.getLastUpdated(), "Not updated yet"), false)
         );
 
@@ -449,6 +455,73 @@ public class ProfilesController {
         return box;
     }
 
+    private VBox buildAssignedUsersBlock(ScanProfile profile) {
+        VBox box = new VBox(7);
+
+        Label label = new Label("Assigned Users");
+        label.getStyleClass().add("profile-info-label");
+
+        List<User> assignedUsers = usersAssignedTo(profile);
+
+        Label value = new Label(formatAssignedUsers(assignedUsers.size()));
+        value.getStyleClass().add("profile-info-value");
+        value.setWrapText(true);
+
+        HBox avatars = buildAssignedUsersStrip(assignedUsers);
+
+        box.getChildren().addAll(label, value);
+
+        if (!assignedUsers.isEmpty()) {
+            box.getChildren().add(avatars);
+        }
+
+        return box;
+    }
+
+    private HBox buildAssignedUsersStrip(List<User> assignedUsers) {
+        HBox strip = new HBox(-6);
+        strip.getStyleClass().add("profile-assigned-users-strip");
+        strip.setAlignment(Pos.CENTER_LEFT);
+
+        int visibleUserCount = Math.min(assignedUsers.size(), MAX_VISIBLE_ASSIGNED_USERS);
+
+        for (int index = 0; index < visibleUserCount; index++) {
+            strip.getChildren().add(buildAssignedUserAvatar(assignedUsers.get(index), index));
+        }
+
+        int hiddenUserCount = assignedUsers.size() - visibleUserCount;
+
+        if (hiddenUserCount > 0) {
+            strip.getChildren().add(buildOverflowAvatar(hiddenUserCount));
+        }
+
+        return strip;
+    }
+
+    private StackPane buildAssignedUserAvatar(User user, int index) {
+        Label initialsLabel = new Label(Strings.initials(user.getName(), "?"));
+        initialsLabel.getStyleClass().add("profile-assigned-avatar-initials");
+
+        StackPane avatar = new StackPane(initialsLabel);
+        avatar.getStyleClass().addAll(
+                "profile-assigned-avatar",
+                "profile-assigned-avatar-" + ((index % 4) + 1)
+        );
+        Tooltip.install(avatar, new Tooltip(user.getName()));
+
+        return avatar;
+    }
+
+    private StackPane buildOverflowAvatar(int hiddenUserCount) {
+        Label countLabel = new Label("+" + hiddenUserCount);
+        countLabel.getStyleClass().add("profile-assigned-avatar-initials");
+
+        StackPane avatar = new StackPane(countLabel);
+        avatar.getStyleClass().addAll("profile-assigned-avatar", "profile-assigned-avatar-overflow");
+
+        return avatar;
+    }
+
     private Region createDivider() {
         Region divider = new Region();
         divider.getStyleClass().add("profile-card-divider");
@@ -483,7 +556,7 @@ public class ProfilesController {
         editorStatusBadge.getStyleClass().setAll("profile-status-badge", statusClassFor(displayStatus(profile)));
 
         profileNameField.setText(profile.getName());
-        profileCodeField.setText(profile.getCode());
+        profileClientField.setText(profile.getClient());
         profileDescriptionArea.setText(profile.getDescription());
         profileStatusComboBox.setValue(displayStatus(profile));
 
@@ -495,6 +568,7 @@ public class ProfilesController {
         brightnessComboBox.setValue(profile.getBrightness());
         contrastComboBox.setValue(profile.getContrast());
         deskewToggle.setSelected(profile.isDeskew());
+        qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
         exportFormatComboBox.setValue(profile.getExportFormat());
         exportNamingField.setText(profile.getExportNaming());
@@ -556,23 +630,18 @@ public class ProfilesController {
 
     private void syncPreview() {
         String profileName = Strings.clean(profileNameField.getText());
-        String profileCode = Strings.clean(profileCodeField.getText());
-        String namingPattern = Strings.clean(exportNamingField.getText());
+        String namingPattern = ScanProfile.normalizeExportNaming(exportNamingField.getText());
 
         if (profileName.isBlank()) {
             profileName = "Untitled Profile";
         }
 
-        if (profileCode.isBlank()) {
-            profileCode = "ProfileCode";
-        }
-
         if (namingPattern.isBlank()) {
-            namingPattern = "{profileCode}_{boxId}";
+            namingPattern = ScanProfile.DEFAULT_EXPORT_NAMING;
         }
 
         String exportFolder = namingPattern
-                .replace("{profileCode}", profileCode)
+                .replace("{profileName}", profileName)
                 .replace("{boxId}", PREVIEW_BOX_ID);
 
         exportNamingPreviewLabel.setText(exportFolder);
@@ -594,6 +663,7 @@ public class ProfilesController {
                         + " - Deskew " + (deskewToggle.isSelected() ? "Enabled" : "Disabled")
         );
 
+        previewQaRequiredLabel.setText(qaRequiredToggle.isSelected() ? "Yes" : "No");
         previewExportFormatLabel.setText(safeValue(exportFormatComboBox));
     }
 
@@ -646,14 +716,547 @@ public class ProfilesController {
 
     @FXML
     private void createProfile() {
-        ScanProfile newProfile = adminManager.createProfile(createDefaultProfileInput());
+        if (adminManager == null) {
+            return;
+        }
 
+        showCreateProfileDialog();
+    }
+
+    private void showCreateProfileDialog() {
+        ButtonType createButtonType = new ButtonType("Create Profile", ButtonBar.ButtonData.OK_DONE);
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Create Profile");
+        dialog.setHeaderText(null);
+        dialog.setResizable(false);
+        dialog.getDialogPane().getButtonTypes().setAll(createButtonType, ButtonType.CANCEL);
+        configureCreateProfileDialogShell(dialog);
+
+        ProfileDialogFields fields = createProfileDialogFields();
+        dialog.getDialogPane().setContent(buildCreateProfileDialogContent(fields));
+
+        Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
+
+        if (createButton != null) {
+            createButton.getStyleClass().add("create-user-button");
+            createButton.addEventFilter(ActionEvent.ACTION, event ->
+                    submitCreateProfileDialog(event, fields)
+            );
+        }
+
+        dialog.setOnShown(event -> fields.nameField.requestFocus());
+        dialog.showAndWait();
+    }
+
+    private void configureCreateProfileDialogShell(Dialog<?> dialog) {
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "admin-dialog-pane", "profile-create-dialog-pane");
+
+        if (pageScrollPane.getScene() == null) {
+            return;
+        }
+
+        dialog.initOwner(pageScrollPane.getScene().getWindow());
+        dialog.getDialogPane().getStylesheets().setAll(pageScrollPane.getScene().getStylesheets());
+
+        if (pageScrollPane.getScene().getRoot().getStyleClass().contains("dark")) {
+            dialog.getDialogPane().getStyleClass().add("dark");
+        }
+    }
+
+    private ProfileDialogFields createProfileDialogFields() {
+        ProfileDialogFields fields = new ProfileDialogFields();
+
+        fields.nameField = createProfileDialogTextField("Profile name");
+        fields.clientField = createProfileDialogTextField("Client");
+        fields.descriptionArea = createProfileDialogTextArea("Description", 4);
+        fields.statusComboBox = createProfileDialogComboBox("Draft", "Active", "Draft", "Archived");
+
+        fields.barcodeSplitToggle = createProfileDialogToggle(false);
+        fields.barcodeDetectedComboBox = createProfileDialogComboBox(
+                "Start new document",
+                "Start new document",
+                "End current document",
+                "Stop scanning and ask user",
+                "Continue scanning and split automatically"
+        );
+        fields.barcodePageBehaviorComboBox = createProfileDialogComboBox(
+                "Remove barcode page from final document",
+                "Remove barcode page from final document",
+                "Keep barcode page in final document",
+                "Move barcode page to separate document"
+        );
+
+        fields.defaultRotationComboBox = createProfileDialogComboBox("0 deg", "0 deg", "90 deg", "180 deg", "270 deg");
+        fields.brightnessComboBox = createProfileDialogComboBox("Normal", "Normal", "Lighter", "Darker");
+        fields.contrastComboBox = createProfileDialogComboBox("Normal", "Normal", "Higher", "Lower");
+        fields.deskewToggle = createProfileDialogToggle(true);
+        fields.qaRequiredToggle = createProfileDialogToggle(true);
+
+        fields.exportFormatComboBox = createProfileDialogComboBox("Multi-page TIFF", "Multi-page TIFF", "Single-page TIFF");
+        fields.exportNamingField = createProfileDialogTextField(ScanProfile.DEFAULT_EXPORT_NAMING);
+        fields.exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
+
+        fields.exportNamingPreviewLabel = createProfileDialogValueLabel("profile-editor-code-preview");
+        fields.previewProfileNameLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+        fields.previewBoxIdLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+        fields.previewExportFolderLabel = createProfileDialogValueLabel("profile-info-code");
+        fields.previewBarcodeLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+        fields.previewPageCorrectionLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+        fields.previewQaRequiredLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+        fields.previewExportFormatLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+
+        fields.generalTabButton = createProfileDialogTabButton("General");
+        fields.scanRulesTabButton = createProfileDialogTabButton("Scan Rules");
+        fields.accessTabButton = createProfileDialogTabButton("Access");
+        fields.previewTabButton = createProfileDialogTabButton("Preview");
+
+        fields.validationLabel = new Label();
+        fields.validationLabel.getStyleClass().add("create-user-validation-message");
+        setVisibleAndManaged(fields.validationLabel, false);
+
+        configureCreateProfileDialogPreview(fields);
+        return fields;
+    }
+
+    private Node buildCreateProfileDialogContent(ProfileDialogFields fields) {
+        fields.generalTabPane = buildCreateGeneralTab(fields);
+        fields.scanRulesTabPane = buildCreateScanRulesTab(fields);
+        fields.accessTabPane = buildCreateAccessTab();
+        fields.previewTabPane = buildCreatePreviewTab(fields);
+
+        StackPane tabContent = new StackPane(
+                fields.generalTabPane,
+                fields.scanRulesTabPane,
+                fields.accessTabPane,
+                fields.previewTabPane
+        );
+        tabContent.getStyleClass().add("profile-editor-content");
+
+        HBox tabs = new HBox(
+                fields.generalTabButton,
+                fields.scanRulesTabButton,
+                fields.accessTabButton,
+                fields.previewTabButton
+        );
+        tabs.getStyleClass().add("profile-editor-tabs");
+
+        fields.generalTabButton.setOnAction(event -> selectCreateDialogTab(fields, EditorTab.GENERAL));
+        fields.scanRulesTabButton.setOnAction(event -> selectCreateDialogTab(fields, EditorTab.SCAN_RULES));
+        fields.accessTabButton.setOnAction(event -> selectCreateDialogTab(fields, EditorTab.ACCESS));
+        fields.previewTabButton.setOnAction(event -> selectCreateDialogTab(fields, EditorTab.PREVIEW));
+
+        VBox header = new VBox(3);
+        header.getStyleClass().add("page-heading-copy");
+        header.getChildren().addAll(
+                createProfileDialogLabel("Create Profile", "page-title"),
+                createProfileDialogLabel("Configure the profile before it appears in the profile list.", "page-subtitle")
+        );
+
+        VBox editor = new VBox(18, header, tabs, tabContent, fields.validationLabel);
+        editor.getStyleClass().addAll("admin-page", "profile-editor-page", "profile-create-dialog-editor");
+        editor.setMaxWidth(Double.MAX_VALUE);
+
+        ScrollPane scrollPane = new ScrollPane(editor);
+        scrollPane.getStyleClass().add("profile-create-dialog-scroll");
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setPrefViewportWidth(930);
+        scrollPane.setPrefViewportHeight(610);
+
+        selectCreateDialogTab(fields, EditorTab.GENERAL);
+        return scrollPane;
+    }
+
+    private VBox buildCreateGeneralTab(ProfileDialogFields fields) {
+        VBox card = new VBox(27);
+        card.getStyleClass().add("profile-editor-card");
+        card.getChildren().addAll(
+                createProfileDialogField("Profile Name *", fields.nameField),
+                createProfileDialogField("Client *", fields.clientField),
+                createProfileDialogField("Description", fields.descriptionArea),
+                createProfileDialogField("Status", fields.statusComboBox)
+        );
+        return card;
+    }
+
+    private VBox buildCreateScanRulesTab(ProfileDialogFields fields) {
+        VBox barcodeSection = new VBox(27);
+        barcodeSection.getStyleClass().add("profile-editor-section");
+
+        HBox barcodeHeader = new HBox();
+        barcodeHeader.setAlignment(Pos.CENTER_LEFT);
+        Label barcodeTitle = createProfileDialogLabel("Barcode Splitting", "profile-editor-section-title");
+        Region barcodeSpacer = new Region();
+        HBox.setHgrow(barcodeSpacer, Priority.ALWAYS);
+        barcodeHeader.getChildren().addAll(barcodeTitle, barcodeSpacer, fields.barcodeSplitToggle);
+
+        GridPane barcodeGrid = new GridPane();
+        barcodeGrid.setHgap(21);
+        barcodeGrid.setVgap(6);
+        barcodeGrid.setMaxWidth(Double.MAX_VALUE);
+        barcodeGrid.getColumnConstraints().setAll(createPercentColumns(2));
+        barcodeGrid.add(createProfileDialogLabel("When barcode is detected", "profile-editor-field-label"), 0, 0);
+        barcodeGrid.add(createProfileDialogLabel("Barcode page behavior", "profile-editor-field-label"), 1, 0);
+        barcodeGrid.add(fields.barcodeDetectedComboBox, 0, 1);
+        barcodeGrid.add(fields.barcodePageBehaviorComboBox, 1, 1);
+
+        barcodeSection.getChildren().addAll(
+                barcodeHeader,
+                createProfileDialogLabel("Enable barcode document splitting", "profile-editor-strong-text"),
+                barcodeGrid
+        );
+
+        VBox correctionSection = new VBox(27);
+        correctionSection.getStyleClass().add("profile-editor-section");
+
+        GridPane correctionGrid = new GridPane();
+        correctionGrid.setHgap(21);
+        correctionGrid.setVgap(6);
+        correctionGrid.setMaxWidth(Double.MAX_VALUE);
+        correctionGrid.getColumnConstraints().setAll(createPercentColumns(3));
+        correctionGrid.add(createProfileDialogLabel("Default rotation", "profile-editor-field-label"), 0, 0);
+        correctionGrid.add(createProfileDialogLabel("Brightness", "profile-editor-field-label"), 1, 0);
+        correctionGrid.add(createProfileDialogLabel("Contrast", "profile-editor-field-label"), 2, 0);
+        correctionGrid.add(fields.defaultRotationComboBox, 0, 1);
+        correctionGrid.add(fields.brightnessComboBox, 1, 1);
+        correctionGrid.add(fields.contrastComboBox, 2, 1);
+
+        HBox deskewRow = new HBox();
+        deskewRow.setAlignment(Pos.CENTER_LEFT);
+        Region deskewSpacer = new Region();
+        HBox.setHgrow(deskewSpacer, Priority.ALWAYS);
+        deskewRow.getChildren().addAll(
+                createProfileDialogLabel("Deskew / straighten pages", "profile-editor-strong-text"),
+                deskewSpacer,
+                fields.deskewToggle
+        );
+
+        HBox qaRequiredRow = new HBox();
+        qaRequiredRow.setAlignment(Pos.CENTER_LEFT);
+        Region qaRequiredSpacer = new Region();
+        HBox.setHgrow(qaRequiredSpacer, Priority.ALWAYS);
+        qaRequiredRow.getChildren().addAll(
+                createProfileDialogLabel("Require QA for scanned boxes", "profile-editor-strong-text"),
+                qaRequiredSpacer,
+                fields.qaRequiredToggle
+        );
+
+        correctionSection.getChildren().addAll(
+                createProfileDialogLabel("Page Correction Defaults", "profile-editor-section-title"),
+                correctionGrid,
+                deskewRow,
+                qaRequiredRow
+        );
+
+        VBox exportSection = new VBox(24);
+        exportSection.getStyleClass().add("profile-editor-section");
+
+        VBox formatField = createProfileDialogField("Export format", fields.exportFormatComboBox);
+        formatField.setMaxWidth(420);
+
+        HBox namingRow = new HBox(21);
+        namingRow.setAlignment(Pos.CENTER_LEFT);
+        namingRow.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(fields.exportNamingField, Priority.ALWAYS);
+
+        VBox previewBox = new VBox(6);
+        previewBox.setMinWidth(276);
+        previewBox.setPrefWidth(276);
+        previewBox.setMaxWidth(276);
+        previewBox.getStyleClass().add("profile-editor-preview-box");
+        previewBox.getChildren().addAll(
+                createProfileDialogLabel("Preview:", "profile-editor-helper-text"),
+                fields.exportNamingPreviewLabel
+        );
+
+        namingRow.getChildren().addAll(fields.exportNamingField, previewBox);
+        exportSection.getChildren().addAll(
+                createProfileDialogLabel("Export Settings", "profile-editor-section-title"),
+                formatField,
+                createProfileDialogField("Export folder naming", namingRow)
+        );
+
+        VBox sections = new VBox(0);
+        sections.getStyleClass().addAll("profile-editor-card", "profile-editor-sectioned-card");
+        sections.getChildren().addAll(
+                barcodeSection,
+                createDivider(),
+                correctionSection,
+                createDivider(),
+                exportSection
+        );
+
+        return sections;
+    }
+
+    private VBox buildCreateAccessTab() {
+        VBox card = new VBox(24);
+        card.getStyleClass().add("profile-editor-card");
+
+        VBox header = new VBox(6);
+        header.getChildren().addAll(
+                createProfileDialogLabel("Profile Access", "profile-editor-section-title"),
+                createProfileDialogLabel("0 users assigned", "profile-editor-subtitle")
+        );
+
+        VBox list = new VBox(0);
+        list.getStyleClass().add("profile-editor-access-list");
+
+        Label emptyLabel = createProfileDialogLabel("Create the profile before assigning users.", "profile-editor-helper-text");
+        VBox.setMargin(emptyLabel, new Insets(21));
+        list.getChildren().add(emptyLabel);
+
+        card.getChildren().addAll(header, list);
+        return card;
+    }
+
+    private VBox buildCreatePreviewTab(ProfileDialogFields fields) {
+        VBox previewBox = new VBox(18);
+        previewBox.getStyleClass().add("profile-editor-scanner-preview-box");
+        previewBox.getChildren().addAll(
+                createPreviewBlock("Selected Profile:", fields.previewProfileNameLabel),
+                createPreviewBlock("Box ID:", fields.previewBoxIdLabel),
+                createPreviewBlock("Export folder:", fields.previewExportFolderLabel),
+                createPreviewBlock("Barcode splitting:", fields.previewBarcodeLabel),
+                createPreviewBlock("Page correction:", fields.previewPageCorrectionLabel),
+                createPreviewBlock("QA required:", fields.previewQaRequiredLabel),
+                createPreviewBlock("Export format:", fields.previewExportFormatLabel)
+        );
+
+        VBox card = new VBox(24);
+        card.getStyleClass().add("profile-editor-card");
+        card.getChildren().addAll(
+                createProfileDialogLabel("Scanner Preview", "profile-editor-section-title"),
+                previewBox
+        );
+        return card;
+    }
+
+    private VBox createPreviewBlock(String labelText, Label valueLabel) {
+        VBox block = new VBox(6);
+        block.getChildren().addAll(
+                createProfileDialogLabel(labelText, "profile-editor-preview-key"),
+                valueLabel
+        );
+        return block;
+    }
+
+    private VBox createProfileDialogField(String labelText, Node control) {
+        VBox field = new VBox(6);
+        field.setMaxWidth(Double.MAX_VALUE);
+        field.getChildren().addAll(createProfileDialogLabel(labelText, "profile-editor-field-label"), control);
+        return field;
+    }
+
+    private TextField createProfileDialogTextField(String promptText) {
+        TextField textField = new TextField();
+        textField.setPromptText(promptText);
+        textField.setMaxWidth(Double.MAX_VALUE);
+        textField.getStyleClass().add("profile-editor-input");
+        return textField;
+    }
+
+    private TextArea createProfileDialogTextArea(String promptText, int prefRowCount) {
+        TextArea textArea = new TextArea();
+        textArea.setPromptText(promptText);
+        textArea.setPrefRowCount(prefRowCount);
+        textArea.setWrapText(true);
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.getStyleClass().add("profile-editor-textarea");
+        return textArea;
+    }
+
+    private ComboBox<String> createProfileDialogComboBox(String defaultValue, String... values) {
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.getItems().setAll(values);
+        comboBox.setValue(defaultValue);
+        comboBox.setMaxWidth(Double.MAX_VALUE);
+        comboBox.getStyleClass().add("profile-editor-input");
+        return comboBox;
+    }
+
+    private ToggleButton createProfileDialogToggle(boolean selected) {
+        ToggleButton toggle = new ToggleButton();
+        toggle.setSelected(selected);
+        toggle.setFocusTraversable(false);
+        toggle.getStyleClass().add("profile-editor-switch");
+        return toggle;
+    }
+
+    private Button createProfileDialogTabButton(String text) {
+        Button button = new Button(text);
+        button.setFocusTraversable(false);
+        button.getStyleClass().add("profile-editor-tab-button");
+        return button;
+    }
+
+    private Label createProfileDialogValueLabel(String styleClass) {
+        Label label = new Label();
+        label.getStyleClass().add(styleClass);
+        label.setWrapText(true);
+        return label;
+    }
+
+    private Label createProfileDialogLabel(String text, String styleClass) {
+        Label label = new Label(text);
+        label.getStyleClass().add(styleClass);
+        label.setWrapText(true);
+        return label;
+    }
+
+    private List<ColumnConstraints> createPercentColumns(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(index -> {
+                    ColumnConstraints constraints = new ColumnConstraints();
+                    constraints.setPercentWidth(100.0 / count);
+                    constraints.setHgrow(Priority.ALWAYS);
+                    return constraints;
+                })
+                .toList();
+    }
+
+    private void configureCreateProfileDialogPreview(ProfileDialogFields fields) {
+        fields.nameField.textProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.exportNamingField.textProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.barcodeSplitToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.deskewToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.qaRequiredToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.barcodePageBehaviorComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.defaultRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.brightnessComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.contrastComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.exportFormatComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        syncCreateProfilePreview(fields);
+    }
+
+    private void syncCreateProfilePreview(ProfileDialogFields fields) {
+        String profileName = Strings.displayText(fields.nameField.getText(), "Untitled Profile");
+        String namingPattern = ScanProfile.normalizeExportNaming(fields.exportNamingField.getText());
+        String exportFolder = namingPattern
+                .replace("{profileName}", profileName)
+                .replace("{boxId}", PREVIEW_BOX_ID);
+
+        fields.exportNamingPreviewLabel.setText(exportFolder);
+        fields.previewProfileNameLabel.setText(profileName);
+        fields.previewBoxIdLabel.setText(PREVIEW_BOX_ID);
+        fields.previewExportFolderLabel.setText(exportFolder);
+        fields.previewBarcodeLabel.setText(fields.barcodeSplitToggle.isSelected()
+                ? "Enabled - " + safeValue(fields.barcodeDetectedComboBox) + " - " + shortBarcodePageBehavior(safeValue(fields.barcodePageBehaviorComboBox))
+                : "Disabled");
+        fields.previewPageCorrectionLabel.setText(
+                "Rotation " + safeValue(fields.defaultRotationComboBox)
+                        + " - Brightness " + safeValue(fields.brightnessComboBox)
+                        + " - Contrast " + safeValue(fields.contrastComboBox)
+                        + " - Deskew " + (fields.deskewToggle.isSelected() ? "Enabled" : "Disabled")
+        );
+        fields.previewQaRequiredLabel.setText(fields.qaRequiredToggle.isSelected() ? "Yes" : "No");
+        fields.previewExportFormatLabel.setText(safeValue(fields.exportFormatComboBox));
+    }
+
+    private void selectCreateDialogTab(ProfileDialogFields fields, EditorTab tab) {
+        syncCreateProfilePreview(fields);
+
+        setTabButtonActive(fields.generalTabButton, tab == EditorTab.GENERAL);
+        setTabButtonActive(fields.scanRulesTabButton, tab == EditorTab.SCAN_RULES);
+        setTabButtonActive(fields.accessTabButton, tab == EditorTab.ACCESS);
+        setTabButtonActive(fields.previewTabButton, tab == EditorTab.PREVIEW);
+
+        setPaneVisible(fields.generalTabPane, tab == EditorTab.GENERAL);
+        setPaneVisible(fields.scanRulesTabPane, tab == EditorTab.SCAN_RULES);
+        setPaneVisible(fields.accessTabPane, tab == EditorTab.ACCESS);
+        setPaneVisible(fields.previewTabPane, tab == EditorTab.PREVIEW);
+    }
+
+    private void submitCreateProfileDialog(ActionEvent event, ProfileDialogFields fields) {
+        String validationMessage = validateCreateProfileDialog(fields);
+
+        if (!validationMessage.isBlank()) {
+            showCreateProfileValidation(fields.validationLabel, validationMessage);
+            event.consume();
+            return;
+        }
+
+        try {
+            adminManager.createProfile(createProfileInputFromDialog(fields));
+
+            refreshAfterProfileCreated();
+        } catch (RuntimeException exception) {
+            showCreateProfileValidation(fields.validationLabel, createProfileErrorMessage(exception));
+            event.consume();
+        }
+    }
+
+    private String validateCreateProfileDialog(ProfileDialogFields fields) {
+        if (Strings.clean(fields.nameField.getText()).isBlank()) {
+            return "Profile name is required.";
+        }
+
+        if (Strings.clean(fields.clientField.getText()).isBlank()) {
+            return "Client is required.";
+        }
+
+        if (Strings.clean(fields.statusComboBox.getValue()).isBlank()) {
+            return "Status is required.";
+        }
+
+        return "";
+    }
+
+    private void showCreateProfileValidation(Label validationLabel, String message) {
+        validationLabel.setText(message);
+        setVisibleAndManaged(validationLabel, true);
+    }
+
+    private String createProfileErrorMessage(RuntimeException exception) {
+        String message = exception.getMessage();
+
+        if (message == null || message.isBlank()) {
+            return "Profile could not be created.";
+        }
+
+        return message;
+    }
+
+    private void refreshAfterProfileCreated() {
         searchField.clear();
         statusFilterComboBox.setValue(ALL_STATUSES);
 
         loadProfiles();
         applyFilters();
-        openProfile(newProfile);
+        currentProfile = null;
+        showOverviewPane();
+
+        Platform.runLater(() -> pageScrollPane.setVvalue(1));
+    }
+
+    private AdminManager.ProfileInput createProfileInputFromDialog(ProfileDialogFields fields) {
+        String profileName = Strings.clean(fields.nameField.getText());
+
+        return new AdminManager.ProfileInput(
+                profileName,
+                Strings.clean(fields.clientField.getText()),
+                createProfileCode(profileName),
+                Strings.clean(fields.descriptionArea.getText()),
+                safeValue(fields.statusComboBox),
+                "",
+                ScanProfile.normalizeExportNaming(fields.exportNamingField.getText()),
+                fields.barcodeSplitToggle.isSelected(),
+                safeValue(fields.barcodeDetectedComboBox),
+                safeValue(fields.barcodePageBehaviorComboBox),
+                safeValue(fields.defaultRotationComboBox),
+                safeValue(fields.brightnessComboBox),
+                safeValue(fields.contrastComboBox),
+                fields.deskewToggle.isSelected(),
+                safeValue(fields.exportFormatComboBox),
+                fields.qaRequiredToggle.isSelected()
+        );
+    }
+
+    private void setVisibleAndManaged(Node node, boolean visible) {
+        node.setVisible(visible);
+        node.setManaged(visible);
     }
 
     @FXML
@@ -714,37 +1317,20 @@ public class ProfilesController {
         return message;
     }
 
-    private AdminManager.ProfileInput createDefaultProfileInput() {
-        String name = createUniqueProfileName();
-        String code = createProfileCode(name);
-
-        return new AdminManager.ProfileInput(
-                name,
-                code,
-                "Describe this scanning workflow profile.",
-                "Draft",
-                "",
-                "{profileCode}_{boxId}",
-                false,
-                "Start new document",
-                "Remove barcode page from final document",
-                "0 deg",
-                "Normal",
-                "Normal",
-                true,
-                "Multi-page TIFF",
-                true
-        );
-    }
-
     private AdminManager.ProfileInput createProfileInputFromEditor() {
+        String profileName = Strings.clean(profileNameField.getText());
+        String profileCode = currentProfile == null || Strings.clean(currentProfile.getCode()).isBlank()
+                ? createProfileCode(profileName)
+                : currentProfile.getCode();
+
         return new AdminManager.ProfileInput(
-                Strings.clean(profileNameField.getText()),
-                Strings.clean(profileCodeField.getText()),
+                profileName,
+                Strings.clean(profileClientField.getText()),
+                profileCode,
                 Strings.clean(profileDescriptionArea.getText()),
                 safeValue(profileStatusComboBox),
                 "",
-                Strings.clean(exportNamingField.getText()),
+                ScanProfile.normalizeExportNaming(exportNamingField.getText()),
                 barcodeSplitToggle.isSelected(),
                 safeValue(barcodeDetectedComboBox),
                 safeValue(barcodePageBehaviorComboBox),
@@ -753,7 +1339,7 @@ public class ProfilesController {
                 safeValue(contrastComboBox),
                 deskewToggle.isSelected(),
                 safeValue(exportFormatComboBox),
-                false
+                qaRequiredToggle.isSelected()
         );
     }
 
@@ -931,6 +1517,47 @@ public class ProfilesController {
         SCAN_RULES,
         ACCESS,
         PREVIEW
+    }
+
+    private static class ProfileDialogFields {
+        private TextField nameField;
+        private TextField clientField;
+        private TextArea descriptionArea;
+        private ComboBox<String> statusComboBox;
+
+        private ToggleButton barcodeSplitToggle;
+        private ComboBox<String> barcodeDetectedComboBox;
+        private ComboBox<String> barcodePageBehaviorComboBox;
+
+        private ComboBox<String> defaultRotationComboBox;
+        private ComboBox<String> brightnessComboBox;
+        private ComboBox<String> contrastComboBox;
+        private ToggleButton deskewToggle;
+        private ToggleButton qaRequiredToggle;
+
+        private ComboBox<String> exportFormatComboBox;
+        private TextField exportNamingField;
+        private Label exportNamingPreviewLabel;
+
+        private Label previewProfileNameLabel;
+        private Label previewBoxIdLabel;
+        private Label previewExportFolderLabel;
+        private Label previewBarcodeLabel;
+        private Label previewPageCorrectionLabel;
+        private Label previewQaRequiredLabel;
+        private Label previewExportFormatLabel;
+
+        private Button generalTabButton;
+        private Button scanRulesTabButton;
+        private Button accessTabButton;
+        private Button previewTabButton;
+
+        private VBox generalTabPane;
+        private VBox scanRulesTabPane;
+        private VBox accessTabPane;
+        private VBox previewTabPane;
+
+        private Label validationLabel;
     }
 
     private record ConfigChip(String label, String styleClass) {

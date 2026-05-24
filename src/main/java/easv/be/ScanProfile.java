@@ -1,8 +1,14 @@
 package easv.be;
 
 public class ScanProfile {
+    public static final String DEFAULT_EXPORT_NAMING = "{profileName}_{boxId}";
+
+    private static final String LEGACY_PROFILE_CODE_TOKEN = "{profileCode}";
+    private static final String PROFILE_NAME_TOKEN = "{profileName}";
+
     private final int id;
     private String name;
+    private String client;
     private String code;
     private String description;
     private String status;
@@ -41,13 +47,58 @@ public class ScanProfile {
             String exportFormat,
             boolean metadataRequiredBeforeExport
     ) {
+        this(
+                id,
+                name,
+                "",
+                code,
+                description,
+                status,
+                metadataTemplateName,
+                exportNaming,
+                lastUpdated,
+                archived,
+                barcodeSplitting,
+                barcodeDetectedBehavior,
+                barcodePageBehavior,
+                defaultRotation,
+                brightness,
+                contrast,
+                deskew,
+                exportFormat,
+                metadataRequiredBeforeExport
+        );
+    }
+
+    public ScanProfile(
+            int id,
+            String name,
+            String client,
+            String code,
+            String description,
+            String status,
+            String metadataTemplateName,
+            String exportNaming,
+            String lastUpdated,
+            boolean archived,
+            boolean barcodeSplitting,
+            String barcodeDetectedBehavior,
+            String barcodePageBehavior,
+            String defaultRotation,
+            String brightness,
+            String contrast,
+            boolean deskew,
+            String exportFormat,
+            boolean metadataRequiredBeforeExport
+    ) {
         this.id = id;
         this.name = clean(name);
+        this.client = clean(client);
         this.code = clean(code);
         this.description = clean(description);
         this.status = clean(status);
         this.metadataTemplateName = clean(metadataTemplateName);
-        this.exportNaming = clean(exportNaming);
+        this.exportNaming = normalizeExportNaming(exportNaming);
         this.lastUpdated = clean(lastUpdated);
         this.archived = archived;
         this.barcodeSplitting = barcodeSplitting;
@@ -63,6 +114,7 @@ public class ScanProfile {
 
     public int getId() { return id; }
     public String getName() { return name; }
+    public String getClient() { return client; }
     public String getCode() { return code; }
     public String getDescription() { return description; }
     public String getStatus() { return status; }
@@ -83,11 +135,12 @@ public class ScanProfile {
     public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
 
     public void setName(String name) { this.name = clean(name); }
+    public void setClient(String client) { this.client = clean(client); }
     public void setCode(String code) { this.code = clean(code); }
     public void setDescription(String description) { this.description = clean(description); }
     public void setStatus(String status) { this.status = clean(status); }
     public void setMetadataTemplateName(String metadataTemplateName) { this.metadataTemplateName = clean(metadataTemplateName); }
-    public void setExportNaming(String exportNaming) { this.exportNaming = clean(exportNaming); }
+    public void setExportNaming(String exportNaming) { this.exportNaming = normalizeExportNaming(exportNaming); }
     public void setLastUpdated(String lastUpdated) { this.lastUpdated = clean(lastUpdated); }
 
     public void setArchived(boolean archived) { this.archived = archived; }
@@ -108,5 +161,15 @@ public class ScanProfile {
 
     private static String clean(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    public static String normalizeExportNaming(String value) {
+        String cleaned = clean(value);
+
+        if (cleaned.isBlank()) {
+            return DEFAULT_EXPORT_NAMING;
+        }
+
+        return cleaned.replace(LEGACY_PROFILE_CODE_TOKEN, PROFILE_NAME_TOKEN);
     }
 }

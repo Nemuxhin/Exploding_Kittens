@@ -24,6 +24,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuditMetadataExportTest {
@@ -208,11 +209,12 @@ class AuditMetadataExportTest {
 
         ScanProfile profile = adminManager.createProfile(new AdminManager.ProfileInput(
                 "New Profile 2",
+                "Test Client",
                 "NewProfile2",
                 "Used for test scanning.",
                 "Active",
                 "Metadata Form",
-                "{profileCode}_{boxId}",
+                ScanProfile.DEFAULT_EXPORT_NAMING,
                 true,
                 "Start new document",
                 "Remove barcode page from final document",
@@ -234,6 +236,34 @@ class AuditMetadataExportTest {
         assertTrue(hasChange(log, "Profile state", "Existing", "Deleted"));
         assertTrue(hasChange(log, "Profile name", "New Profile 2", ""));
         assertTrue(hasChange(log, "Export format", "PDF", ""));
+    }
+
+    @Test
+    void createProfileRequiresClient() {
+        AdminManager adminManager = new AdminManager(
+                new FakeUserDAO(),
+                new FakeMetadataDAO(),
+                AuditLogDAO.inMemory()
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> adminManager.createProfile(new AdminManager.ProfileInput(
+                "New Profile 3",
+                "",
+                "NewProfile3",
+                "Used for test scanning.",
+                "Active",
+                "Metadata Form",
+                ScanProfile.DEFAULT_EXPORT_NAMING,
+                true,
+                "Start new document",
+                "Remove barcode page from final document",
+                "0 deg",
+                "Normal",
+                "Normal",
+                true,
+                "PDF",
+                true
+        )));
     }
 
     @Test
@@ -349,6 +379,7 @@ class AuditMetadataExportTest {
             ScanProfile savedProfile = new ScanProfile(
                     nextProfileId++,
                     profile.getName(),
+                    profile.getClient(),
                     profile.getCode(),
                     profile.getDescription(),
                     profile.getStatus(),

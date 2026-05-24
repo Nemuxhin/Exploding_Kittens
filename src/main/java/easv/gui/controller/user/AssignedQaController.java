@@ -1,5 +1,10 @@
 package easv.gui.controller.user;
 
+import easv.be.AuditLog.AuditLogDetail;
+import easv.be.ReviewRecord;
+import easv.be.User;
+import easv.bll.AdminManager;
+import easv.bll.UserSession;
 import easv.gui.controller.utilities.SearchableComboBoxes;
 
 import javafx.beans.binding.Bindings;
@@ -77,6 +82,8 @@ public class AssignedQaController {
 
     private final List<QaAssignment> allAssignments = new ArrayList<>();
     private final List<QaDocument> reviewDocuments = new ArrayList<>();
+    private final AdminManager adminManager = new AdminManager();
+    private int qaSessionRotationCount;
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
 
@@ -102,7 +109,7 @@ public class AssignedQaController {
         configureFilters();
         configureQaControls();
         configureQaPreviewInteractions();
-        loadMockAssignments();
+        loadAssignments();
         renderAssignments();
         showAssignedQaListView();
     }
@@ -402,12 +409,52 @@ public class AssignedQaController {
     }
 
     // =========================================================
-    // MOCK ASSIGNMENT DATA
+    // ASSIGNMENT DATA
     // =========================================================
 
-    private void loadMockAssignments() {
-        // TODO: replace with real assignments loaded from the database via UserPortalModel
+    private void loadAssignments() {
         allAssignments.clear();
+
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser == null || adminManager == null) {
+            return;
+        }
+        String myName = currentUser.getName();
+        if (myName == null || myName.isBlank()) {
+            return;
+        }
+
+        for (ReviewRecord record : adminManager.getReviewRecords()) {
+            if (!myName.equalsIgnoreCase(record.getAssignedTo())) {
+                continue;
+            }
+            QaStatus status = mapQaStatus(record.getQaStatus());
+            if (status == null) {
+                continue;
+            }
+            allAssignments.add(new QaAssignment(
+                    record.getIdentity(),
+                    record.getProfile(),
+                    record.getScannedBy(),
+                    1,
+                    record.getPages(),
+                    record.getLastUpdated(),
+                    0,
+                    status
+            ));
+        }
+    }
+
+    private QaStatus mapQaStatus(String qaStatus) {
+        if (qaStatus == null) {
+            return null;
+        }
+        return switch (qaStatus.trim().toLowerCase(Locale.ROOT)) {
+            case "waiting for qa" -> QaStatus.WAITING_FOR_QA;
+            case "qa in progress" -> QaStatus.IN_REVIEW;
+            case "qa rejected" -> QaStatus.ISSUES_FOUND;
+            default -> null;
+        };
     }
 
     // =========================================================
@@ -745,6 +792,7 @@ public class AssignedQaController {
 
     private void onOpenAssignment(QaAssignment assignment) {
         selectedAssignment = assignment;
+        qaSessionRotationCount = 0;
 
         if (selectedAssignment.status == QaStatus.WAITING_FOR_QA) {
             selectedAssignment.status = QaStatus.IN_REVIEW;
@@ -1474,12 +1522,14 @@ public class AssignedQaController {
     @FXML
     private void onRotateLeft() {
         previewRotationDegrees = normalizeRotation(previewRotationDegrees - 90);
+        qaSessionRotationCount++;
         renderQaPreview();
     }
 
     @FXML
     private void onRotateRight() {
         previewRotationDegrees = normalizeRotation(previewRotationDegrees + 90);
+        qaSessionRotationCount++;
         renderQaPreview();
     }
 
@@ -1534,8 +1584,35 @@ public class AssignedQaController {
     @FXML
     private void onCompleteQa() {
         updateSelectedAssignmentFromReview();
+        recordQaSessionAuditLog();
         renderAssignments();
         showAssignedQaListView();
+    }
+
+    private void recordQaSessionAuditLog() {
+        if (selectedAssignment == null) {
+            return;
+        }
+
+        boolean hasIssues = selectedAssignment.issueCount > 0;
+        String status = hasIssues ? "Failed" : "Success";
+        String action = hasIssues ? "Rejected QA review" : "Completed QA review";
+        String description = hasIssues
+                ? "QA review found " + selectedAssignment.issueCount + " issue"
+                        + (selectedAssignment.issueCount == 1 ? "" : "s") + "."
+                : "QA review completed without issues.";
+
+        List<AuditLogDetail> details = new ArrayList<>();
+        details.add(new AuditLogDetail("Box", selectedAssignment.boxId));
+        details.add(new AuditLogDetail("Profile", selectedAssignment.profile));
+        details.add(new AuditLogDetail("Pages reviewed",
+                selectedAssignment.reviewedPages + " / " + selectedAssignment.totalPages));
+        details.add(new AuditLogDetail("Issues found", String.valueOf(selectedAssignment.issueCount)));
+        details.add(new AuditLogDetail("Page rotations", String.valueOf(qaSessionRotationCount)));
+
+        adminManager.addAuditLog("QA", action, selectedAssignment.boxId, status, description, details);
+
+        qaSessionRotationCount = 0;
     }
 
     // =========================================================

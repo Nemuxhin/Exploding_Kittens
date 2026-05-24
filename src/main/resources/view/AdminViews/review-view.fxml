@@ -86,279 +86,150 @@
                                HBox.hgrow="ALWAYS"/>
                 </HBox>
 
-                <GridPane hgap="15"
-                          vgap="15"
-                          maxWidth="Infinity"
-                          styleClass="review-queue-grid">
+                <HBox maxWidth="Infinity" styleClass="review-status-strip">
 
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                    </columnConstraints>
-
-                    <Button maxWidth="Infinity"
-                          minHeight="111"
-                          prefHeight="111"
-                          onAction="#showMissingRequiredQueue"
-                          focusTraversable="true"
-                          contentDisplay="GRAPHIC_ONLY"
-                          GridPane.columnIndex="0"
-                          GridPane.rowIndex="0">
-                        <styleClass>
-                            <String fx:value="review-queue-card"/>
-                            <String fx:value="review-queue-warning"/>
-                        </styleClass>
+                    <Button fx:id="detailsNeededStripBtn"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
+                            onAction="#showMissingRequiredQueue"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="review-strip-btn review-strip-warn">
                         <graphic>
-                            <VBox maxWidth="Infinity" spacing="15">
-
-                        <HBox alignment="CENTER_LEFT">
-                            <StackPane>
-                                <styleClass>
-                                    <String fx:value="review-card-icon-box"/>
-                                    <String fx:value="review-card-icon-warning-box"/>
-                                </styleClass>
-
-                                <Label text="&#xe922;" styleClass="prime-icon review-card-icon-warning"/>
-                            </StackPane>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="missingRequiredCountLabel"
-                                   text="0"
-                                   styleClass="review-card-count"/>
-                        </HBox>
-
-                        <Label text="Details Needed"
-                               styleClass="review-card-title"/>
-
+                            <VBox styleClass="review-strip-inner">
+                                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row review-strip-label-warn">
+                                    <Label text="&#xe922;" styleClass="prime-icon review-strip-icon"/>
+                                    <Label text="Details needed" styleClass="review-strip-label"/>
+                                </HBox>
+                                <Label fx:id="missingRequiredCountLabel" text="0" styleClass="review-strip-num review-strip-num-warn"/>
                             </VBox>
                         </graphic>
                     </Button>
 
-                    <Button maxWidth="Infinity"
-                          minHeight="111"
-                          prefHeight="111"
-                          onAction="#showExportBlockedQueue"
-                          focusTraversable="true"
-                          contentDisplay="GRAPHIC_ONLY"
-                          GridPane.columnIndex="1"
-                          GridPane.rowIndex="0">
-                        <styleClass>
-                            <String fx:value="review-queue-card"/>
-                            <String fx:value="review-queue-danger"/>
-                        </styleClass>
+                    <Button fx:id="exportBlockedStripBtn"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
+                            onAction="#showExportBlockedQueue"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="review-strip-btn review-strip-danger">
                         <graphic>
-                            <VBox maxWidth="Infinity" spacing="15">
-
-                        <HBox alignment="CENTER_LEFT">
-                            <StackPane>
-                                <styleClass>
-                                    <String fx:value="review-card-icon-box"/>
-                                    <String fx:value="review-card-icon-danger-box"/>
-                                </styleClass>
-
-                                <Label text="&#xe90b;" styleClass="prime-icon review-card-icon-danger"/>
-                            </StackPane>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="exportBlockedCountLabel"
-                                   text="0"
-                                   styleClass="review-card-count"/>
-                        </HBox>
-
-                        <Label text="Export Blocked"
-                               styleClass="review-card-title"/>
-
+                            <VBox styleClass="review-strip-inner">
+                                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row review-strip-label-danger">
+                                    <Label text="&#xe90b;" styleClass="prime-icon review-strip-icon"/>
+                                    <Label text="Export blocked" styleClass="review-strip-label"/>
+                                </HBox>
+                                <Label fx:id="exportBlockedCountLabel" text="0" styleClass="review-strip-num review-strip-num-danger"/>
                             </VBox>
                         </graphic>
                     </Button>
 
-                    <Button maxWidth="Infinity"
-                          minHeight="111"
-                          prefHeight="111"
-                          onAction="#showFailedValidationQueue"
-                          focusTraversable="true"
-                          contentDisplay="GRAPHIC_ONLY"
-                          GridPane.columnIndex="2"
-                          GridPane.rowIndex="0">
-                        <styleClass>
-                            <String fx:value="review-queue-card"/>
-                            <String fx:value="review-queue-danger"/>
-                        </styleClass>
+                    <Button fx:id="failedValidationStripBtn"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
+                            onAction="#showFailedValidationQueue"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="review-strip-btn review-strip-danger">
                         <graphic>
-                            <VBox maxWidth="Infinity" spacing="15">
-
-                        <HBox alignment="CENTER_LEFT">
-                            <StackPane>
-                                <styleClass>
-                                    <String fx:value="review-card-icon-box"/>
-                                    <String fx:value="review-card-icon-danger-box"/>
-                                </styleClass>
-
-                                <Label text="&#xe90b;" styleClass="prime-icon review-card-icon-danger"/>
-                            </StackPane>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="failedValidationCountLabel"
-                                   text="0"
-                                   styleClass="review-card-count"/>
-                        </HBox>
-
-                        <Label text="Validation Failed"
-                               styleClass="review-card-title"/>
-
+                            <VBox styleClass="review-strip-inner">
+                                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row review-strip-label-danger">
+                                    <Label text="&#xe90b;" styleClass="prime-icon review-strip-icon"/>
+                                    <Label text="Validation failed" styleClass="review-strip-label"/>
+                                </HBox>
+                                <Label fx:id="failedValidationCountLabel" text="0" styleClass="review-strip-num review-strip-num-danger"/>
                             </VBox>
                         </graphic>
                     </Button>
 
-                    <Button maxWidth="Infinity"
-                          minHeight="111"
-                          prefHeight="111"
-                          onAction="#showReadyForQaQueue"
-                          focusTraversable="true"
-                          contentDisplay="GRAPHIC_ONLY"
-                          GridPane.columnIndex="0"
-                          GridPane.rowIndex="1">
-                        <styleClass>
-                            <String fx:value="review-queue-card"/>
-                            <String fx:value="review-queue-success"/>
-                        </styleClass>
+                    <Button fx:id="readyForQaStripBtn"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
+                            onAction="#showReadyForQaQueue"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="review-strip-btn review-strip-info">
                         <graphic>
-                            <VBox maxWidth="Infinity" spacing="15">
-
-                        <HBox alignment="CENTER_LEFT">
-                            <StackPane>
-                                <styleClass>
-                                    <String fx:value="review-card-icon-box"/>
-                                    <String fx:value="review-card-icon-success-box"/>
-                                </styleClass>
-
-                                <Label text="&#xe90a;" styleClass="prime-icon review-card-icon-success"/>
-                            </StackPane>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="readyForQaCountLabel"
-                                   text="0"
-                                   styleClass="review-card-count"/>
-                        </HBox>
-
-                        <Label text="Ready for QA"
-                               styleClass="review-card-title"/>
-
+                            <VBox styleClass="review-strip-inner">
+                                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row review-strip-label-info">
+                                    <Label text="&#xe90a;" styleClass="prime-icon review-strip-icon"/>
+                                    <Label text="Ready for QA" styleClass="review-strip-label"/>
+                                </HBox>
+                                <Label fx:id="readyForQaCountLabel" text="0" styleClass="review-strip-num review-strip-num-info"/>
                             </VBox>
                         </graphic>
                     </Button>
 
-                    <Button maxWidth="Infinity"
-                          minHeight="111"
-                          prefHeight="111"
-                          onAction="#showQaRejectedQueue"
-                          focusTraversable="true"
-                          contentDisplay="GRAPHIC_ONLY"
-                          GridPane.columnIndex="1"
-                          GridPane.rowIndex="1">
-                        <styleClass>
-                            <String fx:value="review-queue-card"/>
-                            <String fx:value="review-queue-warning"/>
-                        </styleClass>
+                    <Button fx:id="qaRejectedStripBtn"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
+                            onAction="#showQaRejectedQueue"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="review-strip-btn review-strip-warn">
                         <graphic>
-                            <VBox maxWidth="Infinity" spacing="15">
-
-                        <HBox alignment="CENTER_LEFT">
-                            <StackPane>
-                                <styleClass>
-                                    <String fx:value="review-card-icon-box"/>
-                                    <String fx:value="review-card-icon-warning-box"/>
-                                </styleClass>
-
-                                <Label text="&#xe922;" styleClass="prime-icon review-card-icon-warning"/>
-                            </StackPane>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="qaRejectedCountLabel"
-                                   text="0"
-                                   styleClass="review-card-count"/>
-                        </HBox>
-
-                        <Label text="QA Rejected"
-                               styleClass="review-card-title"/>
-
+                            <VBox styleClass="review-strip-inner">
+                                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row review-strip-label-warn">
+                                    <Label text="&#xe922;" styleClass="prime-icon review-strip-icon"/>
+                                    <Label text="QA rejected" styleClass="review-strip-label"/>
+                                </HBox>
+                                <Label fx:id="qaRejectedCountLabel" text="0" styleClass="review-strip-num review-strip-num-warn"/>
                             </VBox>
                         </graphic>
                     </Button>
 
-                    <Button maxWidth="Infinity"
-                          minHeight="111"
-                          prefHeight="111"
-                          onAction="#showRecentlyScannedQueue"
-                          focusTraversable="true"
-                          contentDisplay="GRAPHIC_ONLY"
-                          GridPane.columnIndex="2"
-                          GridPane.rowIndex="1">
-                        <styleClass>
-                            <String fx:value="review-queue-card"/>
-                            <String fx:value="review-queue-neutral"/>
-                        </styleClass>
+                    <Button fx:id="recentlyCompletedStripBtn"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
+                            onAction="#showRecentlyCompletedQueue"
+                            focusTraversable="false"
+                            contentDisplay="GRAPHIC_ONLY"
+                            styleClass="review-strip-btn review-strip-neutral">
                         <graphic>
-                            <VBox maxWidth="Infinity" spacing="15">
-
-                        <HBox alignment="CENTER_LEFT">
-                            <StackPane>
-                                <styleClass>
-                                    <String fx:value="review-card-icon-box"/>
-                                    <String fx:value="review-card-icon-neutral-box"/>
-                                </styleClass>
-
-                                <Label text="&#xe940;" styleClass="prime-icon review-card-icon-neutral"/>
-                            </StackPane>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="recentlyScannedCountLabel"
-                                   text="0"
-                                   styleClass="review-card-count"/>
-                        </HBox>
-
-                        <Label text="Recently Scanned"
-                               styleClass="review-card-title"/>
-
+                            <VBox styleClass="review-strip-inner">
+                                <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row">
+                                    <Label text="&#xe940;" styleClass="prime-icon review-strip-icon"/>
+                                    <Label text="Recently completed" styleClass="review-strip-label"/>
+                                </HBox>
+                                <Label fx:id="recentlyCompletedCountLabel" text="0" styleClass="review-strip-num"/>
                             </VBox>
                         </graphic>
                     </Button>
-                </GridPane>
 
-                <VBox spacing="15"
+                </HBox>
+
+                <HBox spacing="0"
+                      alignment="CENTER_LEFT"
                       maxWidth="Infinity"
                       styleClass="review-filter-card">
 
-                    <GridPane hgap="15"
-                              vgap="15"
-                              maxWidth="Infinity">
+                    <HBox spacing="6" alignment="CENTER_LEFT" styleClass="review-filter-group">
+                        <Label text="STATUS" styleClass="review-filter-label"/>
+                        <ComboBox fx:id="qaStatusFilterComboBox" styleClass="review-filter"/>
+                    </HBox>
 
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
-                            <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
-                            <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
-                            <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
-                        </columnConstraints>
+                    <Region HBox.hgrow="ALWAYS"/>
 
-                        <ComboBox fx:id="clientFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="archiveFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="profileFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="qaStatusFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="dateRangeFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <ComboBox fx:id="scannedByFilterComboBox" maxWidth="Infinity" styleClass="review-filter" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <DatePicker fx:id="dateRangePicker"
-                                    editable="false"
-                                    maxWidth="Infinity"
-                                    GridPane.columnIndex="2"
-                                    GridPane.rowIndex="1">
-                            <styleClass>
-                                <String fx:value="review-filter"/>
-                                <String fx:value="activity-log-date-picker"/>
-                            </styleClass>
-                        </DatePicker>
-                    </GridPane>
-                </VBox>
+                    <Region styleClass="review-filter-divider"/>
+
+                    <HBox spacing="6" alignment="CENTER_LEFT" styleClass="review-filter-group">
+                        <Label text="USER" styleClass="review-filter-label"/>
+                        <ComboBox fx:id="scannedByFilterComboBox" styleClass="review-filter"/>
+                    </HBox>
+
+                    <HBox spacing="6" alignment="CENTER_LEFT" styleClass="review-filter-group">
+                        <Label text="PERIOD" styleClass="review-filter-label"/>
+                        <ComboBox fx:id="dateRangeFilterComboBox" styleClass="review-filter"/>
+                    </HBox>
+
+                    <DatePicker fx:id="dateRangePicker" editable="false">
+                        <styleClass>
+                            <String fx:value="review-filter"/>
+                            <String fx:value="activity-log-date-picker"/>
+                        </styleClass>
+                    </DatePicker>
+
+                </HBox>
 
                 <HBox fx:id="batchActionBar"
                       spacing="12"
@@ -406,7 +277,7 @@
                         <Label text="Profile" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="3"/>
                         <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="4"/>
                         <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="5"/>
-                        <Label text="Last Updated" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6"/>
+                        <Label text="Waiting" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6"/>
                         <Label text="QA Assignee" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="7"/>
                         <Label text="Review" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="8"/>
                     </GridPane>

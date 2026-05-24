@@ -261,6 +261,7 @@ public class ExportsController {
 
         Scene scene = new Scene(root);
 
+        addStylesheet(scene, "/css/fonts.css");
         addStylesheet(scene, "/css/app.css");
         addStylesheet(scene, "/css/user-portal.css");
 

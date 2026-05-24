@@ -141,7 +141,12 @@
 }
 
 .review-filter-card {
-    -fx-padding: 18;
+    -fx-padding: 10 16 10 16;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
 }
 
 .review-batch-bar {
@@ -571,4 +576,193 @@
     -fx-padding: 0;
     -fx-alignment: center-left;
 }
+
+/* =========================================================
+   STATUS STRIP
+   ========================================================= */
+
+.review-status-strip {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.review-strip-btn {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-cursor: hand;
+}
+
+.review-strip-btn:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-strip-btn:focused {
+    -fx-background-color: transparent;
+}
+
+.review-strip-btn.active {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-strip-btn.review-strip-warn.active {
+    -fx-border-color: transparent -wl-border -wl-status-warning-text transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn.review-strip-danger.active {
+    -fx-border-color: transparent -wl-border -wl-status-danger-text transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn.review-strip-info.active {
+    -fx-border-color: transparent -wl-border -wl-status-info-text transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn.review-strip-neutral.active {
+    -fx-border-color: transparent -wl-border -wl-text-muted transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: top-left;
+}
+
+.review-strip-inner {
+    -fx-padding: 12 14 12 14;
+    -fx-spacing: 6;
+    -fx-alignment: top-left;
+}
+
+.review-strip-label-row {
+    -fx-alignment: center-left;
+    -fx-spacing: 5;
+}
+
+.review-strip-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-strip-icon {
+    -fx-font-size: 12px;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-strip-label-warn .review-strip-label,
+.review-strip-label-warn .review-strip-icon {
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-strip-label-danger .review-strip-label,
+.review-strip-label-danger .review-strip-icon {
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-strip-label-info .review-strip-label,
+.review-strip-label-info .review-strip-icon {
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.review-strip-num {
+    -fx-font-size: 22px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -wl-text;
+}
+
+.review-strip-num-warn  { -fx-text-fill: -wl-status-warning-text; }
+.review-strip-num-danger { -fx-text-fill: -wl-status-danger-text; }
+.review-strip-num-info   { -fx-text-fill: -wl-status-info-text; }
+
+/* =========================================================
+   FILTER BAR LABELS
+   ========================================================= */
+
+.review-filter-group {
+    -fx-padding: 0 10 0 10;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.review-filter-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-filter-divider {
+    -fx-background-color: -wl-border;
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+}
+
+/* =========================================================
+   WAITING PILL
+   ========================================================= */
+
+.review-waiting-pill {
+    -fx-font-size: 11px;
+    -fx-font-weight: 500;
+    -fx-padding: 2 7 2 7;
+    -fx-background-radius: 999;
+    -fx-border-width: 0;
+}
+
+.review-waiting-urgent {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-waiting-warn {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-waiting-ok {
+    -fx-background-color: -wl-card-content;
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* =========================================================
+   BOX CELL
+   ========================================================= */
+
+.review-box-id {
+    -fx-font-family: "Consolas";
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.review-box-profile {
+    -fx-font-size: 11px;
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* =========================================================
+   BADGE ICON COLORS
+   ========================================================= */
+
+.review-badge-icon-info    { -fx-text-fill: -wl-status-info-text; }
+.review-badge-icon-success  { -fx-text-fill: -wl-status-success-text; }
+.review-badge-icon-danger   { -fx-text-fill: -wl-status-danger-text; }
+.review-badge-icon-warning  { -fx-text-fill: -wl-status-warning-text; }
+.review-badge-icon-neutral  { -fx-text-fill: -wl-status-neutral-text; }
 

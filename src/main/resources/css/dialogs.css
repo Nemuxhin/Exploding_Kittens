@@ -545,6 +545,10 @@
     -fx-font-family: "Montserrat";
 }
 
+.profile-create-dialog-pane {
+    -fx-pref-width: 980;
+}
+
 .admin-dialog-pane > .content {
     -fx-padding: 0;
     -fx-background-color: -wl-surface;

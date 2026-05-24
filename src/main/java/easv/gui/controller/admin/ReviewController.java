@@ -1,7 +1,9 @@
 package easv.gui.controller.admin;
 
 import easv.be.ReviewRecord;
+import easv.be.User;
 import easv.bll.AdminManager;
+import easv.gui.PrimeIcons;
 import easv.gui.controller.utilities.AppDates;
 import easv.gui.controller.utilities.PaginationHelper;
 import easv.gui.controller.utilities.SearchableComboBoxes;
@@ -14,6 +16,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
@@ -33,17 +36,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
 public class ReviewController {
 
-    private static final String ALL_CLIENTS = "All Clients";
-    private static final String ALL_ARCHIVES = "All Archives";
-    private static final String ALL_PROFILES = "All Profiles";
     private static final String ALL_QA_STATUSES = "All QA Statuses";
     private static final String ALL_USERS = "All Users";
     private static final String RANGE_LAST_30_DAYS = "Last 30 Days";
@@ -77,11 +81,15 @@ public class ReviewController {
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
 
+    @FXML private Button detailsNeededStripBtn;
+    @FXML private Button exportBlockedStripBtn;
+    @FXML private Button failedValidationStripBtn;
+    @FXML private Button readyForQaStripBtn;
+    @FXML private Button qaRejectedStripBtn;
+    @FXML private Button recentlyCompletedStripBtn;
+
     @FXML private TextField searchField;
 
-    @FXML private ComboBox<String> clientFilterComboBox;
-    @FXML private ComboBox<String> archiveFilterComboBox;
-    @FXML private ComboBox<String> profileFilterComboBox;
     @FXML private ComboBox<String> qaStatusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
     @FXML private DatePicker dateRangePicker;
@@ -95,7 +103,7 @@ public class ReviewController {
     @FXML private Label failedValidationCountLabel;
     @FXML private Label readyForQaCountLabel;
     @FXML private Label qaRejectedCountLabel;
-    @FXML private Label recentlyScannedCountLabel;
+    @FXML private Label recentlyCompletedCountLabel;
 
     @FXML private VBox resultsRowsContainer;
     @FXML private VBox emptyStateBox;
@@ -147,17 +155,7 @@ public class ReviewController {
     private void configureFilters() {
         configureDateRangePicker();
 
-        // Client / archive / profile / scannedBy options are data-driven —
-        // refreshFilterOptions() rebuilds them from the loaded records.
-        clientFilterComboBox.getItems().setAll(ALL_CLIENTS);
-        clientFilterComboBox.setValue(ALL_CLIENTS);
-
-        archiveFilterComboBox.getItems().setAll(ALL_ARCHIVES);
-        archiveFilterComboBox.setValue(ALL_ARCHIVES);
-
-        profileFilterComboBox.getItems().setAll(ALL_PROFILES);
-        profileFilterComboBox.setValue(ALL_PROFILES);
-
+        // scannedBy options are data-driven — refreshFilterOptions() rebuilds them from the loaded records.
         qaStatusFilterComboBox.getItems().setAll(
                 ALL_QA_STATUSES,
                 "Not Started",
@@ -182,9 +180,6 @@ public class ReviewController {
         scannedByFilterComboBox.getItems().setAll(ALL_USERS);
         scannedByFilterComboBox.setValue(ALL_USERS);
 
-        SearchableComboBoxes.configure(clientFilterComboBox);
-        SearchableComboBoxes.configure(archiveFilterComboBox);
-        SearchableComboBoxes.configure(profileFilterComboBox);
         SearchableComboBoxes.configure(qaStatusFilterComboBox);
         SearchableComboBoxes.configure(dateRangeFilterComboBox);
         SearchableComboBoxes.configure(scannedByFilterComboBox);
@@ -231,9 +226,6 @@ public class ReviewController {
     private void configureListeners() {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
 
-        clientFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        archiveFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        profileFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         qaStatusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         dateRangeFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (updatingDateControls) {
@@ -280,6 +272,7 @@ public class ReviewController {
                 });
         updateBatchBar();
         updateSummaryCards();
+        updateStripActiveState();
     }
 
     private void updateSummaryCards() {
@@ -288,7 +281,7 @@ public class ReviewController {
         failedValidationCountLabel.setText(String.valueOf(countRecords(this::isFailedValidation)));
         readyForQaCountLabel.setText(String.valueOf(countRecords(this::isReadyForQa)));
         qaRejectedCountLabel.setText(String.valueOf(countRecords(this::isQaRejected)));
-        recentlyScannedCountLabel.setText(String.valueOf(countRecords(this::isRecentlyScanned)));
+        recentlyCompletedCountLabel.setText(String.valueOf(countRecords(this::isRecentlyCompleted)));
     }
 
     private long countRecords(java.util.function.Predicate<ReviewRow> predicate) {
@@ -320,8 +313,9 @@ public class ReviewController {
         return "QA Rejected".equalsIgnoreCase(record.qaStatus());
     }
 
-    private boolean isRecentlyScanned(ReviewRow record) {
-        return "Today".equalsIgnoreCase(record.dateGroup());
+    private boolean isRecentlyCompleted(ReviewRow record) {
+        return "QA Approved".equalsIgnoreCase(record.qaStatus())
+                && "Today".equalsIgnoreCase(record.dateGroup());
     }
 
     private GridPane buildTableRow(ReviewRow record) {
@@ -342,12 +336,12 @@ public class ReviewController {
         );
 
         addCell(row, selectCheckBox, 0, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 1, HPos.LEFT);
+        addCell(row, createBoxCell(record.identity(), record.profile()), 1, HPos.LEFT);
         addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 2, HPos.LEFT);
         addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 3, HPos.LEFT);
         addCell(row, createStatusBadge(record.qaStatus()), 4, HPos.LEFT);
         addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 5, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 6, HPos.LEFT);
+        addCell(row, createWaitingPill(record), 6, HPos.LEFT);
         addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 7, HPos.LEFT);
         addCell(row, createReviewButton(record), 8, HPos.LEFT);
 
@@ -401,13 +395,21 @@ public class ReviewController {
     }
 
     private Label createStatusBadge(String status) {
+        String colorClass = qaStatusClass(status);
         Label badge = new Label(status);
-        badge.getStyleClass().add("review-status-badge");
-        badge.getStyleClass().add(qaStatusClass(status));
-
-        badge.setWrapText(true);
+        badge.getStyleClass().addAll("review-status-badge", colorClass);
+        badge.setWrapText(false);
         badge.setMinWidth(0);
         badge.setMaxWidth(Double.MAX_VALUE);
+        badge.setGraphicTextGap(4);
+
+        String iconGlyph = qaStatusIcon(status);
+        if (!iconGlyph.isEmpty()) {
+            String iconColorClass = "review-badge-icon-" + colorClass.replace("review-status-", "");
+            Label icon = PrimeIcons.create(iconGlyph, iconColorClass);
+            icon.setStyle("-fx-font-size: 10px;");
+            badge.setGraphic(icon);
+        }
 
         return badge;
     }
@@ -440,7 +442,31 @@ public class ReviewController {
 
     @FXML
     private void assignSelectedToQa() {
-        updateSelectedRecords(record -> record.withAssignedTo("QA Team"));
+        pickQaUser().ifPresent(user -> updateSelectedRecords(record ->
+                record.withReviewState(record.documentDetailsStatus(), "QA In Progress", false)
+                      .withAssignedTo(user.getName())));
+    }
+
+    private Optional<User> pickQaUser() {
+        if (adminManager == null) {
+            return Optional.empty();
+        }
+        List<User> eligible = adminManager.getQaEligibleUsers();
+        if (eligible.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, User> byDisplay = new LinkedHashMap<>();
+        for (User user : eligible) {
+            byDisplay.put(user.getName(), user);
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(eligible.get(0).getName(), byDisplay.keySet());
+        dialog.setTitle("Assign QA");
+        dialog.setHeaderText("Assign QA reviewer");
+        dialog.setContentText("Reviewer:");
+
+        return dialog.showAndWait().map(byDisplay::get);
     }
 
     @FXML
@@ -526,10 +552,7 @@ public class ReviewController {
     }
 
     private boolean matchesFilters(ReviewRow record) {
-        return matchesCombo(record.client(), clientFilterComboBox.getValue(), ALL_CLIENTS)
-                && matchesCombo(record.archive(), archiveFilterComboBox.getValue(), ALL_ARCHIVES)
-                && matchesCombo(record.profile(), profileFilterComboBox.getValue(), ALL_PROFILES)
-                && matchesQueueFilter(record)
+        return matchesQueueFilter(record)
                 && matchesCombo(record.qaStatus(), qaStatusFilterComboBox.getValue(), ALL_QA_STATUSES)
                 && matchesCombo(record.scannedBy(), scannedByFilterComboBox.getValue(), ALL_USERS)
                 && matchesDateRange(record);
@@ -543,7 +566,7 @@ public class ReviewController {
             case FAILED_VALIDATION -> isFailedValidation(record);
             case READY_FOR_QA -> isReadyForQa(record);
             case QA_REJECTED -> isQaRejected(record);
-            case RECENTLY_SCANNED -> isRecentlyScanned(record);
+            case RECENTLY_COMPLETED -> isRecentlyCompleted(record);
         };
     }
 
@@ -640,6 +663,97 @@ public class ReviewController {
         return null;
     }
 
+    private void updateStripActiveState() {
+        if (detailsNeededStripBtn == null) {
+            return;
+        }
+        List<Button> stripButtons = List.of(
+                detailsNeededStripBtn,
+                exportBlockedStripBtn,
+                failedValidationStripBtn,
+                readyForQaStripBtn,
+                qaRejectedStripBtn,
+                recentlyCompletedStripBtn
+        );
+        Button activeButton = switch (activeQueueFilter) {
+            case MISSING_REQUIRED   -> detailsNeededStripBtn;
+            case EXPORT_BLOCKED     -> exportBlockedStripBtn;
+            case FAILED_VALIDATION  -> failedValidationStripBtn;
+            case READY_FOR_QA       -> readyForQaStripBtn;
+            case QA_REJECTED        -> qaRejectedStripBtn;
+            case RECENTLY_COMPLETED   -> recentlyCompletedStripBtn;
+            case ALL -> null;
+        };
+        for (Button button : stripButtons) {
+            button.getStyleClass().remove("active");
+        }
+        if (activeButton != null) {
+            activeButton.getStyleClass().add("active");
+        }
+    }
+
+    private int computeWaitingDays(ReviewRow record) {
+        String normalized = Strings.normalize(record.lastUpdated());
+        if (normalized.equals("saved just now") || normalized.equals("updated just now")) {
+            return 0;
+        }
+        LocalDate date = parseReviewDate(record);
+        if (date == null) {
+            return -1;
+        }
+        return (int) Math.max(0, ChronoUnit.DAYS.between(date, LocalDate.now()));
+    }
+
+    private Node createWaitingPill(ReviewRow record) {
+        int days = computeWaitingDays(record);
+        if (days < 0) {
+            return createWrappedLabel("—", "review-cell-text");
+        }
+        Label pill = new Label(days == 0 ? "Today" : days + "d");
+        pill.getStyleClass().add("review-waiting-pill");
+        if (days >= 7) {
+            pill.getStyleClass().add("review-waiting-urgent");
+        } else if (days >= 3) {
+            pill.getStyleClass().add("review-waiting-warn");
+        } else {
+            pill.getStyleClass().add("review-waiting-ok");
+        }
+        return pill;
+    }
+
+    private Node createBoxCell(String identity, String profile) {
+        VBox cell = new VBox(2);
+        cell.setMinWidth(0);
+        cell.setMaxWidth(Double.MAX_VALUE);
+
+        Label idLabel = new Label(identity);
+        idLabel.getStyleClass().addAll("review-main-cell", "review-box-id");
+        idLabel.setWrapText(false);
+        idLabel.setMinWidth(0);
+        idLabel.setMaxWidth(Double.MAX_VALUE);
+
+        Label profileLabel = new Label(profile);
+        profileLabel.getStyleClass().add("review-box-profile");
+        profileLabel.setWrapText(false);
+        profileLabel.setMinWidth(0);
+        profileLabel.setMaxWidth(Double.MAX_VALUE);
+
+        cell.getChildren().addAll(idLabel, profileLabel);
+        return cell;
+    }
+
+    private String qaStatusIcon(String status) {
+        return switch (Strings.normalize(status)) {
+            case "not started"    -> "";
+            case "waiting for qa" -> "";
+            case "qa in progress" -> "";
+            case "ready for qa"   -> "";
+            case "qa approved"    -> "";
+            case "qa rejected"    -> "";
+            default -> "";
+        };
+    }
+
     private String qaStatusClass(String status) {
         return switch (Strings.normalize(status)) {
             case "not started" -> "review-status-neutral";
@@ -654,9 +768,6 @@ public class ReviewController {
     private void clearFilters() {
         searchField.clear();
 
-        clientFilterComboBox.setValue(ALL_CLIENTS);
-        archiveFilterComboBox.setValue(ALL_ARCHIVES);
-        profileFilterComboBox.setValue(ALL_PROFILES);
         qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
         setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
         scannedByFilterComboBox.setValue(ALL_USERS);
@@ -708,9 +819,9 @@ public class ReviewController {
     }
 
     @FXML
-    private void showRecentlyScannedQueue() {
-        activeQueueFilter = ReviewQueueFilter.RECENTLY_SCANNED;
-        qaStatusFilterComboBox.setValue(ALL_QA_STATUSES);
+    private void showRecentlyCompletedQueue() {
+        activeQueueFilter = ReviewQueueFilter.RECENTLY_COMPLETED;
+        qaStatusFilterComboBox.setValue("QA Approved");
         LocalDate today = LocalDate.now();
         setDateRange(RANGE_TODAY, today, today);
         applyFilters();
@@ -956,8 +1067,12 @@ public class ReviewController {
         if (activeReviewRecord == null) {
             return;
         }
-
-        replaceActiveRecord(activeReviewRecord.withReviewState("Complete", "Ready for QA", false));
+        pickQaUser().ifPresent(user -> {
+            ReviewRow assigned = activeReviewRecord
+                    .withReviewState("Complete", "QA In Progress", false)
+                    .withAssignedTo(user.getName());
+            replaceActiveRecord(assigned);
+        });
     }
 
     @FXML
@@ -1081,9 +1196,6 @@ public class ReviewController {
     }
 
     private void refreshFilterOptions() {
-        setComboOptions(clientFilterComboBox, ALL_CLIENTS, records.stream().map(ReviewRow::client).toList());
-        setComboOptions(archiveFilterComboBox, ALL_ARCHIVES, records.stream().map(ReviewRow::archive).toList());
-        setComboOptions(profileFilterComboBox, ALL_PROFILES, records.stream().map(ReviewRow::profile).toList());
         setComboOptions(scannedByFilterComboBox, ALL_USERS, records.stream().map(ReviewRow::scannedBy).toList());
     }
 
@@ -1118,7 +1230,7 @@ public class ReviewController {
         FAILED_VALIDATION,
         READY_FOR_QA,
         QA_REJECTED,
-        RECENTLY_SCANNED
+        RECENTLY_COMPLETED
     }
 
     record ReviewRow(

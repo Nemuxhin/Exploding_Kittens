@@ -223,7 +223,14 @@ public class UserPortalModel {
     }
 
     public String formatExportName(String profileName, String boxId) {
-        return profileName.toLowerCase(Locale.ROOT).replace(' ', '_') + "_" + boxId;
+        String cleanedProfileName = profileName == null || profileName.isBlank()
+                ? "missing-profile"
+                : profileName.trim();
+        String cleanedBoxId = boxId == null || boxId.isBlank()
+                ? "missing-box"
+                : boxId.trim();
+
+        return cleanedProfileName + "_" + cleanedBoxId;
     }
 
     public boolean isValidBoxId(String boxId) {

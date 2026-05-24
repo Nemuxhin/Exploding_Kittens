@@ -3,14 +3,16 @@ package easv.gui.controller.admin;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.gui.PrimeIcons;
 import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -19,6 +21,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Pane;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,11 +70,10 @@ public class AssignmentsController {
     @FXML private VBox assignmentRowsContainer;
 
     @FXML private Label selectedTitleLabel;
-    @FXML private Label selectedSubtitleLabel;
-    @FXML private Label selectedCodeLabel;
     @FXML private Label selectedStatusBadge;
 
     @FXML private Label changesLabel;
+    @FXML private Button addEntityButton;
 
     void setAdminManager(AdminManager adminManager) {
         this.adminManager = adminManager;
@@ -229,17 +231,19 @@ public class AssignmentsController {
 
     private void updatePageText() {
         if (mode == AssignmentMode.BY_PROFILE) {
-            leftPanelTitleLabel.setText("Profiles");
-            rightPanelTitleLabel.setText("Assigned Users");
+            leftPanelTitleLabel.setText("SCANNING PROFILES");
+            rightPanelTitleLabel.setText("ASSIGNED USERS");
             leftSearchField.setPromptText("Search profiles...");
             rightSearchField.setPromptText("Search users...");
+            addEntityButton.setText("+ Add User");
             return;
         }
 
-        leftPanelTitleLabel.setText("Users");
-        rightPanelTitleLabel.setText("Assigned Profiles");
+        leftPanelTitleLabel.setText("USERS");
+        rightPanelTitleLabel.setText("ASSIGNED PROFILES");
         leftSearchField.setPromptText("Search users...");
         rightSearchField.setPromptText("Search profiles...");
+        addEntityButton.setText("+ Add Profile");
     }
 
     private void renderLeftList() {
@@ -280,14 +284,25 @@ public class AssignmentsController {
         Button item = createListItem(isSelectedProfile(profile));
         HBox content = createListItemContent();
 
-        VBox textBox = new VBox(6);
+        Label iconLabel = PrimeIcons.create(profileIconFor(profile), "assignment-profile-icon", profileIconClassFor(profile));
+
+        HBox countRow = new HBox(5);
+        countRow.setAlignment(Pos.CENTER_LEFT);
+        countRow.getChildren().addAll(
+                PrimeIcons.create("", "assignment-list-user-icon"),
+                createLabel(String.valueOf(getAssignedUserIds(profile.getId()).size()), "assignment-list-count")
+        );
+
+        VBox textBox = new VBox(5);
+        textBox.setMinWidth(0);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
         textBox.getChildren().addAll(
                 createLabel(profile.getName(), "assignment-list-title"),
-                createLabel(formatAssignedUsers(getAssignedUserIds(profile.getId()).size()), "assignment-list-subtitle"),
-                createLabel("Export: " + Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}"), "assignment-list-subtitle")
+                countRow
         );
 
         content.getChildren().addAll(
+                iconLabel,
                 textBox,
                 createSpacer(),
                 createStatusBadge(displayProfileStatus(profile))
@@ -312,7 +327,11 @@ public class AssignmentsController {
         Button item = createListItem(isSelectedUser(user));
         HBox content = createListItemContent();
 
-        VBox textBox = new VBox(6);
+        Label iconLabel = PrimeIcons.create("", "assignment-profile-icon", "assignment-profile-icon-user");
+
+        VBox textBox = new VBox(5);
+        textBox.setMinWidth(0);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
         textBox.getChildren().addAll(
                 createLabel(user.getName(), "assignment-list-title"),
                 createLabel(Strings.displayText(user.getEmail(), "No email"), "assignment-list-subtitle"),
@@ -320,6 +339,7 @@ public class AssignmentsController {
         );
 
         content.getChildren().addAll(
+                iconLabel,
                 textBox,
                 createSpacer(),
                 createRoleBadge(user.getRole())
@@ -364,8 +384,10 @@ public class AssignmentsController {
     private void renderSelectedDetails() {
         if (mode == AssignmentMode.BY_PROFILE) {
             renderSelectedProfileDetails();
+            addEntityButton.setDisable(selectedProfile == null);
         } else {
             renderSelectedUserDetails();
+            addEntityButton.setDisable(selectedUser == null);
         }
     }
 
@@ -376,8 +398,6 @@ public class AssignmentsController {
         }
 
         selectedTitleLabel.setText(selectedProfile.getName());
-        selectedSubtitleLabel.setText(Strings.displayText(selectedProfile.getDescription(), "No description"));
-        selectedCodeLabel.setText(Strings.displayText(selectedProfile.getExportNaming(), "{profileCode}_{boxId}"));
         updateSelectedStatus(displayProfileStatus(selectedProfile));
     }
 
@@ -388,28 +408,24 @@ public class AssignmentsController {
         }
 
         selectedTitleLabel.setText(selectedUser.getName());
-        selectedSubtitleLabel.setText(Strings.displayText(selectedUser.getEmail(), "No email"));
-        selectedCodeLabel.setText(selectedUser.getRole() + " account");
         updateSelectedStatus(selectedUser.getStatus());
     }
 
     private void clearSelectedDetails(String message) {
         selectedTitleLabel.setText(message);
-        selectedSubtitleLabel.setText("");
-        selectedCodeLabel.setText("");
         selectedStatusBadge.setText("");
         selectedStatusBadge.getStyleClass().setAll("assignment-status-badge", "assignment-status-archived");
     }
 
     private void renderAssignmentRows() {
         if (mode == AssignmentMode.BY_PROFILE) {
-            renderUserAssignmentRows();
+            renderAssignedUserRows();
         } else {
-            renderProfileAssignmentRows();
+            renderAssignedProfileRows();
         }
     }
 
-    private void renderUserAssignmentRows() {
+    private void renderAssignedUserRows() {
         if (selectedProfile == null) {
             assignmentRowsContainer.getChildren().clear();
             return;
@@ -417,17 +433,19 @@ public class AssignmentsController {
 
         String searchText = Strings.normalize(rightSearchField.getText());
         String selectedRole = rightFilterComboBox.getValue();
+        Set<Integer> assignedIds = getAssignedUserIds(selectedProfile.getId());
 
         assignmentRowsContainer.getChildren().setAll(
                 users.stream()
+                        .filter(user -> assignedIds.contains(user.getId()))
                         .filter(user -> matchesUserSearch(user, searchText))
                         .filter(user -> matchesRole(user.getRole(), selectedRole))
-                        .map(this::buildUserAssignmentRow)
+                        .map(this::buildAssignedUserRow)
                         .toList()
         );
     }
 
-    private void renderProfileAssignmentRows() {
+    private void renderAssignedProfileRows() {
         if (selectedUser == null) {
             assignmentRowsContainer.getChildren().clear();
             return;
@@ -435,65 +453,71 @@ public class AssignmentsController {
 
         String searchText = Strings.normalize(rightSearchField.getText());
         String selectedStatus = rightFilterComboBox.getValue();
+        List<Integer> assignedIds = getAssignedProfileIds(selectedUser.getId());
 
         assignmentRowsContainer.getChildren().setAll(
                 profiles.stream()
+                        .filter(profile -> assignedIds.contains(profile.getId()))
                         .filter(profile -> matchesProfileSearch(profile, searchText))
                         .filter(profile -> matchesStatus(displayProfileStatus(profile), selectedStatus))
-                        .map(this::buildProfileAssignmentRow)
+                        .map(this::buildAssignedProfileRow)
                         .toList()
         );
     }
 
-    private CheckBox buildUserAssignmentRow(User user) {
-        CheckBox row = createAssignmentRow(getAssignedUserIds(selectedProfile.getId()).contains(user.getId()));
+    private HBox buildAssignedUserRow(User user) {
+        HBox row = new HBox(12);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("assignment-assigned-row");
 
         VBox textBox = createAssignmentTextBox(
                 user.getName(),
                 Strings.displayText(user.getEmail(), "No email")
         );
 
-        HBox content = createAssignmentRowContent(row);
-        content.getChildren().addAll(
+        Button removeBtn = new Button("×");
+        removeBtn.getStyleClass().add("assignment-remove-button");
+        removeBtn.setFocusTraversable(false);
+        removeBtn.setOnAction(e -> {
+            updateAssignment(selectedProfile.getId(), user.getId(), false);
+            renderAssignedUserRows();
+            renderLeftList();
+            updateChangesLabel();
+        });
+
+        row.getChildren().addAll(
                 createAvatar(Strings.initials(user.getName(), "")),
                 textBox,
                 createRoleBadge(user.getRole()),
-                createStatusBadge(user.getStatus())
+                createStatusDot(user.getStatus()),
+                removeBtn
         );
-
-        row.setGraphic(content);
-        row.setOnAction(event -> setUserAssignment(user, row.isSelected()));
-
         return row;
     }
 
-    private CheckBox buildProfileAssignmentRow(ScanProfile profile) {
-        CheckBox row = createAssignmentRow(getAssignedUserIds(profile.getId()).contains(selectedUser.getId()));
+    private HBox buildAssignedProfileRow(ScanProfile profile) {
+        HBox row = new HBox(12);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("assignment-assigned-row");
+
+        Label iconLabel = PrimeIcons.create(profileIconFor(profile), "assignment-profile-icon", profileIconClassFor(profile));
 
         VBox textBox = createAssignmentTextBox(
                 profile.getName(),
-                Strings.displayText(profile.getExportNaming(), "{profileCode}_{boxId}")
+                Strings.displayText(profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING)
         );
 
-        HBox content = createAssignmentRowContent(row);
-        content.getChildren().addAll(
-                createAvatar(Strings.initials(profile.getName(), "")),
-                textBox,
-                createStatusBadge(displayProfileStatus(profile))
-        );
+        Button removeBtn = new Button("×");
+        removeBtn.getStyleClass().add("assignment-remove-button");
+        removeBtn.setFocusTraversable(false);
+        removeBtn.setOnAction(e -> {
+            updateAssignment(profile.getId(), selectedUser.getId(), false);
+            renderAssignedProfileRows();
+            renderLeftList();
+            updateChangesLabel();
+        });
 
-        row.setGraphic(content);
-        row.setOnAction(event -> setProfileAssignment(profile, row.isSelected()));
-
-        return row;
-    }
-
-    private CheckBox createAssignmentRow(boolean selected) {
-        CheckBox row = new CheckBox();
-        row.setSelected(selected);
-        row.setMaxWidth(Double.MAX_VALUE);
-        row.setFocusTraversable(true);
-        row.getStyleClass().add("assignment-checkbox-row");
+        row.getChildren().addAll(iconLabel, textBox, createStatusBadge(displayProfileStatus(profile)), removeBtn);
         return row;
     }
 
@@ -507,16 +531,6 @@ public class AssignmentsController {
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
         return textBox;
-    }
-
-    private HBox createAssignmentRowContent(CheckBox row) {
-        HBox content = new HBox(12);
-        content.setAlignment(Pos.CENTER_LEFT);
-        content.setMinWidth(0);
-        content.setMaxWidth(Double.MAX_VALUE);
-        content.getStyleClass().add("assignment-row-content");
-        content.prefWidthProperty().bind(row.widthProperty().subtract(72));
-        return content;
     }
 
     private void setUserAssignment(User user, boolean assigned) {
@@ -714,6 +728,374 @@ public class AssignmentsController {
                 .findFirst();
     }
 
+    private String profileIconFor(ScanProfile profile) {
+        if (profile.isArchived()) {
+            return "";
+        }
+        return switch (Strings.normalize(profile.getStatus())) {
+            case "draft" -> "";
+            default -> "";
+        };
+    }
+
+    private String profileIconClassFor(ScanProfile profile) {
+        if (profile.isArchived()) {
+            return "assignment-profile-icon-archived";
+        }
+        return switch (Strings.normalize(profile.getStatus())) {
+            case "draft" -> "assignment-profile-icon-draft";
+            default -> "assignment-profile-icon-active";
+        };
+    }
+
+    private Region createStatusDot(String status) {
+        Region dot = new Region();
+        dot.getStyleClass().addAll("assignment-status-dot", statusDotClassFor(status));
+        return dot;
+    }
+
+    private String statusDotClassFor(String status) {
+        return switch (Strings.normalize(status)) {
+            case "active" -> "assignment-status-dot-active";
+            default -> "assignment-status-dot-inactive";
+        };
+    }
+
+    @FXML
+    private void addEntity() {
+        if (mode == AssignmentMode.BY_PROFILE && selectedProfile != null) {
+            openUserPicker();
+        } else if (mode == AssignmentMode.BY_USER && selectedUser != null) {
+            openProfilePicker();
+        }
+    }
+
+    private void openUserPicker() {
+        Set<Integer> alreadyAssigned = new HashSet<>(getAssignedUserIds(selectedProfile.getId()));
+        Set<Integer> pending = new HashSet<>();
+
+        TextField searchField = buildPickerSearch("Search users...");
+        ComboBox<String> roleFilter = new ComboBox<>();
+        roleFilter.getItems().setAll(ALL_ROLES, "Admin", "User");
+        roleFilter.setValue(ALL_ROLES);
+        roleFilter.getStyleClass().add("role-filter");
+
+        Label countLabel = new Label("Select users to add");
+        countLabel.getStyleClass().add("assignment-picker-count");
+
+        Button assignBtn = new Button("Assign");
+        assignBtn.getStyleClass().add("assignment-picker-assign-button");
+        assignBtn.setFocusTraversable(false);
+        assignBtn.setDisable(true);
+
+        VBox listBox = new VBox(0);
+        listBox.setFillWidth(true);
+
+        Runnable refresh = () -> listBox.getChildren().setAll(
+                users.stream()
+                        .filter(u -> matchesUserSearch(u, Strings.normalize(searchField.getText())))
+                        .filter(u -> matchesRole(u.getRole(), roleFilter.getValue()))
+                        .map(u -> buildPickerUserRow(u, alreadyAssigned, pending, countLabel, assignBtn))
+                        .toList()
+        );
+
+        searchField.textProperty().addListener((obs, o, n) -> refresh.run());
+        roleFilter.valueProperty().addListener((obs, o, n) -> refresh.run());
+        refresh.run();
+
+        Runnable close = showPicker("Add Users", searchField, roleFilter, listBox, countLabel, assignBtn);
+
+        assignBtn.setOnAction(e -> {
+            pending.forEach(uid -> updateAssignment(selectedProfile.getId(), uid, true));
+            renderAssignedUserRows();
+            renderLeftList();
+            updateChangesLabel();
+            close.run();
+        });
+
+        Platform.runLater(searchField::requestFocus);
+    }
+
+    private void openProfilePicker() {
+        Set<Integer> alreadyAssigned = new HashSet<>(getAssignedProfileIds(selectedUser.getId()));
+        Set<Integer> pending = new HashSet<>();
+
+        TextField searchField = buildPickerSearch("Search profiles...");
+        ComboBox<String> statusFilter = new ComboBox<>();
+        statusFilter.getItems().setAll(ALL_STATUSES, "Active", "Draft", "Archived");
+        statusFilter.setValue(ALL_STATUSES);
+        statusFilter.getStyleClass().add("role-filter");
+
+        Label countLabel = new Label("Select profiles to add");
+        countLabel.getStyleClass().add("assignment-picker-count");
+
+        Button assignBtn = new Button("Assign");
+        assignBtn.getStyleClass().add("assignment-picker-assign-button");
+        assignBtn.setFocusTraversable(false);
+        assignBtn.setDisable(true);
+
+        VBox listBox = new VBox(0);
+        listBox.setFillWidth(true);
+
+        Runnable refresh = () -> listBox.getChildren().setAll(
+                profiles.stream()
+                        .filter(p -> matchesProfileSearch(p, Strings.normalize(searchField.getText())))
+                        .filter(p -> matchesStatus(displayProfileStatus(p), statusFilter.getValue()))
+                        .map(p -> buildPickerProfileRow(p, alreadyAssigned, pending, countLabel, assignBtn))
+                        .toList()
+        );
+
+        searchField.textProperty().addListener((obs, o, n) -> refresh.run());
+        statusFilter.valueProperty().addListener((obs, o, n) -> refresh.run());
+        refresh.run();
+
+        Runnable close = showPicker("Add Profiles", searchField, statusFilter, listBox, countLabel, assignBtn);
+
+        assignBtn.setOnAction(e -> {
+            pending.forEach(pid -> updateAssignment(pid, selectedUser.getId(), true));
+            renderAssignedProfileRows();
+            renderLeftList();
+            updateChangesLabel();
+            close.run();
+        });
+
+        Platform.runLater(searchField::requestFocus);
+    }
+
+    private Button buildPickerUserRow(User user, Set<Integer> alreadyAssigned, Set<Integer> pending, Label countLabel, Button assignBtn) {
+        boolean isAssigned = alreadyAssigned.contains(user.getId());
+
+        Button row = new Button();
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setFocusTraversable(false);
+        row.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+        row.getStyleClass().add("assignment-picker-row");
+
+        if (isAssigned) {
+            row.getStyleClass().add("assignment-picker-row-assigned");
+        } else if (pending.contains(user.getId())) {
+            row.getStyleClass().add("assignment-picker-row-selected");
+        }
+
+        VBox textBox = new VBox(2,
+                createLabel(user.getName(), "assignment-picker-name"),
+                createLabel(Strings.displayText(user.getEmail(), "No email"), "assignment-picker-subtitle")
+        );
+        textBox.setMinWidth(0);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        HBox content = new HBox(10, createAvatar(Strings.initials(user.getName(), "")), textBox, createRoleBadge(user.getRole()));
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+        content.getStyleClass().add("assignment-picker-row-content");
+
+        if (isAssigned) {
+            Label inProfileLabel = new Label("In profile");
+            inProfileLabel.getStyleClass().add("assignment-picker-in-label");
+            content.getChildren().add(inProfileLabel);
+        }
+
+        row.setGraphic(content);
+
+        if (!isAssigned) {
+            row.setOnAction(e -> {
+                if (pending.remove(user.getId())) {
+                    row.getStyleClass().remove("assignment-picker-row-selected");
+                } else {
+                    pending.add(user.getId());
+                    row.getStyleClass().add("assignment-picker-row-selected");
+                }
+                updatePickerFooter(countLabel, assignBtn, pending.size());
+            });
+        }
+
+        return row;
+    }
+
+    private Button buildPickerProfileRow(ScanProfile profile, Set<Integer> alreadyAssigned, Set<Integer> pending, Label countLabel, Button assignBtn) {
+        boolean isAssigned = alreadyAssigned.contains(profile.getId());
+
+        Button row = new Button();
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setFocusTraversable(false);
+        row.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+        row.getStyleClass().add("assignment-picker-row");
+
+        if (isAssigned) {
+            row.getStyleClass().add("assignment-picker-row-assigned");
+        } else if (pending.contains(profile.getId())) {
+            row.getStyleClass().add("assignment-picker-row-selected");
+        }
+
+        Label iconLabel = PrimeIcons.create(profileIconFor(profile), "assignment-profile-icon", profileIconClassFor(profile));
+
+        VBox textBox = new VBox(2,
+                createLabel(profile.getName(), "assignment-picker-name"),
+                createLabel(Strings.displayText(profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING), "assignment-picker-subtitle")
+        );
+        textBox.setMinWidth(0);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        HBox content = new HBox(10, iconLabel, textBox, createStatusBadge(displayProfileStatus(profile)));
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+        content.getStyleClass().add("assignment-picker-row-content");
+
+        if (isAssigned) {
+            Label assignedLabel = new Label("Assigned");
+            assignedLabel.getStyleClass().add("assignment-picker-in-label");
+            content.getChildren().add(assignedLabel);
+        }
+
+        row.setGraphic(content);
+
+        if (!isAssigned) {
+            row.setOnAction(e -> {
+                if (pending.remove(profile.getId())) {
+                    row.getStyleClass().remove("assignment-picker-row-selected");
+                } else {
+                    pending.add(profile.getId());
+                    row.getStyleClass().add("assignment-picker-row-selected");
+                }
+                updatePickerFooter(countLabel, assignBtn, pending.size());
+            });
+        }
+
+        return row;
+    }
+
+    private TextField buildPickerSearch(String prompt) {
+        TextField field = new TextField();
+        field.setPromptText(prompt);
+        field.getStyleClass().add("search-field-input");
+        HBox.setHgrow(field, Priority.ALWAYS);
+        return field;
+    }
+
+    private Runnable showPicker(String title, TextField searchField, ComboBox<String> filter, VBox listBox, Label countLabel, Button assignBtn) {
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("assignment-picker-title");
+
+        Button closeButton = new Button("X");
+        closeButton.getStyleClass().add("assignment-picker-close-button");
+        closeButton.setFocusTraversable(false);
+
+        Region dragFill = createSpacer();
+        HBox dragHandle = new HBox(8, titleLabel, dragFill, closeButton);
+        dragHandle.setAlignment(Pos.CENTER_LEFT);
+        dragHandle.getStyleClass().add("assignment-picker-drag-handle");
+
+        HBox searchRow = new HBox(8, searchField, filter);
+        searchRow.setAlignment(Pos.CENTER_LEFT);
+        searchRow.getStyleClass().add("assignment-picker-header");
+
+        ScrollPane listScroll = new ScrollPane(listBox);
+        listScroll.setFitToWidth(true);
+        listScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        listScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        listScroll.getStyleClass().add("assignment-picker-list-scroll");
+        listScroll.setMaxHeight(264);
+
+        HBox footer = new HBox(8, countLabel, createSpacer(), assignBtn);
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.getStyleClass().add("assignment-picker-footer");
+
+        VBox pickerBox = new VBox(0, dragHandle, searchRow, listScroll, footer);
+        pickerBox.getStyleClass().add("assignment-picker-popup");
+        pickerBox.setPrefWidth(370);
+
+        // Full-scene transparent overlay — managed child of StackPane root so
+        // JavaFX's layout pass reaches pickerBox and lays out its children.
+        Pane overlay = new Pane();
+        overlay.setMaxWidth(Double.MAX_VALUE);
+        overlay.setMaxHeight(Double.MAX_VALUE);
+
+        // Click-catcher fills the overlay; closes the picker on outside clicks.
+        Region clickCatcher = new Region();
+        clickCatcher.setPickOnBounds(true);
+        clickCatcher.prefWidthProperty().bind(overlay.widthProperty());
+        clickCatcher.prefHeightProperty().bind(overlay.heightProperty());
+
+        Pane sceneRoot = (Pane) addEntityButton.getScene().getRoot();
+        Runnable close = () -> {
+            clickCatcher.prefWidthProperty().unbind();
+            clickCatcher.prefHeightProperty().unbind();
+            sceneRoot.getChildren().remove(overlay);
+        };
+        closeButton.setOnAction(event -> close.run());
+        clickCatcher.setOnMouseClicked(e -> close.run());
+
+        // Position picker BESIDE the Add button — to its left when there's room,
+        // otherwise to its right. Vertically anchored at the button's top.
+        Bounds btnBounds = addEntityButton.localToScene(addEntityButton.getBoundsInLocal());
+        double pickerWidth = 370;
+        double leftX = btnBounds.getMinX() - pickerWidth - 8;
+        double rightX = btnBounds.getMaxX() + 8;
+        double x = (leftX >= 0)
+                ? leftX
+                : Math.min(rightX, sceneRoot.getWidth() - pickerWidth);
+
+        pickerBox.setLayoutX(x);
+        pickerBox.setLayoutY(btnBounds.getMinY());
+
+        overlay.getChildren().addAll(clickCatcher, pickerBox);
+        sceneRoot.getChildren().add(overlay);
+        makePickerMovable(pickerBox, titleLabel, sceneRoot);
+        makePickerMovable(pickerBox, dragFill, sceneRoot);
+
+        // After layout, slide up only enough to keep the picker fully on screen.
+        Platform.runLater(() -> {
+            double pHeight = pickerBox.getHeight();
+            if (pHeight <= 0) return;
+            double maxY = sceneRoot.getHeight() - pHeight;
+            pickerBox.setLayoutY(Math.max(0, Math.min(btnBounds.getMinY(), maxY)));
+        });
+
+        return close;
+    }
+
+    private void makePickerMovable(VBox pickerBox, Node dragTarget, Pane sceneRoot) {
+        double[] dragOffset = new double[2];
+        boolean[] dragging = new boolean[1];
+
+        dragTarget.setOnMousePressed(event -> {
+            dragging[0] = true;
+            dragOffset[0] = event.getSceneX() - pickerBox.getLayoutX();
+            dragOffset[1] = event.getSceneY() - pickerBox.getLayoutY();
+            event.consume();
+        });
+
+        dragTarget.setOnMouseDragged(event -> {
+            if (!dragging[0]) {
+                return;
+            }
+
+            double width = Math.max(pickerBox.getWidth(), pickerBox.getPrefWidth());
+            double height = Math.max(pickerBox.getHeight(), pickerBox.prefHeight(-1));
+            double maxX = Math.max(0, sceneRoot.getWidth() - width);
+            double maxY = Math.max(0, sceneRoot.getHeight() - height);
+
+            pickerBox.setLayoutX(clamp(event.getSceneX() - dragOffset[0], 0, maxX));
+            pickerBox.setLayoutY(clamp(event.getSceneY() - dragOffset[1], 0, maxY));
+            event.consume();
+        });
+
+        dragTarget.setOnMouseReleased(event -> dragging[0] = false);
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private void updatePickerFooter(Label countLabel, Button assignBtn, int count) {
+        if (count == 0) {
+            countLabel.setText("Select to add");
+            assignBtn.setDisable(true);
+        } else {
+            countLabel.setText(count == 1 ? "1 selected" : count + " selected");
+            assignBtn.setDisable(false);
+        }
+    }
 
     private enum AssignmentMode {
         BY_PROFILE,

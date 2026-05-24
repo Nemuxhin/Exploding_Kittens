@@ -20,7 +20,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="easv.gui.controller.admin.ActivityController"
             fitToWidth="true"
-            fitToHeight="false"
+            fitToHeight="true"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
             minWidth="0"
@@ -192,6 +192,7 @@
             <VBox spacing="0"
                   fillWidth="true"
                   maxWidth="Infinity"
+                  VBox.vgrow="ALWAYS"
                   styleClass="logs-content">
 
                 <VBox fx:id="timelineContainer"

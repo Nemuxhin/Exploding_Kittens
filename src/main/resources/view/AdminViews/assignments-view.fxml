@@ -77,8 +77,8 @@
 
                     <VBox spacing="15" styleClass="assignment-panel-header">
                         <Label fx:id="leftPanelTitleLabel"
-                               text="Profiles"
-                               styleClass="assignment-panel-title"/>
+                               text="SCANNING PROFILES"
+                               styleClass="assignment-section-label"/>
 
                         <HBox spacing="12"
                               alignment="CENTER_LEFT"
@@ -131,7 +131,7 @@
                             styleClass="assignment-panel assignment-editor-panel">
 
                     <top>
-                        <VBox spacing="15" styleClass="assignment-editor-top">
+                        <VBox spacing="12" styleClass="assignment-editor-top">
 
                             <HBox alignment="CENTER_LEFT" spacing="9">
                                 <Label fx:id="selectedTitleLabel"
@@ -143,15 +143,6 @@
                                        styleClass="assignment-status-badge assignment-status-active"/>
                             </HBox>
 
-                            <Label fx:id="selectedSubtitleLabel"
-                                   text="Used for municipal building archive scans."
-                                   wrapText="true"
-                                   styleClass="assignment-selected-subtitle"/>
-
-                            <Label fx:id="selectedCodeLabel"
-                                   text="BuildingArchive_{boxId}"
-                                   styleClass="assignment-code-label"/>
-
                             <Region styleClass="assignment-divider"/>
                         </VBox>
                     </top>
@@ -162,9 +153,17 @@
                               maxHeight="Infinity"
                               styleClass="assignment-editor-body">
 
-                            <Label fx:id="rightPanelTitleLabel"
-                                   text="Assigned Users"
-                                   styleClass="assignment-panel-title"/>
+                            <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                                <Label fx:id="rightPanelTitleLabel"
+                                       text="ASSIGNED USERS"
+                                       styleClass="assignment-section-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="addEntityButton"
+                                        text="+ Add User"
+                                        onAction="#addEntity"
+                                        styleClass="assignment-add-button"
+                                        focusTraversable="false"/>
+                            </HBox>
 
                             <HBox spacing="12"
                                   alignment="CENTER_LEFT"
