@@ -332,16 +332,20 @@
    ========================================================= */
 
 .weblager-shortcuts-dialog-pane {
-    -fx-pref-width: 750;
+    -fx-pref-width: 560;
+    -fx-pref-height: 430;
+    -fx-max-width: 560;
+    -fx-max-height: 430;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
+    -fx-background-radius: 18;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
     -fx-padding: 0;
     -fx-font-family: "Montserrat";
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #00000024, 18, 0, 0, 3);
 }
 
 .weblager-shortcuts-dialog-pane.dark {
@@ -372,18 +376,40 @@
 
 .weblager-shortcuts-root {
     -fx-background-color: -wl-surface;
+    -fx-background-radius: 18;
     -fx-padding: 0;
 }
 
 .weblager-shortcuts-header {
-    -fx-min-height: 75;
-    -fx-pref-height: 75;
-    -fx-max-height: 75;
-    -fx-padding: 0 13 0 13;
+    -fx-min-height: 58;
+    -fx-pref-height: 58;
+    -fx-max-height: 58;
+    -fx-padding: 0 16 0 16;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
     -fx-alignment: center-left;
+}
+
+.weblager-shortcuts-title-icon-shell {
+    -fx-min-width: 34;
+    -fx-pref-width: 34;
+    -fx-max-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-max-height: 34;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 14;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.weblager-shortcuts-title-icon {
+    -fx-fill: -wl-primary;
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 18px;
 }
 
 .weblager-shortcuts-header-copy {
@@ -392,28 +418,28 @@
 
 .weblager-shortcuts-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 500;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
 }
 
 .weblager-shortcuts-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
     -fx-font-weight: 400;
 }
 
 .weblager-shortcuts-x-button {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-width: 34;
+    -fx-pref-width: 34;
+    -fx-max-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-max-height: 34;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 21px;
     -fx-font-weight: 300;
@@ -427,14 +453,35 @@
 .weblager-shortcuts-x-button:pressed,
 .weblager-shortcuts-x-button:focused {
     -fx-background-color: -wl-surface-hover;
-    -fx-border-color: transparent;
+    -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 
 .weblager-shortcuts-body {
     -fx-background-color: -wl-background;
-    -fx-padding: 24 12 15 12;
+    -fx-background-radius: 0 0 18 18;
+    -fx-padding: 9 12 10 12;
     -fx-alignment: top-center;
+}
+
+.weblager-shortcuts-section {
+    -fx-padding: 7;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.weblager-shortcuts-section-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.weblager-shortcuts-simple-row {
+    -fx-min-height: 20;
+    -fx-alignment: center-left;
 }
 
 .weblager-shortcuts-card-row {
@@ -472,28 +519,34 @@
 
 .weblager-shortcuts-action-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.weblager-shortcuts-action-description {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
     -fx-font-weight: 400;
 }
 
 .weblager-shortcuts-key {
-    -fx-min-height: 27;
-    -fx-pref-height: 27;
-    -fx-padding: 0 9 0 9;
+    -fx-min-height: 22;
+    -fx-pref-height: 22;
+    -fx-padding: 0 7 0 7;
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 3;
     -fx-border-color: -wl-border;
     -fx-border-radius: 3;
     -fx-border-width: 1;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 10px;
+    -fx-font-size: 9px;
     -fx-font-weight: 400;
     -fx-alignment: center;
 }
 
 .weblager-shortcuts-footer-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
+    -fx-font-size: 10px;
     -fx-font-weight: 400;
 }
 
@@ -501,9 +554,9 @@
     -fx-min-width: 82;
     -fx-pref-width: 82;
     -fx-max-width: 82;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
     -fx-padding: 0 18 0 18;
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;

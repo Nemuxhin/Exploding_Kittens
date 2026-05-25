@@ -25,7 +25,7 @@ public class DatabaseConnection {
     private static final String DEFAULT_USERNAME = "";
     private static final String DEFAULT_PASSWORD = "";
     private static final Properties FILE_PROPERTIES = loadFileProperties();
-    private static HikariDataSource sharedDataSource;
+    private static final HikariDataSource SHARED_DATA_SOURCE = createSharedDataSource();
 
     private final String jdbcUrl;
     private final String username;
@@ -54,7 +54,7 @@ public class DatabaseConnection {
 
     public Connection getConnection() throws SQLException {
         if (useSharedDataSource) {
-            return getSharedDataSource().getConnection();
+            return SHARED_DATA_SOURCE.getConnection();
         }
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
@@ -173,12 +173,5 @@ public class DatabaseConnection {
         config.setMaxLifetime(600000);
         config.setAutoCommit(true);
         return new HikariDataSource(config);
-    }
-
-    private static synchronized HikariDataSource getSharedDataSource() {
-        if (sharedDataSource == null) {
-            sharedDataSource = createSharedDataSource();
-        }
-        return sharedDataSource;
     }
 }

@@ -4,7 +4,6 @@ import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.TiffExportPlan;
-import easv.bll.AuditLogManager;
 import easv.bll.TiffExportManager;
 import easv.gui.UserPortalModel;
 import javafx.beans.property.ObjectProperty;
@@ -56,7 +55,6 @@ public class ExportsController {
     private final HBox paginationButtonsBox = new HBox();
     private final ComboBox<Integer> rowsPerPageFilter = new ComboBox<>();
     private final TiffExportManager tiffExportManager = new TiffExportManager();
-    private final AuditLogManager auditLogManager = new AuditLogManager();
     private int currentPage = 1;
 
     public ExportsController(UserPortalModel portalModel) {
@@ -547,13 +545,6 @@ public class ExportsController {
 
         try {
             TiffExportPlan plan = createExportPlan(exportType, profileName, profileCode, exportNaming, boxId, documents);
-            logExportEvent(
-                    AuditLogManager.EXPORT_PREVIEW_CREATED,
-                    profileName,
-                    boxId,
-                    exportType.name() + " export plan prepared with " + plan.getItems().size()
-                            + " " + pluralize(plan.getItems().size(), "file") + "."
-            );
             Path outputDirectory = Path.of(
                     System.getProperty("user.home"),
                     "Downloads",
@@ -561,33 +552,12 @@ public class ExportsController {
                     safeFolderName(profileName, boxId)
             );
             TiffExportManager.ExportResult result = tiffExportManager.exportPlan(plan, outputDirectory);
-            logExportEvent(
-                    AuditLogManager.EXPORT_COMPLETED,
-                    profileName,
-                    boxId,
-                    result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
-                            + " written to " + result.outputDirectory()
-            );
             showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
                     result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
                             + " written to " + result.outputDirectory());
             stage.close();
         } catch (IOException | RuntimeException exception) {
-            logExportEvent(
-                    AuditLogManager.EXPORT_FAILED,
-                    profileName,
-                    boxId,
-                    exception.getMessage() == null ? "Export failed." : exception.getMessage()
-            );
             showExportAlert(stage, Alert.AlertType.ERROR, "Export failed", exception.getMessage());
-        }
-    }
-
-    private void logExportEvent(String action, String profileName, String boxId, String description) {
-        try {
-            auditLogManager.logUserAction(action, null, null, null, null, profileName, boxId, description);
-        } catch (RuntimeException ignored) {
-            // Audit failures must not interrupt the export flow.
         }
     }
 

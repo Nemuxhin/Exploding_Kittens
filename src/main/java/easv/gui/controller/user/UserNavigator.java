@@ -14,7 +14,7 @@ interface UserNavigator {
     }
 
     default void showNewScan() {
-        showPage(UserPage.SCAN);
+        showScan();
     }
 
     default void showMyScans() {
@@ -30,7 +30,7 @@ interface UserNavigator {
     }
 
     default void showAssignedQa() {
-        showPage(UserPage.ASSIGNED_QA);
+        showAssignedQA();
     }
 
     default void showExports() {
