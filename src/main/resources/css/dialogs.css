@@ -545,10 +545,6 @@
     -fx-font-family: "Montserrat";
 }
 
-.profile-create-dialog-pane {
-    -fx-pref-width: 980;
-}
-
 .admin-dialog-pane > .content {
     -fx-padding: 0;
     -fx-background-color: -wl-surface;
@@ -834,6 +830,277 @@
 
 .admin-dialog-pane .check-box:selected > .box > .mark {
     -fx-background-color: -wl-on-primary;
+}
+
+/* =========================================================
+   PROFILE DELETE DIALOG
+   ========================================================= */
+
+.profile-delete-dialog-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-family: "Montserrat";
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-delete-dialog-pane > .header-panel {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.profile-delete-dialog-pane > .button-bar > .container {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.profile-delete-dialog-pane > .content {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.profile-delete-dialog-root {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
+}
+
+.profile-delete-dialog-pane.dark .profile-delete-dialog-root {
+    -fx-effect: none;
+}
+
+.profile-delete-dialog-header {
+    -fx-min-height: 64;
+    -fx-pref-height: 64;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18 18 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-delete-dialog-brand-shell {
+    -fx-min-width: 40;
+    -fx-pref-width: 40;
+    -fx-max-width: 40;
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
+    -fx-max-height: 40;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 7;
+    -fx-alignment: center;
+}
+
+.profile-delete-dialog-brand-label {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 17px;
+    -fx-font-weight: 700;
+}
+
+.profile-delete-dialog-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.profile-delete-dialog-close-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-secondary;
+    -fx-font-size: 18px;
+    -fx-font-weight: 300;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.profile-delete-dialog-close-button:hover,
+.profile-delete-dialog-close-button:pressed,
+.profile-delete-dialog-close-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-delete-dialog-body {
+    -fx-padding: 24 28 24 28;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 0 0 18 18;
+}
+
+.profile-delete-dialog-message {
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 18px;
+    -fx-font-weight: 400;
+    -fx-line-spacing: 2px;
+}
+
+.profile-delete-dialog-actions {
+    -fx-alignment: center-right;
+}
+
+.profile-delete-dialog-confirm-button,
+.profile-delete-dialog-cancel-button {
+    -fx-min-width: 92;
+    -fx-pref-width: 92;
+    -fx-max-width: 92;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* =========================================================
+   PROFILE CREATED / SUCCESS DIALOGS
+   ========================================================= */
+
+.profile-created-dialog-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-family: "Montserrat";
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-created-dialog-pane > .header-panel {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.profile-created-dialog-pane > .button-bar > .container {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.profile-created-dialog-pane > .content {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.profile-created-dialog-root {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
+}
+
+.profile-created-dialog-pane.dark .profile-created-dialog-root {
+    -fx-effect: none;
+}
+
+.profile-created-dialog-header {
+    -fx-min-height: 64;
+    -fx-pref-height: 64;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18 18 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-created-dialog-brand-shell {
+    -fx-min-width: 40;
+    -fx-pref-width: 40;
+    -fx-max-width: 40;
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
+    -fx-max-height: 40;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 7;
+    -fx-alignment: center;
+}
+
+.profile-created-dialog-brand-label {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 17px;
+    -fx-font-weight: 700;
+}
+
+.profile-created-dialog-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.profile-created-dialog-close-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-secondary;
+    -fx-font-size: 18px;
+    -fx-font-weight: 300;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.profile-created-dialog-close-button:hover,
+.profile-created-dialog-close-button:pressed,
+.profile-created-dialog-close-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-created-dialog-body {
+    -fx-padding: 24 28 24 28;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 0 0 18 18;
+}
+
+.profile-created-dialog-message {
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 18px;
+    -fx-font-weight: 400;
+    -fx-line-spacing: 2px;
+}
+
+.profile-created-dialog-actions {
+    -fx-alignment: center-right;
+}
+
+.profile-created-dialog-ok-button {
+    -fx-padding: 0 15 0 15;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 /* Keep PrimeIcons from being overwritten by later/global text rules. */

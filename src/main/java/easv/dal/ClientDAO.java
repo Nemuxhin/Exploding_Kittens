@@ -25,8 +25,15 @@ public class ClientDAO {
     public Client saveOrGetExisting(String clientNumber, String name) {
         validateKey(clientNumber, "clientNumber");
         validateKey(name, "name");
-        return findByClientNumber(clientNumber)
-                .orElseGet(() -> insert(clientNumber, name));
+        try (Connection connection = databaseConnection.getConnection()) {
+            Optional<Client> existing = findByClientNumber(connection, clientNumber);
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+            return insert(connection, clientNumber, name);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to store client " + clientNumber, e);
+        }
     }
 
     public Optional<Client> findByClientNumber(String clientNumber) {
@@ -43,6 +50,19 @@ public class ClientDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch client " + clientNumber, e);
+        }
+    }
+
+    private Optional<Client> findByClientNumber(Connection connection, String clientNumber) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT id, client_number, name FROM clients WHERE client_number = ?")) {
+            statement.setString(1, clientNumber);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapClient(resultSet));
+                }
+                return Optional.empty();
+            }
         }
     }
 
@@ -67,10 +87,9 @@ public class ClientDAO {
         }
     }
 
-    private Client insert(String clientNumber, String name) {
+    private Client insert(Connection connection, String clientNumber, String name) throws SQLException {
         Client client = new Client(UUID.randomUUID(), clientNumber, name);
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                      "INSERT INTO clients (id, client_number, name) VALUES (?, ?, ?)")) {
             statement.setString(1, client.getId().toString());
             statement.setString(2, client.getClientNumber());
@@ -79,9 +98,9 @@ public class ClientDAO {
             return client;
         } catch (SQLException e) {
             if (isUniqueViolation(e)) {
-                return findByClientNumber(clientNumber).orElseThrow();
+                return findByClientNumber(connection, clientNumber).orElseThrow();
             }
-            throw new DataAccessException("Failed to store client " + clientNumber, e);
+            throw e;
         }
     }
 

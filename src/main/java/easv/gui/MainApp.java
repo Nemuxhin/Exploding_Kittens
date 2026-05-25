@@ -24,16 +24,11 @@ public class MainApp extends Application {
     private static final String LOGIN_VIEW = "/view/LoginViews/login-view.fxml";
     private static final String ADMIN_VIEW = "/view/AdminViews/admin-view.fxml";
     private static final String USER_VIEW = "/view/UserViews/user-view.fxml";
-    private static final String FONTS_STYLESHEET = "/css/fonts.css";
-    private static final String PRIMEICONS_FONT_RESOURCE = "/fonts/primeicons.ttf";
-
     private static final String[] LOGIN_STYLESHEETS = {
-            FONTS_STYLESHEET,
             "/css/login.css"
     };
 
     private static final String[] ADMIN_STYLESHEETS = {
-            FONTS_STYLESHEET,
             "/css/app.css",
             "/css/shell.css",
             "/css/admin-common.css",
@@ -45,7 +40,6 @@ public class MainApp extends Application {
     };
 
     private static final String[] USER_STYLESHEETS = {
-            FONTS_STYLESHEET,
             "/css/app.css",
             "/css/shell.css",
             "/css/user-portal.css",
@@ -59,7 +53,7 @@ public class MainApp extends Application {
             "/fonts/Montserrat-Medium.ttf",
             "/fonts/Montserrat-SemiBold.ttf",
             "/fonts/Montserrat-Bold.ttf",
-            PRIMEICONS_FONT_RESOURCE
+            "/fonts/primeicons.ttf"
     };
 
     private static final String WINDOW_ICON =
@@ -161,14 +155,12 @@ public class MainApp extends Application {
         for (String fontResource : FONT_RESOURCES) {
             URL fontUrl = getClass().getResource(fontResource);
 
-            if (fontUrl == null) {
-                continue;
-            }
+            if (fontUrl != null) {
+                Font loadedFont = Font.loadFont(fontUrl.toExternalForm(), 12);
 
-            Font loadedFont = Font.loadFont(fontUrl.toExternalForm(), 12);
-
-            if (PRIMEICONS_FONT_RESOURCE.equals(fontResource)) {
-                PrimeIcons.registerFont(loadedFont);
+                if ("/fonts/primeicons.ttf".equals(fontResource)) {
+                    PrimeIcons.registerFont(loadedFont);
+                }
             }
         }
     }

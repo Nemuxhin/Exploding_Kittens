@@ -294,7 +294,7 @@ public class ScannerApiClient {
             String sourceReference = fallback(text(pageNode, "sourceReference", "fileName", "name", "id"),
                     "api-file-" + (offset + 1) + "-" + pageNumber + ".tiff");
             String contentType = fallback(text(pageNode, "contentType", "mimeType", "type"), "image/tiff");
-            String barcodeValue = text(pageNode, "barcodeValue", "barcode", "separator");
+            String barcodeValue = text(pageNode, "barcodeValue", "barcode");
 
             pages.add(new ApiTiffPage(
                     intValue(pageNode, pageNumber, "pageNumber", "page", "index"),

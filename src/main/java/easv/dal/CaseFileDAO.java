@@ -30,8 +30,15 @@ public class CaseFileDAO {
         if (caseReference == null || caseReference.isBlank()) {
             throw new IllegalArgumentException("caseReference must not be blank");
         }
-        return findByReference(caseReference)
-                .orElseGet(() -> insert(caseReference, client, box));
+        try (Connection connection = databaseConnection.getConnection()) {
+            Optional<CaseFile> existing = findByReference(connection, caseReference, false);
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+            return insert(connection, caseReference, client, box);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to store case file " + caseReference, e);
+        }
     }
 
     public Optional<CaseFile> findByReference(String caseReference) {
@@ -39,24 +46,30 @@ public class CaseFileDAO {
             throw new IllegalArgumentException("caseReference must not be blank");
         }
         try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
-                     SELECT cf.id, cf.case_reference,
-                            c.id AS client_id, c.client_number, c.name,
-                            b.id AS box_pk, b.box_id, b.description
-                     FROM case_files cf
-                     JOIN clients c ON c.id = cf.client_id
-                     JOIN boxes b ON b.id = cf.box_id
-                     WHERE cf.case_reference = ?
-                     """)) {
+             ) {
+            return findByReference(connection, caseReference, true);
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch case file " + caseReference, e);
+        }
+    }
+
+    private Optional<CaseFile> findByReference(Connection connection, String caseReference, boolean includeDocuments) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT cf.id, cf.case_reference,
+                       c.id AS client_id, c.client_number, c.name,
+                       b.id AS box_pk, b.box_id, b.description
+                FROM case_files cf
+                JOIN clients c ON c.id = cf.client_id
+                JOIN boxes b ON b.id = cf.box_id
+                WHERE cf.case_reference = ?
+                """)) {
             statement.setString(1, caseReference);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    return Optional.of(mapCaseFile(resultSet));
+                    return Optional.of(mapCaseFile(connection, resultSet, includeDocuments));
                 }
                 return Optional.empty();
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to fetch case file " + caseReference, e);
         }
     }
 
@@ -71,10 +84,10 @@ public class CaseFileDAO {
                      JOIN boxes b ON b.id = cf.box_id
                      ORDER BY cf.case_reference
                      """);
-             ResultSet resultSet = statement.executeQuery()) {
+            ResultSet resultSet = statement.executeQuery()) {
             Collection<CaseFile> caseFiles = new ArrayList<>();
             while (resultSet.next()) {
-                caseFiles.add(mapCaseFile(resultSet));
+                caseFiles.add(mapCaseFile(connection, resultSet, true));
             }
             return caseFiles;
         } catch (SQLException e) {
@@ -82,10 +95,9 @@ public class CaseFileDAO {
         }
     }
 
-    private CaseFile insert(String caseReference, Client client, Box box) {
+    private CaseFile insert(Connection connection, String caseReference, Client client, Box box) throws SQLException {
         CaseFile caseFile = new CaseFile(UUID.randomUUID(), caseReference, client, box);
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                      "INSERT INTO case_files (id, case_reference, client_id, box_id) VALUES (?, ?, ?, ?)")) {
             statement.setString(1, caseFile.getId().toString());
             statement.setString(2, caseFile.getCaseReference());
@@ -95,13 +107,13 @@ public class CaseFileDAO {
             return caseFile;
         } catch (SQLException e) {
             if (isUniqueViolation(e)) {
-                return findByReference(caseReference).orElseThrow();
+                return findByReference(connection, caseReference, false).orElseThrow();
             }
-            throw new DataAccessException("Failed to store case file " + caseReference, e);
+            throw e;
         }
     }
 
-    private CaseFile mapCaseFile(ResultSet resultSet) throws SQLException {
+    private CaseFile mapCaseFile(Connection connection, ResultSet resultSet, boolean includeDocuments) throws SQLException {
         Client client = new Client(
                 UUID.fromString(resultSet.getString("client_id")),
                 resultSet.getString("client_number"),
@@ -114,8 +126,10 @@ public class CaseFileDAO {
         );
         UUID caseFileId = UUID.fromString(resultSet.getString("id"));
         CaseFile caseFile = new CaseFile(caseFileId, resultSet.getString("case_reference"), client, box);
-        for (var document : documentDAO.findByCaseFileId(caseFileId)) {
-            caseFile.addDocument(document);
+        if (includeDocuments) {
+            for (var document : documentDAO.findByCaseFileId(connection, caseFileId)) {
+                caseFile.addDocument(document);
+            }
         }
         return caseFile;
     }

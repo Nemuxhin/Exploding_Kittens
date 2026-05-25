@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.2</javafx.version>
         <junit.version>5.10.2</junit.version>
-        <mssql.jdbc.version>12.6.1.jre11</mssql.jdbc.version>
+        <mssql.jdbc.version>12.6.4.jre11</mssql.jdbc.version>
     </properties>
 
     <dependencies>
@@ -50,9 +50,9 @@
             <version>${mssql.jdbc.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>12.6.4.jre11</version>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

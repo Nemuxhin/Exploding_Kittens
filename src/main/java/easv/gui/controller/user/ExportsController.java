@@ -1,11 +1,16 @@
 package easv.gui.controller.user;
 
+import easv.be.Document;
+import easv.be.PageImage;
+import easv.be.ScanProfile;
+import easv.be.TiffExportPlan;
+import easv.bll.TiffExportManager;
 import easv.gui.UserPortalModel;
-import easv.gui.controller.utilities.PaginationHelper;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
@@ -25,18 +30,20 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class ExportsController {
     private static final String ALL_STATUSES = "All Statuses";
-    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
-    private static final DateTimeFormatter LEGACY_ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter ITEM_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final UserPortalModel portalModel;
     private final VBox table = new VBox();
@@ -47,6 +54,7 @@ public class ExportsController {
     private final Label paginationSummaryLabel = new Label();
     private final HBox paginationButtonsBox = new HBox();
     private final ComboBox<Integer> rowsPerPageFilter = new ComboBox<>();
+    private final TiffExportManager tiffExportManager = new TiffExportManager();
     private int currentPage = 1;
 
     public ExportsController(UserPortalModel portalModel) {
@@ -101,7 +109,8 @@ public class ExportsController {
 
         rowsPerPageFilter.getItems().setAll(10, 25, 50);
         rowsPerPageFilter.setValue(10);
-        rowsPerPageFilter.getStyleClass().addAll("exports-status-filter", "pagination-rows-filter");
+        rowsPerPageFilter.getStyleClass().add("exports-status-filter");
+        rowsPerPageFilter.getStyleClass().add("pagination-rows-filter");
         rowsPerPageFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
             currentPage = 1;
             refreshTable();
@@ -167,22 +176,23 @@ public class ExportsController {
 
         int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
         int totalItems = visibleItems.size();
-        PaginationHelper.PageSlice slice = PaginationHelper.slice(currentPage, rowsPerPage, totalItems);
-        currentPage = slice.currentPage();
+        int totalPages = Math.max(1, (int) Math.ceil(totalItems / (double) rowsPerPage));
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
 
         if (visibleItems.isEmpty()) {
             table.getChildren().add(emptyRow("No matching exports"));
-        } else {
-            for (UserPortalModel.ExportItem item : visibleItems.subList(slice.fromIndex(), slice.toIndex())) {
-                table.getChildren().add(createDataRow(item));
-            }
+            updatePagination(totalItems, totalPages);
+            return;
         }
 
-        PaginationHelper.renderInto(paginationButtonsBox, paginationSummaryLabel, slice,
-                totalItems, "exports", page -> {
-                    currentPage = page;
-                    refreshTable();
-                });
+        int fromIndex = Math.min((currentPage - 1) * rowsPerPage, totalItems);
+        int toIndex = Math.min(fromIndex + rowsPerPage, totalItems);
+
+        for (UserPortalModel.ExportItem item : visibleItems.subList(fromIndex, toIndex)) {
+            table.getChildren().add(createDataRow(item));
+        }
+
+        updatePagination(totalItems, totalPages);
     }
 
     private boolean matchesFilters(UserPortalModel.ExportItem item) {
@@ -259,30 +269,21 @@ public class ExportsController {
             root.getStyleClass().add("dark");
         }
 
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
         Scene scene = new Scene(root);
-
-        addStylesheet(scene, "/css/fonts.css");
-        addStylesheet(scene, "/css/app.css");
-        addStylesheet(scene, "/css/user-portal.css");
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
 
         stage.setScene(scene);
         stage.sizeToScene();
         stage.showAndWait();
     }
 
-    private void addStylesheet(Scene scene, String stylesheetPath) {
-        URL stylesheetUrl = getClass().getResource(stylesheetPath);
-
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
-        }
-    }
-
     private VBox buildExportDialogContent(Stage stage, UserPortalModel.ExportItem item) {
-        List<String> boxFiles = buildBoxFiles(item);
-        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(
-                boxFiles.size() > 1 ? TiffExportType.MULTI_PAGE : TiffExportType.SINGLE_PAGE
-        );
+        List<Document> documents = portalModel.fetchExportDocuments(item);
+        List<String> boxFiles = buildExportFiles(documents);
+        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(TiffExportType.MULTI_PAGE);
 
         Label title = new Label("TIFF Export");
         title.getStyleClass().add("exports-dialog-title");
@@ -293,7 +294,7 @@ public class ExportsController {
         Label boxValue = new Label(item.boxId());
         boxValue.getStyleClass().add("exports-dialog-box-value");
 
-        Label boxDetail = new Label("Only files from this box can be exported in this dialog.");
+        Label boxDetail = new Label("Only documents from this box can be exported in this dialog.");
         boxDetail.getStyleClass().add("exports-dialog-box-detail");
 
         VBox boxCard = new VBox(6, boxValue, boxDetail);
@@ -307,7 +308,7 @@ public class ExportsController {
         );
         Button multiPageCard = buildExportTypeCard(
                 "Multi-page TIFF",
-                "One combined TIFF",
+                "One TIFF per document",
                 TiffExportType.MULTI_PAGE,
                 selectedType
         );
@@ -317,10 +318,10 @@ public class ExportsController {
         HBox typeRow = new HBox(18, singlePageCard, multiPageCard);
         typeRow.getStyleClass().add("exports-dialog-type-row");
 
-        Label selectedFilesTitle = new Label("Files in box");
+        Label selectedFilesTitle = new Label("Documents in box");
         selectedFilesTitle.getStyleClass().add("exports-dialog-files-title");
 
-        Label selectedFilesCount = new Label(formatSelectedFileCount(boxFiles.size()));
+        Label selectedFilesCount = new Label(formatSelectedDocumentCount(boxFiles.size()));
         selectedFilesCount.getStyleClass().add("exports-dialog-files-count");
 
         Region filesSpacer = new Region();
@@ -350,14 +351,14 @@ public class ExportsController {
         Label outputLabel = new Label("Output:");
         outputLabel.getStyleClass().add("exports-dialog-output-label");
 
-        Label outputValue = new Label(buildOutputText(selectedType.get(), boxFiles.size()));
+        Label outputValue = new Label(buildOutputText(selectedType.get(), documents));
         outputValue.getStyleClass().add("exports-dialog-output-value");
         outputValue.setWrapText(false);
         outputValue.setMinHeight(Region.USE_PREF_SIZE);
         outputValue.setPrefWidth(420);
         outputValue.setMaxWidth(420);
         selectedType.addListener((observable, oldValue, newValue) ->
-                outputValue.setText(buildOutputText(newValue, boxFiles.size()))
+                outputValue.setText(buildOutputText(newValue, documents))
         );
 
         HBox outputBox = new HBox(9, outputLabel, outputValue);
@@ -375,10 +376,7 @@ public class ExportsController {
         Button exportButton = new Button("Export");
         exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
         exportButton.setDefaultButton(true);
-        exportButton.setOnAction(event -> {
-            // TODO: invoke TIFF export service with item and selectedType.get(), then close on success
-            stage.close();
-        });
+        exportButton.setOnAction(event -> handleExport(stage, item, selectedType.get(), documents));
 
         HBox footerActions = new HBox(9, cancelButton, exportButton);
         footerActions.getStyleClass().add("exports-dialog-footer-actions");
@@ -444,7 +442,7 @@ public class ExportsController {
                 ? "exports-dialog-option-button-selected"
                 : "exports-dialog-option-button-unselected");
         checkBadge.setVisible(selected);
-        checkBadge.setManaged(selected);
+        checkBadge.setManaged(true);
     }
 
     private void renderSelectedFiles(GridPane fileGrid, List<String> selectedFiles) {
@@ -456,7 +454,7 @@ public class ExportsController {
         );
 
         if (selectedFiles.isEmpty()) {
-            Label emptyState = new Label("No files available for this export.");
+            Label emptyState = new Label("No documents available for this export.");
             emptyState.getStyleClass().add("exports-dialog-empty-state");
             fileGrid.add(emptyState, 0, 0, 3, 1);
             return;
@@ -484,20 +482,128 @@ public class ExportsController {
         return cell;
     }
 
-    private List<String> buildBoxFiles(UserPortalModel.ExportItem item) {
-        // TODO: fetch real document file names for this item from the database
-        return List.of();
+    private List<String> buildExportFiles(List<Document> documents) {
+        if (documents == null || documents.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> files = new ArrayList<>(documents.size());
+        for (Document document : documents) {
+            int pageCount = document.getPages().size();
+            files.add(document.getSourceItemId() + " (" + pageCount + " " + pluralize(pageCount, "page") + ")");
+        }
+        return files;
     }
 
-    private String buildOutputText(TiffExportType type, int selectedFileCount) {
+    private String buildOutputText(TiffExportType type, List<Document> documents) {
+        int documentCount = documents == null ? 0 : documents.size();
+        if (documentCount == 0) {
+            return "No documents are available for export";
+        }
+
         return switch (type) {
-            case SINGLE_PAGE -> selectedFileCount + " separate .tiff " + pluralize(selectedFileCount, "file") + " will be generated";
-            case MULTI_PAGE -> "All selected files will be combined into one .tiff file";
+            case SINGLE_PAGE -> countExportPages(documents) + " separate .tiff "
+                    + pluralize(countExportPages(documents), "file") + " will be generated";
+            case MULTI_PAGE -> documentCount + " multi-page .tiff " + pluralize(documentCount, "file")
+                    + " will be generated, one per document";
         };
     }
 
-    private String formatSelectedFileCount(int count) {
-        return count + " " + pluralize(count, "file");
+    private String formatSelectedDocumentCount(int count) {
+        return count + " " + pluralize(count, "document");
+    }
+
+    private int countExportPages(List<Document> documents) {
+        if (documents == null) {
+            return 0;
+        }
+
+        int pageCount = 0;
+        for (Document document : documents) {
+            pageCount += document.getPages().size();
+        }
+        return pageCount;
+    }
+
+    private void handleExport(
+            Stage stage,
+            UserPortalModel.ExportItem item,
+            TiffExportType exportType,
+            List<Document> documents
+    ) {
+        if (documents == null || documents.isEmpty()) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "No documents to export",
+                    "No stored document pages were found for this completed scan.");
+            return;
+        }
+
+        ScanProfile profile = portalModel.fetchExportProfile(item);
+        String profileName = item == null ? "" : item.profileName();
+        String boxId = item == null ? "" : item.boxId();
+        String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), "{profileCode}_{boxId}");
+
+        try {
+            TiffExportPlan plan = createExportPlan(exportType, profileName, profileCode, exportNaming, boxId, documents);
+            Path outputDirectory = Path.of(
+                    System.getProperty("user.home"),
+                    "Downloads",
+                    "WebLager Exports",
+                    safeFolderName(profileName, boxId)
+            );
+            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(plan, outputDirectory);
+            showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
+                    result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
+                            + " written to " + result.outputDirectory());
+            stage.close();
+        } catch (IOException | RuntimeException exception) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "Export failed", exception.getMessage());
+        }
+    }
+
+    private TiffExportPlan createExportPlan(
+            TiffExportType exportType,
+            String profileName,
+            String profileCode,
+            String exportNaming,
+            String boxId,
+            List<Document> documents
+    ) {
+        return exportType == TiffExportType.SINGLE_PAGE
+                ? tiffExportManager.createSinglePagePlan(profileName, profileCode, exportNaming, boxId, flattenExportPages(documents))
+                : tiffExportManager.createMultiPagePlan(profileName, profileCode, exportNaming, boxId, documents);
+    }
+
+    private List<PageImage> flattenExportPages(List<Document> documents) {
+        List<PageImage> pages = new ArrayList<>();
+        if (documents == null) {
+            return pages;
+        }
+
+        for (Document document : documents) {
+            pages.addAll(document.getPages());
+        }
+        return pages;
+    }
+
+    private void showExportAlert(Stage owner, Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message == null || message.isBlank() ? "The export could not be completed." : message);
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        alert.showAndWait();
+    }
+
+    private String safeFolderName(String profileName, String boxId) {
+        return firstNonBlank(profileName, "profile").replaceAll("[^a-zA-Z0-9._-]", "_")
+                + "_" + firstNonBlank(boxId, "box").replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred.trim();
     }
 
     private String pluralize(int count, String singular) {
@@ -608,6 +714,75 @@ public class ExportsController {
         return bar;
     }
 
+    private void updatePagination(int totalItems, int totalPages) {
+        int rowsPerPage = rowsPerPageFilter.getValue() == null ? 10 : rowsPerPageFilter.getValue();
+        int start = totalItems == 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
+        int end = totalItems == 0 ? 0 : Math.min(currentPage * rowsPerPage, totalItems);
+        paginationSummaryLabel.setText("Showing " + start + "-" + end + " of " + totalItems + " exports");
+        paginationButtonsBox.getChildren().setAll(buildPaginationButtons(totalPages));
+    }
+
+    private List<Node> buildPaginationButtons(int totalPages) {
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(paginationButton("«", 1, currentPage == 1, false));
+        nodes.add(paginationButton("‹", currentPage - 1, currentPage == 1, false));
+
+        for (int page : visiblePages(totalPages)) {
+            if (page < 0) {
+                Label ellipsis = new Label("...");
+                ellipsis.getStyleClass().add("pagination-ellipsis");
+                nodes.add(ellipsis);
+            } else {
+                nodes.add(paginationButton(String.valueOf(page), page, false, page == currentPage));
+            }
+        }
+
+        nodes.add(paginationButton("›", currentPage + 1, currentPage == totalPages, false));
+        nodes.add(paginationButton("»", totalPages, currentPage == totalPages, false));
+        return nodes;
+    }
+
+    private List<Integer> visiblePages(int totalPages) {
+        List<Integer> pages = new ArrayList<>();
+        if (totalPages <= 5) {
+            for (int page = 1; page <= totalPages; page++) {
+                pages.add(page);
+            }
+            return pages;
+        }
+
+        pages.add(1);
+        if (currentPage > 3) {
+            pages.add(-1);
+        }
+
+        int start = Math.max(2, currentPage - 1);
+        int end = Math.min(totalPages - 1, currentPage + 1);
+        for (int page = start; page <= end; page++) {
+            pages.add(page);
+        }
+
+        if (currentPage < totalPages - 2) {
+            pages.add(-1);
+        }
+        pages.add(totalPages);
+        return pages;
+    }
+
+    private Button paginationButton(String text, int targetPage, boolean disabled, boolean active) {
+        Button button = new Button(text);
+        button.getStyleClass().add("pagination-button");
+        if (active) {
+            button.getStyleClass().add("pagination-button-active");
+        }
+        button.setDisable(disabled);
+        button.setOnAction(event -> {
+            currentPage = targetPage;
+            refreshTable();
+        });
+        return button;
+    }
+
     private ColumnConstraints percentColumn(double width) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(width);
@@ -620,14 +795,11 @@ public class ExportsController {
             return null;
         }
 
-        for (DateTimeFormatter formatter : List.of(ITEM_DATE_TIME, LEGACY_ITEM_DATE_TIME)) {
-            try {
-                return LocalDateTime.parse(value.trim(), formatter).toLocalDate();
-            } catch (DateTimeParseException ignored) {
-            }
+        try {
+            return LocalDateTime.parse(value.trim(), ITEM_DATE_TIME).toLocalDate();
+        } catch (DateTimeParseException ignored) {
+            return null;
         }
-
-        return null;
     }
 
     private enum TiffExportType {

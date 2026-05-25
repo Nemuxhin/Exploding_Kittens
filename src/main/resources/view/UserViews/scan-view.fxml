@@ -9,6 +9,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -156,7 +157,7 @@
                                 <Region HBox.hgrow="ALWAYS"/>
 
                                 <Button fx:id="profileInfoButton"
-                                        text="Profile info"
+                                        text="Profile Info"
                                         focusTraversable="false"
                                         styleClass="profile-info-link-button"/>
                             </HBox>
@@ -182,20 +183,16 @@
                                    text="No profile selected"
                                    styleClass="profile-info-title"/>
 
-                            <Label fx:id="profileInfoDocumentDetailsLabel"
-                                   text="Document details required: —"
+                            <Label fx:id="profileInfoMetadataLabel"
+                                   text="Metadata required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â"
                                    styleClass="profile-info-line"/>
 
                             <Label fx:id="profileInfoQaLabel"
-                                   text="QA required: —"
+                                   text="QA required: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â"
                                    styleClass="profile-info-line"/>
 
                             <Label fx:id="profileInfoSplittingLabel"
-                                   text="Splitting method: —"
-                                   styleClass="profile-info-line"/>
-
-                            <Label fx:id="profileInfoBarcodeBehaviorLabel"
-                                   text="Barcode behavior: —"
+                                   text="Splitting method: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â"
                                    styleClass="profile-info-line"/>
                         </VBox>
 
@@ -263,64 +260,110 @@
 
         <!-- Top session header -->
         <top>
-            <HBox spacing="18"
-                  alignment="CENTER_LEFT"
-                  minWidth="0"
-                  maxWidth="Infinity"
-                  styleClass="scan-session-header">
+            <BorderPane minWidth="0"
+                        maxWidth="Infinity"
+                        styleClass="scan-session-header">
                 <padding>
-                    <Insets top="15" right="18" bottom="15" left="18"/>
+                    <Insets top="12" right="18" bottom="12" left="18"/>
                 </padding>
-
-                <VBox spacing="3"
-                      minWidth="0"
-                      HBox.hgrow="ALWAYS">
-                    <Label fx:id="workspaceSessionTitleLabel"
-                           text="Scanning Session"
-                           styleClass="workspace-title"/>
-
-                    <Label fx:id="workspaceSessionSubtitleLabel"
-                           text="0 files scanned · 0 documents created · 0 pending pages"
-                           styleClass="workspace-subtitle"/>
-
-                    <Label fx:id="scanStatusLabel"
-                           text="Status: Ready"
-                           styleClass="workspace-subtitle"/>
-                </VBox>
-
-                <Button text="Scan Next File"
-                        onAction="#onScanNextFile"
-                        minWidth="168"
-                        prefWidth="168"
-                        maxWidth="168"
-                        prefHeight="33"
-                        styleClass="scan-primary-action-button"/>
-            </HBox>
+                <left>
+                    <VBox spacing="9"
+                          alignment="CENTER_LEFT"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          style="-fx-padding: 0 15 0 15;">
+                        <Label fx:id="workspaceSessionTitleLabel"
+                               text="Scanning Session"
+                               styleClass="workspace-title"/>
+                        <Label fx:id="workspaceSessionSubtitleLabel"
+                               visible="false"
+                               managed="false"
+                               text="0 files scanned - 0 documents created - 0 pending pages"
+                               styleClass="workspace-subtitle"/>
+                        <Button text="Scan Next File"
+                                onAction="#onScanNextFile"
+                                maxWidth="Infinity"
+                                prefHeight="33"
+                                styleClass="scan-primary-action-button"/>
+                    </VBox>
+                </left>
+                <center>
+                    <HBox spacing="9"
+                          alignment="CENTER"
+                          BorderPane.alignment="CENTER">
+                    <Label fx:id="headerReferenceInfoLabel"
+                           text="Ref: -"
+                           styleClass="scan-session-info-chip"/>
+                    <Label fx:id="headerFilesInfoLabel"
+                           text="Scanned Files: 0"
+                           styleClass="scan-session-info-chip"/>
+                    <Label fx:id="headerDocumentsInfoLabel"
+                           text="Documents: 0"
+                           styleClass="scan-session-info-chip"/>
+                </HBox>
+                </center>
+                <right>
+                    <VBox alignment="TOP_LEFT"
+                          spacing="9"
+                          minWidth="285"
+                          prefWidth="285"
+                          maxWidth="285"
+                          translateX="18"
+                          style="-fx-padding: 0 15 0 15;"
+                          BorderPane.alignment="TOP_RIGHT">
+                        <Region minHeight="0"
+                                prefHeight="0"
+                                maxHeight="0"/>
+                    </VBox>
+                </right>
+            </BorderPane>
         </top>
 
         <!-- Left document structure -->
         <left>
-            <VBox spacing="15"
-                  minWidth="300"
-                  prefWidth="300"
-                  maxWidth="300"
+            <VBox fx:id="scanLeftPanel"
+                  spacing="15"
+                  minWidth="320"
+                  prefWidth="320"
+                  maxWidth="320"
                   minHeight="0"
                   maxHeight="Infinity"
                   styleClass="scan-left-panel">
 
                 <VBox spacing="3">
-                    <Label text="Box Structure"
-                           styleClass="scan-panel-title"/>
+                    <HBox alignment="CENTER_LEFT"
+                          spacing="9"
+                          maxWidth="Infinity">
+                        <Label text="Box Structure"
+                               styleClass="scan-panel-title"/>
+
+                        <Region HBox.hgrow="ALWAYS"/>
+
+                        <Button fx:id="documentTreeGridViewButton"
+                                text="⧉"
+                                onAction="#onShowDocumentTreeGridView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+
+                        <Button fx:id="documentTreeListViewButton"
+                                text="☰"
+                                onAction="#onShowDocumentTreeListView"
+                                focusTraversable="false"
+                                styleClass="document-tree-view-toggle-button"/>
+                    </HBox>
 
                     <Label fx:id="boxStructureSubtitleLabel"
-                           text="No profile · No box ID"
+                           text="No profile &#183; No box ID"
                            styleClass="scan-panel-subtitle"/>
                 </VBox>
 
-                <ScrollPane fitToWidth="true"
-                            fitToHeight="true"
+                <ScrollPane fx:id="documentTreeScrollPane"
+                            fitToWidth="true"
+                            fitToHeight="false"
                             hbarPolicy="NEVER"
-                            vbarPolicy="AS_NEEDED"
+                            vbarPolicy="ALWAYS"
+                            pannable="true"
                             minHeight="0"
                             maxHeight="Infinity"
                             VBox.vgrow="ALWAYS"
@@ -347,36 +390,27 @@
                     <VBox minWidth="0"
                           maxWidth="Infinity">
 
-                        <HBox spacing="12"
-                              alignment="CENTER_LEFT"
-                              minHeight="66"
-                              prefHeight="66"
-                              maxHeight="66"
-                              styleClass="scan-current-file-header">
-                            <padding>
-                                <Insets top="0" right="18" bottom="0" left="18"/>
-                            </padding>
-
-                            <VBox spacing="3"
-                                  minWidth="0"
-                                  HBox.hgrow="ALWAYS">
+                        <Pane visible="false"
+                              managed="false"
+                              minHeight="0"
+                              prefHeight="0"
+                              maxHeight="0">
+                            <children>
                                 <Label fx:id="selectedFileTitleLabel"
                                        text="No file selected"
                                        styleClass="selected-file-title"/>
-
                                 <Label fx:id="selectedFileRefLabel"
                                        text="Scan a file to begin."
                                        styleClass="selected-file-subtitle"/>
-                            </VBox>
-
-                        </HBox>
+                            </children>
+                        </Pane>
 
                         <!-- View toolbar -->
                         <HBox spacing="12"
                               alignment="CENTER_LEFT"
-                              minHeight="51"
-                              prefHeight="51"
-                              maxHeight="51"
+                              minHeight="42"
+                              prefHeight="42"
+                              maxHeight="42"
                               styleClass="scan-view-toolbar">
                             <padding>
                                 <Insets top="0" right="18" bottom="0" left="18"/>
@@ -385,7 +419,7 @@
                             <Label text="View"
                                    styleClass="view-toolbar-label"/>
 
-                            <Button text="−"
+                            <Button text="&#8722;"
                                     onAction="#onZoomOut"
                                     styleClass="view-tool-button"/>
 
@@ -401,22 +435,22 @@
 
                             <Region styleClass="view-toolbar-divider"/>
 
-                            <Button text="↑"
+                            <Button text="&#8593;"
                                     onAction="#onNudgePreviewUp"
                                     styleClass="view-tool-button"/>
 
-                            <Button text="←"
+                            <Button text="&#8592;"
                                     onAction="#onNudgePreviewLeft"
                                     styleClass="view-tool-button"/>
 
                             <Label text="Move"
                                    styleClass="view-toolbar-muted-label"/>
 
-                            <Button text="→"
+                            <Button text="&#8594;"
                                     onAction="#onNudgePreviewRight"
                                     styleClass="view-tool-button"/>
 
-                            <Button text="↓"
+                            <Button text="&#8595;"
                                     onAction="#onNudgePreviewDown"
                                     styleClass="view-tool-button"/>
 
@@ -436,7 +470,6 @@
                                maxWidth="Infinity"
                                maxHeight="Infinity"
                                styleClass="scan-preview-stage">
-
                         <HBox spacing="18"
                               alignment="CENTER"
                               minWidth="0"
@@ -444,7 +477,7 @@
                               maxWidth="Infinity"
                               maxHeight="Infinity">
 
-                            <Button text="‹"
+                            <Button text="&#8249;"
                                     onAction="#onPreviousFile"
                                     styleClass="preview-arrow-button"/>
 
@@ -456,7 +489,7 @@
                                        HBox.hgrow="ALWAYS"
                                        styleClass="preview-host"/>
 
-                            <Button text="›"
+                            <Button text="&#8250;"
                                     onAction="#onNextFile"
                                     styleClass="preview-arrow-button"/>
                         </HBox>
@@ -465,19 +498,24 @@
 
                 <!-- Page tray -->
                 <bottom>
-                    <VBox spacing="6"
-                          minHeight="111"
-                          prefHeight="111"
-                          maxHeight="111"
+                    <VBox spacing="0"
+                          visible="false"
+                          managed="false"
+                          minHeight="0"
+                          prefHeight="0"
+                          maxHeight="0"
+                          opacity="0"
                           styleClass="page-tray-shell">
 
-                        <HBox alignment="CENTER_LEFT"
-                              minHeight="18"
-                              prefHeight="18"
-                              maxHeight="18">
+                        <HBox visible="false"
+                              managed="false"
+                              alignment="CENTER_LEFT"
+                              minHeight="0"
+                              prefHeight="0"
+                              maxHeight="0">
                             <Label fx:id="pageTrayTitleLabel"
-                                   text="Scanned Files"
-                                   styleClass="page-tray-title"/>
+                                    text="Scanned Files"
+                                    styleClass="page-tray-title"/>
 
                             <Region HBox.hgrow="ALWAYS"/>
 
@@ -490,14 +528,14 @@
                                     fitToWidth="false"
                                     hbarPolicy="AS_NEEDED"
                                     vbarPolicy="NEVER"
-                                    minHeight="81"
-                                    prefHeight="81"
-                                    maxHeight="81"
+                                    minHeight="144"
+                                    prefHeight="144"
+                                    maxHeight="144"
                                     styleClass="page-tray-scroll">
                             <HBox fx:id="pageTrayContainer"
                                   spacing="9"
-                                  minHeight="75"
-                                  maxHeight="75"
+                                  minHeight="111"
+                                  maxHeight="111"
                                   styleClass="page-tray-container"/>
                         </ScrollPane>
                     </VBox>
@@ -507,27 +545,47 @@
 
         <!-- Right tools -->
         <right>
-            <VBox spacing="15"
-                  minWidth="285"
-                  prefWidth="285"
-                  maxWidth="285"
+            <VBox fx:id="scanToolsPanel"
+                  spacing="12"
+                  minWidth="240"
+                  prefWidth="240"
+                  maxWidth="240"
                   minHeight="0"
                   maxHeight="Infinity"
                   styleClass="scan-tools-panel">
-
-                <Label text="Tools"
-                       styleClass="scan-panel-title"/>
 
                 <VBox spacing="9">
                     <Label text="Page Tools"
                            styleClass="scan-tools-section-label"/>
 
-                    <Button text="Rotate Left"
+                    <Label text="Default Box Rotation"
+                           styleClass="scan-tools-section-label"/>
+
+                    <ComboBox fx:id="boxRotationComboBox"
+                              maxWidth="Infinity"
+                              promptText="Enter rotation in degrees"
+                              styleClass="scan-tool-button"/>
+
+                    <Label text="Automatically applied to all pages/files scanned in this box session. You can type any degree value."
+                           wrapText="true"
+                           styleClass="helper-text"/>
+
+                    <Label text="Selected Page Rotation"
+                           styleClass="scan-tools-section-label"/>
+
+                    <ComboBox fx:id="pageRotationComboBox"
+                              maxWidth="Infinity"
+                              promptText="Enter rotation in degrees"
+                              styleClass="scan-tool-button"/>
+
+                    <Button text="Rotate Left (90°)"
+                            fx:id="rotateLeftButton"
                             onAction="#onRotateLeft"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Right"
+                    <Button text="Rotate Right (90°)"
+                            fx:id="rotateRightButton"
                             onAction="#onRotateRight"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
@@ -551,7 +609,7 @@
                 <Region styleClass="scan-panel-divider"/>
 
                 <VBox spacing="9">
-                    <Label text="Document Tools"
+                    <Label text="Split Documents Manually"
                            styleClass="scan-tools-section-label"/>
 
                     <Button text="Split Here"
@@ -559,8 +617,6 @@
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
                 </VBox>
-
-                <Region VBox.vgrow="ALWAYS"/>
 
                 <VBox spacing="9"
                       styleClass="scan-workflow-box">
@@ -570,11 +626,6 @@
                     <Button fx:id="undoLastActionButton"
                             text="Undo Last Action"
                             onAction="#onUndoLastAction"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
-
-                    <Button text="Save Progress"
-                            onAction="#onSaveProgress"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
@@ -601,46 +652,69 @@
                 styleClass="scan-review-workspace">
 
         <top>
-            <VBox spacing="6"
+            <VBox spacing="3"
                   alignment="CENTER_LEFT"
                   minWidth="0"
-                  minHeight="111"
-                  prefHeight="111"
-                  maxHeight="111"
+                  minHeight="72"
+                  prefHeight="72"
+                  maxHeight="72"
                   maxWidth="Infinity"
                   styleClass="review-summary-bar">
                 <padding>
-                    <Insets top="12" right="18" bottom="12" left="18"/>
+                    <Insets top="6" right="18" bottom="6" left="18"/>
                 </padding>
+
+                <Label text="Scan Review"
+                       translateY="10"
+                       mouseTransparent="true"
+                       styleClass="review-summary-title"/>
 
                 <Button text="Back"
                         onAction="#onBackToScanningFromReview"
-                        styleClass="back-button"/>
+                        translateY="10"
+                        styleClass="scan-back-button"/>
 
-                <Label text="Scan Review"
-                       styleClass="review-summary-title"/>
+                <HBox spacing="9"
+                      alignment="CENTER"
+                      translateY="-24"
+                      mouseTransparent="true"
+                      maxWidth="Infinity">
+                    <Label fx:id="reviewReferenceInfoLabel"
+                           text="Ref: -"
+                           styleClass="scan-session-info-chip"/>
+
+                    <Label fx:id="reviewFilesInfoLabel"
+                           text="Scanned Files: 0"
+                           styleClass="scan-session-info-chip"/>
+
+                    <Label fx:id="reviewDocumentsInfoLabel"
+                           text="Documents: 0"
+                           styleClass="scan-session-info-chip"/>
+                </HBox>
 
                 <HBox spacing="18"
-                      alignment="CENTER_LEFT">
+                      alignment="CENTER_LEFT"
+                      visible="false"
+                      managed="false">
                     <Label text="Box"
                            styleClass="review-summary-label"/>
 
                     <Label fx:id="reviewBoxValueLabel"
-                           text="—"
+                           text="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â"
                            styleClass="review-summary-value"/>
 
                     <Label text="Profile"
                            styleClass="review-summary-label"/>
 
                     <Label fx:id="reviewProfileValueLabel"
-                           text="—"
+                           text="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â"
                            styleClass="review-summary-value"/>
 
                     <Label text="Documents"
                            styleClass="review-summary-label"/>
 
                     <Label fx:id="reviewDocumentsValueLabel"
-                           text="—"
+                           text="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â"
                            styleClass="review-summary-value"/>
                 </HBox>
             </VBox>
@@ -648,30 +722,53 @@
 
         <left>
             <VBox spacing="15"
-                  minWidth="255"
-                  prefWidth="255"
-                  maxWidth="255"
+                  minWidth="320"
+                  prefWidth="320"
+                  maxWidth="320"
                   minHeight="0"
                   maxHeight="Infinity"
                   styleClass="review-left-panel">
 
-                <Label text="Documents"
-                       styleClass="review-panel-title"/>
+                <HBox alignment="CENTER_LEFT"
+                      spacing="9"
+                      maxWidth="Infinity">
+                    <Label text="Box Structure"
+                           styleClass="review-panel-title"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="reviewDocumentGridViewButton"
+                            text="⧉"
+                            onAction="#onShowReviewDocumentGridView"
+                            focusTraversable="false"
+                            styleClass="document-tree-view-toggle-button"/>
+
+                    <Button fx:id="reviewDocumentListViewButton"
+                            text="☰"
+                            onAction="#onShowReviewDocumentListView"
+                            focusTraversable="false"
+                            styleClass="document-tree-view-toggle-button"/>
+                </HBox>
+
+                <Label fx:id="reviewSidebarSubtitleLabel"
+                       text="Profile - Box"
+                       styleClass="document-tree-subtitle"/>
 
                 <ScrollPane fitToWidth="true"
-                            fitToHeight="true"
+                            fitToHeight="false"
                             hbarPolicy="NEVER"
                             vbarPolicy="AS_NEEDED"
+                            pannable="true"
                             minHeight="0"
                             maxHeight="Infinity"
                             VBox.vgrow="ALWAYS"
-                            styleClass="review-document-scroll">
+                            styleClass="document-tree-scroll">
 
                     <VBox fx:id="reviewDocumentListContainer"
                           spacing="9"
                           minWidth="0"
                           maxWidth="Infinity"
-                          styleClass="review-document-list"/>
+                          styleClass="document-tree-container"/>
                 </ScrollPane>
             </VBox>
         </left>
@@ -686,28 +783,71 @@
                 <top>
                     <HBox spacing="12"
                           alignment="CENTER_LEFT"
-                          minHeight="60"
-                          prefHeight="60"
-                          maxHeight="60"
-                          styleClass="review-current-file-header">
+                          minHeight="51"
+                          prefHeight="51"
+                          maxHeight="51"
+                          styleClass="scan-view-toolbar">
                         <padding>
                             <Insets top="0" right="18" bottom="0" left="18"/>
                         </padding>
 
+                        <Label text="View"
+                               styleClass="view-toolbar-label"/>
+
+                        <Button text="&#8722;"
+                                onAction="#onReviewZoomOut"
+                                styleClass="view-tool-button"/>
+
+                        <Label fx:id="reviewZoomLabel"
+                               text="100%"
+                               minWidth="54"
+                               alignment="CENTER"
+                               styleClass="view-zoom-label"/>
+
+                        <Button text="+"
+                                onAction="#onReviewZoomIn"
+                                styleClass="view-tool-button"/>
+
+                        <Region styleClass="view-toolbar-divider"/>
+
+                        <Button text="&#8593;"
+                                onAction="#onNudgeReviewPreviewUp"
+                                styleClass="view-tool-button"/>
+
+                        <Button text="&#8592;"
+                                onAction="#onNudgeReviewPreviewLeft"
+                                styleClass="view-tool-button"/>
+
+                        <Label text="Move"
+                               styleClass="view-toolbar-muted-label"/>
+
+                        <Button text="&#8594;"
+                                onAction="#onNudgeReviewPreviewRight"
+                                styleClass="view-tool-button"/>
+
+                        <Button text="&#8595;"
+                                onAction="#onNudgeReviewPreviewDown"
+                                styleClass="view-tool-button"/>
+
                         <Label fx:id="reviewSelectedTitleLabel"
                                text="No page selected"
+                               visible="false"
+                               managed="false"
                                styleClass="review-selected-title"/>
 
                         <Region HBox.hgrow="ALWAYS"/>
 
-                        <Label text="↗"
+                        <Label text="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â"
                                styleClass="review-view-icon"/>
 
-                        <Label text="⊖"
+                        <Label text="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“"
                                styleClass="review-view-icon"/>
 
-                        <Label text="⊕"
+                        <Label text="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢"
                                styleClass="review-view-icon"/>
+                        <Button text="Reset View"
+                                onAction="#onResetReviewPreviewView"
+                                styleClass="view-reset-button"/>
                     </HBox>
                 </top>
 
@@ -725,7 +865,7 @@
                               maxWidth="Infinity"
                               maxHeight="Infinity">
 
-                            <Button text="‹"
+                            <Button text="&#8249;"
                                     onAction="#onPreviousReviewPage"
                                     styleClass="preview-arrow-button"/>
 
@@ -737,7 +877,7 @@
                                        HBox.hgrow="ALWAYS"
                                        styleClass="review-preview-host"/>
 
-                            <Button text="›"
+                            <Button text="&#8250;"
                                     onAction="#onNextReviewPage"
                                     styleClass="preview-arrow-button"/>
                         </HBox>
@@ -745,16 +885,21 @@
                 </center>
 
                 <bottom>
-                    <VBox spacing="6"
-                          minHeight="111"
-                          prefHeight="111"
-                          maxHeight="111"
+                    <VBox spacing="0"
+                          visible="false"
+                          managed="false"
+                          minHeight="0"
+                          prefHeight="0"
+                          maxHeight="0"
+                          opacity="0"
                           styleClass="review-page-tray-shell">
 
-                        <HBox alignment="CENTER_LEFT"
-                              minHeight="18"
-                              prefHeight="18"
-                              maxHeight="18">
+                        <HBox visible="false"
+                              managed="false"
+                              alignment="CENTER_LEFT"
+                              minHeight="0"
+                              prefHeight="0"
+                              maxHeight="0">
                             <Label text="Page Tray"
                                    styleClass="review-page-tray-title"/>
                         </HBox>
@@ -763,14 +908,14 @@
                                     fitToWidth="false"
                                     hbarPolicy="AS_NEEDED"
                                     vbarPolicy="NEVER"
-                                    minHeight="81"
-                                    prefHeight="81"
-                                    maxHeight="81"
+                                    minHeight="144"
+                                    prefHeight="144"
+                                    maxHeight="144"
                                     styleClass="review-page-tray-scroll">
                             <HBox fx:id="reviewPageTrayContainer"
                                   spacing="9"
-                                  minHeight="75"
-                                  maxHeight="75"
+                                  minHeight="111"
+                                  maxHeight="111"
                                   styleClass="review-page-tray-container"/>
                         </ScrollPane>
                     </VBox>
@@ -779,16 +924,14 @@
         </center>
 
         <right>
-            <VBox spacing="15"
-                  minWidth="255"
-                  prefWidth="255"
-                  maxWidth="255"
+            <VBox spacing="9"
+                  minWidth="320"
+                  prefWidth="320"
+                  maxWidth="320"
                   minHeight="0"
                   maxHeight="Infinity"
                   styleClass="review-next-step-panel">
 
-                <Label text="Next Step"
-                       styleClass="review-panel-title"/>
 
                 <Button text="Submit for QA"
                         onAction="#onSubmitForQaFromReview"
@@ -798,6 +941,60 @@
                 <Label text="Once submitted, this scan will be assigned to another user for QA."
                        wrapText="true"
                        styleClass="review-next-step-copy"/>
+
+                <VBox spacing="5"
+                      maxWidth="Infinity"
+                      styleClass="review-current-selection-card">
+                    <Label text="Current Selection"
+                           styleClass="review-current-selection-title"/>
+
+                    <Region minHeight="1"
+                            prefHeight="1"
+                            maxHeight="1"
+                            maxWidth="Infinity"
+                            styleClass="review-current-selection-divider"/>
+
+                    <Label text="Profile"
+                           styleClass="review-current-selection-label"/>
+                    <Label fx:id="reviewSelectionProfileValueLabel"
+                           text="-"
+                           styleClass="review-current-selection-value"/>
+
+                    <Label text="Box"
+                           styleClass="review-current-selection-label"/>
+                    <Label fx:id="reviewSelectionBoxValueLabel"
+                           text="-"
+                           styleClass="review-current-selection-value"/>
+
+                    <Label text="Document"
+                           styleClass="review-current-selection-label"/>
+                    <Label fx:id="reviewSelectionDocumentValueLabel"
+                           text="-"
+                           styleClass="review-current-selection-value"/>
+
+                    <Label text="File"
+                           styleClass="review-current-selection-label"/>
+                    <Label fx:id="reviewSelectionFileValueLabel"
+                           text="-"
+                           styleClass="review-current-selection-value"/>
+
+                    <Label text="File Reference ID"
+                           styleClass="review-current-selection-label"/>
+                    <Label fx:id="reviewSelectionReferenceValueLabel"
+                           text="-"
+                           styleClass="review-current-selection-value"/>
+
+                    <Label text="File ID"
+                           styleClass="review-current-selection-label"/>
+                    <Label fx:id="reviewSelectionFileIdValueLabel"
+                           text="-"
+                           styleClass="review-current-selection-value"/>
+                </VBox>
+
+                <Button text="Export Type"
+                        onAction="#onOpenExportTypeDialog"
+                        maxWidth="Infinity"
+                        styleClass="review-export-type-button"/>
 
                 <Region VBox.vgrow="ALWAYS"/>
             </VBox>
@@ -880,7 +1077,12 @@
             <Button text="Back to Scanning"
                     onAction="#onBackToScanningFromFinishModal"
                     maxWidth="Infinity"
-                    styleClass="finish-review-link-button"/>
+                    styleClass="finish-review-secondary-button"/>
+
+            <Button text="Cancel"
+                    onAction="#onBackToScanningFromFinishModal"
+                    maxWidth="Infinity"
+                    styleClass="finish-review-secondary-button"/>
         </VBox>
     </StackPane>
 
@@ -924,7 +1126,7 @@
                        styleClass="submit-confirmation-summary-muted"/>
 
                 <Label fx:id="submitConfirmationSummaryLabel"
-                       text="0 documents · 0 pages submitted for QA"
+                       text="0 documents - 0 pages submitted for QA"
                        styleClass="submit-confirmation-summary-muted"/>
             </VBox>
 
@@ -939,3 +1141,8 @@
         </VBox>
     </StackPane>
 </StackPane>
+
+
+
+
+
