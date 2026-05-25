@@ -732,28 +732,27 @@
     -fx-pref-height: 36;
     -fx-max-height: 36;
     -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
     -fx-alignment: center;
     -fx-font-size: 15px;
 }
 
-.assignment-profile-icon-active {
-    -fx-background-color: -wl-activity-scan-bg;
-}
-
-.assignment-profile-icon-draft {
-    -fx-background-color: -wl-activity-document-bg;
+.assignment-profile-icon-active,
+.assignment-profile-icon-draft,
+.assignment-profile-icon-user {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
 }
 
 .assignment-profile-icon-archived {
-    -fx-background-color: -wl-muted-icon;
-}
-
-.assignment-profile-icon-user {
-    -fx-background-color: -wl-activity-user-bg;
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-status-neutral-border;
 }
 
 .assignment-profile-icon.prime-icon-vector {
-    -fx-fill: -wl-on-primary;
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
 }
 
 /* =========================================================

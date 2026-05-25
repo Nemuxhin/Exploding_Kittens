@@ -174,6 +174,9 @@
 }
 
 .activity-log-page.logs-page .logs-export-button {
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+    -fx-max-width: 120;
     -fx-min-height: 46;
     -fx-pref-height: 46;
     -fx-background-color: -wl-primary;
@@ -243,6 +246,271 @@
     -fx-text-fill: -wl-primary;
 }
 
+.logs-search-popover-menu,
+.logs-search-popover-menu .context-menu,
+.activity-log-page.logs-page .logs-filter .context-menu,
+.activity-log-page.logs-page .logs-date-filter .context-menu {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.logs-search-popover-menu .custom-menu-item,
+.activity-log-page.logs-page .logs-filter .custom-menu-item,
+.activity-log-page.logs-page .logs-date-filter .custom-menu-item {
+    -fx-padding: 0;
+}
+
+.logs-search-popover,
+.logs-status-popover,
+.logs-sort-popover,
+.logs-filters-popover {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 7;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #00000026, 16, 0, 0, 4);
+}
+
+.logs-search-popover {
+    -fx-min-width: 315;
+    -fx-pref-width: 315;
+    -fx-max-width: 315;
+    -fx-padding: 12;
+    -fx-background-radius: 0 0 7 7;
+    -fx-border-radius: 0 0 7 7;
+}
+
+.logs-popover-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.logs-popover-link-button {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0 3 0 3;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.logs-popover-empty-text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+}
+
+.logs-search-recent-row,
+.logs-sort-option {
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 5;
+    -fx-border-color: transparent;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.logs-search-recent-row:hover,
+.logs-sort-option:hover,
+.logs-sort-option-selected {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-search-recent-icon,
+.logs-search-recent-icon .text,
+.logs-sort-option-icon,
+.logs-sort-option-icon .text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-fill: -wl-text-muted;
+    -fx-font-size: 13px;
+}
+
+.logs-search-recent-text,
+.logs-sort-option-text {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.logs-status-popover {
+    -fx-pref-width: 306;
+}
+
+.logs-status-popover-header {
+    -fx-padding: 14 16 10 16;
+}
+
+.logs-status-popover-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+}
+
+.logs-status-selected-count {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0 10 0 10;
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.logs-status-options {
+    -fx-padding: 0 14 8 14;
+    -fx-spacing: 5;
+}
+
+.logs-status-checkbox {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 10 0 10;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.logs-status-checkbox-highlighted {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-status-checkbox .box {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 5;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 5;
+}
+
+.logs-status-checkbox:selected .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.logs-status-checkbox:selected .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.logs-status-checkbox-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.logs-status-pill {
+    -fx-min-height: 26;
+    -fx-pref-height: 26;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.logs-status-pill-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.logs-status-pill-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.logs-status-pill-warning {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.logs-status-pill-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.logs-status-divider {
+    -fx-background-color: -wl-border;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-padding: 0;
+}
+
+.logs-status-helper-text {
+    -fx-padding: 12 16 12 16;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.logs-popover-footer {
+    -fx-padding: 12 16 14 16;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.logs-status-popover .logs-date-clear-button,
+.logs-status-popover .logs-date-apply-button {
+    -fx-min-width: 92;
+    -fx-pref-width: 92;
+    -fx-max-width: 92;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.logs-status-popover .logs-date-apply-button {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+}
+
+.logs-sort-popover {
+    -fx-pref-width: 224;
+    -fx-padding: 9;
+}
+
+.logs-sort-option {
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-padding: 0 12 0 12;
+}
+
+.logs-sort-option-check,
+.logs-sort-option-check .text {
+    -fx-text-fill: -wl-primary;
+    -fx-fill: -wl-primary;
+    -fx-font-size: 13px;
+}
+
+.logs-filters-popover {
+    -fx-pref-width: 238;
+    -fx-padding: 12;
+}
+
+.logs-popover-combo {
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 5;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+}
+
 /* Date menu */
 .activity-log-page.logs-page .logs-date-popover {
     -fx-padding: 14;
@@ -254,6 +522,104 @@
     -fx-border-width: 1;
     -fx-pref-width: 252;
     -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+}
+
+.activity-log-page.logs-page .logs-popover-time-field,
+.activity-log-page.logs-page .logs-popover-time-field:hover,
+.activity-log-page.logs-page .logs-popover-time-field:focused {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 0 10 0 10;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-font-size: 12px;
+}
+
+.activity-log-page.logs-page .logs-calendar-panel {
+    -fx-padding: 3 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-calendar-header {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+}
+
+.activity-log-page.logs-page .logs-calendar-month-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.activity-log-page.logs-page .logs-calendar-nav-button {
+    -fx-min-width: 28;
+    -fx-pref-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-calendar-nav-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 5;
+}
+
+.activity-log-page.logs-page .logs-calendar-grid {
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-calendar-day-name {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
+.activity-log-page.logs-page .logs-calendar-day-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-max-height: 27;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-calendar-day-button:hover,
+.activity-log-page.logs-page .logs-calendar-day-in-range {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.activity-log-page.logs-page .logs-calendar-day-selected {
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-calendar-day-outside {
+    -fx-text-fill: -wl-placeholder;
 }
 
 .activity-log-page.logs-page .logs-date-mode-switch {
@@ -405,7 +771,7 @@
 }
 
 .activity-log-page.logs-page .logs-expandable-row-selected {
-    -fx-background-color: -wl-status-info-bg;
+    -fx-background-color: -wl-surface-hover;
     -fx-border-color: transparent transparent -wl-border -wl-primary;
     -fx-border-width: 0 0 1 4;
 }
@@ -461,6 +827,9 @@
     -fx-pref-height: 42;
     -fx-max-height: 42;
     -fx-background-radius: 999;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
     -fx-alignment: center;
 }
 
@@ -474,45 +843,67 @@
     -fx-fill: -wl-primary;
 }
 
-.activity-log-page.logs-page .logs-event-icon-users,
+.activity-log-page.logs-page .logs-event-icon-users {
+    -fx-background-color: -wl-activity-user-bg;
+    -fx-border-color: -wl-activity-user-bg;
+}
+
 .activity-log-page.logs-page .logs-event-icon-profiles {
-    -fx-background-color: -wl-tag-purple-bg;
+    -fx-background-color: -wl-activity-profile-bg;
+    -fx-border-color: -wl-activity-profile-bg;
 }
 
-.activity-log-page.logs-page .logs-event-icon-users .logs-event-icon-path,
-.activity-log-page.logs-page .logs-event-icon-profiles .logs-event-icon-path {
-    -fx-text-fill: -wl-tag-purple-text;
-}
-
-.activity-log-page.logs-page .logs-event-icon-files,
 .activity-log-page.logs-page .logs-event-icon-documents {
-    -fx-background-color: -wl-tag-blue-bg;
-}
-
-.activity-log-page.logs-page .logs-event-icon-files .logs-event-icon-path,
-.activity-log-page.logs-page .logs-event-icon-documents .logs-event-icon-path {
-    -fx-text-fill: -wl-tag-blue-text;
-}
-
-.activity-log-page.logs-page .logs-event-icon-qa,
-.activity-log-page.logs-page .logs-event-icon-access {
-    -fx-background-color: -wl-tag-teal-bg;
-}
-
-.activity-log-page.logs-page .logs-event-icon-qa .logs-event-icon-path,
-.activity-log-page.logs-page .logs-event-icon-access .logs-event-icon-path {
-    -fx-text-fill: -wl-tag-teal-text;
+    -fx-background-color: -wl-activity-documents-bg;
+    -fx-border-color: -wl-activity-documents-bg;
 }
 
 .activity-log-page.logs-page .logs-event-icon-system {
-    -fx-background-color: -wl-surface-hover;
+    -fx-background-color: -wl-activity-system-bg;
+    -fx-border-color: -wl-activity-system-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-files {
+    -fx-background-color: -wl-activity-export-bg;
+    -fx-border-color: -wl-activity-export-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-qa {
+    -fx-background-color: -wl-activity-qa-bg;
+    -fx-border-color: -wl-activity-qa-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-access {
+    -fx-background-color: -wl-activity-access-bg;
+    -fx-border-color: -wl-activity-access-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-users .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-users .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-profiles .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-profiles .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-files .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-files .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-documents .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-documents .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-qa .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-qa .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-access .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-access .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-system .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-system .logs-event-icon-path .text {
+    -fx-fill: -wl-activity-text;
+    -fx-text-fill: -wl-activity-text;
 }
 
 .activity-log-page.logs-page .logs-event-icon-failed {
     -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
 }
 
-.activity-log-page.logs-page .logs-event-icon-failed .logs-event-icon-path {
+.activity-log-page.logs-page .logs-event-icon-failed .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-failed .logs-event-icon-path .text {
+    -fx-fill: -wl-status-error-text;
     -fx-text-fill: -wl-status-error-text;
 }
 
@@ -544,52 +935,77 @@
     -fx-max-height: 20;
     -fx-padding: 0 9 0 9;
     -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
     -fx-alignment: center;
     -fx-font-size: 10px;
     -fx-font-weight: 600;
 }
 
-.activity-log-page.logs-page .logs-area-users,
-.activity-log-page.logs-page .logs-area-profiles,
-.activity-log-page.logs-page .logs-area-access {
-    -fx-background-color: -wl-tag-purple-bg;
-    -fx-text-fill: -wl-tag-purple-text;
+.activity-log-page.logs-page .logs-area-users {
+    -fx-background-color: #F1F5F9;
+    -fx-border-color: #CBD5E1;
+    -fx-text-fill: #475569;
 }
 
-.activity-log-page.logs-page .logs-area-files,
-.activity-log-page.logs-page .logs-area-import,
+.activity-log-page.logs-page .logs-area-profiles {
+    -fx-background-color: #EEF2FF;
+    -fx-border-color: #C7D2FE;
+    -fx-text-fill: #4F46E5;
+}
+
 .activity-log-page.logs-page .logs-area-documents {
     -fx-background-color: -wl-tag-blue-bg;
+    -fx-border-color: -wl-tag-blue-border;
     -fx-text-fill: -wl-tag-blue-text;
 }
 
 .activity-log-page.logs-page .logs-area-qa {
+    -fx-background-color: #DCFCE7;
+    -fx-border-color: #BBF7D0;
+    -fx-text-fill: #15803D;
+}
+
+.activity-log-page.logs-page .logs-area-access {
+    -fx-background-color: #CCFBF1;
+    -fx-border-color: #99F6E4;
+    -fx-text-fill: #0F766E;
+}
+
+.activity-log-page.logs-page .logs-area-files,
+.activity-log-page.logs-page .logs-area-import {
     -fx-background-color: -wl-tag-teal-bg;
+    -fx-border-color: -wl-tag-teal-border;
     -fx-text-fill: -wl-tag-teal-text;
 }
 
-.activity-log-page.logs-page .logs-area-import-failed {
-    -fx-background-color: -wl-tag-red-bg;
-    -fx-text-fill: -wl-tag-red-text;
+.activity-log-page.logs-page .logs-area-system {
+    -fx-background-color: #F1F5F9;
+    -fx-border-color: #CBD5E1;
+    -fx-text-fill: #475569;
 }
 
-.activity-log-page.logs-page .logs-area-system {
-    -fx-background-color: -wl-status-neutral-bg;
-    -fx-text-fill: -wl-status-neutral-text;
+.activity-log-page.logs-page .logs-area-import-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
 }
 
 .activity-log-page.logs-page .logs-result-success {
     -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
 }
 
 .activity-log-page.logs-page .logs-result-failed {
     -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
     -fx-text-fill: -wl-status-error-text;
 }
 
 .activity-log-page.logs-page .logs-result-info {
     -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
     -fx-text-fill: -wl-status-info-text;
 }
 
@@ -717,8 +1133,8 @@
 }
 
 .activity-log-page.logs-page .logs-payload-status-pill-deleted {
-    -fx-background-color: #FFEDD5;
-    -fx-text-fill: #C2410C;
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
 }
 
 .activity-log-page.logs-page .logs-payload-status-pill-warning {
@@ -853,7 +1269,7 @@
 }
 
 /* ----- HERO ICON VARIANTS ----- */
-/* DIFF — purple/teal/blue circle */
+/* DIFF - neutral circle */
 .activity-log-page.logs-page .logs-payload-hero-diff-circle {
     -fx-min-width: 48;
     -fx-pref-width: 48;
@@ -866,45 +1282,21 @@
 }
 
 .activity-log-page.logs-page .logs-payload-hero-icon-user,
-.activity-log-page.logs-page .logs-payload-hero-icon-purple {
-    -fx-background-color: -wl-tag-purple-bg;
-}
-
-.activity-log-page.logs-page .logs-payload-hero-icon-teal {
-    -fx-background-color: -wl-tag-teal-bg;
-}
-
-.activity-log-page.logs-page .logs-payload-hero-icon-blue {
-    -fx-background-color: -wl-tag-blue-bg;
-}
-
+.activity-log-page.logs-page .logs-payload-hero-icon-purple,
+.activity-log-page.logs-page .logs-payload-hero-icon-teal,
+.activity-log-page.logs-page .logs-payload-hero-icon-blue,
 .activity-log-page.logs-page .logs-payload-hero-icon-neutral {
-    -fx-background-color: -wl-surface-hover;
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
 }
 
 .activity-log-page.logs-page .logs-payload-hero-diff-icon,
 .activity-log-page.logs-page .logs-payload-hero-diff-icon .text {
     -fx-font-size: 20px;
-    -fx-fill: -wl-tag-purple-text;
-    -fx-text-fill: -wl-tag-purple-text;
-}
-
-.activity-log-page.logs-page .logs-payload-hero-icon-teal .logs-payload-hero-diff-icon,
-.activity-log-page.logs-page .logs-payload-hero-icon-teal .logs-payload-hero-diff-icon .text {
-    -fx-fill: -wl-tag-teal-text;
-    -fx-text-fill: -wl-tag-teal-text;
-}
-
-.activity-log-page.logs-page .logs-payload-hero-icon-blue .logs-payload-hero-diff-icon,
-.activity-log-page.logs-page .logs-payload-hero-icon-blue .logs-payload-hero-diff-icon .text {
-    -fx-fill: -wl-tag-blue-text;
-    -fx-text-fill: -wl-tag-blue-text;
-}
-
-.activity-log-page.logs-page .logs-payload-hero-icon-neutral .logs-payload-hero-diff-icon,
-.activity-log-page.logs-page .logs-payload-hero-icon-neutral .logs-payload-hero-diff-icon .text {
-    -fx-fill: -wl-text-muted;
-    -fx-text-fill: -wl-text-muted;
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
 }
 
 /* ASSET — white square tile with TIFF badge */

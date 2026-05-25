@@ -108,14 +108,14 @@
     -wl-tag-red-text: #FF3D32;
 
     -wl-activity-user-bg: #64748B;
-    -wl-activity-profile-bg: #7C3AED;
-    -wl-activity-documents-bg: #2563EB;
-    -wl-activity-qa-bg: #15803D;
+    -wl-activity-profile-bg: #6366F1;
+    -wl-activity-documents-bg: #0B6FAE;
+    -wl-activity-qa-bg: #16A34A;
     -wl-activity-access-bg: #0F766E;
-    -wl-activity-scan-bg: #0E7490;
-    -wl-activity-document-bg: #A16207;
+    -wl-activity-scan-bg: #0EA5E9;
+    -wl-activity-document-bg: #0B6FAE;
     -wl-activity-system-bg: #475569;
-    -wl-activity-export-bg: #047857;
+    -wl-activity-export-bg: #24C79F;
     -wl-activity-security-bg: #EF4444;
     -wl-activity-text: #FFFFFF;
 
@@ -127,13 +127,13 @@
     -wl-workspace-paper-border: #CBD5E1;
     -wl-workspace-placeholder: #94A3B8;
 
-    -wl-role-admin-bg: #EAF4FF;
-    -wl-role-admin-text: #0B6FAE;
-    -wl-role-admin-border: #CFE8FF;
+    -wl-role-admin-bg: #EAF1F7;
+    -wl-role-admin-text: #2D3D4F;
+    -wl-role-admin-border: #CBD6E2;
 
-    -wl-role-user-bg: #E9FBF6;
-    -wl-role-user-text: #168A72;
-    -wl-role-user-border: #C8F0E4;
+    -wl-role-user-bg: #EEF2FF;
+    -wl-role-user-text: #4F46E5;
+    -wl-role-user-border: #C7D2FE;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
@@ -263,16 +263,16 @@
     -wl-tag-red-border: #9A1D1B;
     -wl-tag-red-text: #FF3D32;
 
-    -wl-activity-user-bg: #74849A;
-    -wl-activity-profile-bg: #8B5CF6;
-    -wl-activity-documents-bg: #3B82F6;
-    -wl-activity-qa-bg: #16A34A;
-    -wl-activity-access-bg: #0D9488;
-    -wl-activity-scan-bg: #0891B2;
-    -wl-activity-document-bg: #B7791F;
+    -wl-activity-user-bg: #94A3B8;
+    -wl-activity-profile-bg: #818CF8;
+    -wl-activity-documents-bg: #38BDF8;
+    -wl-activity-qa-bg: #22C55E;
+    -wl-activity-access-bg: #2DD4BF;
+    -wl-activity-scan-bg: #38BDF8;
+    -wl-activity-document-bg: #38BDF8;
     -wl-activity-system-bg: #64748B;
-    -wl-activity-export-bg: #059669;
-    -wl-activity-security-bg: #EF4444;
+    -wl-activity-export-bg: #24C79F;
+    -wl-activity-security-bg: #F87171;
     -wl-activity-text: #FFFFFF;
 
     -wl-date-range-between-bg: #143358;
@@ -283,13 +283,13 @@
     -wl-workspace-paper-border: #415060;
     -wl-workspace-placeholder: #697489;
 
-    -wl-role-admin-bg: #0D4F73;
-    -wl-role-admin-text: #7DD3FC;
-    -wl-role-admin-border: #176B94;
+    -wl-role-admin-bg: -wl-tag-blue-bg;
+    -wl-role-admin-text: -wl-tag-blue-text;
+    -wl-role-admin-border: -wl-tag-blue-border;
 
-    -wl-role-user-bg: #123E37;
-    -wl-role-user-text: #4CD07D;
-    -wl-role-user-border: #1B5A4E;
+    -wl-role-user-bg: #1E1B4B;
+    -wl-role-user-text: #C7D2FE;
+    -wl-role-user-border: #312E81;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);

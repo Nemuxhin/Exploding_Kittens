@@ -1168,12 +1168,9 @@
     -fx-font-weight: 500;
 }
 
-.role-badge-admin,
-.profile-editor-admin-badge,
 .profile-status-draft,
 .assignment-status-draft,
 .profile-assignment-status-draft,
-.profile-editor-user-badge,
 .chip-blue,
 .chip-indigo,
 .chip-purple,
@@ -1183,7 +1180,6 @@
     -fx-text-fill: -wl-status-info-text;
 }
 
-.role-badge-user,
 .user-status-active,
 .profile-status-active,
 .assignment-status-active,
@@ -1196,6 +1192,20 @@
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
+}
+
+.role-badge-admin,
+.profile-editor-admin-badge {
+    -fx-background-color: -wl-role-admin-bg;
+    -fx-border-color: -wl-role-admin-border;
+    -fx-text-fill: -wl-role-admin-text;
+}
+
+.role-badge-user,
+.profile-editor-user-badge {
+    -fx-background-color: -wl-role-user-bg;
+    -fx-border-color: -wl-role-user-border;
+    -fx-text-fill: -wl-role-user-text;
 }
 
 .profile-status-archived,
