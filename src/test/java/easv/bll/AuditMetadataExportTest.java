@@ -216,6 +216,7 @@ class AuditMetadataExportTest {
 
         ScanProfile profile = adminManager.createProfile(new AdminManager.ProfileInput(
                 "New Profile 2",
+                "Test Client",
                 "NewProfile2",
                 "Used for test scanning.",
                 "Active",

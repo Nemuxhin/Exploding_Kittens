@@ -3,7 +3,6 @@
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
@@ -20,7 +19,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="easv.gui.controller.admin.ActivityController"
             fitToWidth="true"
-            fitToHeight="false"
+            fitToHeight="true"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
             minWidth="0"
@@ -60,8 +59,9 @@
                   maxWidth="Infinity"
                   styleClass="logs-toolbar">
 
-                <HBox prefWidth="315"
-                      minWidth="315"
+                <HBox fx:id="searchBox"
+                      prefWidth="315"
+                      minWidth="255"
                       maxWidth="315"
                       styleClass="logs-search">
 
@@ -70,29 +70,17 @@
                     </StackPane>
 
                     <TextField fx:id="searchField"
-                               promptText="Search logs..."
+                               promptText="Search logs, users, actions..."
                                styleClass="search-field-input"
                                maxWidth="Infinity"
                                HBox.hgrow="ALWAYS"/>
                 </HBox>
 
-                <ComboBox fx:id="typeFilterComboBox"
-                          prefWidth="234"
-                          minWidth="234"
-                          maxWidth="234"
-                          styleClass="logs-filter"/>
-
-                <ComboBox fx:id="statusFilterComboBox"
-                          prefWidth="234"
-                          minWidth="234"
-                          maxWidth="234"
-                          styleClass="logs-filter"/>
-
                 <MenuButton fx:id="dateFilterMenuButton"
-                            text="All dates"
-                            prefWidth="193"
-                            minWidth="193"
-                            maxWidth="193"
+                            text="Date &amp; Time"
+                            prefWidth="153"
+                            minWidth="153"
+                            maxWidth="153"
                             styleClass="logs-date-filter">
 
                     <items>
@@ -100,65 +88,82 @@
                             <content>
                                 <VBox spacing="12" styleClass="logs-date-popover">
 
-                                    <HBox spacing="6" styleClass="logs-date-mode-switch">
-                                        <Button fx:id="specificDateModeButton"
-                                                text="Specific date"
-                                                onAction="#showSpecificDateMode"
-                                                styleClass="logs-date-mode-button"
-                                                focusTraversable="false"/>
+                                    <GridPane hgap="9" vgap="6">
+                                        <Label text="From date"
+                                               GridPane.rowIndex="0"
+                                               GridPane.columnIndex="0"
+                                               styleClass="logs-date-label"/>
 
-                                        <Button fx:id="rangeDateModeButton"
-                                                text="Date range"
-                                                onAction="#showRangeDateMode"
-                                                styleClass="logs-date-mode-button"
-                                                focusTraversable="false"/>
-                                    </HBox>
+                                        <Label text="To date"
+                                               GridPane.rowIndex="0"
+                                               GridPane.columnIndex="1"
+                                               styleClass="logs-date-label"/>
 
-                                    <VBox fx:id="specificDateBox"
-                                          spacing="6"
-                                          visible="false"
-                                          managed="false"
-                                          styleClass="logs-date-section">
-
-                                        <Label text="Date" styleClass="logs-date-label"/>
-
-                                        <DatePicker fx:id="specificDatePicker"
+                                        <DatePicker fx:id="rangeStartDatePicker"
                                                     editable="false"
-                                                    maxWidth="Infinity"
+                                                    prefWidth="102"
+                                                    GridPane.rowIndex="1"
+                                                    GridPane.columnIndex="0"
                                                     styleClass="logs-popover-date-picker"/>
-                                    </VBox>
 
-                                    <VBox fx:id="dateRangeBox"
-                                          spacing="9"
-                                          visible="false"
-                                          managed="false"
-                                          styleClass="logs-date-section">
+                                        <DatePicker fx:id="rangeEndDatePicker"
+                                                    editable="false"
+                                                    prefWidth="102"
+                                                    GridPane.rowIndex="1"
+                                                    GridPane.columnIndex="1"
+                                                    styleClass="logs-popover-date-picker"/>
 
-                                        <GridPane hgap="9" vgap="6">
-                                            <Label text="From"
-                                                   GridPane.rowIndex="0"
+                                        <Label text="From time"
+                                               GridPane.rowIndex="2"
+                                               GridPane.columnIndex="0"
+                                               styleClass="logs-date-label"/>
+
+                                        <Label text="To time"
+                                               GridPane.rowIndex="2"
+                                               GridPane.columnIndex="1"
+                                               styleClass="logs-date-label"/>
+
+                                        <TextField fx:id="rangeStartTimeField"
+                                                   promptText="HH:mm:ss"
+                                                   prefWidth="102"
+                                                   GridPane.rowIndex="3"
                                                    GridPane.columnIndex="0"
-                                                   styleClass="logs-date-label"/>
+                                                   styleClass="logs-popover-time-field"/>
 
-                                            <Label text="To"
-                                                   GridPane.rowIndex="0"
+                                        <TextField fx:id="rangeEndTimeField"
+                                                   promptText="HH:mm:ss"
+                                                   prefWidth="102"
+                                                   GridPane.rowIndex="3"
                                                    GridPane.columnIndex="1"
-                                                   styleClass="logs-date-label"/>
+                                                   styleClass="logs-popover-time-field"/>
+                                    </GridPane>
 
-                                            <DatePicker fx:id="rangeStartDatePicker"
-                                                        editable="false"
-                                                        prefWidth="150"
-                                                        GridPane.rowIndex="1"
-                                                        GridPane.columnIndex="0"
-                                                        styleClass="logs-popover-date-picker"/>
+                                    <VBox spacing="9" styleClass="logs-calendar-panel">
+                                        <HBox alignment="CENTER_LEFT" maxWidth="Infinity" styleClass="logs-calendar-header">
+                                            <Button text="&lt;"
+                                                    onAction="#showPreviousCalendarMonth"
+                                                    focusTraversable="false"
+                                                    styleClass="logs-calendar-nav-button"/>
 
-                                            <DatePicker fx:id="rangeEndDatePicker"
-                                                        editable="false"
-                                                        prefWidth="150"
-                                                        GridPane.rowIndex="1"
-                                                        GridPane.columnIndex="1"
-                                                        styleClass="logs-popover-date-picker"/>
-                                        </GridPane>
+                                            <Region HBox.hgrow="ALWAYS"/>
+
+                                            <Label fx:id="dateCalendarMonthLabel"
+                                                   text="July 2025"
+                                                   styleClass="logs-calendar-month-label"/>
+
+                                            <Region HBox.hgrow="ALWAYS"/>
+
+                                            <Button text="&gt;"
+                                                    onAction="#showNextCalendarMonth"
+                                                    focusTraversable="false"
+                                                    styleClass="logs-calendar-nav-button"/>
+                                        </HBox>
+
+                                        <GridPane fx:id="dateCalendarGrid"
+                                                  hgap="0"
+                                                  vgap="0"
+                                                  maxWidth="Infinity"
+                                                  styleClass="logs-calendar-grid"/>
                                     </VBox>
 
                                     <HBox spacing="9" alignment="CENTER_RIGHT">
@@ -178,20 +183,57 @@
                     </items>
                 </MenuButton>
 
-                <Region HBox.hgrow="ALWAYS"/>
+                <MenuButton fx:id="statusMenuButton"
+                            prefWidth="132"
+                            minWidth="132"
+                            maxWidth="132"
+                            styleClass="logs-filter"/>
 
-                <Button text="Reset"
+                <MenuButton fx:id="filtersMenuButton"
+                            prefWidth="120"
+                            minWidth="120"
+                            maxWidth="120"
+                            styleClass="logs-filter"/>
+
+                <MenuButton fx:id="sortMenuButton"
+                            prefWidth="159"
+                            minWidth="159"
+                            maxWidth="159"
+                            styleClass="logs-filter"/>
+
+                <Button text="Clear"
                         onAction="#clearFilters"
-                        minWidth="99"
-                        prefWidth="99"
-                        maxWidth="99"
-                        styleClass="logs-reset-button"
+                        minWidth="54"
+                        prefWidth="54"
+                        maxWidth="54"
+                        styleClass="logs-clear-button"
                         focusTraversable="false"/>
+
+                <Button text="Export"
+                        onAction="#exportLogs"
+                        minWidth="120"
+                        prefWidth="120"
+                        maxWidth="120"
+                        styleClass="logs-export-button"
+                        focusTraversable="false">
+                    <graphic>
+                        <Label text="&#xe956;" styleClass="prime-icon logs-export-icon"/>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT"
+                  maxWidth="Infinity"
+                  styleClass="logs-count-row">
+                <Label fx:id="logsShowingLabel"
+                       text="Showing 0 events"
+                       styleClass="logs-showing-label"/>
             </HBox>
 
             <VBox spacing="0"
                   fillWidth="true"
                   maxWidth="Infinity"
+                  VBox.vgrow="ALWAYS"
                   styleClass="logs-content">
 
                 <VBox fx:id="timelineContainer"

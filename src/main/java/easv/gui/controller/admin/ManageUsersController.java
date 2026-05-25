@@ -375,20 +375,12 @@ public class ManageUsersController {
         Label nameLabel = new Label(profile.name());
         nameLabel.getStyleClass().add("create-user-profile-name");
 
-        Label statusBadge = new Label(profile.status());
-        statusBadge.getStyleClass().addAll(
-                "profile-assignment-status",
-                STATUS_ACTIVE.equalsIgnoreCase(profile.status())
-                        ? "profile-assignment-status-active"
-                        : "profile-assignment-status-draft"
-        );
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         CheckBox row = new CheckBox();
 
-        HBox content = new HBox(12, nameLabel, spacer, statusBadge);
+        HBox content = new HBox(12, nameLabel, spacer);
         content.setAlignment(Pos.CENTER_LEFT);
         content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);

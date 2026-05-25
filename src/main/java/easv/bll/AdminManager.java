@@ -58,6 +58,14 @@ public class AdminManager {
                 .toList();
     }
 
+    public List<User> getQaEligibleUsers() {
+        return users.stream()
+                .filter(User::isActive)
+                .filter(user -> !"Admin".equalsIgnoreCase(user.getRole()))
+                .sorted(Comparator.comparing(User::getName, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
     public User createUser(UserInput input) {
         validateUserInput(input, null);
 
@@ -121,9 +129,12 @@ public class AdminManager {
 
         syncProfileAssignmentsForUser(user);
 
-        addAuditLog("Users", "Updated user", user.getName(), "Success",
-                "User details were updated.",
-                changedUserFields(previousUser, user, passwordChanged));
+        List<AuditLogDetail> userChanges = changedUserFields(previousUser, user, passwordChanged);
+        if (!userChanges.isEmpty()) {
+            addAuditLog("Users", "Updated user", user.getName(), "Success",
+                    "User details were updated.",
+                    userChanges);
+        }
 
         return user;
     }
@@ -217,6 +228,7 @@ public class AdminManager {
         ScanProfile profile = new ScanProfile(
                 0,
                 input.getName(),
+                input.getClient(),
                 input.getCode(),
                 input.getDescription(),
                 input.getStatus(),
@@ -254,6 +266,7 @@ public class AdminManager {
         String previousName = profile.getName();
 
         profile.setName(input.getName());
+        profile.setClient(input.getClient());
         profile.setCode(input.getCode());
         profile.setDescription(input.getDescription());
         profile.setStatus(input.getStatus());
@@ -274,9 +287,12 @@ public class AdminManager {
         metadataDAO.updateProfile(profile);
         renameAssignedProfile(previousName, profile.getName());
 
-        addAuditLog("Profiles", "Updated profile", profile.getName(), "Success",
-                "A scan profile was updated.",
-                changedProfileFields(previousProfile, profile));
+        List<AuditLogDetail> profileChanges = changedProfileFields(previousProfile, profile);
+        if (!profileChanges.isEmpty()) {
+            addAuditLog("Profiles", "Updated profile", profile.getName(), "Success",
+                    "A scan profile was updated.",
+                    profileChanges);
+        }
 
         return profile;
     }
@@ -598,6 +614,10 @@ public class AdminManager {
             throw new IllegalArgumentException("Profile name is required.");
         }
 
+        if (Strings.clean(input.getClient()).isBlank()) {
+            throw new IllegalArgumentException("Client is required.");
+        }
+
         if (Strings.clean(input.getCode()).isBlank()) {
             throw new IllegalArgumentException("Profile code is required.");
         }
@@ -653,10 +673,11 @@ public class AdminManager {
     private List<AuditLogDetail> createdProfileChanges(ScanProfile profile) {
         List<AuditLogDetail> changes = new ArrayList<>();
         addCreatedChange(changes, "Profile name", profile.getName());
-        addCreatedChange(changes, "Profile code", profile.getCode());
+        addCreatedChange(changes, "Client", profile.getClient());
         addCreatedChange(changes, "Profile status", profile.getStatus());
         addCreatedChange(changes, "Description", profile.getDescription());
         addCreatedChange(changes, "Export naming", profile.getExportNaming());
+        addCreatedChange(changes, "QA required", profile.isMetadataRequiredBeforeExport());
         addCreatedChange(changes, "Barcode splitting", profile.isBarcodeSplitting());
         addCreatedChange(changes, "Barcode detected behavior", profile.getBarcodeDetectedBehavior());
         addCreatedChange(changes, "Barcode page behavior", profile.getBarcodePageBehavior());
@@ -671,10 +692,11 @@ public class AdminManager {
     private List<AuditLogDetail> changedProfileFields(ScanProfile previousProfile, ScanProfile updatedProfile) {
         List<AuditLogDetail> changes = new ArrayList<>();
         addChangedChange(changes, "Profile name", previousProfile.getName(), updatedProfile.getName());
-        addChangedChange(changes, "Profile code", previousProfile.getCode(), updatedProfile.getCode());
+        addChangedChange(changes, "Client", previousProfile.getClient(), updatedProfile.getClient());
         addChangedChange(changes, "Profile status", previousProfile.getStatus(), updatedProfile.getStatus());
         addChangedChange(changes, "Description", previousProfile.getDescription(), updatedProfile.getDescription());
         addChangedChange(changes, "Export naming", previousProfile.getExportNaming(), updatedProfile.getExportNaming());
+        addChangedChange(changes, "QA required", previousProfile.isMetadataRequiredBeforeExport(), updatedProfile.isMetadataRequiredBeforeExport());
         addChangedChange(changes, "Barcode splitting", previousProfile.isBarcodeSplitting(), updatedProfile.isBarcodeSplitting());
         addChangedChange(changes, "Barcode detected behavior", previousProfile.getBarcodeDetectedBehavior(), updatedProfile.getBarcodeDetectedBehavior());
         addChangedChange(changes, "Barcode page behavior", previousProfile.getBarcodePageBehavior(), updatedProfile.getBarcodePageBehavior());
@@ -690,10 +712,11 @@ public class AdminManager {
         List<AuditLogDetail> changes = new ArrayList<>();
         changes.add(AuditLogDetail.change("Profile state", "Existing", "Deleted"));
         addDeletedChange(changes, "Profile name", profile.getName());
-        addDeletedChange(changes, "Profile code", profile.getCode());
+        addDeletedChange(changes, "Client", profile.getClient());
         addDeletedChange(changes, "Profile status", profile.getStatus());
         addDeletedChange(changes, "Description", profile.getDescription());
         addDeletedChange(changes, "Export naming", profile.getExportNaming());
+        addDeletedChange(changes, "QA required", profile.isMetadataRequiredBeforeExport());
         addDeletedChange(changes, "Barcode splitting", profile.isBarcodeSplitting());
         addDeletedChange(changes, "Export format", profile.getExportFormat());
         return changes;
@@ -812,6 +835,7 @@ public class AdminManager {
         return new ScanProfile(
                 profile.getId(),
                 profile.getName(),
+                profile.getClient(),
                 profile.getCode(),
                 profile.getDescription(),
                 profile.getStatus(),
@@ -981,6 +1005,7 @@ public class AdminManager {
 
     public static class ProfileInput {
         private final String name;
+        private final String client;
         private final String code;
         private final String description;
         private final String status;
@@ -998,6 +1023,7 @@ public class AdminManager {
 
         public ProfileInput(
                 String name,
+                String client,
                 String code,
                 String description,
                 String status,
@@ -1014,6 +1040,7 @@ public class AdminManager {
                 boolean metadataRequiredBeforeExport
         ) {
             this.name = name;
+            this.client = client;
             this.code = code;
             this.description = description;
             this.status = status;
@@ -1031,6 +1058,7 @@ public class AdminManager {
         }
 
         public String getName() { return name; }
+        public String getClient() { return client; }
         public String getCode() { return code; }
         public String getDescription() { return description; }
         public String getStatus() { return status; }

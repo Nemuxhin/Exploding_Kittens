@@ -1168,12 +1168,9 @@
     -fx-font-weight: 500;
 }
 
-.role-badge-admin,
-.profile-editor-admin-badge,
 .profile-status-draft,
 .assignment-status-draft,
 .profile-assignment-status-draft,
-.profile-editor-user-badge,
 .chip-blue,
 .chip-indigo,
 .chip-purple,
@@ -1183,7 +1180,6 @@
     -fx-text-fill: -wl-status-info-text;
 }
 
-.role-badge-user,
 .user-status-active,
 .profile-status-active,
 .assignment-status-active,
@@ -1196,6 +1192,20 @@
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
+}
+
+.role-badge-admin,
+.profile-editor-admin-badge {
+    -fx-background-color: -wl-role-admin-bg;
+    -fx-border-color: -wl-role-admin-border;
+    -fx-text-fill: -wl-role-admin-text;
+}
+
+.role-badge-user,
+.profile-editor-user-badge {
+    -fx-background-color: -wl-role-user-bg;
+    -fx-border-color: -wl-role-user-border;
+    -fx-text-fill: -wl-role-user-text;
 }
 
 .profile-status-archived,
@@ -1294,83 +1304,4 @@
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-}
-
-/* =========================================================
-   TYPOGRAPHY OVERRIDES
-   Project note: shared admin content, controls, tables, and chips
-   should render standard text at 18px across all admin sections.
-   ========================================================= */
-
-.button,
-.create-user-button,
-.header-action-button,
-.secondary-outline-button,
-.header-primary-button,
-.header-secondary-button,
-.header-destructive-button,
-.review-workspace-danger-button,
-.admin-save-button,
-.admin-complete-button,
-.admin-send-review-button,
-.admin-approve-button,
-.admin-reject-button,
-.profile-editor-primary-button,
-.profile-editor-secondary-button,
-.profile-editor-danger-button,
-.profile-editor-link-button,
-.profile-open-button,
-.profile-secondary-button,
-.profile-danger-button,
-.profile-icon-button,
-.secondary-action-button,
-.review-workspace-tool-button,
-.review-workspace-tab-button,
-.review-workspace-tab-active,
-.assignment-mode-button,
-.edit-link-button,
-.delete-link-button,
-.deactivate-link-button,
-.inline-action-button,
-.inline-action-button-muted,
-.review-action-button,
-.inline-icon-action-button,
-.inline-icon-action-button-destructive,
-.combo-box-base .list-cell,
-.role-filter .list-cell,
-.rows-per-page-filter .list-cell,
-.review-filter .list-cell,
-.review-workspace-input .list-cell,
-.profile-editor-input .list-cell,
-.combo-box-popup .list-cell,
-.sidebar-nav-label,
-.sidebar-utility-label,
-.sidebar-theme-label,
-.sidebar-logout-label,
-.sidebar-language-text,
-.list-header-label,
-.list-header-label-right,
-.review-header-label,
-.table-cell-text,
-.table-cell-text-muted,
-.admin-table-text,
-.review-main-cell,
-.review-cell-text,
-.user-avatar-initials,
-.assignment-avatar,
-.empty-state-title,
-.empty-state-copy,
-.role-badge,
-.user-status-badge,
-.assignment-status-badge,
-.profile-status-badge,
-.required-pill,
-.profile-config-chip,
-.review-status-badge,
-.profile-editor-small-badge,
-.profile-assignment-status,
-.review-workspace-tag,
-.review-workspace-tag-warning,
-.user-profiles-badge {
-    -fx-font-size: 18px;
 }

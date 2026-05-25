@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class DashboardController {
 
@@ -32,6 +33,9 @@ public class DashboardController {
     private static final double DONUT_HOLE_RADIUS = 12;
 
     private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
+
+    private static final Set<String> ACRONYM_WORDS =
+            Set.of("TIFF", "QA", "ID", "IP", "PDF", "PNG", "JPG", "OCR", "API", "URL");
 
     @FXML private Label totalUsersValueLabel;
     @FXML private Label activeProfilesValueLabel;
@@ -190,6 +194,7 @@ public class DashboardController {
         }
 
         List<AuditLog> recentLogs = adminManager.getAuditLogs().stream()
+                .filter(log -> !isLoginLog(log))
                 .limit(MAX_RECENT_ACTIVITY_ITEMS)
                 .toList();
 
@@ -217,7 +222,7 @@ public class DashboardController {
         VBox copyBox = new VBox(4);
         HBox.setHgrow(copyBox, Priority.ALWAYS);
 
-        Label titleLabel = new Label(safeText(log.getAction(), "Activity"));
+        Label titleLabel = new Label(humanizeAction(log.getAction()));
         titleLabel.getStyleClass().add("dashboard-activity-title");
 
         Label detailLabel = new Label(safeText(log.getDescription(), "No details available."));
@@ -417,6 +422,52 @@ public class DashboardController {
         }
 
         return value;
+    }
+
+    private boolean isLoginLog(AuditLog log) {
+        String action = log == null ? "" : safeText(log.getAction(), "");
+
+        if (action.isBlank()) {
+            return false;
+        }
+
+        String upper = action.toUpperCase(Locale.ROOT);
+        return upper.contains("LOGIN") || upper.equals("LOGOUT");
+    }
+
+    private String humanizeAction(String action) {
+        if (action == null || action.isBlank()) {
+            return "Activity";
+        }
+
+        String[] parts = action.split("_");
+        StringBuilder result = new StringBuilder();
+        boolean firstWord = true;
+
+        for (String rawWord : parts) {
+            if (rawWord == null || rawWord.isEmpty()) {
+                continue;
+            }
+
+            if (!firstWord) {
+                result.append(' ');
+            }
+
+            String upperWord = rawWord.toUpperCase(Locale.ROOT);
+
+            if (ACRONYM_WORDS.contains(upperWord)) {
+                result.append(upperWord);
+            } else if (firstWord) {
+                result.append(Character.toUpperCase(rawWord.charAt(0)));
+                result.append(rawWord.substring(1).toLowerCase(Locale.ROOT));
+            } else {
+                result.append(rawWord.toLowerCase(Locale.ROOT));
+            }
+
+            firstWord = false;
+        }
+
+        return result.length() == 0 ? "Activity" : result.toString();
     }
 
     private String iconBoxClassFor(AuditLog log) {

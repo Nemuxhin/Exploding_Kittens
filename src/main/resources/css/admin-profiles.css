@@ -81,11 +81,55 @@
     -fx-font-weight: 500;
 }
 
-.profile-info-code,
-.assignment-code-label {
+.profile-info-code {
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 6;
     -fx-padding: 3 9 3 9;
+}
+
+.profile-assigned-users-strip {
+    -fx-alignment: center-left;
+    -fx-padding: 3 0 0 0;
+}
+
+.profile-assigned-avatar {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-surface;
+    -fx-border-radius: 999;
+    -fx-border-width: 2;
+    -fx-alignment: center;
+}
+
+.profile-assigned-avatar-1 {
+    -fx-background-color: -wl-tag-blue-bg;
+}
+
+.profile-assigned-avatar-2 {
+    -fx-background-color: -wl-tag-teal-bg;
+}
+
+.profile-assigned-avatar-3 {
+    -fx-background-color: -wl-tag-purple-bg;
+}
+
+.profile-assigned-avatar-4 {
+    -fx-background-color: -wl-tag-amber-bg;
+}
+
+.profile-assigned-avatar-overflow {
+    -fx-background-color: -wl-card-content;
+}
+
+.profile-assigned-avatar-initials {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
 }
 
 .profile-editor-tabs,
@@ -149,6 +193,21 @@
     -fx-alignment: top-left;
 }
 
+.profile-create-dialog-scroll,
+.profile-create-dialog-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.profile-create-dialog-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+}
+
+.profile-create-dialog-editor {
+    -fx-padding: 24;
+    -fx-background-color: -wl-surface;
+}
+
 .profile-editor-card {
     -fx-padding: 36;
 }
@@ -176,8 +235,7 @@
 .admin-helper-text,
 .review-workspace-panel-subtitle,
 .assignment-list-subtitle,
-.assignment-row-subtitle,
-.assignment-selected-subtitle {
+.assignment-row-subtitle {
     -fx-text-fill: -wl-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 400;
@@ -351,7 +409,7 @@
 }
 
 .assignment-editor-top {
-    -fx-padding: 24 24 0 24;
+    -fx-padding: 18 24 0 24;
 }
 
 .assignment-list-item {
@@ -370,14 +428,13 @@
     -fx-alignment: center-left;
 }
 
-.assignment-list-item:hover,
-.assignment-list-item-active,
-.assignment-list-item-active:hover {
+.assignment-list-item:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
 .assignment-list-item-active,
 .assignment-list-item-active:hover {
+    -fx-background-color: -wl-tag-blue-bg;
     -fx-border-color: transparent transparent -wl-border -wl-primary;
     -fx-border-width: 0 0 1 3;
 }
@@ -663,49 +720,319 @@
 }
 
 /* =========================================================
-   TYPOGRAPHY OVERRIDES
-   Project note: profiles and access pages use 18px for section
-   labels, helper copy, row text, filters, and editor content.
+   ASSIGNMENTS — PROFILE ICONS
+   Colored 36×36 icon containers in the left panel list.
    ========================================================= */
 
-.profile-card-title,
-.profile-card-description,
-.profile-info-label,
-.profile-info-value,
-.profile-info-code,
-.assignment-code-label,
-.profile-editor-tab-button,
-.admin-tab-button,
-.profile-editor-section-title,
-.assignment-panel-title,
-.admin-section-title,
-.review-workspace-panel-title,
-.dashboard-section-title,
-.profile-editor-subtitle,
-.profile-editor-helper-text,
-.admin-helper-text,
-.review-workspace-panel-subtitle,
-.assignment-list-subtitle,
-.assignment-row-subtitle,
-.assignment-selected-subtitle,
-.profile-editor-strong-text,
-.profile-editor-field-label,
-.admin-field-label,
-.review-workspace-field-label,
-.profile-editor-code-preview,
-.profile-editor-field-preview-item,
-.profile-editor-access-name,
-.profile-editor-preview-key,
-.profile-editor-preview-value,
-.assignment-list-title,
-.assignment-row-title,
-.assignment-selected-title,
-.assignment-save-status,
-.document-field-name,
-.document-drag-handle,
-.profile-access-title,
-.profile-access-code,
-.profile-access-check {
-    -fx-font-size: 18px;
+.assignment-profile-icon {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+    -fx-font-size: 15px;
+}
+
+.assignment-profile-icon-active,
+.assignment-profile-icon-draft,
+.assignment-profile-icon-user {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+}
+
+.assignment-profile-icon-archived {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-status-neutral-border;
+}
+
+.assignment-profile-icon.prime-icon-vector {
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   ASSIGNMENTS — USER COUNT CHIP
+   Small icon + number replacing verbose "N assigned users".
+   ========================================================= */
+
+.assignment-list-user-icon {
+    -fx-font-size: 11px;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.assignment-list-user-icon.prime-icon-vector {
+    -fx-fill: -wl-text-muted;
+}
+
+.assignment-list-count {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* =========================================================
+   ASSIGNMENTS — SECTION LABELS
+   Uppercase small caps above each panel content area.
+   ========================================================= */
+
+.assignment-section-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+/* =========================================================
+   ASSIGNMENTS — ADD ENTITY BUTTON
+   Primary-coloured compact button in right panel header.
+   ========================================================= */
+
+.assignment-add-button {
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-padding: 0 10 0 10;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+    -fx-effect: none;
+}
+
+.assignment-add-button:hover,
+.assignment-add-button:armed {
+    -fx-background-color: -wl-primary-hover;
+}
+
+/* =========================================================
+   ASSIGNMENTS — ASSIGNED-ONLY ROWS (right panel)
+   Replaces the checkbox list; shows only what's assigned.
+   ========================================================= */
+
+.assignment-assigned-row {
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-padding: 0 18 0 18;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.assignment-assigned-row:last-child {
+    -fx-border-width: 0;
+}
+
+.assignment-remove-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.assignment-remove-icon {
+    -fx-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 12px;
+}
+
+.assignment-remove-button:hover,
+.assignment-remove-button:pressed {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assignment-remove-button:hover .assignment-remove-icon,
+.assignment-remove-button:pressed .assignment-remove-icon {
+    -fx-fill: -wl-on-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+/* =========================================================
+   ASSIGNMENTS — ADD PICKER POPUP
+   Transparent-stage popover for picking users/profiles.
+   ========================================================= */
+
+.assignment-picker-popup {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.14), 14, 0, 0, 4);
+}
+
+.assignment-picker-drag-handle {
+    -fx-padding: 10 12 10 16;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: move;
+}
+
+.assignment-picker-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.assignment-picker-close-button {
+    -fx-min-width: 28;
+    -fx-pref-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.assignment-picker-close-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.assignment-picker-header {
+    -fx-padding: 14 16 14 16;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.assignment-picker-list-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.assignment-picker-list-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.assignment-picker-row {
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-alignment: center-left;
+}
+
+.assignment-picker-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.assignment-picker-row-selected,
+.assignment-picker-row-selected:hover {
+    -fx-background-color: -wl-tag-blue-bg;
+    -fx-border-color: transparent transparent -wl-border -wl-primary;
+    -fx-border-width: 0 0 1 3;
+}
+
+.assignment-picker-row-assigned,
+.assignment-picker-row-assigned:hover,
+.assignment-picker-row-assigned:disabled {
+    -fx-background-color: -wl-surface;
+    -fx-opacity: 0.5;
+    -fx-cursor: default;
+}
+
+.assignment-picker-row-content {
+    -fx-padding: 0 16 0 16;
+}
+
+.assignment-picker-name {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+.assignment-picker-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 11px;
+    -fx-font-weight: 400;
+}
+
+.assignment-picker-in-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 11px;
+    -fx-font-weight: 400;
+    -fx-font-style: italic;
+}
+
+.assignment-picker-footer {
+    -fx-padding: 12 16 12 16;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.assignment-picker-count {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.assignment-picker-assign-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 14 0 14;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-effect: none;
+}
+
+.assignment-picker-assign-button:hover {
+    -fx-background-color: -wl-primary-hover;
+}
+
+.assignment-picker-assign-button:disabled {
+    -fx-background-color: -wl-border;
+    -fx-text-fill: -wl-muted-icon;
 }
 

@@ -189,17 +189,20 @@
                                    text="Active"
                                    styleClass="profile-status-badge"/>
 
-                            <Button text="Delete"
+                            <Button fx:id="deleteProfileButton"
+                                    text="Delete"
                                     onAction="#deleteCurrentProfile"
                                     focusTraversable="false"
                                     styleClass="profile-editor-danger-button"/>
 
-                            <Button text="Preview Export"
+                            <Button fx:id="previewExportButton"
+                                    text="Preview Export"
                                     onAction="#previewExport"
                                     focusTraversable="false"
                                     styleClass="profile-editor-secondary-button"/>
 
-                            <Button text="Save Changes"
+                            <Button fx:id="saveProfileButton"
+                                    text="Save Changes"
                                     onAction="#saveChanges"
                                     focusTraversable="false"
                                     styleClass="profile-editor-primary-button"/>
@@ -255,12 +258,11 @@
                             </VBox>
 
                             <VBox spacing="6" maxWidth="Infinity">
-                                <Label text="Profile Code / Slug *" styleClass="profile-editor-field-label"/>
-                                <TextField fx:id="profileCodeField"
+                                <Label text="Client *" styleClass="profile-editor-field-label"/>
+                                <TextField fx:id="profileClientField"
+                                           promptText="Client"
                                            styleClass="profile-editor-input"
                                            maxWidth="Infinity"/>
-                                <Label text="The profile code is used in export folder naming."
-                                       styleClass="profile-editor-helper-text"/>
                             </VBox>
 
                             <VBox spacing="6" maxWidth="Infinity">
@@ -413,6 +415,18 @@
                                                   focusTraversable="false"
                                                   styleClass="profile-editor-switch"/>
                                 </HBox>
+
+                                <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+                                    <Label text="Require QA for scanned boxes"
+                                           styleClass="profile-editor-strong-text"/>
+
+                                    <Region HBox.hgrow="ALWAYS"/>
+
+                                    <ToggleButton fx:id="qaRequiredToggle"
+                                                  selected="true"
+                                                  focusTraversable="false"
+                                                  styleClass="profile-editor-switch"/>
+                                </HBox>
                             </VBox>
 
                             <Region styleClass="profile-editor-section-divider"/>
@@ -442,7 +456,7 @@
                                           maxWidth="Infinity">
 
                                         <TextField fx:id="exportNamingField"
-                                                   text="{profileCode}_{boxId}"
+                                                   text="{profileName}_{boxId}"
                                                    maxWidth="Infinity"
                                                    HBox.hgrow="ALWAYS"
                                                    styleClass="profile-editor-input"/>
@@ -457,7 +471,7 @@
                                                    styleClass="profile-editor-helper-text"/>
 
                                             <Label fx:id="exportNamingPreviewLabel"
-                                                   text="BuildingArchive_BOX-2026-004"
+                                                   text="Building Archive_BOX-2026-004"
                                                    styleClass="profile-editor-code-preview"/>
                                         </VBox>
                                     </HBox>
@@ -536,7 +550,7 @@
                                 <Label text="Export folder:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewExportFolderLabel"
-                                       text="BuildingArchive_BOX-2026-004"
+                                       text="Building Archive_BOX-2026-004"
                                        styleClass="profile-info-code"/>
                             </VBox>
 
@@ -553,6 +567,14 @@
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewPageCorrectionLabel"
                                        text="Rotation 0° · Brightness Normal · Contrast Normal · Deskew Enabled"
+                                       styleClass="profile-editor-preview-value"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="QA required:"
+                                       styleClass="profile-editor-preview-key"/>
+                                <Label fx:id="previewQaRequiredLabel"
+                                       text="Yes"
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 

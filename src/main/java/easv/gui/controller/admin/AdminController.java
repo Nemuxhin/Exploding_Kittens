@@ -2,6 +2,7 @@ package easv.gui.controller.admin;
 
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.bll.AuthManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
@@ -15,7 +16,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -87,6 +87,7 @@ public class AdminController implements AdminNavigator {
     @FXML private Label darkModeToggleIcon;
 
     private final AdminManager adminManager = new AdminManager();
+    private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
     private AdminPage currentPage = AdminPage.DASHBOARD;
@@ -595,33 +596,11 @@ public class AdminController implements AdminNavigator {
         nav.getStyleClass().add("settings-nav");
         nav.setMaxHeight(Region.USE_PREF_SIZE);
 
-        List<String> sections = List.of(ACCOUNT_SECTION, PRIVACY_SECTION);
-
-        for (int index = 0; index < sections.size(); index++) {
-            String section = sections.get(index);
-            Button button = new Button();
+        for (String section : List.of(ACCOUNT_SECTION, PRIVACY_SECTION)) {
+            Button button = new Button(section);
             button.setMaxWidth(Double.MAX_VALUE);
             button.setAlignment(Pos.CENTER_LEFT);
             button.getStyleClass().addAll("settings-nav-button", "admin-account-section-button");
-            button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-
-            HBox row = new HBox();
-            row.getStyleClass().add("settings-nav-row");
-            row.setAlignment(Pos.CENTER_LEFT);
-
-            Label label = new Label(section);
-            label.getStyleClass().add("settings-nav-label");
-            row.getChildren().add(label);
-
-            button.setGraphic(row);
-
-            if (index == 0) {
-                button.getStyleClass().add("settings-nav-button-first");
-            }
-
-            if (index == sections.size() - 1) {
-                button.getStyleClass().add("settings-nav-button-last");
-            }
 
             if (section.equals(selectedSection)) {
                 button.getStyleClass().add(ACTIVE_NAV_CLASS);
@@ -976,7 +955,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private void logout() {
-        UserSession.clearCurrentUser();
+        authManager.logout();
         hideAccountDropdown();
 
         if (mainApp == null) {
