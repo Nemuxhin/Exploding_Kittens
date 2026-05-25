@@ -137,13 +137,13 @@
     -wl-workspace-paper-border: #CBD5E1;
     -wl-workspace-placeholder: #94A3B8;
 
-    -wl-role-admin-bg: #EAF4FF;
-    -wl-role-admin-text: #0B6FAE;
-    -wl-role-admin-border: #CFE8FF;
+    -wl-role-admin-bg: #EAF1F7;
+    -wl-role-admin-text: #2D3D4F;
+    -wl-role-admin-border: #CBD6E2;
 
-    -wl-role-user-bg: #E9FBF6;
-    -wl-role-user-text: #168A72;
-    -wl-role-user-border: #C8F0E4;
+    -wl-role-user-bg: #EEF2FF;
+    -wl-role-user-text: #4F46E5;
+    -wl-role-user-border: #C7D2FE;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
@@ -304,13 +304,13 @@
     -wl-workspace-paper-border: #415060;
     -wl-workspace-placeholder: #697489;
 
-    -wl-role-admin-bg: #0D4F73;
-    -wl-role-admin-text: #7DD3FC;
-    -wl-role-admin-border: #176B94;
+    -wl-role-admin-bg: -wl-tag-blue-bg;
+    -wl-role-admin-text: -wl-tag-blue-text;
+    -wl-role-admin-border: -wl-tag-blue-border;
 
-    -wl-role-user-bg: #123E37;
-    -wl-role-user-text: #4CD07D;
-    -wl-role-user-border: #1B5A4E;
+    -wl-role-user-bg: #1E1B4B;
+    -wl-role-user-text: #C7D2FE;
+    -wl-role-user-border: #312E81;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
