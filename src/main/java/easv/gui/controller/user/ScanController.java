@@ -85,6 +85,7 @@ public class ScanController {
     private static final double PREVIEW_NUDGE_AMOUNT = 36;
 
     private static final int MAX_UNDO_STEPS = 30;
+    private static final int ROTATION_STEP_DEGREES = 1;
     private static final List<String> BOX_ROTATION_OPTIONS = List.of("0°", "90°", "180°", "270°");
 
     @FXML private VBox scanSetupView;
@@ -1601,7 +1602,7 @@ public class ScanController {
 
         saveUndoState();
 
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees - ROTATION_STEP_DEGREES);
         refreshWorkspace();
     }
 
@@ -1614,7 +1615,7 @@ public class ScanController {
 
         saveUndoState();
 
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + ROTATION_STEP_DEGREES);
         refreshWorkspace();
     }
 
@@ -1626,7 +1627,7 @@ public class ScanController {
 
         saveUndoState();
 
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + ROTATION_STEP_DEGREES);
         if (isReviewWorkspaceVisible()) {
             refreshReviewWorkspace();
         } else {
@@ -2041,18 +2042,8 @@ public class ScanController {
             return;
         }
 
-        if (!hasNormalSelectedPage()) {
-            rotateLeftButton.setText("Rotate Left (90°)");
-            rotateRightButton.setText("Rotate Right (90°)");
-            return;
-        }
-
-        int currentRotation = normalizeRotation(selectedPage.rotationDegrees);
-        int leftTarget = normalizeRotation(currentRotation - 90);
-        int rightTarget = normalizeRotation(currentRotation + 90);
-
-        rotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
-        rotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
+        rotateLeftButton.setText("Rotate Left (1\u00B0)");
+        rotateRightButton.setText("Rotate Right (1\u00B0)");
     }
 
     private void syncBoxRotationComboBox() {

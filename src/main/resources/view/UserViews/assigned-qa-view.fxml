@@ -525,7 +525,7 @@
                                       promptText="Enter rotation in degrees"
                                       styleClass="scan-tool-button"/>
 
-                            <Button text="Rotate Left"
+                            <Button text="Rotate Left (1°)"
                                     fx:id="qaRotateLeftButton"
                                     onAction="#onRotateLeft"
                                     maxWidth="Infinity"
@@ -534,7 +534,7 @@
                                     focusTraversable="false"
                                     styleClass="qa-neutral-button"/>
 
-                            <Button text="Rotate Right"
+                            <Button text="Rotate Right (1°)"
                                     fx:id="qaRotateRightButton"
                                     onAction="#onRotateRight"
                                     maxWidth="Infinity"

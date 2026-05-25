@@ -578,13 +578,13 @@
                               promptText="Enter rotation in degrees"
                               styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Left (90°)"
+                    <Button text="Rotate Left (1°)"
                             fx:id="rotateLeftButton"
                             onAction="#onRotateLeft"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Right (90°)"
+                    <Button text="Rotate Right (1°)"
                             fx:id="rotateRightButton"
                             onAction="#onRotateRight"
                             maxWidth="Infinity"

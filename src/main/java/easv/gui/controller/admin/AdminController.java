@@ -6,11 +6,13 @@ import easv.bll.UserSession;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
 import easv.util.Strings;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
@@ -19,9 +21,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -83,6 +89,10 @@ public class AdminController implements AdminNavigator {
     private final AdminManager adminManager = new AdminManager();
     private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
+    private AdminPage currentPage = AdminPage.DASHBOARD;
+    private Scene shortcutScene;
+    private boolean sceneListenerRegistered;
+    private boolean userEditingTextInput;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -93,7 +103,7 @@ public class AdminController implements AdminNavigator {
         configureBrandLogo();
         configureAccount();
         configureAccountMenu();
-        configureKeyboardShortcutsButton();
+        configureKeyboardShortcuts();
         configureThemeToggle();
         configureNavigation();
         showPage(AdminPage.DASHBOARD);
@@ -157,9 +167,159 @@ public class AdminController implements AdminNavigator {
         }
     }
 
-    private void configureKeyboardShortcutsButton() {
+    private void configureKeyboardShortcuts() {
+        if (appShell != null) {
+            appShell.setFocusTraversable(true);
+        }
+
         if (keyboardShortcutsButton != null) {
-            keyboardShortcutsButton.setOnAction(event -> showKeyboardShortcutsDialog());
+            keyboardShortcutsButton.setOnAction(event -> showAdminShortcutsDialog("Keyboard Shortcuts"));
+        }
+
+        Platform.runLater(this::registerShortcutFilters);
+    }
+
+    private void registerShortcutFilters() {
+        if (appShell == null) {
+            return;
+        }
+
+        Scene scene = appShell.getScene();
+        if (scene == null) {
+            registerSceneListener();
+            return;
+        }
+
+        if (scene == shortcutScene) {
+            return;
+        }
+
+        if (shortcutScene != null) {
+            shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleAdminShortcut);
+            shortcutScene.removeEventFilter(KeyEvent.KEY_TYPED, this::handleAdminTypedShortcut);
+            shortcutScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
+        }
+
+        shortcutScene = scene;
+        shortcutScene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleAdminShortcut);
+        shortcutScene.addEventFilter(KeyEvent.KEY_TYPED, this::handleAdminTypedShortcut);
+        shortcutScene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::rememberTextInputFocusIntent);
+    }
+
+    private void registerSceneListener() {
+        if (sceneListenerRegistered) {
+            return;
+        }
+
+        appShell.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                registerShortcutFilters();
+            }
+        });
+        sceneListenerRegistered = true;
+    }
+
+    private void handleAdminShortcut(KeyEvent event) {
+        if (event.isConsumed() || isUserEditingTextInput(event)) {
+            return;
+        }
+
+        if (event.getCode() == KeyCode.F1) {
+            showAdminShortcutsDialog("Keyboard Shortcuts");
+            event.consume();
+            return;
+        }
+
+        if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
+            showAdminShortcutsDialog("Search Help");
+            event.consume();
+            return;
+        }
+
+        if (event.isShortcutDown() && event.getCode() == KeyCode.S) {
+            reloadCurrentPage();
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.LEFT) {
+            showAdjacentAdminPage(-1);
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.RIGHT) {
+            showAdjacentAdminPage(1);
+            event.consume();
+            return;
+        }
+
+        if (event.getCode() == KeyCode.ESCAPE) {
+            hideAccountDropdown();
+            event.consume();
+        }
+    }
+
+    private void handleAdminTypedShortcut(KeyEvent event) {
+        if (event.isConsumed() || isUserEditingTextInput(event)) {
+            return;
+        }
+
+        if ("?".equals(event.getCharacter())) {
+            showAdminShortcutsDialog("Keyboard Shortcuts");
+            event.consume();
+        }
+    }
+
+    private void reloadCurrentPage() {
+        showPage(currentPage == null ? AdminPage.DASHBOARD : currentPage);
+    }
+
+    private void showAdjacentAdminPage(int step) {
+        AdminPage[] pages = AdminPage.values();
+        int currentIndex = Math.max(0, java.util.Arrays.asList(pages).indexOf(currentPage));
+        int nextIndex = Math.max(0, Math.min(pages.length - 1, currentIndex + step));
+        showPage(pages[nextIndex]);
+    }
+
+    private void rememberTextInputFocusIntent(MouseEvent event) {
+        userEditingTextInput = isTextInputTarget(event.getTarget());
+    }
+
+    private boolean isUserEditingTextInput(KeyEvent event) {
+        return isTextInputTarget(event.getTarget())
+                || isTextInputTarget(focusedNode())
+                || (userEditingTextInput
+                && (isTextInputTarget(event.getTarget()) || isTextInputTarget(focusedNode())));
+    }
+
+    private Node focusedNode() {
+        return shortcutScene == null ? null : shortcutScene.getFocusOwner();
+    }
+
+    private boolean isTextInputTarget(Object target) {
+        if (target instanceof TextInputControl) {
+            return true;
+        }
+
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (current instanceof TextInputControl) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void resetShortcutFocus() {
+        userEditingTextInput = false;
+
+        if (appShell != null) {
+            Platform.runLater(appShell::requestFocus);
         }
     }
 
@@ -249,7 +409,9 @@ public class AdminController implements AdminNavigator {
     public void showPage(AdminPage page) {
         hideAccountDropdown();
         loadPage(page);
+        currentPage = page;
         setActiveNavItem(getNavItem(page));
+        resetShortcutFocus();
     }
 
     private void loadPage(AdminPage page) {
@@ -380,6 +542,7 @@ public class AdminController implements AdminNavigator {
         hideAccountDropdown();
         setActiveNavItem(null);
         contentHost.getChildren().setAll(wrapScrollable(createAccountSettingsPage(selectedSection)));
+        resetShortcutFocus();
     }
 
     private ScrollPane wrapScrollable(Node page) {
@@ -664,15 +827,14 @@ public class AdminController implements AdminNavigator {
                 .orElse(sessionUser);
     }
 
-    private void showKeyboardShortcutsDialog() {
+    private void showAdminShortcutsDialog(String titleText) {
         hideAccountDropdown();
 
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle(titleText);
         dialog.setHeaderText(null);
-        dialog.setTitle("Keyboard Shortcuts");
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStyleClass().addAll("app-shell", "weblager-shortcuts-dialog-pane");
 
         Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
         if (defaultCloseButton != null) {
@@ -680,30 +842,53 @@ public class AdminController implements AdminNavigator {
             defaultCloseButton.setManaged(false);
         }
 
-        VBox content = createAdminKeyboardShortcutsContent(dialog);
-        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "weblager-shortcuts-dialog-pane");
+
+        if (isDarkModeEnabled()) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
 
         if (appShell != null && appShell.getScene() != null) {
             dialog.initOwner(appShell.getScene().getWindow());
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
-        if (isDarkModeEnabled()) {
-            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
-        }
+        dialog.getDialogPane().setPrefSize(560, 390);
+        dialog.getDialogPane().setMaxSize(560, 390);
+        dialog.getDialogPane().setContent(createAdminShortcutsContent(dialog, titleText));
+        PrimeIcons.applyFont(dialog.getDialogPane());
 
         dialog.showAndWait();
     }
 
-    private VBox createAdminKeyboardShortcutsContent(Dialog<ButtonType> dialog) {
-        Label title = new Label("Keyboard Shortcuts");
+    private VBox createAdminShortcutsContent(Dialog<ButtonType> dialog, String titleText) {
+        VBox root = new VBox();
+        root.getStyleClass().add("weblager-shortcuts-root");
+
+        root.getChildren().addAll(
+                createAdminShortcutsHeader(dialog, titleText),
+                createAdminShortcutsBody(dialog)
+        );
+
+        return root;
+    }
+
+    private HBox createAdminShortcutsHeader(Dialog<ButtonType> dialog, String titleText) {
+        Label keyboardIcon = new Label("\ue981");
+        keyboardIcon.getStyleClass().addAll("prime-icon", "weblager-shortcuts-title-icon");
+        PrimeIcons.applyFont(keyboardIcon);
+
+        StackPane iconShell = new StackPane(keyboardIcon);
+        iconShell.getStyleClass().add("weblager-shortcuts-title-icon-shell");
+
+        Label title = new Label(titleText);
         title.getStyleClass().add("weblager-shortcuts-title");
 
-        Label id = new Label("SHORTCUTS");
-        id.getStyleClass().add("weblager-shortcuts-key");
+        Label subtitle = new Label("Common actions for admin navigation.");
+        subtitle.getStyleClass().add("weblager-shortcuts-subtitle");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        VBox copy = new VBox(3, title, subtitle);
+        copy.getStyleClass().add("weblager-shortcuts-header-copy");
 
         Button closeButton = new Button("X");
         closeButton.getStyleClass().add("weblager-shortcuts-x-button");
@@ -713,20 +898,81 @@ public class AdminController implements AdminNavigator {
             dialog.close();
         });
 
-        HBox header = new HBox(12, title, id, spacer, closeButton);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, iconShell, copy, spacer, closeButton);
         header.getStyleClass().add("weblager-shortcuts-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label emptyText = new Label("No admin shortcuts are configured yet.");
-        emptyText.getStyleClass().add("weblager-shortcuts-footer-text");
+        return header;
+    }
 
-        VBox body = new VBox(18, emptyText);
+    private VBox createAdminShortcutsBody(Dialog<ButtonType> dialog) {
+        VBox sections = new VBox(8,
+                createShortcutSection("General shortcuts",
+                        "Fn + F1 / ? - Open shortcut help",
+                        "Ctrl + F - Open search help",
+                        "Ctrl + S - Refresh current admin page",
+                        "Esc - Close menus or dialogs"),
+                createShortcutSection("Navigation shortcuts",
+                        "Left Arrow - Previous admin section",
+                        "Right Arrow - Next admin section"),
+                createShortcutSection("Scanning shortcuts",
+                        "Scanning shortcuts are mainly handled in the User portal.")
+        );
+
+        Label footerText = new Label("Open this dialog anytime from the keyboard button, Fn + F1, or ?.");
+        footerText.getStyleClass().add("weblager-shortcuts-footer-text");
+
+        Button closeButton = new Button("Close");
+        closeButton.getStyleClass().add("weblager-shortcuts-close-button");
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        VBox body = new VBox(9, sections, footerText, closeButton);
         body.getStyleClass().add("weblager-shortcuts-body");
-        body.setMinSize(360, 120);
+        body.setAlignment(Pos.TOP_CENTER);
 
-        VBox root = new VBox(header, body);
-        root.getStyleClass().add("weblager-shortcuts-root");
-        return root;
+        return body;
+    }
+
+    private VBox createShortcutSection(String titleText, String... lines) {
+        Label title = new Label(titleText);
+        title.getStyleClass().add("weblager-shortcuts-section-title");
+
+        VBox rows = new VBox(4);
+
+        for (String line : lines) {
+            rows.getChildren().add(createAdminShortcutLine(line));
+        }
+
+        VBox section = new VBox(8, title, rows);
+        section.getStyleClass().add("weblager-shortcuts-section");
+        return section;
+    }
+
+    private HBox createAdminShortcutLine(String line) {
+        String[] parts = line.split(" - ", 2);
+        Label key = new Label(parts[0]);
+        key.getStyleClass().add("weblager-shortcuts-key");
+
+        Label action = new Label(parts.length > 1 ? parts[1] : parts[0]);
+        action.getStyleClass().add("weblager-shortcuts-action-description");
+        action.setWrapText(true);
+
+        HBox row = new HBox(12, key, action);
+        row.getStyleClass().add("weblager-shortcuts-simple-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        if (parts.length == 1) {
+            key.setVisible(false);
+            key.setManaged(false);
+        }
+
+        return row;
     }
 
     private void logout() {

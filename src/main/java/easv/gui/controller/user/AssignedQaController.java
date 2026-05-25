@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 
 public class AssignedQaController {
     private static final List<String> QA_ROTATION_OPTIONS = List.of("0\u00B0", "90\u00B0", "180\u00B0", "270\u00B0");
+    private static final int ROTATION_STEP_DEGREES = 1;
 
     private static final double QA_PREVIEW_PAGE_WIDTH = 500;
     private static final double QA_PREVIEW_PAGE_HEIGHT = 560;
@@ -1213,19 +1214,8 @@ public class AssignedQaController {
             return;
         }
 
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            qaRotateLeftButton.setText("Rotate Left (90°)");
-            qaRotateRightButton.setText("Rotate Right (90°)");
-            return;
-        }
-
-        int currentRotation = normalizeRotation(page.rotationDegrees);
-        int leftTarget = normalizeRotation(currentRotation - 90);
-        int rightTarget = normalizeRotation(currentRotation + 90);
-
-        qaRotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
-        qaRotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
+        qaRotateLeftButton.setText("Rotate Left (1\u00B0)");
+        qaRotateRightButton.setText("Rotate Right (1\u00B0)");
     }
 
     private String getReviewStatusStyleClass(QaStatus status) {
@@ -1923,7 +1913,7 @@ public class AssignedQaController {
             return;
         }
 
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees - ROTATION_STEP_DEGREES);
         renderQaPreview();
         updateQaRotationButtons();
         syncQaRotationComboBox();
@@ -1936,7 +1926,7 @@ public class AssignedQaController {
             return;
         }
 
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + ROTATION_STEP_DEGREES);
         renderQaPreview();
         updateQaRotationButtons();
         syncQaRotationComboBox();

@@ -257,9 +257,10 @@
 
 .dashboard-workflow-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
+    -fx-font-size: 12px;
     -fx-font-weight: 600;
     -fx-text-overrun: clip;
+    -fx-min-width: 0;
 }
 
 .dashboard-summary-subtitle,
@@ -372,18 +373,18 @@
 }
 
 .dashboard-workflow-status-body {
-    -fx-padding: 12 18 15 18;
-    -fx-spacing: 18;
+    -fx-padding: 14 18 18 18;
+    -fx-spacing: 15;
     -fx-alignment: center-left;
 }
 
 .dashboard-donut-chart {
-    -fx-min-width: 60;
-    -fx-pref-width: 60;
-    -fx-max-width: 60;
-    -fx-min-height: 60;
-    -fx-pref-height: 60;
-    -fx-max-height: 60;
+    -fx-min-width: 54;
+    -fx-pref-width: 54;
+    -fx-max-width: 54;
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
     -fx-alignment: center;
 }
 
@@ -392,7 +393,7 @@
 .dashboard-donut-amber,
 .dashboard-donut-green {
     -fx-fill: transparent;
-    -fx-stroke-width: 9;
+    -fx-stroke-width: 8;
     -fx-stroke-line-cap: butt;
 }
 
@@ -417,12 +418,14 @@
 }
 
 .dashboard-workflow-legend-row {
-    -fx-min-height: 21;
-    -fx-pref-height: 21;
+    -fx-min-height: 26;
+    -fx-pref-height: 26;
+    -fx-spacing: 6;
 }
 
 .dashboard-workflow-legend {
     -fx-fill-width: true;
+    -fx-min-width: 0;
 }
 
 .dashboard-workflow-marker-blue,

@@ -6,7 +6,9 @@ import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
+import easv.gui.PrimeIcons;
 import easv.gui.UserPortalModel;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.prefs.Preferences;
 
 public class UserController implements UserNavigator {
@@ -182,6 +185,8 @@ public class UserController implements UserNavigator {
         if (appShell == null) {
             return;
         }
+
+        appShell.setFocusTraversable(true);
 
         if (appShell.getScene() != null) {
             registerSceneShortcuts(appShell.getScene());
@@ -609,6 +614,10 @@ public class UserController implements UserNavigator {
 
     private void resetShortcutFocus() {
         userEditingTextInput = false;
+
+        if (appShell != null) {
+            Platform.runLater(appShell::requestFocus);
+        }
     }
 
     private void toggleAccountDropdown() {
@@ -983,7 +992,10 @@ public class UserController implements UserNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
+        dialog.getDialogPane().setPrefSize(560, 430);
+        dialog.getDialogPane().setMaxSize(560, 430);
         dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
+        PrimeIcons.applyFont(dialog.getDialogPane());
         dialog.showAndWait();
     }
 
@@ -1000,10 +1012,17 @@ public class UserController implements UserNavigator {
     }
 
     private HBox createKeyboardShortcutsHeader(Dialog<ButtonType> dialog) {
+        Label keyboardIcon = new Label("\ue981");
+        keyboardIcon.getStyleClass().addAll("prime-icon", "weblager-shortcuts-title-icon");
+        PrimeIcons.applyFont(keyboardIcon);
+
+        StackPane iconShell = new StackPane(keyboardIcon);
+        iconShell.getStyleClass().add("weblager-shortcuts-title-icon-shell");
+
         Label title = new Label("Keyboard Shortcuts");
         title.getStyleClass().add("weblager-shortcuts-title");
 
-        Label subtitle = new Label("Common actions for scanning and QA.");
+        Label subtitle = new Label("Common actions for scanning and review.");
         subtitle.getStyleClass().add("weblager-shortcuts-subtitle");
 
         VBox copy = new VBox(3, title, subtitle);
@@ -1020,7 +1039,7 @@ public class UserController implements UserNavigator {
             dialog.close();
         });
 
-        HBox header = new HBox(12, copy, spacer, closeButton);
+        HBox header = new HBox(18, iconShell, copy, spacer, closeButton);
         header.getStyleClass().add("weblager-shortcuts-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -1028,15 +1047,14 @@ public class UserController implements UserNavigator {
     }
 
     private VBox createKeyboardShortcutsBody(Dialog<ButtonType> dialog) {
-        HBox cards = new HBox(24,
-                createShortcutCard("Keyboard", shortcutManager.getShortcuts().stream()
-                        .map(this::shortcutData)
-                        .toList())
+        VBox sections = new VBox(8);
+        sections.getChildren().setAll(
+                createShortcutSection("General shortcuts", "Save", "Undo", "Search / jump", "Escape", "Shortcut help"),
+                createShortcutSection("Navigation shortcuts", "Next section / scan page", "Previous section / scan page", "Export"),
+                createShortcutSection("Scanning shortcuts", "Rotate", "Delete", "Zoom in", "Zoom out")
         );
-        cards.getStyleClass().add("weblager-shortcuts-card-row");
-        cards.setAlignment(Pos.TOP_CENTER);
 
-        Label footerText = new Label("You can open this anytime from the help button or Settings.");
+        Label footerText = new Label("Open this dialog anytime from the keyboard button, Fn + F1, or ?.");
         footerText.getStyleClass().add("weblager-shortcuts-footer-text");
 
         Button closeButton = new Button("Close");
@@ -1046,56 +1064,46 @@ public class UserController implements UserNavigator {
             dialog.close();
         });
 
-        VBox body = new VBox(24, cards, footerText, closeButton);
+        VBox body = new VBox(9, sections, footerText, closeButton);
         body.getStyleClass().add("weblager-shortcuts-body");
         body.setAlignment(Pos.TOP_CENTER);
 
         return body;
     }
 
-    private VBox createShortcutCard(String titleText, List<ShortcutData> shortcuts) {
+    private VBox createShortcutSection(String titleText, String... actionNames) {
         Label title = new Label(titleText);
-        title.getStyleClass().add("weblager-shortcuts-card-title");
+        title.getStyleClass().add("weblager-shortcuts-section-title");
 
-        VBox rows = new VBox(12);
-        rows.getStyleClass().add("weblager-shortcuts-list");
-
-        for (ShortcutData shortcut : shortcuts) {
-            rows.getChildren().add(createKeyboardShortcutRow(shortcut.label(), shortcut.key()));
+        VBox rows = new VBox(4);
+        for (String actionName : actionNames) {
+            findShortcut(actionName).ifPresent(shortcut -> rows.getChildren().add(createShortcutLine(shortcut)));
         }
 
-        VBox card = new VBox(18, title, rows);
-        card.getStyleClass().add("weblager-shortcuts-card");
-
-        return card;
+        VBox section = new VBox(8, title, rows);
+        section.getStyleClass().add("weblager-shortcuts-section");
+        return section;
     }
 
-    private HBox createKeyboardShortcutRow(String labelText, String keyText) {
-        Label label = new Label(labelText);
-        label.getStyleClass().add("weblager-shortcuts-action-label");
+    private Optional<KeyboardShortcut> findShortcut(String actionName) {
+        return shortcutManager.getShortcuts().stream()
+                .filter(shortcut -> actionName.equals(shortcut.getActionName()))
+                .findFirst();
+    }
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label key = new Label(keyText);
+    private HBox createShortcutLine(KeyboardShortcut shortcut) {
+        Label key = new Label(shortcut.getDisplayKeys());
         key.getStyleClass().add("weblager-shortcuts-key");
 
-        HBox row = new HBox(12, label, spacer, key);
-        row.getStyleClass().add("weblager-shortcuts-row");
+        Label action = new Label(shortcut.getActionName() + " - " + shortcut.getDescription());
+        action.getStyleClass().add("weblager-shortcuts-action-description");
+        action.setWrapText(true);
+
+        HBox row = new HBox(12, key, action);
+        row.getStyleClass().add("weblager-shortcuts-simple-row");
         row.setAlignment(Pos.CENTER_LEFT);
 
         return row;
-    }
-
-    private ShortcutData shortcutData(String label, String key) {
-        return new ShortcutData(label, key);
-    }
-
-    private ShortcutData shortcutData(KeyboardShortcut shortcut) {
-        return new ShortcutData(shortcut.getActionName(), shortcut.getDisplayKeys());
-    }
-
-    private record ShortcutData(String label, String key) {
     }
 
     private HBox shortcutRow(String shortcut, String description) {

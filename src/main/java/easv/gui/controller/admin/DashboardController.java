@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -25,8 +26,10 @@ public class DashboardController {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-    private static final double DONUT_RADIUS = 22;
-    private static final double DONUT_HOLE_RADIUS = 15;
+    private static final double DONUT_SIZE = 54;
+    private static final double DONUT_CENTER = DONUT_SIZE / 2;
+    private static final double DONUT_RADIUS = 19;
+    private static final double DONUT_HOLE_RADIUS = 12;
 
     private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
 
@@ -337,36 +340,50 @@ public class DashboardController {
 
         workflowDonutChart.getChildren().clear();
 
-        Circle track = new Circle(DONUT_RADIUS);
-        track.getStyleClass().add("dashboard-donut-track");
-        workflowDonutChart.getChildren().add(track);
-
         int total = inProgress + waitingForQa + exported;
+
+        Pane chartPane = new Pane();
+        chartPane.setMinSize(DONUT_SIZE, DONUT_SIZE);
+        chartPane.setPrefSize(DONUT_SIZE, DONUT_SIZE);
+        chartPane.setMaxSize(DONUT_SIZE, DONUT_SIZE);
+
+        Circle track = new Circle(DONUT_CENTER, DONUT_CENTER, DONUT_RADIUS);
+        track.getStyleClass().add("dashboard-donut-track");
+        chartPane.getChildren().add(track);
 
         if (total > 0) {
             double startAngle = 90;
-            startAngle = addDonutSegment(inProgress, total, startAngle, "dashboard-donut-blue");
-            startAngle = addDonutSegment(waitingForQa, total, startAngle, "dashboard-donut-amber");
-            addDonutSegment(exported, total, startAngle, "dashboard-donut-green");
+            startAngle = addDonutSegment(chartPane, inProgress, total, startAngle, "dashboard-donut-blue");
+            startAngle = addDonutSegment(chartPane, waitingForQa, total, startAngle, "dashboard-donut-amber");
+            addDonutSegment(chartPane, exported, total, startAngle, "dashboard-donut-green");
         }
 
-        Circle hole = new Circle(DONUT_HOLE_RADIUS);
+        Circle hole = new Circle(DONUT_CENTER, DONUT_CENTER, DONUT_HOLE_RADIUS);
         hole.getStyleClass().add("dashboard-donut-hole");
-        workflowDonutChart.getChildren().add(hole);
+        chartPane.getChildren().add(hole);
+
+        workflowDonutChart.getChildren().add(chartPane);
     }
 
-    private double addDonutSegment(int value, int total, double startAngle, String styleClass) {
+    private double addDonutSegment(Pane chartPane, int value, int total, double startAngle, String styleClass) {
         if (value <= 0) {
             return startAngle;
         }
 
+        if (value == total) {
+            Circle fullSegment = new Circle(DONUT_CENTER, DONUT_CENTER, DONUT_RADIUS);
+            fullSegment.getStyleClass().add(styleClass);
+            chartPane.getChildren().add(fullSegment);
+            return startAngle - 360;
+        }
+
         double length = -360.0 * value / total;
 
-        Arc segment = new Arc(0, 0, DONUT_RADIUS, DONUT_RADIUS, startAngle, length);
+        Arc segment = new Arc(DONUT_CENTER, DONUT_CENTER, DONUT_RADIUS, DONUT_RADIUS, startAngle, length);
         segment.setType(ArcType.OPEN);
         segment.getStyleClass().add(styleClass);
 
-        workflowDonutChart.getChildren().add(segment);
+        chartPane.getChildren().add(segment);
 
         return startAngle + length;
     }
