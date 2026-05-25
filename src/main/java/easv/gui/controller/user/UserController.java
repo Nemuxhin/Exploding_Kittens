@@ -1,6 +1,7 @@
 package easv.gui.controller.user;
 
 import easv.be.User;
+import easv.bll.AuthManager;
 import easv.bll.KeyboardShortcut;
 import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
@@ -99,6 +100,7 @@ public class UserController implements UserNavigator {
     private final UserPortalModel portalModel = new UserPortalModel();
     private final ShortcutManager shortcutManager = new ShortcutManager();
     private final UserManager userManager = new UserManager();
+    private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(PREFERENCES_NODE);
 
     private MainApp mainApp;
@@ -1114,7 +1116,7 @@ public class UserController implements UserNavigator {
         return row;
     }
     private void logout() {
-        UserSession.clearCurrentUser();
+        authManager.logout();
         hideAccountDropdown();
 
         if (mainApp == null) {

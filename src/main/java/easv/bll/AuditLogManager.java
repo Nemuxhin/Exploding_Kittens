@@ -14,6 +14,9 @@ import java.util.List;
 public class AuditLogManager {
 
     public static final String SCAN_STARTED = "SCAN_STARTED";
+    public static final String SCAN_SESSION_STARTED = "SCAN_SESSION_STARTED";
+    public static final String SCAN_SESSION_RESUMED = "SCAN_SESSION_RESUMED";
+    public static final String SCAN_ITEM_IMPORTED = "SCAN_ITEM_IMPORTED";
     public static final String TIFF_FETCHED = "TIFF_FETCHED";
     public static final String SCAN_FAILED = "SCAN_FAILED";
     public static final String RETRY_USED = "RETRY_USED";
@@ -22,7 +25,12 @@ public class AuditLogManager {
     public static final String PAGE_DELETED = "PAGE_DELETED";
     public static final String METADATA_SAVED = "METADATA_SAVED";
     public static final String EXPORT_PREVIEW_CREATED = "EXPORT_PREVIEW_CREATED";
+    public static final String EXPORT_COMPLETED = "EXPORT_COMPLETED";
+    public static final String EXPORT_FAILED = "EXPORT_FAILED";
     public static final String BARCODE_DETECTED = "BARCODE_DETECTED";
+    public static final String LOGIN_SUCCESS = "LOGIN_SUCCESS";
+    public static final String LOGIN_FAILED = "LOGIN_FAILED";
+    public static final String LOGOUT = "LOGOUT";
 
     private final AuditLogDAO auditLogDAO;
 
@@ -58,6 +66,36 @@ public class AuditLogManager {
                                    String profileName, String boxId) {
         return logUserAction(PAGE_CREATED, caseId, documentId, fileId,
                 pageNumber, profileName, boxId, "A scanned page was created.");
+    }
+
+    /**
+     * Records a sign-in / sign-out event. UserSession is not consulted, because the user
+     * may not be authenticated yet (login attempts) or may already be cleared (logout).
+     * Failure descriptions are kept generic to avoid revealing whether an account exists
+     * or what its status is (OWASP authentication recommendation).
+     */
+    public AuditLog logAuth(String attemptedUsername, String action, String description) {
+        String actor = attemptedUsername == null || attemptedUsername.isBlank()
+                ? "Unknown"
+                : attemptedUsername.trim();
+        boolean failed = LOGIN_FAILED.equals(action);
+        String type = failed ? "Security" : "Access";
+        String status = failed ? "Failed" : "Success";
+        String target = LOGOUT.equals(action) ? "Logout" : "Login";
+
+        AuditLog log = new AuditLog(
+                auditLogDAO.nextAuditLogId(),
+                java.time.LocalDateTime.now(),
+                type,
+                actor,
+                action,
+                target,
+                status,
+                description,
+                List.of()
+        );
+
+        return auditLogDAO.saveAuditLog(log);
     }
 
     public AuditLog logPageDeleted(String caseId, String documentId, String fileId, Integer pageNumber,
@@ -106,6 +144,14 @@ public class AuditLogManager {
             return "System";
         }
 
+        if (action.contains("LOGIN") && action.contains("FAILED")) {
+            return "Security";
+        }
+
+        if (action.contains("LOGIN") || action.contains("LOGOUT")) {
+            return "Access";
+        }
+
         if (action.contains("SCAN") || action.contains("TIFF") || action.contains("BARCODE")) {
             return "Scans";
         }
@@ -122,7 +168,7 @@ public class AuditLogManager {
     }
 
     private String statusFor(String action) {
-        return SCAN_FAILED.equals(action) ? "Failed" : "Success";
+        return action != null && action.endsWith("_FAILED") ? "Failed" : "Success";
     }
 
     private String targetFor(String caseId, String documentId, String fileId, Integer pageNumber) {

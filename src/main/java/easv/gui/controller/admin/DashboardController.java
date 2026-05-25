@@ -11,24 +11,28 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.ArcType;
-import javafx.scene.shape.Circle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class DashboardController {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-    private static final double DONUT_RADIUS = 22;
-    private static final double DONUT_HOLE_RADIUS = 15;
+    private static final int MAX_RECENT_ACTIVITY_ITEMS = 4;
 
-    private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
+    private static final Set<String> ACRONYM_WORDS =
+            Set.of("TIFF", "QA", "ID", "IP", "PDF", "PNG", "JPG", "OCR", "API", "URL");
+
+    private static final String LAST_SEVEN_DAYS_COMPARISON = "vs last 7 days";
+    private static final String YESTERDAY_COMPARISON = "vs yesterday";
+
+    @FXML private Label lastUpdatedLabel;
 
     @FXML private Label totalUsersValueLabel;
     @FXML private Label activeProfilesValueLabel;
@@ -40,7 +44,6 @@ public class DashboardController {
     @FXML private Label scansTodayTrendLabel;
     @FXML private Label waitingForQaTrendLabel;
 
-    @FXML private Label needsAttentionValueLabel;
     @FXML private Label usersNoProfilesCountLabel;
     @FXML private Label failedExportsCountLabel;
     @FXML private Label draftProfilesCountLabel;
@@ -49,15 +52,6 @@ public class DashboardController {
     @FXML private HBox failedEventsRow;
     @FXML private HBox draftProfilesRow;
 
-    @FXML private Label inProgressValueLabel;
-    @FXML private Label workflowWaitingQaValueLabel;
-    @FXML private Label exportedValueLabel;
-
-    @FXML private Label inProgressPercentLabel;
-    @FXML private Label waitingQaPercentLabel;
-    @FXML private Label exportedPercentLabel;
-
-    @FXML private StackPane workflowDonutChart;
     @FXML private VBox recentActivityList;
 
     private AdminNavigator navigator = AdminNavigator.none();
@@ -86,10 +80,18 @@ public class DashboardController {
             return;
         }
 
+        updateLastUpdated();
         populateSummaryCards();
         populateNeedsAttention();
-        populateWorkflowStatus();
         populateRecentActivity();
+    }
+
+    private void updateLastUpdated() {
+        if (lastUpdatedLabel == null) {
+            return;
+        }
+
+        lastUpdatedLabel.setText("Last updated: " + TIME_FORMATTER.format(LocalTime.now()));
     }
 
     private void populateSummaryCards() {
@@ -120,15 +122,13 @@ public class DashboardController {
         /*
          * Important:
          * These totals do not have real historical baseline data in DashboardSummary.
-         * So showing "- 0%" is misleading.
-         *
          * If the previous baseline is zero and the current value is above zero,
          * the trend shows "+ X" instead of fake "+ 100%".
          */
-        setTrend(totalUsersTrendLabel, summary.getTotalUsers(), 0);
-        setTrend(activeProfilesTrendLabel, summary.getActiveProfiles(), 0);
-        setTrend(scansTodayTrendLabel, scansToday, scansYesterday);
-        setTrend(waitingForQaTrendLabel, waitingForQa, 0);
+        setTrend(totalUsersTrendLabel, summary.getTotalUsers(), 0, LAST_SEVEN_DAYS_COMPARISON);
+        setTrend(activeProfilesTrendLabel, summary.getActiveProfiles(), 0, LAST_SEVEN_DAYS_COMPARISON);
+        setTrend(scansTodayTrendLabel, scansToday, scansYesterday, YESTERDAY_COMPARISON);
+        setTrend(waitingForQaTrendLabel, waitingForQa, 0, YESTERDAY_COMPARISON);
     }
 
     private void populateNeedsAttention() {
@@ -152,33 +152,6 @@ public class DashboardController {
         usersNoProfilesCountLabel.setText(pluralize(summary.getUsersWithoutProfiles(), "user") + " have no profiles");
         failedExportsCountLabel.setText(pluralize(summary.getFailedEvents(), "failed event"));
         draftProfilesCountLabel.setText(pluralize(summary.getDraftProfiles(), "draft profile"));
-        needsAttentionValueLabel.setText(String.valueOf(totalNeedsAttention));
-    }
-
-    private void populateWorkflowStatus() {
-        int inProgress = countLogs(log ->
-                "Scans".equalsIgnoreCase(log.getType())
-                        && (contains(log.getStatus(), "progress") || contains(log.getAction(), "started"))
-        );
-
-        int waitingForQa = countWaitingForQaRecords();
-
-        int exported = countLogs(log ->
-                "Exports".equalsIgnoreCase(log.getType())
-                        && "Success".equalsIgnoreCase(log.getStatus())
-        );
-
-        int total = inProgress + waitingForQa + exported;
-
-        inProgressValueLabel.setText(String.valueOf(inProgress));
-        workflowWaitingQaValueLabel.setText(String.valueOf(waitingForQa));
-        exportedValueLabel.setText(String.valueOf(exported));
-
-        inProgressPercentLabel.setText(formatPercent(inProgress, total));
-        waitingQaPercentLabel.setText(formatPercent(waitingForQa, total));
-        exportedPercentLabel.setText(formatPercent(exported, total));
-
-        renderWorkflowDonut(inProgress, waitingForQa, exported);
     }
 
     private void populateRecentActivity() {
@@ -187,6 +160,7 @@ public class DashboardController {
         }
 
         List<AuditLog> recentLogs = adminManager.getAuditLogs().stream()
+                .filter(log -> !isLoginLog(log))
                 .limit(MAX_RECENT_ACTIVITY_ITEMS)
                 .toList();
 
@@ -214,7 +188,7 @@ public class DashboardController {
         VBox copyBox = new VBox(4);
         HBox.setHgrow(copyBox, Priority.ALWAYS);
 
-        Label titleLabel = new Label(safeText(log.getAction(), "Activity"));
+        Label titleLabel = new Label(humanizeAction(log.getAction()));
         titleLabel.getStyleClass().add("dashboard-activity-title");
 
         Label detailLabel = new Label(safeText(log.getDescription(), "No details available."));
@@ -292,83 +266,31 @@ public class DashboardController {
         );
     }
 
-    private void setNeutralTrend(Label label) {
-        label.setText("0");
-        label.getStyleClass().setAll("dashboard-trend-neutral");
-    }
-
-    private void setTrend(Label label, int currentValue, int previousValue) {
+    private void setTrend(Label label, int currentValue, int previousValue, String comparisonText) {
         if (previousValue == 0) {
             if (currentValue == 0) {
-                setNeutralTrend(label);
+                applyTrendStyle(label, "0 " + comparisonText, "dashboard-trend-neutral");
                 return;
             }
 
-            label.setText("+ " + currentValue);
-            label.getStyleClass().setAll("dashboard-trend-up");
+            applyTrendStyle(label, "+" + currentValue + " " + comparisonText, "dashboard-trend-up");
             return;
         }
 
         int changePercent = (int) Math.round(((currentValue - previousValue) / (double) previousValue) * 100);
 
         if (changePercent == 0) {
-            setNeutralTrend(label);
+            applyTrendStyle(label, "0% " + comparisonText, "dashboard-trend-neutral");
         } else if (changePercent > 0) {
-            label.setText("+ " + changePercent + "%");
-            label.getStyleClass().setAll("dashboard-trend-up");
+            applyTrendStyle(label, "+" + changePercent + "% " + comparisonText, "dashboard-trend-up");
         } else {
-            label.setText("- " + Math.abs(changePercent) + "%");
-            label.getStyleClass().setAll("dashboard-trend-down");
+            applyTrendStyle(label, "-" + Math.abs(changePercent) + "% " + comparisonText, "dashboard-trend-down");
         }
     }
 
-    private String formatPercent(int value, int total) {
-        if (total == 0 || value == 0) {
-            return "0%";
-        }
-
-        return Math.round((value / (double) total) * 100) + "%";
-    }
-
-    private void renderWorkflowDonut(int inProgress, int waitingForQa, int exported) {
-        if (workflowDonutChart == null) {
-            return;
-        }
-
-        workflowDonutChart.getChildren().clear();
-
-        Circle track = new Circle(DONUT_RADIUS);
-        track.getStyleClass().add("dashboard-donut-track");
-        workflowDonutChart.getChildren().add(track);
-
-        int total = inProgress + waitingForQa + exported;
-
-        if (total > 0) {
-            double startAngle = 90;
-            startAngle = addDonutSegment(inProgress, total, startAngle, "dashboard-donut-blue");
-            startAngle = addDonutSegment(waitingForQa, total, startAngle, "dashboard-donut-amber");
-            addDonutSegment(exported, total, startAngle, "dashboard-donut-green");
-        }
-
-        Circle hole = new Circle(DONUT_HOLE_RADIUS);
-        hole.getStyleClass().add("dashboard-donut-hole");
-        workflowDonutChart.getChildren().add(hole);
-    }
-
-    private double addDonutSegment(int value, int total, double startAngle, String styleClass) {
-        if (value <= 0) {
-            return startAngle;
-        }
-
-        double length = -360.0 * value / total;
-
-        Arc segment = new Arc(0, 0, DONUT_RADIUS, DONUT_RADIUS, startAngle, length);
-        segment.setType(ArcType.OPEN);
-        segment.getStyleClass().add(styleClass);
-
-        workflowDonutChart.getChildren().add(segment);
-
-        return startAngle + length;
+    private void applyTrendStyle(Label label, String text, String trendClass) {
+        label.setText(text);
+        label.getStyleClass().setAll("dashboard-overview-stat-trend", trendClass);
     }
 
     private void setAttentionRowState(HBox row, boolean shouldShow) {
@@ -402,6 +324,52 @@ public class DashboardController {
         return value;
     }
 
+    private boolean isLoginLog(AuditLog log) {
+        String action = log == null ? "" : safeText(log.getAction(), "");
+
+        if (action.isBlank()) {
+            return false;
+        }
+
+        String upper = action.toUpperCase(Locale.ROOT);
+        return upper.contains("LOGIN") || upper.equals("LOGOUT");
+    }
+
+    private String humanizeAction(String action) {
+        if (action == null || action.isBlank()) {
+            return "Activity";
+        }
+
+        String[] parts = action.split("_");
+        StringBuilder result = new StringBuilder();
+        boolean firstWord = true;
+
+        for (String rawWord : parts) {
+            if (rawWord == null || rawWord.isEmpty()) {
+                continue;
+            }
+
+            if (!firstWord) {
+                result.append(' ');
+            }
+
+            String upperWord = rawWord.toUpperCase(Locale.ROOT);
+
+            if (ACRONYM_WORDS.contains(upperWord)) {
+                result.append(upperWord);
+            } else if (firstWord) {
+                result.append(Character.toUpperCase(rawWord.charAt(0)));
+                result.append(rawWord.substring(1).toLowerCase(Locale.ROOT));
+            } else {
+                result.append(rawWord.toLowerCase(Locale.ROOT));
+            }
+
+            firstWord = false;
+        }
+
+        return result.length() == 0 ? "Activity" : result.toString();
+    }
+
     private String iconBoxClassFor(AuditLog log) {
         if (isWarningOrFailed(log)) {
             return "dashboard-activity-icon-warning-box";
@@ -432,14 +400,14 @@ public class DashboardController {
 
     private String iconGlyphFor(AuditLog log) {
         if (isWarningOrFailed(log)) {
-            return "\ue922";
+            return "";
         }
 
         return switch (safeText(log.getType(), "")) {
-            case "Scans" -> "\ue9e4";
-            case "Access" -> "\ue93f";
-            case "QA" -> "\ue90a";
-            default -> "\ue992";
+            case "Scans" -> "";
+            case "Access" -> "";
+            case "QA" -> "";
+            default -> "";
         };
     }
 
@@ -470,6 +438,11 @@ public class DashboardController {
 
     @FXML
     private void reviewFailedExports() {
+        navigator.showReview();
+    }
+
+    @FXML
+    private void viewAllAttention() {
         navigator.showReview();
     }
 

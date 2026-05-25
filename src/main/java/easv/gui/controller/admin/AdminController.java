@@ -2,6 +2,7 @@ package easv.gui.controller.admin;
 
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.bll.AuthManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
@@ -80,6 +81,7 @@ public class AdminController implements AdminNavigator {
     @FXML private Label darkModeToggleIcon;
 
     private final AdminManager adminManager = new AdminManager();
+    private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
 
@@ -707,7 +709,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private void logout() {
-        UserSession.clearCurrentUser();
+        authManager.logout();
         hideAccountDropdown();
 
         if (mainApp == null) {
