@@ -608,6 +608,19 @@
     -fx-background-color: -wl-surface-hover;
 }
 
+.review-report-export-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.review-report-export-button:hover,
+.review-report-export-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
 .review-strip-btn:focused {
     -fx-background-color: transparent;
 }

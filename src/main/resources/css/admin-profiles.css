@@ -812,29 +812,6 @@
 }
 
 /* =========================================================
-   ASSIGNMENTS — STATUS DOT
-   8px dot replacing text badge in right panel user rows.
-   ========================================================= */
-
-.assignment-status-dot {
-    -fx-min-width: 8;
-    -fx-pref-width: 8;
-    -fx-max-width: 8;
-    -fx-min-height: 8;
-    -fx-pref-height: 8;
-    -fx-max-height: 8;
-    -fx-background-radius: 999;
-}
-
-.assignment-status-dot-active {
-    -fx-background-color: -wl-success;
-}
-
-.assignment-status-dot-inactive {
-    -fx-background-color: -wl-muted-icon;
-}
-
-/* =========================================================
    ASSIGNMENTS — ASSIGNED-ONLY ROWS (right panel)
    Replaces the checkbox list; shows only what's assigned.
    ========================================================= */
@@ -855,26 +832,42 @@
 }
 
 .assignment-remove-button {
-    -fx-min-width: 26;
-    -fx-pref-width: 26;
-    -fx-max-width: 26;
-    -fx-min-height: 26;
-    -fx-pref-height: 26;
-    -fx-max-height: 26;
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
-    -fx-background-color: transparent;
-    -fx-background-radius: 5;
-    -fx-border-color: transparent;
-    -fx-text-fill: -wl-muted-icon;
-    -fx-font-size: 16px;
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 12px;
     -fx-font-weight: 400;
     -fx-effect: none;
     -fx-cursor: hand;
 }
 
-.assignment-remove-button:hover {
-    -fx-background-color: -wl-status-danger-bg;
-    -fx-text-fill: -wl-destructive;
+.assignment-remove-icon {
+    -fx-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+    -fx-font-size: 12px;
+}
+
+.assignment-remove-button:hover,
+.assignment-remove-button:pressed {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assignment-remove-button:hover .assignment-remove-icon,
+.assignment-remove-button:pressed .assignment-remove-icon {
+    -fx-fill: -wl-on-primary;
+    -fx-text-fill: -wl-on-primary;
 }
 
 /* =========================================================

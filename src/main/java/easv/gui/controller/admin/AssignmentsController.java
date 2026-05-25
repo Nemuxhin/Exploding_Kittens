@@ -475,10 +475,7 @@ public class AssignmentsController {
                 Strings.displayText(user.getEmail(), "No email")
         );
 
-        Button removeBtn = new Button("×");
-        removeBtn.getStyleClass().add("assignment-remove-button");
-        removeBtn.setFocusTraversable(false);
-        removeBtn.setOnAction(e -> {
+        Button removeBtn = createRemoveButton(() -> {
             updateAssignment(selectedProfile.getId(), user.getId(), false);
             renderAssignedUserRows();
             renderLeftList();
@@ -489,7 +486,6 @@ public class AssignmentsController {
                 createAvatar(Strings.initials(user.getName(), "")),
                 textBox,
                 createRoleBadge(user.getRole()),
-                createStatusDot(user.getStatus()),
                 removeBtn
         );
         return row;
@@ -507,17 +503,14 @@ public class AssignmentsController {
                 Strings.displayText(profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING)
         );
 
-        Button removeBtn = new Button("×");
-        removeBtn.getStyleClass().add("assignment-remove-button");
-        removeBtn.setFocusTraversable(false);
-        removeBtn.setOnAction(e -> {
+        Button removeBtn = createRemoveButton(() -> {
             updateAssignment(profile.getId(), selectedUser.getId(), false);
             renderAssignedProfileRows();
             renderLeftList();
             updateChangesLabel();
         });
 
-        row.getChildren().addAll(iconLabel, textBox, createStatusBadge(displayProfileStatus(profile)), removeBtn);
+        row.getChildren().addAll(iconLabel, textBox, removeBtn);
         return row;
     }
 
@@ -588,6 +581,16 @@ public class AssignmentsController {
                 "Admin".equalsIgnoreCase(role) ? "role-badge-admin" : "role-badge-user"
         );
         return badge;
+    }
+
+    private Button createRemoveButton(Runnable onRemove) {
+        Button removeBtn = new Button();
+        removeBtn.setGraphic(PrimeIcons.create("\uE90B", "assignment-remove-icon"));
+        removeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+        removeBtn.getStyleClass().add("assignment-remove-button");
+        removeBtn.setFocusTraversable(false);
+        removeBtn.setOnAction(e -> onRemove.run());
+        return removeBtn;
     }
 
     private Label createAvatar(String initials) {
@@ -745,19 +748,6 @@ public class AssignmentsController {
         return switch (Strings.normalize(profile.getStatus())) {
             case "draft" -> "assignment-profile-icon-draft";
             default -> "assignment-profile-icon-active";
-        };
-    }
-
-    private Region createStatusDot(String status) {
-        Region dot = new Region();
-        dot.getStyleClass().addAll("assignment-status-dot", statusDotClassFor(status));
-        return dot;
-    }
-
-    private String statusDotClassFor(String status) {
-        return switch (Strings.normalize(status)) {
-            case "active" -> "assignment-status-dot-active";
-            default -> "assignment-status-dot-inactive";
         };
     }
 
@@ -936,7 +926,7 @@ public class AssignmentsController {
         textBox.setMinWidth(0);
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
-        HBox content = new HBox(10, iconLabel, textBox, createStatusBadge(displayProfileStatus(profile)));
+        HBox content = new HBox(10, iconLabel, textBox);
         content.setAlignment(Pos.CENTER_LEFT);
         content.setMaxWidth(Double.MAX_VALUE);
         content.getStyleClass().add("assignment-picker-row-content");

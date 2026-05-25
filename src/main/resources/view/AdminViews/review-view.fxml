@@ -68,7 +68,7 @@
 
                     <Button text="Export Review Report"
                             onAction="#exportReport"
-                            styleClass="secondary-outline-button"
+                            styleClass="secondary-outline-button review-report-export-button"
                             focusTraversable="false"/>
                 </HBox>
 
