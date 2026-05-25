@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public class ScanManager {
     private final ScannerApiClient scannerApiClient;
@@ -95,6 +96,42 @@ public class ScanManager {
         Box box = boxDAO.findByBoxId(boxId)
                 .orElseGet(() -> registerBox(boxId, "Scanned box"));
         ScanSessionDAO.StoredScanSession stored = storedSession.get();
+
+        ScanSession resumedSession = new ScanSession(
+                stored.sessionId(),
+                stored.startedAt(),
+                box,
+                stored.profileName()
+        );
+        applyProfileSettings(resumedSession, resolveProfileSettings(stored.profileName()));
+        resumedSession.setSelectedBarcodeBehavior(stored.selectedBarcodeBehavior());
+        resumedSession.setLastStatus(stored.lastStatus());
+
+        List<Document> linkedDocuments = new ArrayList<>(documentDAO.findBySessionId(stored.sessionId()));
+        int nextReferenceId = 1;
+        for (Document document : linkedDocuments) {
+            resumedSession.addImportedDocument(document);
+            for (PageImage page : document.getPages()) {
+                nextReferenceId = Math.max(nextReferenceId, page.getReferenceId() + 1);
+            }
+        }
+        resumedSession.seedNextReferenceId(nextReferenceId);
+        resumedSession.seedNextImportedItemNumber(Math.max(1, linkedDocuments.size() + 1));
+
+        return Optional.of(new ResumedSession(resumedSession, linkedDocuments));
+    }
+
+    public Optional<ResumedSession> resumeSession(UUID sessionId) {
+        Objects.requireNonNull(sessionId, "sessionId");
+
+        Optional<ScanSessionDAO.StoredScanSession> storedSession = scanSessionDAO.findSession(sessionId);
+        if (storedSession.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ScanSessionDAO.StoredScanSession stored = storedSession.get();
+        Box box = boxDAO.findByBoxId(stored.boxId())
+                .orElseGet(() -> registerBox(stored.boxId(), "Scanned box"));
 
         ScanSession resumedSession = new ScanSession(
                 stored.sessionId(),

@@ -68,7 +68,7 @@ public class ExportsController {
         Label title = new Label("Exports");
         title.getStyleClass().add("exports-title");
 
-        Label subtitle = new Label("Download completed exports and track files that are still being generated.");
+        Label subtitle = new Label("Export scans that have completed QA approval.");
         subtitle.getStyleClass().add("exports-subtitle");
 
         configureFilters();
@@ -94,7 +94,7 @@ public class ExportsController {
         searchField.getStyleClass().add("exports-filter-input");
         searchField.textProperty().addListener((observable, oldValue, newValue) -> refreshTable());
 
-        statusFilter.getItems().setAll(ALL_STATUSES, "Completed", "Processing", "Failed");
+        statusFilter.getItems().setAll(ALL_STATUSES, "QA Approved");
         statusFilter.setValue(ALL_STATUSES);
         statusFilter.getStyleClass().add("exports-status-filter");
         statusFilter.setMinWidth(0);
@@ -120,7 +120,7 @@ public class ExportsController {
     private HBox buildSummaryRow() {
         HBox row = new HBox(18,
                 metricCard("Total Files", String.valueOf(portalModel.fetchExports().size())),
-                metricCard("Completed Exports", String.valueOf(countReadyExports())),
+                metricCard("Ready for Export", String.valueOf(countReadyExports())),
                 metricCard("Total Size", totalExportSizeText())
         );
         row.getStyleClass().add("exports-summary-row");
@@ -236,7 +236,7 @@ public class ExportsController {
         Button action = new Button("Export");
         action.getStyleClass().addAll("portal-row-button", "exports-export-button");
         action.setGraphic(UserPortalUi.buildIcon("download", "portal-button-icon-inverse"));
-        action.setDisable(!"Completed".equalsIgnoreCase(item.status()));
+        action.setDisable(!"QA Approved".equalsIgnoreCase(item.status()));
         action.setOnAction(event -> openExportDialog(item));
 
         HBox actionBox = new HBox(action);
@@ -651,7 +651,7 @@ public class ExportsController {
 
     private int countReadyExports() {
         return (int) portalModel.fetchExports().stream()
-                .filter(item -> "Completed".equalsIgnoreCase(item.status()))
+                .filter(item -> "QA Approved".equalsIgnoreCase(item.status()))
                 .count();
     }
 

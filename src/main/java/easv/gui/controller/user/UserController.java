@@ -5,6 +5,7 @@ import easv.bll.KeyboardShortcut;
 import easv.bll.ShortcutManager;
 import easv.bll.UserManager;
 import easv.bll.UserSession;
+import easv.gui.BackgroundExecutor;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
 import easv.gui.UserPortalModel;
@@ -41,6 +42,8 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -90,6 +93,7 @@ public class UserController implements UserNavigator {
     @FXML private Label accountInitialsLabel;
     @FXML private VBox accountDropdownPane;
     @FXML private VBox notificationDropdownPane;
+    @FXML private VBox notificationListContainer;
     @FXML private Region notificationUnreadDot;
     @FXML private Label accountDropdownNameLabel;
     @FXML private Label accountDropdownDetailLabel;
@@ -111,6 +115,7 @@ public class UserController implements UserNavigator {
     private Scene shortcutScene;
     private UserPage currentPage;
     private boolean userEditingTextInput;
+    private int notificationRenderToken;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -283,9 +288,13 @@ public class UserController implements UserNavigator {
             notificationDropdownPane.setVisible(false);
             notificationDropdownPane.setManaged(false);
         }
+        renderNotifications();
 
         if (notificationMenuButton != null) {
-            notificationMenuButton.setOnAction(event -> toggleNotificationDropdown());
+            notificationMenuButton.setOnAction(event -> {
+                renderNotifications();
+                toggleNotificationDropdown();
+            });
         }
 
         if (markNotificationsReadButton != null) {
@@ -663,37 +672,132 @@ public class UserController implements UserNavigator {
     }
 
     private void markAllNotificationsRead() {
-        if (notificationDropdownPane != null) {
-            for (Node node : notificationDropdownPane.lookupAll(".user-notification-unread-dot")) {
-                node.getStyleClass().setAll("user-notification-read-spacer");
-            }
-        }
-
-        if (notificationUnreadDot != null) {
-            notificationUnreadDot.setVisible(false);
-            notificationUnreadDot.setManaged(false);
-        }
-
-        if (markNotificationsReadButton != null) {
-            markNotificationsReadButton.setText("All read");
-            markNotificationsReadButton.setDisable(true);
-        }
+        BackgroundExecutor.io().execute(() -> {
+            portalModel.markAllNotificationsRead();
+            Platform.runLater(this::renderNotifications);
+        });
     }
 
     private void expandNotificationDropdown() {
-        if (notificationDropdownPane == null) {
+        if (notificationDropdownPane == null || viewAllNotificationsButton == null) {
+            return;
+        }
+        renderNotifications(Integer.MAX_VALUE);
+        viewAllNotificationsButton.setVisible(false);
+        viewAllNotificationsButton.setManaged(false);
+    }
+
+    private void renderNotifications() {
+        renderNotifications(4);
+    }
+
+    private void renderNotifications(int visibleCount) {
+        if (notificationListContainer == null) {
             return;
         }
 
-        for (Node node : notificationDropdownPane.lookupAll(".user-notification-extra-item")) {
-            node.setVisible(true);
-            node.setManaged(true);
+        int requestToken = ++notificationRenderToken;
+        notificationListContainer.getChildren().setAll(createNotificationStateLabel("Loading notifications..."));
+        if (markNotificationsReadButton != null) {
+            markNotificationsReadButton.setText("Loading...");
+            markNotificationsReadButton.setDisable(true);
         }
-
         if (viewAllNotificationsButton != null) {
             viewAllNotificationsButton.setVisible(false);
             viewAllNotificationsButton.setManaged(false);
         }
+
+        BackgroundExecutor.io().execute(() -> {
+            List<easv.bll.QAService.NotificationSnapshot> notifications = portalModel.fetchNotifications();
+            Platform.runLater(() -> applyNotifications(requestToken, visibleCount, notifications));
+        });
+    }
+
+    private void applyNotifications(int requestToken,
+                                    int visibleCount,
+                                    List<easv.bll.QAService.NotificationSnapshot> notifications) {
+        if (requestToken != notificationRenderToken || notificationListContainer == null) {
+            return;
+        }
+
+        notificationListContainer.getChildren().clear();
+
+        if (notifications == null || notifications.isEmpty()) {
+            notificationListContainer.getChildren().add(createNotificationStateLabel("No notifications"));
+        } else {
+            int limit = Math.max(0, Math.min(visibleCount, notifications.size()));
+            for (int index = 0; index < limit; index++) {
+                notificationListContainer.getChildren().add(createNotificationRow(notifications.get(index)));
+            }
+        }
+
+        boolean hasUnread = notifications != null && notifications.stream().anyMatch(easv.bll.QAService.NotificationSnapshot::unread);
+        if (notificationUnreadDot != null) {
+            notificationUnreadDot.setVisible(hasUnread);
+            notificationUnreadDot.setManaged(hasUnread);
+        }
+        if (markNotificationsReadButton != null) {
+            markNotificationsReadButton.setText(hasUnread ? "Mark all as read" : "All read");
+            markNotificationsReadButton.setDisable(!hasUnread);
+        }
+        if (viewAllNotificationsButton != null) {
+            boolean showViewAll = notifications != null
+                    && notifications.size() > Math.max(0, visibleCount)
+                    && visibleCount != Integer.MAX_VALUE;
+            viewAllNotificationsButton.setVisible(showViewAll);
+            viewAllNotificationsButton.setManaged(showViewAll);
+        }
+    }
+
+    private Label createNotificationStateLabel(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("exports-footer-text");
+        return label;
+    }
+
+    private HBox createNotificationRow(easv.bll.QAService.NotificationSnapshot notification) {
+        Region marker = new Region();
+        marker.getStyleClass().add(notification.unread()
+                ? "user-notification-unread-dot"
+                : "user-notification-read-spacer");
+
+        Label title = new Label(notification.title());
+        title.getStyleClass().add("user-notification-item-title");
+
+        Label copy = new Label(notification.message());
+        copy.getStyleClass().add("user-notification-item-copy");
+        copy.setWrapText(true);
+
+        VBox body = new VBox(3, title, copy);
+        HBox.setHgrow(body, Priority.ALWAYS);
+
+        Label time = new Label(formatNotificationTime(notification.createdAt()));
+        time.getStyleClass().add("user-notification-time");
+
+        HBox row = new HBox(12, marker, body, time);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("user-notification-item");
+        return row;
+    }
+
+    private String formatNotificationTime(Instant createdAt) {
+        if (createdAt == null) {
+            return "-";
+        }
+        Duration age = Duration.between(createdAt, Instant.now());
+        long minutes = Math.max(0, age.toMinutes());
+        if (minutes < 1) {
+            return "now";
+        }
+        if (minutes < 60) {
+            return minutes + "m ago";
+        }
+        long hours = age.toHours();
+        if (hours < 24) {
+            return hours + "h ago";
+        }
+        long days = age.toDays();
+        return days + "d ago";
     }
 
     private void showAccountSettingsPage(String selectedSection) {
@@ -1190,4 +1294,3 @@ public class UserController implements UserNavigator {
         return value == null ? "" : value.trim();
     }
 }
-

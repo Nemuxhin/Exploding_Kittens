@@ -1,6 +1,8 @@
 package easv.gui.controller.user;
 
+import easv.gui.BackgroundExecutor;
 import easv.gui.UserPortalModel;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -37,6 +39,9 @@ public class MyScansController {
     private final Label paginationSummaryLabel = new Label();
     private final HBox paginationButtonsBox = new HBox();
     private final ComboBox<Integer> rowsPerPageFilter = new ComboBox<>();
+    private List<UserPortalModel.HistoryItem> historyItems = List.of();
+    private boolean loadingHistory;
+    private boolean historyLoadFailed;
     private int currentPage = 1;
 
     public MyScansController(UserPortalModel portalModel, UserNavigator navigator) {
@@ -68,8 +73,8 @@ public class MyScansController {
         tablePanel.getStyleClass().add("exports-table-panel");
         table.getStyleClass().add("exports-table");
         tablePanel.getChildren().addAll(table, buildPaginationBar());
-
-        refreshTable();
+        renderLoadingState();
+        loadHistoryAsync();
 
         if (showHeader) {
             Label title = new Label("My Scans");
@@ -90,7 +95,16 @@ public class MyScansController {
         searchField.getStyleClass().add("exports-filter-input");
         searchField.textProperty().addListener((observable, oldValue, newValue) -> refreshTable());
 
-        statusFilter.getItems().setAll(ALL_STATUSES, "Completed", "Processing", "Failed");
+        statusFilter.getItems().setAll(
+                ALL_STATUSES,
+                "Completed",
+                "Processing",
+                "Failed",
+                "Submitted for QA",
+                "QA In Progress",
+                "QA Rejected",
+                "QA Approved"
+        );
         statusFilter.setValue(ALL_STATUSES);
         statusFilter.getStyleClass().add("exports-status-filter");
         statusFilter.setMinWidth(0);
@@ -143,7 +157,19 @@ public class MyScansController {
     private void refreshTable() {
         table.getChildren().setAll(createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS", "ACTION"));
 
-        List<UserPortalModel.HistoryItem> visibleItems = portalModel.fetchScanHistory().stream()
+        if (loadingHistory) {
+            table.getChildren().add(emptyRow("Loading scans..."));
+            updatePagination(0, 1);
+            return;
+        }
+
+        if (historyLoadFailed) {
+            table.getChildren().add(emptyRow("Scan history is unavailable right now"));
+            updatePagination(0, 1);
+            return;
+        }
+
+        List<UserPortalModel.HistoryItem> visibleItems = historyItems.stream()
                 .filter(this::matchesFilters)
                 .toList();
 
@@ -166,6 +192,38 @@ public class MyScansController {
         }
 
         updatePagination(totalItems, totalPages);
+    }
+
+    private void loadHistoryAsync() {
+        loadingHistory = true;
+        historyLoadFailed = false;
+        BackgroundExecutor.io().execute(() -> {
+            try {
+                List<UserPortalModel.HistoryItem> loadedItems = portalModel.fetchScanHistory();
+                Platform.runLater(() -> {
+                    historyItems = loadedItems == null ? List.of() : loadedItems;
+                    loadingHistory = false;
+                    historyLoadFailed = false;
+                    currentPage = 1;
+                    refreshTable();
+                });
+            } catch (RuntimeException exception) {
+                Platform.runLater(() -> {
+                    historyItems = List.of();
+                    loadingHistory = false;
+                    historyLoadFailed = true;
+                    refreshTable();
+                });
+            }
+        });
+    }
+
+    private void renderLoadingState() {
+        table.getChildren().setAll(
+                createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS", "ACTION"),
+                emptyRow("Loading scans...")
+        );
+        updatePagination(0, 1);
     }
 
     private boolean matchesFilters(UserPortalModel.HistoryItem item) {

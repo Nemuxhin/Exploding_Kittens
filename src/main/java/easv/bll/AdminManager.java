@@ -7,9 +7,12 @@ import easv.be.ScanProfile;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
+import easv.dal.QaReviewDAO;
 import easv.dal.UserDAO;
 import easv.util.Strings;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,11 +23,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 public class AdminManager {
+    private static final String QA_RECORD_PREFIX = "qa:";
+    private static final DateTimeFormatter ADMIN_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
     private final UserDAO userDAO;
     private final MetadataDAO metadataDAO;
     private final AuditLogDAO auditLogDAO;
+    private final QaReviewDAO qaReviewDAO;
+    private final QAService qaService;
 
     private final List<User> users = new ArrayList<>();
     private final List<ScanProfile> profiles = new ArrayList<>();
@@ -49,6 +58,8 @@ public class AdminManager {
         this.userDAO = userDAO == null ? new UserDAO() : userDAO;
         this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
         this.auditLogDAO = auditLogDAO == null ? new AuditLogDAO() : auditLogDAO;
+        this.qaReviewDAO = new QaReviewDAO();
+        this.qaService = new QAService();
         loadAdminData();
     }
 
@@ -361,14 +372,23 @@ public class AdminManager {
     }
 
     public List<ReviewRecord> getReviewRecords() {
-        return reviewRecords.stream()
+        List<ReviewRecord> allRecords = new ArrayList<>();
+        reviewRecords.stream()
                 .map(this::copyReviewRecord)
-                .toList();
+                .forEach(allRecords::add);
+        qaService.getAllAssignmentsForAdmin().stream()
+                .map(this::toQaReviewRecord)
+                .forEach(allRecords::add);
+        return allRecords;
     }
 
     public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
         if (updatedRecord == null || Strings.clean(updatedRecord.getId()).isBlank()) {
             throw new IllegalArgumentException("Review record is required.");
+        }
+
+        if (isQaRecordId(updatedRecord.getId())) {
+            return saveQaReviewRecord(updatedRecord);
         }
 
         for (int index = 0; index < reviewRecords.size(); index++) {
@@ -394,6 +414,50 @@ public class AdminManager {
                 "A review record was created.");
 
         return copyReviewRecord(updatedRecord);
+    }
+
+    public ReviewRecord assignReviewRecordToQa(String recordId) {
+        return assignReviewRecordToQa(recordId, null);
+    }
+
+    public ReviewRecord assignReviewRecordToQa(String recordId, Integer reviewerUserId) {
+        if (!isQaRecordId(recordId)) {
+            return null;
+        }
+
+        QAService.QaAssignmentSnapshot assignment = qaService.assignReview(parseQaReviewId(recordId), reviewerUserId);
+        return assignment == null ? null : toQaReviewRecord(assignment);
+    }
+
+    public QAService.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
+        if (!isQaRecordId(recordId)) {
+            return null;
+        }
+        return qaReviewDAO.findById(parseQaReviewId(recordId));
+    }
+
+    public List<User> getEligibleQaAssignees(String recordId) {
+        if (!isQaRecordId(recordId)) {
+            return List.of();
+        }
+
+        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(parseQaReviewId(recordId));
+        if (assignment == null) {
+            return List.of();
+        }
+
+        List<User> activeUsers = users.stream()
+                .filter(User::isActive)
+                .filter(user -> assignment.createdByUserId() == null || user.getId() != assignment.createdByUserId())
+                .sorted(Comparator.comparing(User::getName, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+
+        List<User> matchingProfile = activeUsers.stream()
+                .filter(user -> user.getAssignedProfiles().stream()
+                        .anyMatch(profile -> profile.equalsIgnoreCase(assignment.profileName())))
+                .toList();
+
+        return matchingProfile.isEmpty() ? activeUsers : matchingProfile;
     }
 
     public Map<Integer, Set<Integer>> getProfileAssignments() {
@@ -517,6 +581,113 @@ public class AdminManager {
         loadProfileAssignments();
         loadAuditLogs();
         refreshUsersFromProfileAssignments();
+    }
+
+    private ReviewRecord saveQaReviewRecord(ReviewRecord updatedRecord) {
+        UUID reviewId = parseQaReviewId(updatedRecord.getId());
+        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
+        if (assignment == null) {
+            throw new IllegalArgumentException("QA review could not be found.");
+        }
+
+        QAService.QaReviewStatus targetStatus = toQaReviewStatus(updatedRecord.getQaStatus());
+        int reviewedPages = Math.max(assignment.reviewedPages(), assignment.totalPages());
+        int issueCount = Math.max(assignment.issueCount(), updatedRecord.hasWarning() ? 1 : 0);
+
+        if (targetStatus == QAService.QaReviewStatus.APPROVED || targetStatus == QAService.QaReviewStatus.REJECTED) {
+            qaService.completeReview(
+                    reviewId,
+                    targetStatus == QAService.QaReviewStatus.APPROVED,
+                    reviewedPages,
+                    assignment.totalPages(),
+                    issueCount,
+                    assignment.documents()
+            );
+        } else {
+            qaReviewDAO.saveProgress(
+                    reviewId,
+                    targetStatus,
+                    reviewedPages,
+                    assignment.totalPages(),
+                    issueCount,
+                    assignment.documents()
+            );
+        }
+
+        QAService.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
+        return saved == null ? updatedRecord : toQaReviewRecord(saved);
+    }
+
+    private ReviewRecord toQaReviewRecord(QAService.QaAssignmentSnapshot assignment) {
+        Map<Integer, User> usersById = new HashMap<>();
+        for (User user : users) {
+            usersById.put(user.getId(), user);
+        }
+
+        String assignedTo = "";
+        if (assignment.assignedToUserId() != null) {
+            User assignedUser = usersById.get(assignment.assignedToUserId());
+            if (assignedUser != null) {
+                assignedTo = assignedUser.getName();
+            }
+        }
+
+        String metadataStatus = assignment.status() == QAService.QaReviewStatus.REJECTED
+                ? "Returned for changes"
+                : "Complete";
+
+        return new ReviewRecord(
+                QA_RECORD_PREFIX + assignment.reviewId(),
+                assignment.boxId(),
+                assignment.scannedByName(),
+                assignment.boxId(),
+                assignment.profileName(),
+                assignment.profileName(),
+                metadataStatus,
+                toAdminQaStatus(assignment.status()),
+                assignment.totalPages(),
+                formatTimestamp(assignment.completedAt() != null ? assignment.completedAt() : assignment.submittedAt()),
+                assignedTo,
+                assignment.scannedByName(),
+                formatTimestamp(assignment.submittedAt()),
+                assignment.issueCount() > 0 || assignment.status() == QAService.QaReviewStatus.REJECTED
+        );
+    }
+
+    private String toAdminQaStatus(QAService.QaReviewStatus status) {
+        return switch (status) {
+            case WAITING_FOR_QA -> "Ready for QA";
+            case IN_REVIEW -> "QA In Progress";
+            case APPROVED -> "QA Approved";
+            case REJECTED -> "QA Rejected";
+        };
+    }
+
+    private QAService.QaReviewStatus toQaReviewStatus(String status) {
+        String normalized = Strings.normalize(status);
+        return switch (normalized) {
+            case "qa approved" -> QAService.QaReviewStatus.APPROVED;
+            case "qa rejected" -> QAService.QaReviewStatus.REJECTED;
+            case "qa in progress" -> QAService.QaReviewStatus.IN_REVIEW;
+            case "ready for qa", "waiting for qa" -> QAService.QaReviewStatus.WAITING_FOR_QA;
+            default -> QAService.QaReviewStatus.WAITING_FOR_QA;
+        };
+    }
+
+    private boolean isQaRecordId(String recordId) {
+        return Strings.clean(recordId).startsWith(QA_RECORD_PREFIX);
+    }
+
+    private UUID parseQaReviewId(String recordId) {
+        String value = Strings.clean(recordId);
+        return UUID.fromString(value.substring(QA_RECORD_PREFIX.length()));
+    }
+
+    private String formatTimestamp(java.time.Instant instant) {
+        if (instant == null) {
+            return "";
+        }
+        return ADMIN_TIME_FORMATTER.format(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
     }
 
     private void loadUsers() {

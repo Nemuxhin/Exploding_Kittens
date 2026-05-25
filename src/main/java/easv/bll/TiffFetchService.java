@@ -1,5 +1,6 @@
 package easv.bll;
 
+import java.util.Base64;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -58,10 +59,18 @@ public class TiffFetchService {
         return new FetchedPage(
                 page.pageNumber(),
                 page.sourceReference(),
-                "",
+                toDataUri(page.fileData(), page.contentType()),
                 page.barcodeValue(),
                 page.fileData()
         );
+    }
+
+    private String toDataUri(byte[] fileData, String contentType) {
+        if (fileData == null || fileData.length == 0) {
+            return "";
+        }
+        String safeContentType = isTiffContentType(contentType) ? contentType.trim().toLowerCase() : "image/tiff";
+        return "data:" + safeContentType + ";base64," + Base64.getEncoder().encodeToString(fileData);
     }
 
     private boolean isTiffContentType(String contentType) {

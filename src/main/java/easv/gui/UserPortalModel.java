@@ -5,16 +5,16 @@ import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.User;
+import easv.bll.QAService;
 import easv.bll.UserSession;
 import easv.dal.CaseFileDAO;
 import easv.dal.DataAccessException;
 import easv.dal.DocumentDAO;
+import easv.dal.SavedScanProgressDAO;
 import easv.dal.ScanProfileDAO;
 import easv.dal.ScanSessionDAO;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -35,9 +35,9 @@ public class UserPortalModel {
     private final CaseFileDAO caseFileDAO;
     private final ScanSessionDAO scanSessionDAO;
     private final DocumentDAO documentDAO;
+    private final QAService qaService;
+    private final SavedScanProgressDAO savedScanProgressDAO;
     private AccountProfile accountProfile = DEFAULT_ACCOUNT;
-    private final List<InMemoryScanProgress> savedScanProgress = new ArrayList<>();
-    private final List<InMemoryQaAssignment> inMemoryQaAssignments = new ArrayList<>();
 
     public UserPortalModel() {
         this(new ScanProfileDAO(), new CaseFileDAO(), new ScanSessionDAO(), new DocumentDAO());
@@ -52,6 +52,8 @@ public class UserPortalModel {
         this.caseFileDAO = caseFileDAO;
         this.scanSessionDAO = scanSessionDAO;
         this.documentDAO = documentDAO;
+        this.qaService = new QAService();
+        this.savedScanProgressDAO = new SavedScanProgressDAO();
         syncAccountFromSession();
     }
 
@@ -71,9 +73,9 @@ public class UserPortalModel {
             return name;
         }
     }
-    public record RecentScanItem(String boxId, String profileName, String status, String startedAt, int pages) {}
-    public record HistoryItem(String boxId, String profileName, int documents, String status, String startedAt, String completedAt, int pages, String size) {}
-    public record ExportItem(String fileName, String boxId, String profileName, int documents, String createdAt, String size, String status) {}
+    public record RecentScanItem(java.util.UUID sessionId, String boxId, String profileName, String status, String startedAt, int pages) {}
+    public record HistoryItem(java.util.UUID sessionId, String boxId, String profileName, int documents, String status, String startedAt, String completedAt, int pages, String size) {}
+    public record ExportItem(java.util.UUID sessionId, String fileName, String boxId, String profileName, int documents, String createdAt, String size, String status) {}
     public record InMemoryScanPage(
             int referenceId,
             int fileId,
@@ -110,18 +112,6 @@ public class UserPortalModel {
             return (int) pages.stream().filter(page -> !page.barcode()).count();
         }
     }
-    public record InMemoryQaAssignment(
-            String boxId,
-            String profileName,
-            String scannedBy,
-            int documentCount,
-            int totalPages,
-            LocalDate assignedDate,
-            String assignedTimeLabel,
-            int reviewedPages,
-            String status,
-            int issueCount
-    ) {}
     public record PortalSession(ProfileItem profile, BoxItem box) {
         public String exportName() {
             return profile.name() + "_" + box.id();
@@ -131,18 +121,16 @@ public class UserPortalModel {
     public List<DashboardMetric> fetchDashboardMetrics() {
         syncAccountFromSession();
 
-        List<ProfileItem> profiles = fetchProfilesForUser();
         List<HistoryItem> history = fetchScanHistory();
-        int documents = fetchAllCaseFiles().stream()
-                .mapToInt(caseFile -> caseFile.getDocuments().size())
+        int documents = history.stream()
+                .mapToInt(HistoryItem::documents)
                 .sum();
-        int pages = fetchAllCaseFiles().stream()
-                .flatMap(caseFile -> caseFile.getDocuments().stream())
-                .mapToInt(document -> document.getPages().size())
+        int pages = history.stream()
+                .mapToInt(HistoryItem::pages)
                 .sum();
 
         return List.of(
-                new DashboardMetric("Assigned Profiles", String.valueOf(profiles.size())),
+                new DashboardMetric("Assigned Profiles", String.valueOf(fetchAssignedProfileCount())),
                 new DashboardMetric("Batches", String.valueOf(history.size())),
                 new DashboardMetric("Documents", String.valueOf(documents)),
                 new DashboardMetric("Pages", String.valueOf(pages))
@@ -198,6 +186,7 @@ public class UserPortalModel {
         return fetchScanHistory().stream()
                 .limit(5)
                 .map(item -> new RecentScanItem(
+                        item.sessionId(),
                         item.boxId(),
                         item.profileName(),
                         item.status(),
@@ -209,17 +198,32 @@ public class UserPortalModel {
 
     public List<HistoryItem> fetchScanHistory() {
         try {
-            return scanSessionDAO.findHistorySummaries().stream()
-                    .map(summary -> new HistoryItem(
-                            summary.boxId(),
-                            summary.profileName(),
-                            summary.documentCount(),
-                            summary.status(),
-                            formatHistoryTime(summary.startedAt()),
-                            isCompletedStatus(summary.status()) ? formatHistoryTime(summary.startedAt()) : "-",
-                            summary.pageCount(),
-                            "-"
-                    ))
+            Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
+            Map<java.util.UUID, QAService.SessionQaState> qaStates = currentUserId == null
+                    ? Map.of()
+                    : qaService.getReviewStatesForCurrentUser();
+
+            return scanSessionDAO.findHistorySummariesForUser(currentUserId).stream()
+                    .map(summary -> {
+                        QAService.SessionQaState qaState = qaStates.get(summary.sessionId());
+                        String status = qaState == null
+                                ? summary.status()
+                                : toHistoryStatus(qaState.status());
+                        String completedAt = qaState != null && qaState.completedAt() != null
+                                ? formatHistoryTime(qaState.completedAt())
+                                : isCompletedStatus(summary.status()) ? formatHistoryTime(summary.startedAt()) : "-";
+                        return new HistoryItem(
+                                summary.sessionId(),
+                                summary.boxId(),
+                                summary.profileName(),
+                                summary.documentCount(),
+                                status,
+                                formatHistoryTime(summary.startedAt()),
+                                completedAt,
+                                summary.pageCount(),
+                                "-"
+                        );
+                    })
                     .toList();
         } catch (DataAccessException exception) {
             return List.of();
@@ -227,43 +231,33 @@ public class UserPortalModel {
     }
 
     public List<ExportItem> fetchExports() {
-        return fetchScanHistory().stream()
-                .filter(item -> isCompletedStatus(item.status()))
-                .map(item -> new ExportItem(
-                        formatExportName(item.profileName(), item.boxId()) + ".tiff",
-                        item.boxId(),
-                        item.profileName(),
-                        item.documents(),
-                        item.completedAt(),
-                        item.size(),
-                        item.status()
-                ))
-                .toList();
+        try {
+            return qaService.getApprovedExportsForCurrentUser().stream()
+                    .map(item -> new ExportItem(
+                            item.sessionId(),
+                            formatExportName(item.profileName(), item.boxId()) + ".tiff",
+                            item.boxId(),
+                            item.profileName(),
+                            item.documents().size(),
+                            item.completedAt() == null ? formatHistoryTime(item.submittedAt()) : formatHistoryTime(item.completedAt()),
+                            "-",
+                            "QA Approved"
+                    ))
+                    .toList();
+        } catch (RuntimeException exception) {
+            return List.of();
+        }
     }
 
     public List<Document> fetchExportDocuments(ExportItem item) {
-        if (item == null || item.boxId() == null || item.boxId().isBlank()) {
+        if (item == null || item.sessionId() == null) {
             return List.of();
         }
-
-        try {
-            var session = scanSessionDAO.findLatestSession(item.boxId(), item.profileName()).orElse(null);
-            if (session != null) {
-                return documentDAO.findBySessionId(session.sessionId()).stream()
-                        .filter(document -> !document.getPages().isEmpty())
-                        .toList();
-            }
-        } catch (DataAccessException exception) {
-            // Fall back to the case-file view when session data is not reachable.
-        }
-
-        return fetchAllCaseFiles().stream()
-                .filter(caseFile -> caseFile.getBox() != null
-                        && caseFile.getBox().getBoxId() != null
-                        && caseFile.getBox().getBoxId().equalsIgnoreCase(item.boxId()))
-                .flatMap(caseFile -> caseFile.getDocuments().stream())
-                .filter(document -> !document.getPages().isEmpty())
-                .toList();
+        return qaService.getApprovedExportsForCurrentUser().stream()
+                .filter(assignment -> item.sessionId().equals(assignment.sessionId()))
+                .findFirst()
+                .map(this::toExportDocuments)
+                .orElse(List.of());
     }
 
     public ScanProfile fetchExportProfile(ExportItem item) {
@@ -325,27 +319,40 @@ public class UserPortalModel {
         );
     }
 
-    public void saveScanProgress(InMemoryScanProgress progress) {
-        if (progress == null) {
+    public void saveScanProgress(java.util.UUID sessionId, InMemoryScanProgress progress) {
+        if (sessionId == null || progress == null) {
             return;
         }
 
-        savedScanProgress.removeIf(existing ->
-                existing.boxId().equalsIgnoreCase(progress.boxId())
-                        && existing.profileName().equalsIgnoreCase(progress.profileName()));
-        savedScanProgress.add(0, progress);
+        Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
+        savedScanProgressDAO.save(sessionId, currentUserId, new SavedScanProgressDAO.StoredProgress(
+                progress.boxId(),
+                progress.profileName(),
+                progress.status(),
+                progress.savedAt().atZone(ZoneId.systemDefault()).toInstant(),
+                progress.pages().stream()
+                        .map(page -> new SavedScanProgressDAO.StoredPage(
+                                page.referenceId(),
+                                page.fileId(),
+                                page.documentNumber(),
+                                page.barcode(),
+                                page.rotationDegrees(),
+                                page.needsRescan(),
+                                page.splitReasonAfter(),
+                                page.sourceReference(),
+                                page.displayContent(),
+                                page.previewContent()
+                        ))
+                        .toList()
+        ));
     }
 
-    public List<InMemoryScanProgress> getSavedScanProgress() {
-        return List.copyOf(savedScanProgress);
-    }
-
-    public void submitScanForQa(InMemoryScanProgress progress) {
-        if (progress == null) {
+    public void submitScanForQa(java.util.UUID sessionId, InMemoryScanProgress progress) {
+        if (sessionId == null || progress == null) {
             return;
         }
 
-        saveScanProgress(new InMemoryScanProgress(
+        saveScanProgress(sessionId, new InMemoryScanProgress(
                 progress.boxId(),
                 progress.profileName(),
                 progress.documents(),
@@ -353,27 +360,134 @@ public class UserPortalModel {
                 LocalDateTime.now(),
                 "Submitted for QA"
         ));
-
-        inMemoryQaAssignments.removeIf(existing ->
-                existing.boxId().equalsIgnoreCase(progress.boxId())
-                        && existing.profileName().equalsIgnoreCase(progress.profileName()));
-
-        inMemoryQaAssignments.add(0, new InMemoryQaAssignment(
+        qaService.submitScanForQa(
+                sessionId,
                 progress.boxId(),
                 progress.profileName(),
-                fetchAccountProfile().fullName(),
-                Math.max(1, progress.documents().stream().filter(document -> !document.pending()).toList().size()),
-                progress.normalPageCount(),
-                LocalDate.now(),
-                "Just now",
-                0,
-                "Waiting for QA",
-                0
-        ));
+                toQaDocumentSnapshots(progress)
+        );
+        savedScanProgressDAO.deleteBySessionId(sessionId);
     }
 
-    public List<InMemoryQaAssignment> getInMemoryQaAssignments() {
-        return List.copyOf(inMemoryQaAssignments);
+    public List<QAService.QaAssignmentSnapshot> fetchAssignedQaAssignments() {
+        try {
+            return qaService.getAssignmentsForCurrentUser();
+        } catch (RuntimeException exception) {
+            return List.of();
+        }
+    }
+
+    public List<QAService.NotificationSnapshot> fetchNotifications() {
+        try {
+            return qaService.getNotificationsForCurrentUser();
+        } catch (RuntimeException exception) {
+            return List.of();
+        }
+    }
+
+    public void markAllNotificationsRead() {
+        try {
+            qaService.markAllNotificationsRead();
+        } catch (RuntimeException exception) {
+            // Keep the portal responsive when notifications cannot be updated.
+        }
+    }
+
+    public void markQaAssignmentStarted(java.util.UUID reviewId) {
+        if (reviewId == null) {
+            return;
+        }
+        qaService.markAssignmentStarted(reviewId);
+    }
+
+    public void saveQaProgress(
+            java.util.UUID reviewId,
+            QAService.QaReviewStatus status,
+            int reviewedPages,
+            int totalPages,
+            int issueCount,
+            List<QAService.QaDocumentSnapshot> documents
+    ) {
+        if (reviewId == null) {
+            return;
+        }
+        qaService.saveProgress(reviewId, status, reviewedPages, totalPages, issueCount, documents);
+    }
+
+    public void completeQaReview(
+            java.util.UUID reviewId,
+            boolean approved,
+            int reviewedPages,
+            int totalPages,
+            int issueCount,
+            List<QAService.QaDocumentSnapshot> documents
+    ) {
+        if (reviewId == null) {
+            return;
+        }
+        qaService.completeReview(reviewId, approved, reviewedPages, totalPages, issueCount, documents);
+    }
+
+    public InMemoryScanProgress fetchReturnedQaProgress(java.util.UUID sessionId) {
+        if (sessionId == null) {
+            return null;
+        }
+        try {
+            QAService.QaAssignmentSnapshot assignment = qaService.getReturnedAssignmentForSession(sessionId);
+            if (assignment == null) {
+                return null;
+            }
+            return toInMemoryScanProgress(assignment);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    public InMemoryScanProgress fetchSavedScanProgress(java.util.UUID sessionId) {
+        if (sessionId == null) {
+            return null;
+        }
+
+        try {
+            Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
+            SavedScanProgressDAO.StoredProgress progress = savedScanProgressDAO.findBySessionId(sessionId, currentUserId);
+            if (progress == null) {
+                return null;
+            }
+
+            List<InMemoryScanPage> pages = progress.pages().stream()
+                    .map(page -> new InMemoryScanPage(
+                            page.referenceId(),
+                            page.fileId(),
+                            page.documentNumber(),
+                            page.barcode(),
+                            page.rotationDegrees(),
+                            page.needsRescan(),
+                            page.splitReasonAfter(),
+                            page.sourceReference(),
+                            page.displayContent(),
+                            page.previewContent()
+                    ))
+                    .toList();
+
+            return new InMemoryScanProgress(
+                    progress.boxId(),
+                    progress.profileName(),
+                    List.of(),
+                    pages,
+                    LocalDateTime.ofInstant(progress.savedAt(), ZoneId.systemDefault()),
+                    progress.status()
+            );
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    public void clearSavedScanProgress(java.util.UUID sessionId) {
+        if (sessionId == null) {
+            return;
+        }
+        savedScanProgressDAO.deleteBySessionId(sessionId);
     }
 
     public String formatExportName(String profileName, String boxId) {
@@ -431,6 +545,25 @@ public class UserPortalModel {
         }
     }
 
+    private int fetchAssignedProfileCount() {
+        User currentUser = UserSession.getCurrentUser();
+        List<ScanProfile> availableProfiles = safeProfiles();
+        if (availableProfiles.isEmpty()) {
+            return 0;
+        }
+
+        LinkedHashSet<String> allowedNames = new LinkedHashSet<>();
+        if (currentUser != null && currentUser.getAssignedProfiles() != null && !currentUser.getAssignedProfiles().isEmpty()) {
+            allowedNames.addAll(currentUser.getAssignedProfiles());
+        }
+
+        return (int) (allowedNames.isEmpty()
+                ? availableProfiles.stream().filter(profile -> !profile.isArchived()).count()
+                : availableProfiles.stream()
+                .filter(profile -> allowedNames.stream().anyMatch(assigned -> assigned.equalsIgnoreCase(profile.getName())))
+                .count());
+    }
+
     private List<CaseFile> fetchAllCaseFiles() {
         try {
             return new ArrayList<>(caseFileDAO.findAll());
@@ -477,5 +610,141 @@ public class UserPortalModel {
 
     private boolean isCompletedStatus(String status) {
         return "Completed".equalsIgnoreCase(status);
+    }
+
+    private String toHistoryStatus(QAService.QaReviewStatus status) {
+        if (status == null) {
+            return "Processing";
+        }
+        return switch (status) {
+            case WAITING_FOR_QA -> "Submitted for QA";
+            case IN_REVIEW -> "QA In Progress";
+            case APPROVED -> "QA Approved";
+            case REJECTED -> "QA Rejected";
+        };
+    }
+
+    private List<Document> toExportDocuments(QAService.QaAssignmentSnapshot assignment) {
+        List<Document> documents = new ArrayList<>();
+        if (assignment == null) {
+            return documents;
+        }
+
+        for (QAService.QaDocumentSnapshot qaDocument : assignment.documents()) {
+            List<PageImage> pages = new ArrayList<>();
+            for (QAService.QaPageSnapshot qaPage : qaDocument.pages()) {
+                if (qaPage.reviewStatus() != QAService.QaPageReviewStatus.APPROVED) {
+                    continue;
+                }
+                PageImage pageImage = new PageImage(
+                        qaPage.pageNumber(),
+                        PageImage.PageType.TIFF,
+                        normalizedValue(qaPage.sourceReference(), "Document " + qaDocument.number())
+                );
+                pageImage.setRotationDegrees(qaPage.rotationDegrees());
+                pageImage.setDisplayContent(qaPage.displayContent());
+                pages.add(pageImage);
+            }
+            if (!pages.isEmpty()) {
+                documents.add(new Document("document_" + String.format(Locale.US, "%03d", qaDocument.number()), pages));
+            }
+        }
+
+        return documents;
+    }
+
+    private List<QAService.QaDocumentSnapshot> toQaDocumentSnapshots(InMemoryScanProgress progress) {
+        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+        if (progress == null || progress.documents() == null) {
+            return documents;
+        }
+
+        int globalPageNumber = 0;
+        for (InMemoryScanDocument document : progress.documents()) {
+            List<QAService.QaPageSnapshot> pages = new ArrayList<>();
+            for (InMemoryScanPage page : document.pages()) {
+                if (page.barcode()) {
+                    continue;
+                }
+                globalPageNumber++;
+                pages.add(new QAService.QaPageSnapshot(
+                        pages.size() + 1,
+                        globalPageNumber,
+                        page.sourceReference(),
+                        firstNonBlank(page.previewContent(), page.displayContent()),
+                        page.rotationDegrees(),
+                        QAService.QaPageReviewStatus.NOT_REVIEWED,
+                        false,
+                        false,
+                        false,
+                        false,
+                        ""
+                ));
+            }
+            if (!pages.isEmpty()) {
+                documents.add(new QAService.QaDocumentSnapshot(
+                        document.number(),
+                        deriveDocumentName(document),
+                        pages
+                ));
+            }
+        }
+        return documents;
+    }
+
+    private InMemoryScanProgress toInMemoryScanProgress(QAService.QaAssignmentSnapshot assignment) {
+        List<InMemoryScanDocument> documents = new ArrayList<>();
+        List<InMemoryScanPage> pages = new ArrayList<>();
+        int referenceId = 1;
+        int fileId = 1;
+
+        for (QAService.QaDocumentSnapshot document : assignment.documents()) {
+            List<InMemoryScanPage> documentPages = new ArrayList<>();
+            for (int pageIndex = 0; pageIndex < document.pages().size(); pageIndex++) {
+                QAService.QaPageSnapshot page = document.pages().get(pageIndex);
+                InMemoryScanPage storedPage = new InMemoryScanPage(
+                        referenceId++,
+                        fileId++,
+                        document.number(),
+                        false,
+                        page.rotationDegrees(),
+                        page.reviewStatus() == QAService.QaPageReviewStatus.NEEDS_FIX,
+                        pageIndex == document.pages().size() - 1 ? "Finish batch" : "",
+                        page.sourceReference(),
+                        page.displayContent(),
+                        page.displayContent()
+                );
+                documentPages.add(storedPage);
+                pages.add(storedPage);
+            }
+            documents.add(new InMemoryScanDocument(document.number(), "", documentPages, false));
+        }
+
+        return new InMemoryScanProgress(
+                assignment.boxId(),
+                assignment.profileName(),
+                documents,
+                pages,
+                LocalDateTime.now(),
+                toHistoryStatus(assignment.status())
+        );
+    }
+
+    private String deriveDocumentName(InMemoryScanDocument document) {
+        if (document != null && document.pages() != null) {
+            for (InMemoryScanPage page : document.pages()) {
+                if (page != null && page.sourceReference() != null && !page.sourceReference().isBlank()) {
+                    return page.sourceReference().trim();
+                }
+            }
+        }
+        return "Document " + (document == null ? "?" : document.number());
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) {
+            return preferred;
+        }
+        return fallback == null ? "" : fallback;
     }
 }

@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class ScanSessionDAO {
-    private static volatile boolean profileNameColumnEnsured;
-
     private final DatabaseConnection databaseConnection;
 
     public ScanSessionDAO() {
@@ -27,20 +25,24 @@ public class ScanSessionDAO {
     }
 
     public void save(ScanSession session) {
-        ensureProfileNameColumn();
         try (Connection connection = databaseConnection.getConnection()) {
             if (existsSession(connection, session.getId())) {
                 updateSessionState(session);
                 return;
             }
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO scan_sessions (id, started_at, box_id, profile_name, selected_barcode_behavior, last_status) VALUES (?, ?, ?, ?, ?, ?)")) {
+                    "INSERT INTO scan_sessions (id, started_at, box_id, profile_name, selected_barcode_behavior, last_status, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
                 statement.setString(1, session.getId().toString());
                 statement.setTimestamp(2, Timestamp.from(session.getStartedAt()));
                 statement.setString(3, session.getBox().getId().toString());
                 statement.setString(4, session.getProfileName());
                 statement.setString(5, session.getSelectedBarcodeBehavior());
                 statement.setString(6, session.getLastStatus());
+                if (easv.bll.UserSession.getCurrentUser() == null) {
+                    statement.setNull(7, java.sql.Types.INTEGER);
+                } else {
+                    statement.setInt(7, easv.bll.UserSession.getCurrentUser().getId());
+                }
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -79,7 +81,6 @@ public class ScanSessionDAO {
     }
 
     public void updateSessionState(ScanSession session) {
-        ensureProfileNameColumn();
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE scan_sessions
@@ -97,13 +98,17 @@ public class ScanSessionDAO {
     }
 
     public List<ScanSessionSummary> findHistorySummaries() {
-        ensureProfileNameColumn();
+        return findHistorySummariesForUser(null);
+    }
+
+    public List<ScanSessionSummary> findHistorySummariesForUser(Integer userId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT s.id,
                             s.started_at,
                             COALESCE(NULLIF(s.profile_name, ''), 'Unspecified Profile') AS profile_name,
                             COALESCE(NULLIF(s.last_status, ''), 'READY') AS last_status,
+                            s.created_by_user_id,
                             b.box_id AS box_id,
                             COUNT(DISTINCT ssd.document_id) AS document_count,
                             COUNT(dp.id) AS page_count
@@ -111,10 +116,18 @@ public class ScanSessionDAO {
                      JOIN boxes b ON b.id = s.box_id
                      LEFT JOIN scan_session_documents ssd ON ssd.session_id = s.id
                      LEFT JOIN document_pages dp ON dp.document_id = ssd.document_id
-                     GROUP BY s.id, s.started_at, s.profile_name, s.last_status, b.box_id
+                     WHERE (? IS NULL OR s.created_by_user_id = ?)
+                     GROUP BY s.id, s.started_at, s.profile_name, s.last_status, s.created_by_user_id, b.box_id
                      ORDER BY s.started_at DESC
-                     """);
-             ResultSet resultSet = statement.executeQuery()) {
+                     """)) {
+            if (userId == null) {
+                statement.setNull(1, java.sql.Types.INTEGER);
+                statement.setNull(2, java.sql.Types.INTEGER);
+            } else {
+                statement.setInt(1, userId);
+                statement.setInt(2, userId);
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
             List<ScanSessionSummary> summaries = new ArrayList<>();
             while (resultSet.next()) {
                 summaries.add(new ScanSessionSummary(
@@ -128,8 +141,46 @@ public class ScanSessionDAO {
                 ));
             }
             return summaries;
+            }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch scan session history", e);
+        }
+    }
+
+    public java.util.Optional<StoredScanSession> findSession(UUID sessionId) {
+        if (sessionId == null) {
+            throw new IllegalArgumentException("sessionId must not be null");
+        }
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT s.id,
+                            s.started_at,
+                            s.profile_name,
+                            s.selected_barcode_behavior,
+                            s.last_status,
+                            s.created_by_user_id,
+                            b.box_id
+                     FROM scan_sessions s
+                     JOIN boxes b ON b.id = s.box_id
+                     WHERE s.id = ?
+                     """)) {
+            statement.setString(1, sessionId.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return java.util.Optional.empty();
+                }
+                return java.util.Optional.of(new StoredScanSession(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getTimestamp("started_at").toInstant(),
+                        resultSet.getString("profile_name"),
+                        resultSet.getString("selected_barcode_behavior"),
+                        resultSet.getString("last_status"),
+                        resultSet.getString("box_id"),
+                        nullableInteger(resultSet, "created_by_user_id")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch stored scan session " + sessionId, e);
         }
     }
 
@@ -137,14 +188,14 @@ public class ScanSessionDAO {
         if (boxId == null || boxId.isBlank()) {
             throw new IllegalArgumentException("boxId must not be blank");
         }
-        ensureProfileNameColumn();
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT TOP 1 s.id,
                                   s.started_at,
                                   s.profile_name,
                                   s.selected_barcode_behavior,
-                                  s.last_status
+                                  s.last_status,
+                                  s.created_by_user_id
                      FROM scan_sessions s
                      JOIN boxes b ON b.id = s.box_id
                      WHERE b.box_id = ?
@@ -162,7 +213,9 @@ public class ScanSessionDAO {
                         resultSet.getTimestamp("started_at").toInstant(),
                         resultSet.getString("profile_name"),
                         resultSet.getString("selected_barcode_behavior"),
-                        resultSet.getString("last_status")
+                        resultSet.getString("last_status"),
+                        boxId,
+                        nullableInteger(resultSet, "created_by_user_id")
                 ));
             }
         } catch (SQLException e) {
@@ -170,30 +223,25 @@ public class ScanSessionDAO {
         }
     }
 
-    private void ensureProfileNameColumn() {
-        if (profileNameColumnEnsured) {
-            return;
+    public Integer findCreatorUserId(UUID sessionId) {
+        if (sessionId == null) {
+            return null;
         }
-        synchronized (ScanSessionDAO.class) {
-            if (profileNameColumnEnsured) {
-                return;
-            }
-            ensureProfileNameColumnInternal();
-            profileNameColumnEnsured = true;
-        }
-    }
-
-    private void ensureProfileNameColumnInternal() {
-        try (Connection connection = databaseConnection.getConnection()) {
-            if (DatabaseConnection.columnExists(connection, "scan_sessions", "profile_name")) {
-                return;
-            }
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "ALTER TABLE scan_sessions ADD profile_name VARCHAR(255) NULL")) {
-                statement.executeUpdate();
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT created_by_user_id
+                     FROM scan_sessions
+                     WHERE id = ?
+                     """)) {
+            statement.setString(1, sessionId.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+                return nullableInteger(resultSet, "created_by_user_id");
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to ensure scan session profile column", e);
+            throw new DataAccessException("Failed to find session creator.", e);
         }
     }
 
@@ -226,6 +274,11 @@ public class ScanSessionDAO {
         };
     }
 
+    private Integer nullableInteger(ResultSet resultSet, String columnName) throws SQLException {
+        int value = resultSet.getInt(columnName);
+        return resultSet.wasNull() ? null : value;
+    }
+
     public record ScanSessionSummary(
             UUID sessionId,
             Instant startedAt,
@@ -242,7 +295,9 @@ public class ScanSessionDAO {
             Instant startedAt,
             String profileName,
             String selectedBarcodeBehavior,
-            String lastStatus
+            String lastStatus,
+            String boxId,
+            Integer createdByUserId
     ) {
     }
 }

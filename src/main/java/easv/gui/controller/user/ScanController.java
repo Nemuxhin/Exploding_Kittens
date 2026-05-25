@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class ScanController {
 
@@ -221,7 +222,7 @@ public class ScanController {
             return;
         }
 
-        openScanSession(item.boxId(), item.profileName());
+        openScanSession(item.sessionId(), item.boxId(), item.profileName());
     }
 
     public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
@@ -229,7 +230,7 @@ public class ScanController {
             return;
         }
 
-        openScanSession(item.boxId(), item.profileName());
+        openScanSession(item.sessionId(), item.boxId(), item.profileName());
     }
 
     @FXML
@@ -451,7 +452,7 @@ public class ScanController {
         boxRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
     }
 
-    private void openScanSession(String boxId, String profileName) {
+    private void openScanSession(UUID sessionId, String boxId, String profileName) {
         if (boxIdTextField != null) {
             boxIdTextField.setText(boxId == null ? "" : boxId);
         }
@@ -469,8 +470,16 @@ public class ScanController {
         String selectedBoxId = getBoxId();
         String selectedProfile = getSelectedProfile();
         BackgroundExecutor.io().execute(() -> {
-            ScanManager.ResumedSession resumedSession = scanManager.resumeLatestSession(selectedBoxId, selectedProfile)
+            ScanManager.ResumedSession resumedSession = (sessionId == null
+                    ? scanManager.resumeLatestSession(selectedBoxId, selectedProfile)
+                    : scanManager.resumeSession(sessionId))
                     .orElse(null);
+            UserPortalModel.InMemoryScanProgress savedProgress = sessionId == null
+                    ? null
+                    : portalModel.fetchSavedScanProgress(sessionId);
+            UserPortalModel.InMemoryScanProgress returnedQaProgress = sessionId == null
+                    ? null
+                    : portalModel.fetchReturnedQaProgress(sessionId);
             Platform.runLater(() -> {
                 if (!selectedBoxId.equals(getBoxId()) || !selectedProfile.equals(getSelectedProfile())) {
                     return;
@@ -479,13 +488,13 @@ public class ScanController {
                 if (resumedSession == null) {
                     beginScanSession();
                 } else {
-                    restoreScanSession(resumedSession);
+                    restoreScanSession(resumedSession, returnedQaProgress != null ? returnedQaProgress : savedProgress);
                 }
             });
         });
     }
 
-    private void restoreScanSession(ScanManager.ResumedSession resumedSession) {
+    private void restoreScanSession(ScanManager.ResumedSession resumedSession, UserPortalModel.InMemoryScanProgress returnedQaProgress) {
         allPages.clear();
         pendingPages.clear();
         documents.clear();
@@ -501,13 +510,16 @@ public class ScanController {
         scanInProgress = false;
         sessionRotationDegrees = 0;
 
-        for (Document document : resumedSession.documents()) {
-            for (PageImage pageImage : document.getPages()) {
-                allPages.add(mapStoredPage(pageImage));
+        if (returnedQaProgress != null && !returnedQaProgress.pages().isEmpty()) {
+            restoreFromSavedProgress(returnedQaProgress);
+        } else {
+            for (Document document : resumedSession.documents()) {
+                for (PageImage pageImage : document.getPages()) {
+                    allPages.add(mapStoredPage(pageImage));
+                }
             }
+            rebuildDocumentsFromPages();
         }
-
-        rebuildDocumentsFromPages();
         selectedPage = allPages.stream()
                 .filter(page -> !page.barcode)
                 .findFirst()
@@ -520,6 +532,30 @@ public class ScanController {
         syncBoxRotationComboBox();
         refreshWorkspace();
         updateUndoButtonState();
+    }
+
+    private void restoreFromSavedProgress(UserPortalModel.InMemoryScanProgress progress) {
+        nextReferenceId = 1;
+        nextFileId = 1;
+        for (UserPortalModel.InMemoryScanPage storedPage : progress.pages()) {
+            ScannedPage page = new ScannedPage(
+                    Math.max(1, storedPage.referenceId()),
+                    Math.max(1, storedPage.fileId()),
+                    storedPage.barcode(),
+                    storedPage.needsRescan(),
+                    storedPage.sourceReference(),
+                    storedPage.displayContent(),
+                    storedPage.previewContent(),
+                    extractDisplayContentBytes(storedPage.previewContent())
+            );
+            page.documentNumber = storedPage.documentNumber();
+            page.rotationDegrees = normalizeRotation(storedPage.rotationDegrees());
+            page.splitReasonAfter = storedPage.splitReasonAfter();
+            allPages.add(page);
+            nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
+            nextFileId = Math.max(nextFileId, page.fileId + 1);
+        }
+        rebuildDocumentsFromPages();
     }
 
     private void commitCustomPageRotation() {
@@ -1719,11 +1755,15 @@ public class ScanController {
 
     @FXML
     private void onSaveProgress() {
-        portalModel.saveScanProgress(createInMemoryScanProgress("Saved in memory"));
-        selectedFileRefLabel.setText("Progress saved in memory for this app session.");
+        if (activeScanSession == null) {
+            return;
+        }
+
+        portalModel.saveScanProgress(activeScanSession.getId(), createInMemoryScanProgress("Saved"));
+        selectedFileRefLabel.setText("Progress saved to the database.");
         setWorkspaceSessionSubtitle(
                 allPages.size() + " files scanned - "
-                        + documents.size() + " documents created - progress saved in memory"
+                        + documents.size() + " documents created - progress saved"
         );
         refreshWorkspace();
     }
@@ -1849,7 +1889,10 @@ public class ScanController {
     private void markScanSubmittedForQa() {
         hideFinishReviewModal();
 
-        portalModel.submitScanForQa(createInMemoryScanProgress("Submitted for QA"));
+        portalModel.submitScanForQa(
+                activeScanSession == null ? null : activeScanSession.getId(),
+                createInMemoryScanProgress("Submitted for QA")
+        );
 
         setWorkspaceSessionSubtitle(
                 allPages.size() + " files scanned - "
@@ -1928,6 +1971,9 @@ public class ScanController {
     }
 
     private void resetAfterSubmittedScan() {
+        if (activeScanSession != null) {
+            portalModel.clearSavedScanProgress(activeScanSession.getId());
+        }
         allPages.clear();
         pendingPages.clear();
         documents.clear();

@@ -181,7 +181,7 @@
                     <Button fx:id="recentlyCompletedStripBtn"
                             maxWidth="Infinity"
                             HBox.hgrow="ALWAYS"
-                            onAction="#showRecentlyCompletedQueue"
+                            onAction="#showRecentlyScannedQueue"
                             focusTraversable="false"
                             contentDisplay="GRAPHIC_ONLY"
                             styleClass="review-strip-btn review-strip-neutral">
@@ -189,9 +189,9 @@
                             <VBox styleClass="review-strip-inner">
                                 <HBox spacing="5" alignment="CENTER_LEFT" styleClass="review-strip-label-row">
                                     <Label text="&#xe940;" styleClass="prime-icon review-strip-icon"/>
-                                    <Label text="Recently completed" styleClass="review-strip-label"/>
+                                    <Label text="Recently scanned" styleClass="review-strip-label"/>
                                 </HBox>
-                                <Label fx:id="recentlyCompletedCountLabel" text="0" styleClass="review-strip-num"/>
+                                <Label fx:id="recentlyScannedCountLabel" text="0" styleClass="review-strip-num"/>
                             </VBox>
                         </graphic>
                     </Button>
@@ -488,68 +488,17 @@
                                 <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
                             </StackPane>
 
-                            <TextField promptText="Search documents..."
+                            <TextField fx:id="reviewWorkspaceSearchField"
+                                       promptText="Search documents..."
                                        styleClass="search-field-input"
                                        maxWidth="Infinity"
                                        HBox.hgrow="ALWAYS"/>
                         </HBox>
 
-                        <VBox spacing="12"
+                        <VBox fx:id="reviewWorkspaceTreeContainer"
+                              spacing="12"
                               maxWidth="Infinity"
-                              styleClass="review-workspace-tree">
-
-                            <Label text="BOX-2026-004" styleClass="review-workspace-tree-root"/>
-
-                            <VBox spacing="6">
-                                <Label text="Case 2026-042" styleClass="review-workspace-tree-case"/>
-
-                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
-                                    <Label text="OK" styleClass="review-workspace-tree-status-complete"/>
-                                    <Label text="Document 1" styleClass="review-workspace-tree-title"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="complete" styleClass="review-workspace-tree-status-text"/>
-                                </HBox>
-
-                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
-                                    <Label text="!" styleClass="review-workspace-tree-status-warning"/>
-                                    <Label text="Document 2" styleClass="review-workspace-tree-title"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="missing" styleClass="review-workspace-tree-status-text"/>
-                                </HBox>
-
-                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row-active">
-                                    <Label text="!" styleClass="review-workspace-tree-status-warning"/>
-                                    <Label text="Document 3" styleClass="review-workspace-tree-title-active"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="missing required" styleClass="review-workspace-tree-status-text"/>
-                                </HBox>
-
-                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
-                                    <Label text="-" styleClass="review-workspace-tree-status-neutral"/>
-                                    <Label text="Document 4" styleClass="review-workspace-tree-title"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="not started" styleClass="review-workspace-tree-status-text"/>
-                                </HBox>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Case 2026-043" styleClass="review-workspace-tree-case"/>
-
-                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
-                                    <Label text="OK" styleClass="review-workspace-tree-status-complete"/>
-                                    <Label text="Document 1" styleClass="review-workspace-tree-title"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="complete" styleClass="review-workspace-tree-status-text"/>
-                                </HBox>
-
-                                <HBox alignment="CENTER_LEFT" styleClass="review-workspace-tree-row">
-                                    <Label text="X" styleClass="review-workspace-tree-status-danger"/>
-                                    <Label text="Document 2" styleClass="review-workspace-tree-title"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="invalid" styleClass="review-workspace-tree-status-text"/>
-                                </HBox>
-                            </VBox>
-                        </VBox>
+                              styleClass="review-workspace-tree"/>
                     </VBox>
 
                     <VBox spacing="0"
@@ -565,25 +514,22 @@
 
                             <Region HBox.hgrow="ALWAYS"/>
 
-                            <Label text="Page 3 of 12" styleClass="review-workspace-viewer-page-label"/>
+                            <Label fx:id="reviewWorkspaceViewerPageLabel"
+                                   text="Page 3 of 12"
+                                   styleClass="review-workspace-viewer-page-label"/>
 
-                            <Button text="-" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button text="+" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button text="Fit" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button text="&lt;" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button text="&gt;" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button text="Barcode" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button fx:id="reviewZoomOutButton" text="-" onAction="#zoomOutWorkspacePreview" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button fx:id="reviewZoomInButton" text="+" onAction="#zoomInWorkspacePreview" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button fx:id="reviewFitButton" text="Fit" onAction="#fitWorkspacePreview" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button fx:id="reviewPrevPageButton" text="&lt;" onAction="#showPreviousWorkspacePage" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button fx:id="reviewNextPageButton" text="&gt;" onAction="#showNextWorkspacePage" focusTraversable="false" styleClass="review-workspace-tool-button"/>
+                            <Button fx:id="reviewBarcodeButton" text="Barcode" onAction="#focusWorkspaceBarcodePage" focusTraversable="false" styleClass="review-workspace-tool-button"/>
                         </HBox>
 
-                        <StackPane minHeight="540"
+                        <StackPane fx:id="reviewWorkspacePreviewHost"
+                                   minHeight="540"
                                    maxWidth="Infinity"
-                                   styleClass="review-workspace-viewer-area">
-
-                            <StackPane styleClass="review-workspace-paper-preview">
-                                <Label text="Document Page 3"
-                                       styleClass="review-workspace-paper-placeholder"/>
-                            </StackPane>
-                        </StackPane>
+                                   styleClass="review-workspace-viewer-area"/>
 
                         <ScrollPane fitToHeight="true"
                                     fitToWidth="false"
@@ -592,29 +538,9 @@
                                     styleClass="review-workspace-thumbnail-scroll">
 
                             <content>
-                                <HBox spacing="9"
-                                      styleClass="review-workspace-thumbnail-strip">
-
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="1" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="2" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail-active"><Label text="3" styleClass="review-workspace-thumbnail-label-active"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="4" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="5" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="6" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="7" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="8" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="9" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="10" styleClass="review-workspace-thumbnail-label"/></StackPane>
-
-                                    <StackPane styleClass="review-workspace-thumbnail-barcode">
-                                        <VBox spacing="3" alignment="CENTER">
-                                            <Label text="11" styleClass="review-workspace-thumbnail-label"/>
-                                            <Label text="barcode" styleClass="review-workspace-thumbnail-note"/>
-                                        </VBox>
-                                    </StackPane>
-
-                                    <StackPane styleClass="review-workspace-thumbnail"><Label text="12" styleClass="review-workspace-thumbnail-label"/></StackPane>
-                                </HBox>
+                                <HBox fx:id="reviewWorkspaceThumbnailStrip"
+                                      spacing="9"
+                                      styleClass="review-workspace-thumbnail-strip"/>
                             </content>
                         </ScrollPane>
                     </VBox>
