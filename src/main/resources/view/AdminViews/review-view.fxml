@@ -65,11 +65,6 @@
                     </VBox>
 
                     <Region HBox.hgrow="ALWAYS"/>
-
-                    <Button text="Export Review Report"
-                            onAction="#exportReport"
-                            styleClass="secondary-outline-button review-report-export-button"
-                            focusTraversable="false"/>
                 </HBox>
 
                 <HBox styleClass="review-search-shell"
