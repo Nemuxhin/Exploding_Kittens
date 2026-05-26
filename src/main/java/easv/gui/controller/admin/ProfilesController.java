@@ -1014,30 +1014,8 @@ public class ProfilesController {
                 barcodeGrid
         );
 
-        VBox correctionSection = new VBox(27);
-        correctionSection.getStyleClass().add("profile-editor-section");
-
-        GridPane correctionGrid = new GridPane();
-        correctionGrid.setHgap(21);
-        correctionGrid.setVgap(6);
-        correctionGrid.setMaxWidth(Double.MAX_VALUE);
-        correctionGrid.getColumnConstraints().setAll(createPercentColumns(3));
-        correctionGrid.add(createProfileDialogLabel("Default rotation", "profile-editor-field-label"), 0, 0);
-        correctionGrid.add(createProfileDialogLabel("Brightness", "profile-editor-field-label"), 1, 0);
-        correctionGrid.add(createProfileDialogLabel("Contrast", "profile-editor-field-label"), 2, 0);
-        correctionGrid.add(fields.defaultRotationComboBox, 0, 1);
-        correctionGrid.add(fields.brightnessComboBox, 1, 1);
-        correctionGrid.add(fields.contrastComboBox, 2, 1);
-
-        HBox deskewRow = new HBox();
-        deskewRow.setAlignment(Pos.CENTER_LEFT);
-        Region deskewSpacer = new Region();
-        HBox.setHgrow(deskewSpacer, Priority.ALWAYS);
-        deskewRow.getChildren().addAll(
-                createProfileDialogLabel("Deskew / straighten pages", "profile-editor-strong-text"),
-                deskewSpacer,
-                fields.deskewToggle
-        );
+        VBox qaSection = new VBox(27);
+        qaSection.getStyleClass().add("profile-editor-section");
 
         HBox qaRequiredRow = new HBox();
         qaRequiredRow.setAlignment(Pos.CENTER_LEFT);
@@ -1049,12 +1027,7 @@ public class ProfilesController {
                 fields.qaRequiredToggle
         );
 
-        correctionSection.getChildren().addAll(
-                createProfileDialogLabel("Page Correction Defaults", "profile-editor-section-title"),
-                correctionGrid,
-                deskewRow,
-                qaRequiredRow
-        );
+        qaSection.getChildren().add(qaRequiredRow);
 
         VBox exportSection = new VBox(24);
         exportSection.getStyleClass().add("profile-editor-section");
@@ -1088,6 +1061,8 @@ public class ProfilesController {
         sections.getStyleClass().addAll("profile-editor-card", "profile-editor-sectioned-card");
         sections.getChildren().addAll(
                 barcodeSection,
+                createDivider(),
+                qaSection,
                 createDivider(),
                 exportSection
         );

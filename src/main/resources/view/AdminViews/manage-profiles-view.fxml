@@ -300,8 +300,6 @@
                             </styleClass>
 
                             <VBox spacing="27"
-                                  visible="false"
-                                  managed="false"
                                   maxWidth="Infinity"
                                   styleClass="profile-editor-section">
 
@@ -358,65 +356,6 @@
                             <VBox spacing="27"
                                   maxWidth="Infinity"
                                   styleClass="profile-editor-section">
-
-                                <Label text="Page Correction Defaults"
-                                       styleClass="profile-editor-section-title"/>
-
-                                <GridPane hgap="21"
-                                          vgap="6"
-                                          maxWidth="Infinity">
-
-                                    <columnConstraints>
-                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                                    </columnConstraints>
-
-                                    <Label text="Default rotation"
-                                           styleClass="profile-editor-field-label"
-                                           GridPane.columnIndex="0"
-                                           GridPane.rowIndex="0"/>
-
-                                    <Label text="Brightness"
-                                           styleClass="profile-editor-field-label"
-                                           GridPane.columnIndex="1"
-                                           GridPane.rowIndex="0"/>
-
-                                    <Label text="Contrast"
-                                           styleClass="profile-editor-field-label"
-                                           GridPane.columnIndex="2"
-                                           GridPane.rowIndex="0"/>
-
-                                    <ComboBox fx:id="defaultRotationComboBox"
-                                              maxWidth="Infinity"
-                                              styleClass="profile-editor-input"
-                                              GridPane.columnIndex="0"
-                                              GridPane.rowIndex="1"/>
-
-                                    <ComboBox fx:id="brightnessComboBox"
-                                              maxWidth="Infinity"
-                                              styleClass="profile-editor-input"
-                                              GridPane.columnIndex="1"
-                                              GridPane.rowIndex="1"/>
-
-                                    <ComboBox fx:id="contrastComboBox"
-                                              maxWidth="Infinity"
-                                              styleClass="profile-editor-input"
-                                              GridPane.columnIndex="2"
-                                              GridPane.rowIndex="1"/>
-                                </GridPane>
-
-                                <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
-                                    <Label text="Deskew / straighten pages"
-                                           styleClass="profile-editor-strong-text"/>
-
-                                    <Region HBox.hgrow="ALWAYS"/>
-
-                                    <ToggleButton fx:id="deskewToggle"
-                                                  selected="true"
-                                                  focusTraversable="false"
-                                                  styleClass="profile-editor-switch"/>
-                                </HBox>
 
                                 <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
                                     <Label text="Require QA for scanned boxes"
