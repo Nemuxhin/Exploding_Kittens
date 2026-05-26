@@ -165,13 +165,6 @@ public class ScanManager {
         return Optional.empty();
     }
 
-    public ScanImportResult scanNextItem(ScanSession session, String barcodeBehavior, String barcodePageBehavior) {
-        Objects.requireNonNull(session, "session");
-        session.setSelectedBarcodeBehavior(barcodeBehavior);
-        session.setBarcodePageBehavior(barcodePageBehavior);
-        return scanNextItem(session);
-    }
-
     public ScanImportResult scanNextItem(ScanSession session) {
         Objects.requireNonNull(session, "session");
         ensureProfileSettings(session);
