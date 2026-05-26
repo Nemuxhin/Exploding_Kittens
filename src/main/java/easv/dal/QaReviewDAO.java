@@ -219,6 +219,49 @@ public class QaReviewDAO {
         }
     }
 
+    /**
+     * Reads only the QA review headers needed for admin overview tables.
+     *
+     * The full findAll() method also loads qa_review_pages.display_content for every
+     * review, which is very expensive because display_content stores the page preview
+     * data. The admin overview does not need page images; it only needs row summary
+     * fields. Use findById(...) when opening one review in the workspace.
+     */
+    public List<QAService.QaAssignmentSnapshot> findAllSummaries() {
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT id,
+                            session_id,
+                            box,
+                            status,
+                            profile,
+                            scanned_by,
+                            documents,
+                            pages,
+                            assigned_at,
+                            reviewed,
+                            issues,
+                            created_by_user_id,
+                            assigned_to_user_id,
+                            started_at,
+                            completed_at,
+                            expires_at,
+                            last_updated_at
+                     FROM qa_reviews
+                     ORDER BY COALESCE(last_updated_at, assigned_at) DESC, assigned_at DESC
+                     """)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<QAService.QaAssignmentSnapshot> assignments = new ArrayList<>();
+                while (resultSet.next()) {
+                    assignments.add(toAssignmentSummary(readHeader(resultSet)));
+                }
+                return assignments;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to read QA review summaries.", e);
+        }
+    }
+
     public Map<UUID, QAService.SessionQaState> findReviewStatesByCreator(int userId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
@@ -562,6 +605,17 @@ public class QaReviewDAO {
 
     private QAService.QaAssignmentSnapshot toAssignment(Connection connection, StoredHeader header) throws SQLException {
         List<QAService.QaDocumentSnapshot> documents = findDocumentsByReviewId(connection, header.reviewId());
+        return toAssignment(header, documents);
+    }
+
+    private QAService.QaAssignmentSnapshot toAssignmentSummary(StoredHeader header) {
+        return toAssignment(header, List.of());
+    }
+
+    private QAService.QaAssignmentSnapshot toAssignment(
+            StoredHeader header,
+            List<QAService.QaDocumentSnapshot> documents
+    ) {
         return new QAService.QaAssignmentSnapshot(
                 header.reviewId(),
                 header.sessionId(),

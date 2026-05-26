@@ -379,7 +379,7 @@ public class AdminManager {
         reviewRecords.stream()
                 .map(this::copyReviewRecord)
                 .forEach(allRecords::add);
-        qaService.getAllAssignmentsForAdmin().stream()
+        qaService.getAllAssignmentSummariesForAdmin().stream()
                 .map(this::toQaReviewRecord)
                 .forEach(allRecords::add);
         return allRecords;

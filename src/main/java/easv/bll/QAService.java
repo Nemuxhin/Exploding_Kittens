@@ -73,6 +73,11 @@ public class QAService {
         return qaReviewDAO.findAll();
     }
 
+    public List<QaAssignmentSnapshot> getAllAssignmentSummariesForAdmin() {
+        cleanupExpiredCompletedReviews();
+        return qaReviewDAO.findAllSummaries();
+    }
+
     public Map<UUID, SessionQaState> getReviewStatesForCurrentUser() {
         cleanupExpiredCompletedReviews();
         User currentUser = requireCurrentUser();
