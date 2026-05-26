@@ -168,9 +168,9 @@ public class ProfilesController {
                 "Move barcode page to separate document"
         );
 
-        defaultRotationComboBox.getItems().setAll("0 deg", "90 deg", "180 deg", "270 deg");
-        brightnessComboBox.getItems().setAll("Normal", "Lighter", "Darker");
-        contrastComboBox.getItems().setAll("Normal", "Higher", "Lower");
+        setComboItems(defaultRotationComboBox, "0 deg", "90 deg", "180 deg", "270 deg");
+        setComboItems(brightnessComboBox, "Normal", "Lighter", "Darker");
+        setComboItems(contrastComboBox, "Normal", "Higher", "Lower");
 
         exportFormatComboBox.getItems().setAll(
                 ScanProfile.EXPORT_FORMAT_BOTH,
@@ -182,19 +182,37 @@ public class ProfilesController {
         exportNamingField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeSplitToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        deskewToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+        addTogglePreviewListener(deskewToggle);
         qaRequiredToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         barcodePageBehaviorComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        defaultRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        brightnessComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        contrastComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+        addComboPreviewListener(defaultRotationComboBox);
+        addComboPreviewListener(brightnessComboBox);
+        addComboPreviewListener(contrastComboBox);
         exportFormatComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         profileNameField.textProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
         profileClientField.textProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
         profileStatusComboBox.valueProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
+    }
+
+    private void setComboItems(ComboBox<String> comboBox, String... values) {
+        if (comboBox != null) {
+            comboBox.getItems().setAll(values);
+        }
+    }
+
+    private void addComboPreviewListener(ComboBox<String> comboBox) {
+        if (comboBox != null) {
+            comboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+        }
+    }
+
+    private void addTogglePreviewListener(ToggleButton toggleButton) {
+        if (toggleButton != null) {
+            toggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+        }
     }
 
     private void configureFiltering() {
@@ -574,10 +592,10 @@ public class ProfilesController {
         barcodeDetectedComboBox.setValue(profile.getBarcodeDetectedBehavior());
         barcodePageBehaviorComboBox.setValue(profile.getBarcodePageBehavior());
 
-        defaultRotationComboBox.setValue(profile.getDefaultRotation());
-        brightnessComboBox.setValue(profile.getBrightness());
-        contrastComboBox.setValue(profile.getContrast());
-        deskewToggle.setSelected(profile.isDeskew());
+        setComboValue(defaultRotationComboBox, profile.getDefaultRotation());
+        setComboValue(brightnessComboBox, profile.getBrightness());
+        setComboValue(contrastComboBox, profile.getContrast());
+        setToggleSelected(deskewToggle, profile.isDeskew());
         qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
         exportFormatComboBox.setValue(ScanProfile.normalizeExportFormat(profile.getExportFormat()));
@@ -606,10 +624,10 @@ public class ProfilesController {
         barcodeDetectedComboBox.setValue("Start new document");
         barcodePageBehaviorComboBox.setValue("Remove barcode page from final document");
 
-        defaultRotationComboBox.setValue("0 deg");
-        brightnessComboBox.setValue("Normal");
-        contrastComboBox.setValue("Normal");
-        deskewToggle.setSelected(true);
+        setComboValue(defaultRotationComboBox, "0 deg");
+        setComboValue(brightnessComboBox, "Normal");
+        setComboValue(contrastComboBox, "Normal");
+        setToggleSelected(deskewToggle, true);
         qaRequiredToggle.setSelected(true);
 
         exportFormatComboBox.setValue(ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF);
@@ -725,12 +743,14 @@ public class ProfilesController {
 
         previewBarcodeLabel.setText(barcodeStatus);
 
-        previewPageCorrectionLabel.setText(
-                "Rotation " + safeValue(defaultRotationComboBox)
-                        + " - Brightness " + safeValue(brightnessComboBox)
-                        + " - Contrast " + safeValue(contrastComboBox)
-                        + " - Deskew " + (deskewToggle.isSelected() ? "Enabled" : "Disabled")
-        );
+        if (previewPageCorrectionLabel != null) {
+            previewPageCorrectionLabel.setText(
+                    "Rotation " + editorDefaultRotation()
+                            + " - Brightness " + editorBrightness()
+                            + " - Contrast " + editorContrast()
+                            + " - Deskew " + (editorDeskew() ? "Enabled" : "Disabled")
+            );
+        }
 
         previewQaRequiredLabel.setText(qaRequiredToggle.isSelected() ? "Yes" : "No");
         previewExportFormatLabel.setText(safeValue(exportFormatComboBox));
@@ -753,7 +773,44 @@ public class ProfilesController {
     }
 
     private String safeValue(ComboBox<String> comboBox) {
-        return comboBox.getValue() == null ? "" : comboBox.getValue();
+        return comboBox == null || comboBox.getValue() == null ? "" : comboBox.getValue();
+    }
+
+    private void setComboValue(ComboBox<String> comboBox, String value) {
+        if (comboBox != null) {
+            comboBox.setValue(value);
+        }
+    }
+
+    private void setToggleSelected(ToggleButton toggleButton, boolean selected) {
+        if (toggleButton != null) {
+            toggleButton.setSelected(selected);
+        }
+    }
+
+    private String editorDefaultRotation() {
+        return firstNonBlank(safeValue(defaultRotationComboBox),
+                currentProfile == null ? "0 deg" : currentProfile.getDefaultRotation());
+    }
+
+    private String editorBrightness() {
+        return firstNonBlank(safeValue(brightnessComboBox),
+                currentProfile == null ? "Normal" : currentProfile.getBrightness());
+    }
+
+    private String editorContrast() {
+        return firstNonBlank(safeValue(contrastComboBox),
+                currentProfile == null ? "Normal" : currentProfile.getContrast());
+    }
+
+    private boolean editorDeskew() {
+        return deskewToggle == null
+                ? currentProfile == null || currentProfile.isDeskew()
+                : deskewToggle.isSelected();
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return Strings.clean(preferred).isBlank() ? Strings.clean(fallback) : Strings.clean(preferred);
     }
 
     private void showOverviewPane() {
@@ -1419,10 +1476,10 @@ public class ProfilesController {
                 barcodeSplitToggle.isSelected(),
                 safeValue(barcodeDetectedComboBox),
                 safeValue(barcodePageBehaviorComboBox),
-                safeValue(defaultRotationComboBox),
-                safeValue(brightnessComboBox),
-                safeValue(contrastComboBox),
-                deskewToggle.isSelected(),
+                editorDefaultRotation(),
+                editorBrightness(),
+                editorContrast(),
+                editorDeskew(),
                 ScanProfile.normalizeExportFormat(safeValue(exportFormatComboBox)),
                 qaRequiredToggle.isSelected()
         );
