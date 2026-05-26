@@ -12,14 +12,20 @@ public class User {
     private String status;
     private List<String> assignedProfiles;
     private final boolean currentUser;
+    private boolean mustChangePassword;
 
     public User(int id, String name, String username, String email, String role,
                 String status, List<String> assignedProfiles, boolean currentUser) {
-        this(id, name, username, email, "", role, status, assignedProfiles, currentUser);
+        this(id, name, username, email, "", role, status, assignedProfiles, currentUser, false);
     }
 
     public User(int id, String name, String username, String email, String passwordHash, String role,
                 String status, List<String> assignedProfiles, boolean currentUser) {
+        this(id, name, username, email, passwordHash, role, status, assignedProfiles, currentUser, false);
+    }
+
+    public User(int id, String name, String username, String email, String passwordHash, String role,
+                String status, List<String> assignedProfiles, boolean currentUser, boolean mustChangePassword) {
         this.id = id;
         this.name = clean(name);
         this.username = clean(username);
@@ -29,6 +35,7 @@ public class User {
         this.status = clean(status);
         this.assignedProfiles = assignedProfiles == null ? List.of() : List.copyOf(assignedProfiles);
         this.currentUser = currentUser;
+        this.mustChangePassword = mustChangePassword;
     }
 
     public User(String username, String passwordHash, String role, boolean active) {
@@ -44,6 +51,7 @@ public class User {
     public String getStatus() { return status; }
     public List<String> getAssignedProfiles() { return assignedProfiles; }
     public boolean isCurrentUser() { return currentUser; }
+    public boolean isMustChangePassword() { return mustChangePassword; }
 
     public boolean isActive() {
         return "Active".equalsIgnoreCase(status);
@@ -55,6 +63,7 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = clean(passwordHash); }
     public void setRole(String role) { this.role = clean(role); }
     public void setStatus(String status) { this.status = clean(status); }
+    public void setMustChangePassword(boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
 
     public void setAssignedProfiles(List<String> assignedProfiles) {
         this.assignedProfiles = assignedProfiles == null ? List.of() : List.copyOf(assignedProfiles);

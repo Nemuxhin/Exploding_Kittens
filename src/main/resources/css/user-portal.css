@@ -322,6 +322,11 @@
     -fx-border-color: -wl-primary;
 }
 
+.admin-action-tile-primary:hover {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
 .admin-action-tile-primary .admin-action-title,
 .admin-action-tile-primary .admin-action-text {
     -fx-text-fill: -wl-on-primary;
@@ -572,6 +577,7 @@
 
 .status-completed,
 .status-active,
+.status-submitted-for-qa,
 .status-ready {
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;

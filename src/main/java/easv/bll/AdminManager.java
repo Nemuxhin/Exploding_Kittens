@@ -89,7 +89,8 @@ public class AdminManager {
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
-                false
+                false,
+                true
         );
 
         User savedUser = userDAO.saveUser(user, profileIdsForNames(input.getAssignedProfiles()));
@@ -116,6 +117,10 @@ public class AdminManager {
             updatedPasswordHash = PasswordHasher.hash(Strings.clean(input.getPlainPassword()));
         }
 
+        boolean mustChangePassword = input.getMustChangePassword() == null
+                ? user.isMustChangePassword()
+                : input.getMustChangePassword();
+
         User updatedUser = new User(
                 user.getId(),
                 input.getName(),
@@ -125,7 +130,8 @@ public class AdminManager {
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
-                user.isCurrentUser()
+                user.isCurrentUser(),
+                mustChangePassword
         );
 
         User savedUser = userDAO.updateUser(updatedUser, profileIdsForNames(input.getAssignedProfiles()));
@@ -137,6 +143,7 @@ public class AdminManager {
         user.setRole(savedUser.getRole());
         user.setStatus(savedUser.getStatus());
         user.setAssignedProfiles(savedUser.getAssignedProfiles());
+        user.setMustChangePassword(savedUser.isMustChangePassword());
 
         syncProfileAssignmentsForUser(user);
 
@@ -186,7 +193,8 @@ public class AdminManager {
                 user.getRole(),
                 "Inactive",
                 user.getAssignedProfiles(),
-                user.isCurrentUser()
+                user.isCurrentUser(),
+                user.isMustChangePassword()
         );
 
         User savedUser = userDAO.updateUser(deactivatedUser, profileIdsForNames(user.getAssignedProfiles()));
@@ -198,6 +206,7 @@ public class AdminManager {
         user.setRole(savedUser.getRole());
         user.setStatus(savedUser.getStatus());
         user.setAssignedProfiles(savedUser.getAssignedProfiles());
+        user.setMustChangePassword(savedUser.isMustChangePassword());
 
         addAuditLog("Users", "Deactivated user", user.getName(), "Success",
                 "A user account was deactivated.",
@@ -998,7 +1007,8 @@ public class AdminManager {
                 user.getRole(),
                 user.getStatus(),
                 user.getAssignedProfiles(),
-                user.isCurrentUser()
+                user.isCurrentUser(),
+                user.isMustChangePassword()
         );
     }
 
@@ -1148,14 +1158,21 @@ public class AdminManager {
         private final String role;
         private final String status;
         private final List<String> assignedProfiles;
+        private final Boolean mustChangePassword;
 
         public UserInput(String name, String username, String email,
                          String role, String status, List<String> assignedProfiles) {
-            this(name, username, email, role, status, assignedProfiles, "");
+            this(name, username, email, role, status, assignedProfiles, "", null);
         }
 
         public UserInput(String name, String username, String email,
                          String role, String status, List<String> assignedProfiles, String plainPassword) {
+            this(name, username, email, role, status, assignedProfiles, plainPassword, null);
+        }
+
+        public UserInput(String name, String username, String email,
+                         String role, String status, List<String> assignedProfiles,
+                         String plainPassword, Boolean mustChangePassword) {
             this.name = name;
             this.username = username;
             this.email = email;
@@ -1163,6 +1180,7 @@ public class AdminManager {
             this.role = role;
             this.status = status;
             this.assignedProfiles = assignedProfiles == null ? List.of() : List.copyOf(assignedProfiles);
+            this.mustChangePassword = mustChangePassword;
         }
 
         public String getName() { return name; }
@@ -1172,6 +1190,7 @@ public class AdminManager {
         public String getRole() { return role; }
         public String getStatus() { return status; }
         public List<String> getAssignedProfiles() { return assignedProfiles; }
+        public Boolean getMustChangePassword() { return mustChangePassword; }
     }
 
     public static class ProfileInput {

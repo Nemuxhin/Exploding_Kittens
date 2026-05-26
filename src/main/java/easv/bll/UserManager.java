@@ -8,7 +8,8 @@ public class UserManager {
             String name,
             String username,
             String email,
-            String newPassword
+            String newPassword,
+            Boolean mustChangePassword
     ) {}
 
     private final AdminManager adminManager = new AdminManager();
@@ -33,6 +34,11 @@ public class UserManager {
             throw new IllegalStateException("Could not find the current account.");
         }
 
+        String newPassword = input.newPassword() == null ? "" : input.newPassword().trim();
+        if (!newPassword.isBlank() && newPassword.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters.");
+        }
+
         User updatedUser = adminManager.updateUser(
                 account.getId(),
                 new AdminManager.UserInput(
@@ -42,7 +48,8 @@ public class UserManager {
                         account.getRole(),
                         account.getStatus(),
                         account.getAssignedProfiles(),
-                        input.newPassword()
+                        newPassword,
+                        input.mustChangePassword()
                 )
         );
 

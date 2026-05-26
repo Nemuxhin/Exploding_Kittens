@@ -25,7 +25,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -87,8 +86,6 @@ public class AssignedQaController {
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusFilterComboBox;
-    @FXML private DatePicker fromDatePicker;
-    @FXML private DatePicker toDatePicker;
     @FXML private HBox assignedQaFilterPanel;
     @FXML private TilePane qaCardListContainer;
 
@@ -178,10 +175,6 @@ public class AssignedQaController {
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        UserPortalUi.configureDateFilterPicker(fromDatePicker);
-        UserPortalUi.configureDateFilterPicker(toDatePicker);
-        fromDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        toDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
     }
 
     private void configureAssignedQaListLayout() {
@@ -701,16 +694,6 @@ public class AssignedQaController {
         return assignment.status.displayName.equals(selectedStatus);
     }
 
-    private boolean matchesFromDate(QaAssignment assignment) {
-        LocalDate fromDate = fromDatePicker.getValue();
-        return fromDate == null || !assignment.assignedDate.isBefore(fromDate);
-    }
-
-    private boolean matchesToDate(QaAssignment assignment) {
-        LocalDate toDate = toDatePicker.getValue();
-        return toDate == null || !assignment.assignedDate.isAfter(toDate);
-    }
-
     // =========================================================
     // ASSIGNED QA LIST RENDERING
     // =========================================================
@@ -721,8 +704,6 @@ public class AssignedQaController {
         List<QaAssignment> filteredAssignments = allAssignments.stream()
                 .filter(this::matchesSearch)
                 .filter(this::matchesStatus)
-                .filter(this::matchesFromDate)
-                .filter(this::matchesToDate)
                 .collect(Collectors.toList());
 
         if (filteredAssignments.isEmpty()) {

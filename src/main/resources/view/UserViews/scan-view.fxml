@@ -219,13 +219,6 @@
                                     HBox.hgrow="ALWAYS"
                                     styleClass="primary-button"/>
 
-                            <Button fx:id="viewMyScansButton"
-                                    text="View My Scans"
-                                    onAction="#onViewMyScans"
-                                    minWidth="180"
-                                    prefWidth="180"
-                                    maxWidth="180"
-                                    styleClass="tertiary-button"/>
                         </HBox>
 
                         <!-- Calm utility line -->
@@ -545,14 +538,22 @@
 
         <!-- Right tools -->
         <right>
-            <VBox fx:id="scanToolsPanel"
-                  spacing="12"
-                  minWidth="240"
-                  prefWidth="240"
-                  maxWidth="240"
-                  minHeight="0"
-                  maxHeight="Infinity"
-                  styleClass="scan-tools-panel">
+            <ScrollPane fitToWidth="true"
+                        hbarPolicy="NEVER"
+                        vbarPolicy="AS_NEEDED"
+                        minWidth="240"
+                        prefWidth="240"
+                        maxWidth="240"
+                        styleClass="scan-side-scroll">
+                <content>
+                    <VBox fx:id="scanToolsPanel"
+                          spacing="12"
+                          minWidth="240"
+                          prefWidth="240"
+                          maxWidth="240"
+                          minHeight="0"
+                          maxHeight="Infinity"
+                          styleClass="scan-tools-panel">
 
                 <VBox spacing="9">
                     <Label text="Page Tools"
@@ -577,6 +578,11 @@
                               maxWidth="Infinity"
                               promptText="Enter rotation in degrees"
                               styleClass="scan-tool-button"/>
+
+                    <Button text="Rotation"
+                            onAction="#onApplyPageRotation"
+                            maxWidth="Infinity"
+                            styleClass="scan-tool-button"/>
 
                     <Button text="Rotate Left (1°)"
                             fx:id="rotateLeftButton"
@@ -618,23 +624,25 @@
                             styleClass="scan-tool-button"/>
                 </VBox>
 
-                <VBox spacing="9"
-                      styleClass="scan-workflow-box">
-                    <Label text="Workflow"
-                           styleClass="scan-tools-section-label"/>
+                        <VBox spacing="9"
+                              styleClass="scan-workflow-box">
+                            <Label text="Workflow"
+                                   styleClass="scan-tools-section-label"/>
 
-                    <Button fx:id="undoLastActionButton"
-                            text="Undo Last Action"
-                            onAction="#onUndoLastAction"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
+                            <Button fx:id="undoLastActionButton"
+                                    text="Undo Last Action"
+                                    onAction="#onUndoLastAction"
+                                    maxWidth="Infinity"
+                                    styleClass="scan-tool-button"/>
 
-                    <Button text="Finish &amp; Review"
-                            onAction="#onFinishReview"
-                            maxWidth="Infinity"
-                            styleClass="scan-finish-button"/>
-                </VBox>
-            </VBox>
+                            <Button text="Finish &amp; Review"
+                                    onAction="#onFinishReview"
+                                    maxWidth="Infinity"
+                                    styleClass="scan-finish-button"/>
+                        </VBox>
+                    </VBox>
+                </content>
+            </ScrollPane>
         </right>
     </BorderPane>
 
@@ -924,13 +932,21 @@
         </center>
 
         <right>
-            <VBox spacing="9"
-                  minWidth="320"
-                  prefWidth="320"
-                  maxWidth="320"
-                  minHeight="0"
-                  maxHeight="Infinity"
-                  styleClass="review-next-step-panel">
+            <ScrollPane fitToWidth="true"
+                        hbarPolicy="NEVER"
+                        vbarPolicy="AS_NEEDED"
+                        minWidth="320"
+                        prefWidth="320"
+                        maxWidth="320"
+                        styleClass="scan-side-scroll">
+                <content>
+                    <VBox spacing="9"
+                          minWidth="320"
+                          prefWidth="320"
+                          maxWidth="320"
+                          minHeight="0"
+                          maxHeight="Infinity"
+                          styleClass="review-next-step-panel">
 
 
                 <Button text="Submit for QA"
@@ -991,13 +1007,15 @@
                            styleClass="review-current-selection-value"/>
                 </VBox>
 
-                <Button text="Export Type"
-                        onAction="#onOpenExportTypeDialog"
-                        maxWidth="Infinity"
-                        styleClass="review-export-type-button"/>
+                        <Button text="Export Type"
+                                onAction="#onOpenExportTypeDialog"
+                                maxWidth="Infinity"
+                                styleClass="review-export-type-button"/>
 
-                <Region VBox.vgrow="ALWAYS"/>
-            </VBox>
+                        <Region VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </content>
+            </ScrollPane>
         </right>
     </BorderPane>
 

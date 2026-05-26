@@ -438,6 +438,8 @@ public class ManageUsersController {
     }
 
     private AdminManager.UserInput createUserInputFromEditor() {
+        String password = Strings.clean(temporaryPasswordField.getText());
+        Boolean mustChangePassword = password.isBlank() ? null : Boolean.TRUE;
         return new AdminManager.UserInput(
                 Strings.clean(fullNameField.getText()),
                 Strings.clean(usernameField.getText()),
@@ -445,7 +447,8 @@ public class ManageUsersController {
                 userRoleComboBox.getValue(),
                 userStatusComboBox.getValue(),
                 getSelectedProfileNames(),
-                Strings.clean(temporaryPasswordField.getText())
+                password,
+                mustChangePassword
         );
     }
 

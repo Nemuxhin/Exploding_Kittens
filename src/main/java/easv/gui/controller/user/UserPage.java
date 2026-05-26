@@ -3,7 +3,6 @@ package easv.gui.controller.user;
 enum UserPage {
     DASHBOARD(null, "Dashboard"),
     SCAN("/view/UserViews/scan-view.fxml", "New Scan"),
-    MY_SCANS(null, "My Scans"),
     ASSIGNED_QA("/view/UserViews/assigned-qa-view.fxml", "Assigned QA"),
     EXPORTS(null, "Exports"),
     EDIT_PROFILE(null, "Edit User Profile"),

@@ -55,7 +55,6 @@ public class AdminController implements AdminNavigator {
     private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
     private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
     private static final String ACCOUNT_SECTION = "Edit Profile";
-    private static final String PRIVACY_SECTION = "Settings and Privacy";
     private static final String MOON_ICON = "\ue9c7";
     private static final String SUN_ICON = "\ue9c8";
 
@@ -160,7 +159,8 @@ public class AdminController implements AdminNavigator {
         }
 
         if (settingsPrivacyMenuButton != null) {
-            settingsPrivacyMenuButton.setOnAction(event -> showAccountSettingsPage(PRIVACY_SECTION));
+            settingsPrivacyMenuButton.setVisible(false);
+            settingsPrivacyMenuButton.setManaged(false);
         }
 
         if (logoutMenuButton != null) {
@@ -586,7 +586,6 @@ public class AdminController implements AdminNavigator {
     private String accountPageSubtitle(String section) {
         return switch (section) {
             case ACCOUNT_SECTION -> "Manage your account information and password.";
-            case PRIVACY_SECTION -> "Settings and privacy options.";
             default -> "";
         };
     }
@@ -596,7 +595,7 @@ public class AdminController implements AdminNavigator {
         nav.getStyleClass().add("settings-nav");
         nav.setMaxHeight(Region.USE_PREF_SIZE);
 
-        for (String section : List.of(ACCOUNT_SECTION, PRIVACY_SECTION)) {
+        for (String section : List.of(ACCOUNT_SECTION)) {
             Button button = new Button(section);
             button.setMaxWidth(Double.MAX_VALUE);
             button.setAlignment(Pos.CENTER_LEFT);
@@ -621,7 +620,6 @@ public class AdminController implements AdminNavigator {
         detailsPanel.getChildren().setAll(
                 switch (selectedSection) {
                     case ACCOUNT_SECTION -> buildAccountProfileSection();
-                    case PRIVACY_SECTION -> buildEmptyAccountSection(PRIVACY_SECTION);
                     default -> buildEmptyAccountSection(selectedSection);
                 }
         );
