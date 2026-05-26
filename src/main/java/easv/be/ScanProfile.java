@@ -135,6 +135,7 @@ public class ScanProfile {
     public String getExportFormat() { return exportFormat; }
     public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
     public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+    public boolean isQaRequired() { return metadataRequiredBeforeExport; }
 
     public void setName(String name) { this.name = clean(name); }
     public void setClient(String client) { this.client = clean(client); }
@@ -159,6 +160,9 @@ public class ScanProfile {
     }
     public void setDocumentDetailsRequiredBeforeExport(boolean documentDetailsRequiredBeforeExport) {
         this.metadataRequiredBeforeExport = documentDetailsRequiredBeforeExport;
+    }
+    public void setQaRequired(boolean qaRequired) {
+        this.metadataRequiredBeforeExport = qaRequired;
     }
 
     private static String clean(String value) {

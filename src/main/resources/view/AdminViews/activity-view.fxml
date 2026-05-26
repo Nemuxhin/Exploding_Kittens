@@ -78,9 +78,10 @@
 
                 <MenuButton fx:id="dateFilterMenuButton"
                             text="Date &amp; Time"
-                            prefWidth="153"
-                            minWidth="153"
-                            maxWidth="153"
+                            prefWidth="165"
+                            minWidth="165"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
                             styleClass="logs-date-filter">
 
                     <items>
@@ -184,21 +185,24 @@
                 </MenuButton>
 
                 <MenuButton fx:id="statusMenuButton"
-                            prefWidth="132"
-                            minWidth="132"
-                            maxWidth="132"
+                            prefWidth="150"
+                            minWidth="150"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
                             styleClass="logs-filter"/>
 
                 <MenuButton fx:id="filtersMenuButton"
-                            prefWidth="120"
-                            minWidth="120"
-                            maxWidth="120"
+                            prefWidth="150"
+                            minWidth="150"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
                             styleClass="logs-filter"/>
 
                 <MenuButton fx:id="sortMenuButton"
-                            prefWidth="159"
-                            minWidth="159"
-                            maxWidth="159"
+                            prefWidth="195"
+                            minWidth="195"
+                            maxWidth="Infinity"
+                            HBox.hgrow="ALWAYS"
                             styleClass="logs-filter"/>
 
                 <Button text="Clear"

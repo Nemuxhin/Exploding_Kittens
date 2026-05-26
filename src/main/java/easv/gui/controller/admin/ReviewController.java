@@ -1,14 +1,18 @@
 package easv.gui.controller.admin;
 
+import easv.be.Document;
 import easv.be.ReviewRecord;
+import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.QAService;
+import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.utilities.AppDates;
 import easv.gui.controller.utilities.PaginationHelper;
 import easv.gui.controller.utilities.SearchableComboBoxes;
 import easv.util.Strings;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -16,14 +20,14 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -33,16 +37,23 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import javafx.util.StringConverter;
 import javafx.embed.swing.SwingFXUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -52,6 +63,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public class ReviewController {
@@ -545,11 +557,21 @@ public class ReviewController {
         List<String> qaRecordIds = List.copyOf(selectedRecordIds).stream()
                 .filter(recordId -> recordId != null && recordId.startsWith("qa:"))
                 .toList();
-        QaAssigneeOption selectedAssignee = qaRecordIds.isEmpty() ? null : chooseQaAssignee(qaRecordIds.get(0));
-        if (!qaRecordIds.isEmpty() && selectedAssignee == null) {
+
+        if (qaRecordIds.isEmpty()) {
+            performBulkQaAssignment(null);
             return;
         }
 
+        chooseQaAssignee(qaRecordIds.get(0), selectedAssignee -> {
+            if (selectedAssignee == null) {
+                return;
+            }
+            performBulkQaAssignment(selectedAssignee);
+        });
+    }
+
+    private void performBulkQaAssignment(QaAssigneeOption selectedAssignee) {
         boolean changed = false;
         for (String recordId : List.copyOf(selectedRecordIds)) {
             if (recordId != null && recordId.startsWith("qa:")) {
@@ -590,18 +612,132 @@ public class ReviewController {
 
     @FXML
     private void exportSelected() {
-        int selectedCount = selectedRecordIds.size();
-
-        if (selectedCount == 0) {
+        if (selectedRecordIds.isEmpty() || adminManager == null) {
             return;
         }
 
-        adminManager.addAuditLog("Exports", "Exported selected review items", "Review Center", "Success",
-                selectedCount + " review items were exported.");
+        List<ReviewRow> selectedRows = records.stream()
+                .filter(row -> selectedRecordIds.contains(row.id()))
+                .toList();
 
-        selectedRecordIds.clear();
-        renderRows();
-        paginationSummaryLabel.setText("Exported " + selectedCount + " selected records");
+        Path outputDirectory = chooseExportDirectory("review-export");
+        if (outputDirectory == null) {
+            return;
+        }
+
+        TiffExportManager tiffExportManager = new TiffExportManager();
+        int exportedRecords = 0;
+        int filesWritten = 0;
+        List<String> skipped = new ArrayList<>();
+        List<String> failures = new ArrayList<>();
+
+        for (ReviewRow row : selectedRows) {
+            List<Document> documents = adminManager.getExportableDocumentsForRecord(row.id());
+            if (documents.isEmpty()) {
+                skipped.add(row.identity());
+                continue;
+            }
+
+            ScanProfile profile = adminManager.findProfileByName(row.profile());
+            String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), row.profile());
+            String exportNaming = firstNonBlank(
+                    profile == null ? null : profile.getExportNaming(),
+                    ScanProfile.DEFAULT_EXPORT_NAMING
+            );
+
+            try {
+                Path recordDirectory = outputDirectory.resolve(safeFolderSegment(row.profile(), row.identity()));
+                TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+                        tiffExportManager.createMultiPagePlan(
+                                row.profile(),
+                                profileCode,
+                                exportNaming,
+                                row.identity(),
+                                documents
+                        ),
+                        recordDirectory
+                );
+                exportedRecords++;
+                filesWritten += result.writtenFiles().size();
+            } catch (IOException | RuntimeException exception) {
+                failures.add(row.identity() + ": " + (exception.getMessage() == null ? "unknown error" : exception.getMessage()));
+            }
+        }
+
+        String status = failures.isEmpty() && exportedRecords > 0 ? "Success" : "Failed";
+        StringBuilder description = new StringBuilder()
+                .append(exportedRecords).append(" of ").append(selectedRows.size()).append(" records exported (")
+                .append(filesWritten).append(" TIFF ").append(filesWritten == 1 ? "file" : "files")
+                .append(") to ").append(outputDirectory);
+
+        if (!skipped.isEmpty()) {
+            description.append(" • Skipped (not QA approved): ").append(String.join(", ", skipped));
+        }
+        if (!failures.isEmpty()) {
+            description.append(" • Failed: ").append(String.join(" | ", failures));
+        }
+
+        adminManager.addAuditLog("Exports", "Exported selected review items", "Review Center", status,
+                description.toString());
+
+        Alert.AlertType alertType = "Success".equals(status) ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING;
+        showExportAlert(alertType, "Export selected", description.toString());
+
+        if (exportedRecords > 0) {
+            selectedRecordIds.clear();
+            renderRows();
+        }
+
+        paginationSummaryLabel.setText("Exported " + exportedRecords + " of " + selectedRows.size() + " selected records");
+    }
+
+    private Path chooseExportDirectory(String defaultSubfolder) {
+        Path defaultDirectory = Path.of(
+                System.getProperty("user.home"),
+                "Downloads",
+                "WebLager Exports",
+                defaultSubfolder + "_" + DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now())
+        );
+
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Choose export folder");
+        Path parentForChooser = defaultDirectory.getParent();
+        if (parentForChooser != null && parentForChooser.toFile().isDirectory()) {
+            chooser.setInitialDirectory(parentForChooser.toFile());
+        }
+
+        Node ownerNode = overviewPane != null ? overviewPane : workspacePane;
+        java.io.File chosen = chooser.showDialog(ownerNode == null || ownerNode.getScene() == null
+                ? null
+                : ownerNode.getScene().getWindow());
+
+        if (chosen == null) {
+            return null;
+        }
+
+        return chosen.toPath().resolve(defaultSubfolder + "_" + DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now()));
+    }
+
+    private String safeFolderSegment(String profileName, String identity) {
+        String profilePart = firstNonBlank(profileName, "profile").replaceAll("[^a-zA-Z0-9._-]", "_");
+        String identityPart = firstNonBlank(identity, "record").replaceAll("[^a-zA-Z0-9._-]", "_");
+        return profilePart + "_" + identityPart;
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred.trim();
+    }
+
+    private void showExportAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message == null || message.isBlank() ? "Operation completed." : message);
+        Node ownerNode = overviewPane != null ? overviewPane : workspacePane;
+        if (ownerNode != null && ownerNode.getScene() != null) {
+            alert.initOwner(ownerNode.getScene().getWindow());
+        }
+        alert.showAndWait();
     }
 
     private void updateBatchBar() {
@@ -1598,14 +1734,17 @@ public class ReviewController {
         }
 
         if (isQaReviewRow(activeReviewRecord)) {
-            QaAssigneeOption selectedAssignee = chooseQaAssignee(activeReviewRecord.id());
-            if (selectedAssignee == null) {
-                return;
-            }
-            ReviewRecord updatedRecord = adminManager.assignReviewRecordToQa(activeReviewRecord.id(), selectedAssignee.userId());
-            if (updatedRecord != null) {
-                replaceActiveRecord(toReviewRow(updatedRecord));
-            }
+            final ReviewRow capturedRecord = activeReviewRecord;
+            chooseQaAssignee(capturedRecord.id(), selectedAssignee -> {
+                if (selectedAssignee == null) {
+                    return;
+                }
+                ReviewRecord updatedRecord = adminManager.assignReviewRecordToQa(
+                        capturedRecord.id(), selectedAssignee.userId());
+                if (updatedRecord != null) {
+                    replaceActiveRecord(toReviewRow(updatedRecord));
+                }
+            });
             return;
         }
 
@@ -1739,61 +1878,210 @@ public class ReviewController {
         return row != null && row.id() != null && row.id().startsWith("qa:");
     }
 
-    private QaAssigneeOption chooseQaAssignee(String recordId) {
+    private void chooseQaAssignee(String recordId, Consumer<QaAssigneeOption> onResult) {
         if (adminManager == null || recordId == null || !recordId.startsWith("qa:")) {
-            return null;
+            onResult.accept(null);
+            return;
         }
 
         List<QaAssigneeOption> options = adminManager.getEligibleQaAssignees(recordId).stream()
                 .map(user -> new QaAssigneeOption(
                         user.getId(),
                         Strings.displayText(user.getName(), user.getUsername()),
+                        Strings.displayText(user.getEmail(), "No email"),
                         user.getAssignedProfiles().isEmpty() ? "-" : String.join(", ", user.getAssignedProfiles())
                 ))
                 .toList();
 
         if (options.isEmpty()) {
-            return null;
+            onResult.accept(null);
+            return;
         }
 
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Assign QA");
-        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.CANCEL, ButtonType.OK);
+        if (overviewPane == null || overviewPane.getScene() == null
+                || !(overviewPane.getScene().getRoot() instanceof Pane sceneRoot)) {
+            onResult.accept(null);
+            return;
+        }
 
-        ComboBox<QaAssigneeOption> assigneeComboBox = new ComboBox<>();
-        assigneeComboBox.getItems().setAll(options);
-        assigneeComboBox.setMaxWidth(Double.MAX_VALUE);
-        assigneeComboBox.getSelectionModel().selectFirst();
+        Label titleLabel = new Label("Assign QA");
+        titleLabel.getStyleClass().add("qa-picker-title");
 
-        Label hintLabel = new Label("Assign reviewer");
-        hintLabel.getStyleClass().add("field-label");
+        Label subtitleLabel = new Label("Choose a reviewer for this task.");
+        subtitleLabel.getStyleClass().add("qa-picker-subtitle");
 
-        Label detailLabel = new Label();
-        detailLabel.getStyleClass().add("field-help-text");
-        Runnable updateDetails = () -> {
-            QaAssigneeOption selected = assigneeComboBox.getValue();
-            detailLabel.setText(selected == null ? "" : "Profiles: " + selected.profileSummary());
+        VBox headerCopy = new VBox(3, titleLabel, subtitleLabel);
+        HBox.setHgrow(headerCopy, Priority.ALWAYS);
+
+        Button closeButton = new Button("✕");
+        closeButton.getStyleClass().add("qa-picker-close-button");
+        closeButton.setFocusTraversable(false);
+
+        HBox header = new HBox(8, headerCopy, closeButton);
+        header.setAlignment(Pos.TOP_LEFT);
+        header.getStyleClass().add("qa-picker-header");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search users");
+        searchField.getStyleClass().addAll("search-field-input", "qa-picker-search");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        HBox searchShell = new HBox(searchField);
+        searchShell.getStyleClass().add("qa-picker-search-shell");
+
+        VBox listBox = new VBox(0);
+        listBox.setFillWidth(true);
+        listBox.getStyleClass().add("qa-picker-list");
+
+        QaAssigneeOption[] selectedSlot = {null};
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().addAll("profile-secondary-button", "qa-picker-cancel-button");
+        cancelBtn.setFocusTraversable(false);
+
+        Button assignBtn = new Button("Assign QA");
+        assignBtn.getStyleClass().add("qa-picker-assign-button");
+        assignBtn.setFocusTraversable(false);
+        assignBtn.setDisable(true);
+
+        HBox footer = new HBox(8, cancelBtn, assignBtn);
+        footer.setAlignment(Pos.CENTER_RIGHT);
+        footer.getStyleClass().add("qa-picker-footer");
+
+        Runnable refresh = () -> {
+            String query = Strings.normalize(searchField.getText());
+            listBox.getChildren().setAll(
+                    options.stream()
+                            .filter(o -> query.isEmpty()
+                                    || Strings.normalize(o.displayName()).contains(query)
+                                    || Strings.normalize(o.email()).contains(query))
+                            .map(opt -> buildQaPickerRow(opt, selectedSlot, listBox, assignBtn))
+                            .toList()
+            );
         };
-        assigneeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> updateDetails.run());
-        updateDetails.run();
 
-        VBox content = new VBox(10, hintLabel, assigneeComboBox, detailLabel);
-        content.setPrefWidth(360);
-        dialog.getDialogPane().setContent(content);
+        searchField.textProperty().addListener((obs, o, n) -> refresh.run());
+        refresh.run();
 
-        if (overviewPane != null && overviewPane.getScene() != null) {
-            dialog.initOwner(overviewPane.getScene().getWindow());
-            dialog.getDialogPane().getStylesheets().setAll(overviewPane.getScene().getStylesheets());
-            if (overviewPane.getScene().getRoot() != null
-                    && overviewPane.getScene().getRoot().getStyleClass().contains("dark")) {
-                dialog.getDialogPane().getStyleClass().add("dark");
-            }
+        ScrollPane listScroll = new ScrollPane(listBox);
+        listScroll.setFitToWidth(true);
+        listScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        listScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        listScroll.getStyleClass().add("qa-picker-list-scroll");
+        listScroll.setPrefHeight(340);
+        listScroll.setMaxHeight(400);
+        VBox.setVgrow(listScroll, Priority.ALWAYS);
+
+        VBox pickerBox = new VBox(0, header, searchShell, listScroll, footer);
+        pickerBox.getStyleClass().add("qa-picker-popup");
+        pickerBox.setPrefWidth(480);
+        pickerBox.setMaxWidth(480);
+        pickerBox.setMaxHeight(600);
+
+        Pane overlay = new Pane();
+        overlay.setMaxWidth(Double.MAX_VALUE);
+        overlay.setMaxHeight(Double.MAX_VALUE);
+
+        Region backdrop = new Region();
+        backdrop.getStyleClass().add("qa-picker-backdrop");
+        backdrop.setPickOnBounds(true);
+        backdrop.prefWidthProperty().bind(overlay.widthProperty());
+        backdrop.prefHeightProperty().bind(overlay.heightProperty());
+
+        overlay.prefWidthProperty().bind(sceneRoot.widthProperty());
+        overlay.prefHeightProperty().bind(sceneRoot.heightProperty());
+
+        pickerBox.layoutXProperty().bind(
+                overlay.widthProperty().subtract(pickerBox.widthProperty()).divide(2));
+        pickerBox.layoutYProperty().bind(
+                overlay.heightProperty().subtract(pickerBox.heightProperty()).divide(2));
+
+        overlay.getChildren().addAll(backdrop, pickerBox);
+        sceneRoot.getChildren().add(overlay);
+
+        boolean[] completed = {false};
+        Runnable close = () -> {
+            if (completed[0]) return;
+            completed[0] = true;
+            backdrop.prefWidthProperty().unbind();
+            backdrop.prefHeightProperty().unbind();
+            overlay.prefWidthProperty().unbind();
+            overlay.prefHeightProperty().unbind();
+            pickerBox.layoutXProperty().unbind();
+            pickerBox.layoutYProperty().unbind();
+            sceneRoot.getChildren().remove(overlay);
+        };
+
+        closeButton.setOnAction(e -> { close.run(); onResult.accept(null); });
+        cancelBtn.setOnAction(e -> { close.run(); onResult.accept(null); });
+        backdrop.setOnMouseClicked(e -> { close.run(); onResult.accept(null); });
+        assignBtn.setOnAction(e -> {
+            QaAssigneeOption sel = selectedSlot[0];
+            close.run();
+            onResult.accept(sel);
+        });
+
+        Platform.runLater(searchField::requestFocus);
+    }
+
+    private Button buildQaPickerRow(QaAssigneeOption option,
+                                    QaAssigneeOption[] selectedSlot,
+                                    VBox listBox,
+                                    Button assignBtn) {
+        Button row = new Button();
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setFocusTraversable(false);
+        row.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+        row.getStyleClass().add("qa-picker-row");
+
+        boolean isSelected = selectedSlot[0] != null && selectedSlot[0].userId() == option.userId();
+        if (isSelected) {
+            row.getStyleClass().add("qa-picker-row-selected");
         }
 
-        return dialog.showAndWait()
-                .filter(ButtonType.OK::equals)
-                .map(ignored -> assigneeComboBox.getValue())
-                .orElse(null);
+        Label avatar = new Label(Strings.initials(option.displayName(), "?"));
+        avatar.getStyleClass().add("qa-picker-avatar");
+
+        Label nameLabel = new Label(option.displayName());
+        nameLabel.getStyleClass().add("qa-picker-name");
+
+        Label emailLabel = new Label(option.email());
+        emailLabel.getStyleClass().add("qa-picker-email");
+
+        VBox textBox = new VBox(2, nameLabel, emailLabel);
+        textBox.setMinWidth(0);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        Label check = new Label("✓");
+        check.getStyleClass().add("qa-picker-check");
+        check.setVisible(isSelected);
+
+        HBox content = new HBox(12, avatar, textBox, check);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+        content.getStyleClass().add("qa-picker-row-content");
+
+        row.setGraphic(content);
+
+        row.setOnAction(e -> {
+            selectedSlot[0] = option;
+            assignBtn.setDisable(false);
+            for (Node child : listBox.getChildren()) {
+                child.getStyleClass().remove("qa-picker-row-selected");
+                if (child instanceof Button btn && btn.getGraphic() instanceof HBox hbox) {
+                    for (Node hboxChild : hbox.getChildren()) {
+                        if (hboxChild instanceof Label lbl
+                                && lbl.getStyleClass().contains("qa-picker-check")) {
+                            lbl.setVisible(false);
+                        }
+                    }
+                }
+            }
+            row.getStyleClass().add("qa-picker-row-selected");
+            check.setVisible(true);
+        });
+
+        return row;
     }
 
     private void refreshFilterOptions() {
@@ -1931,7 +2219,7 @@ public class ReviewController {
     private record PagePointer(int documentIndex, int pageIndex) {
     }
 
-    private record QaAssigneeOption(int userId, String displayName, String profileSummary) {
+    private record QaAssigneeOption(int userId, String displayName, String email, String profileSummary) {
         @Override
         public String toString() {
             return displayName;

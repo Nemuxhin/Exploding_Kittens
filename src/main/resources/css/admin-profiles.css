@@ -839,35 +839,38 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0;
-    -fx-background-color: -wl-status-danger-bg;
+    -fx-background-color: transparent;
     -fx-background-radius: 6;
-    -fx-border-color: -wl-status-danger-border;
+    -fx-border-color: transparent;
     -fx-border-radius: 6;
-    -fx-border-width: 1;
-    -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 12px;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 14px;
     -fx-font-weight: 400;
     -fx-effect: none;
     -fx-cursor: hand;
 }
 
 .assignment-remove-icon {
-    -fx-fill: -wl-status-danger-text;
-    -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 12px;
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-size: 14px;
 }
 
 .assignment-remove-button:hover,
 .assignment-remove-button:pressed {
-    -fx-background-color: -wl-destructive;
-    -fx-border-color: -wl-destructive;
-    -fx-text-fill: -wl-on-primary;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
-.assignment-remove-button:hover .assignment-remove-icon,
+.assignment-remove-button:hover .assignment-remove-icon {
+    -fx-fill: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+}
+
 .assignment-remove-button:pressed .assignment-remove-icon {
-    -fx-fill: -wl-on-primary;
-    -fx-text-fill: -wl-on-primary;
+    -fx-fill: derive(-wl-destructive, -20%);
+    -fx-text-fill: derive(-wl-destructive, -20%);
 }
 
 /* =========================================================

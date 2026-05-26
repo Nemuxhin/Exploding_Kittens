@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.SVGPath?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -61,7 +60,7 @@
                     <ColumnConstraints percentWidth="25" hgrow="ALWAYS"/>
                 </columnConstraints>
 
-                <HBox spacing="12"
+                <HBox spacing="15"
                       alignment="CENTER_LEFT"
                       minWidth="0"
                       maxWidth="Infinity"
@@ -69,29 +68,25 @@
                       GridPane.columnIndex="0"
                       GridPane.rowIndex="0">
 
-                    <VBox spacing="6"
+                    <StackPane styleClass="dashboard-summary-icon-purple">
+                        <Label text="&#xe939;" styleClass="prime-icon dashboard-summary-icon-purple-path"/>
+                    </StackPane>
+
+                    <VBox spacing="3"
                           minWidth="0"
                           maxWidth="Infinity"
                           HBox.hgrow="ALWAYS">
-                        <Label text="Total Users" styleClass="dashboard-stat-title"/>
+                        <Label text="Total users" styleClass="dashboard-stat-title"/>
                         <Label fx:id="totalUsersValueLabel"
                                text="0"
                                styleClass="dashboard-stat-value"/>
-                        <Label text="vs last 7 days" styleClass="dashboard-stat-subtitle"/>
-                    </VBox>
-
-                    <VBox spacing="9"
-                          alignment="CENTER_RIGHT"
-                          styleClass="dashboard-stat-visual">
                         <Label fx:id="totalUsersTrendLabel"
-                               text="- 0%"
+                               text="vs last 7 days"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath content="M0 22 L12 20 L24 21 L36 12 L48 18 L60 8 L72 20 L84 10 L96 13"
-                                 styleClass="dashboard-sparkline-teal"/>
                     </VBox>
                 </HBox>
 
-                <HBox spacing="12"
+                <HBox spacing="15"
                       alignment="CENTER_LEFT"
                       minWidth="0"
                       maxWidth="Infinity"
@@ -99,29 +94,25 @@
                       GridPane.columnIndex="1"
                       GridPane.rowIndex="0">
 
-                    <VBox spacing="6"
+                    <StackPane styleClass="dashboard-summary-icon-indigo">
+                        <Label text="&#xe941;" styleClass="prime-icon dashboard-summary-icon-indigo-path"/>
+                    </StackPane>
+
+                    <VBox spacing="3"
                           minWidth="0"
                           maxWidth="Infinity"
                           HBox.hgrow="ALWAYS">
-                        <Label text="Active Profiles" styleClass="dashboard-stat-title"/>
+                        <Label text="Active profiles" styleClass="dashboard-stat-title"/>
                         <Label fx:id="activeProfilesValueLabel"
                                text="0"
                                styleClass="dashboard-stat-value"/>
-                        <Label text="vs last 7 days" styleClass="dashboard-stat-subtitle"/>
-                    </VBox>
-
-                    <VBox spacing="9"
-                          alignment="CENTER_RIGHT"
-                          styleClass="dashboard-stat-visual">
                         <Label fx:id="activeProfilesTrendLabel"
-                               text="- 0%"
+                               text="vs last 7 days"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath content="M0 23 L12 21 L24 22 L36 15 L48 21 L60 8 L72 20 L84 12 L96 17"
-                                 styleClass="dashboard-sparkline-blue"/>
                     </VBox>
                 </HBox>
 
-                <HBox spacing="12"
+                <HBox spacing="15"
                       alignment="CENTER_LEFT"
                       minWidth="0"
                       maxWidth="Infinity"
@@ -129,29 +120,25 @@
                       GridPane.columnIndex="2"
                       GridPane.rowIndex="0">
 
-                    <VBox spacing="6"
+                    <StackPane styleClass="dashboard-summary-icon-green">
+                        <Label text="&#xe958;" styleClass="prime-icon dashboard-summary-icon-green-path"/>
+                    </StackPane>
+
+                    <VBox spacing="3"
                           minWidth="0"
                           maxWidth="Infinity"
                           HBox.hgrow="ALWAYS">
-                        <Label text="Scans Today" styleClass="dashboard-stat-title"/>
+                        <Label text="Scans today" styleClass="dashboard-stat-title"/>
                         <Label fx:id="scansTodayValueLabel"
                                text="0"
                                styleClass="dashboard-stat-value"/>
-                        <Label text="vs yesterday" styleClass="dashboard-stat-subtitle"/>
-                    </VBox>
-
-                    <VBox spacing="9"
-                          alignment="CENTER_RIGHT"
-                          styleClass="dashboard-stat-visual">
                         <Label fx:id="scansTodayTrendLabel"
-                               text="- 0%"
+                               text="vs yesterday"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath content="M0 23 L12 20 L24 22 L36 18 L48 9 L60 22 L72 18 L84 10 L96 17"
-                                 styleClass="dashboard-sparkline-purple"/>
                     </VBox>
                 </HBox>
 
-                <HBox spacing="12"
+                <HBox spacing="15"
                       alignment="CENTER_LEFT"
                       minWidth="0"
                       maxWidth="Infinity"
@@ -159,7 +146,11 @@
                       GridPane.columnIndex="3"
                       GridPane.rowIndex="0">
 
-                    <VBox spacing="6"
+                    <StackPane styleClass="dashboard-summary-icon-amber">
+                        <Label text="&#xe90a;" styleClass="prime-icon dashboard-summary-icon-amber-path"/>
+                    </StackPane>
+
+                    <VBox spacing="3"
                           minWidth="0"
                           maxWidth="Infinity"
                           HBox.hgrow="ALWAYS">
@@ -167,17 +158,9 @@
                         <Label fx:id="waitingForQaValueLabel"
                                text="0"
                                styleClass="dashboard-stat-value"/>
-                        <Label text="vs yesterday" styleClass="dashboard-stat-subtitle"/>
-                    </VBox>
-
-                    <VBox spacing="9"
-                          alignment="CENTER_RIGHT"
-                          styleClass="dashboard-stat-visual">
                         <Label fx:id="waitingForQaTrendLabel"
-                               text="- 0%"
+                               text="vs yesterday"
                                styleClass="dashboard-trend-neutral"/>
-                        <SVGPath content="M0 23 L12 21 L24 22 L36 15 L48 20 L60 9 L72 21 L84 13 L96 18"
-                                 styleClass="dashboard-sparkline-orange"/>
                     </VBox>
                 </HBox>
             </GridPane>
@@ -293,85 +276,6 @@
                         </VBox>
                     </VBox>
 
-                    <VBox spacing="0"
-                          minWidth="0"
-                          maxWidth="Infinity">
-                        <styleClass>
-                            <String fx:value="dashboard-section-card"/>
-                            <String fx:value="dashboard-workflow-overview-card"/>
-                        </styleClass>
-
-                        <HBox alignment="CENTER_LEFT">
-                            <styleClass>
-                                <String fx:value="dashboard-section-header"/>
-                                <String fx:value="dashboard-workflow-header"/>
-                            </styleClass>
-
-                            <VBox spacing="3">
-                                <Label text="Scan Workflow Status" styleClass="dashboard-section-title"/>
-                                <Label text="Current processing overview"
-                                       styleClass="dashboard-section-subtitle"/>
-                            </VBox>
-                        </HBox>
-
-                        <HBox spacing="18"
-                              alignment="CENTER_LEFT"
-                              maxWidth="Infinity"
-                              styleClass="dashboard-workflow-status-body">
-
-                            <StackPane fx:id="workflowDonutChart"
-                                       styleClass="dashboard-donut-chart"/>
-
-                            <VBox spacing="6"
-                                  minWidth="0"
-                                  maxWidth="Infinity"
-                                  HBox.hgrow="ALWAYS"
-                                  styleClass="dashboard-workflow-legend">
-
-                                <HBox alignment="CENTER_LEFT"
-                                      spacing="9"
-                                      styleClass="dashboard-workflow-legend-row">
-                                    <Region styleClass="dashboard-workflow-marker-blue"/>
-                                    <Label text="In Progress" styleClass="dashboard-workflow-label"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="inProgressValueLabel"
-                                           text="0"
-                                           styleClass="dashboard-workflow-value"/>
-                                    <Label fx:id="inProgressPercentLabel"
-                                           text="0%"
-                                           styleClass="dashboard-workflow-percent"/>
-                                </HBox>
-
-                                <HBox alignment="CENTER_LEFT"
-                                      spacing="9"
-                                      styleClass="dashboard-workflow-legend-row">
-                                    <Region styleClass="dashboard-workflow-marker-amber"/>
-                                    <Label text="Waiting for QA" styleClass="dashboard-workflow-label"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="workflowWaitingQaValueLabel"
-                                           text="0"
-                                           styleClass="dashboard-workflow-value"/>
-                                    <Label fx:id="waitingQaPercentLabel"
-                                           text="0%"
-                                           styleClass="dashboard-workflow-percent"/>
-                                </HBox>
-
-                                <HBox alignment="CENTER_LEFT"
-                                      spacing="9"
-                                      styleClass="dashboard-workflow-legend-row">
-                                    <Region styleClass="dashboard-workflow-marker-green"/>
-                                    <Label text="Exported" styleClass="dashboard-workflow-label"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="exportedValueLabel"
-                                           text="0"
-                                           styleClass="dashboard-workflow-value"/>
-                                    <Label fx:id="exportedPercentLabel"
-                                           text="0%"
-                                           styleClass="dashboard-workflow-percent"/>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-                    </VBox>
                 </VBox>
 
                 <VBox spacing="0"
