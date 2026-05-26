@@ -94,9 +94,9 @@
     -wl-status-warning-border: #FACC15;
     -wl-status-warning-text: #C96A00;
     -wl-status-danger-bg: #FFF1F1;
-    -wl-status-danger-border: #EF4444;
-    -wl-status-danger-strong-border: #EF4444;
-    -wl-status-danger-text: #FF3D32;
+    -wl-status-danger-border: #FFB4B4;
+    -wl-status-danger-strong-border: #FF7A7A;
+    -wl-status-danger-text: #DC2626;
     -wl-status-neutral-bg: #F9F9F9;
     -wl-status-neutral-border: #E2E4E8;
     -wl-status-neutral-text: #64748B;
@@ -114,8 +114,8 @@
     -wl-tag-amber-border: #FACC15;
     -wl-tag-amber-text: #C96A00;
     -wl-tag-red-bg: #FFF1F1;
-    -wl-tag-red-border: #EF4444;
-    -wl-tag-red-text: #FF3D32;
+    -wl-tag-red-border: #FFB4B4;
+    -wl-tag-red-text: #DC2626;
 
     -wl-activity-user-bg: #64748B;
     -wl-activity-profile-bg: #7C3AED;
@@ -137,13 +137,13 @@
     -wl-workspace-paper-border: #CBD5E1;
     -wl-workspace-placeholder: #94A3B8;
 
-    -wl-role-admin-bg: #EAF1F7;
-    -wl-role-admin-text: #2D3D4F;
-    -wl-role-admin-border: #CBD6E2;
+    -wl-role-admin-bg: #EAF4FF;
+    -wl-role-admin-text: #0B6FAE;
+    -wl-role-admin-border: #CFE8FF;
 
-    -wl-role-user-bg: #EEF2FF;
-    -wl-role-user-text: #4F46E5;
-    -wl-role-user-border: #C7D2FE;
+    -wl-role-user-bg: #E9FBF6;
+    -wl-role-user-text: #168A72;
+    -wl-role-user-border: #C8F0E4;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
@@ -169,8 +169,8 @@
     -wl-status-warning-text: #C96A00;
 
     -wl-status-error-bg: #FFF1F1;
-    -wl-status-error-border: #EF4444;
-    -wl-status-error-text: #FF3D32;
+    -wl-status-error-border: #FFB4B4;
+    -wl-status-error-text: #DC2626;
     -wl-status-error-hover-bg: #FFE1E1;
 
     -wl-status-success-bg: #E9FBF6;
@@ -180,7 +180,7 @@
 
     -wl-progress-track: #E2E8F0;
     -wl-progress-review: #1D7DBA;
-    -wl-progress-issues: #FF3D32;
+    -wl-progress-issues: #D92D20;
     -wl-progress-complete: #1F9D75;
 
     -fx-background-color: -wl-background;
@@ -260,10 +260,10 @@
     -wl-status-warning-bg: #4A3512;
     -wl-status-warning-border: #B7791F;
     -wl-status-warning-text: #FACC15;
-    -wl-status-danger-bg: #3B1518;
-    -wl-status-danger-border: #EF4444;
-    -wl-status-danger-strong-border: #EF4444;
-    -wl-status-danger-text: #FF3D32;
+    -wl-status-danger-bg: #4A2512;
+    -wl-status-danger-border: #9A1D1B;
+    -wl-status-danger-strong-border: #9A1D1B;
+    -wl-status-danger-text: #FDBA74;
     -wl-status-neutral-bg: #2D3D4F;
     -wl-status-neutral-border: #415060;
     -wl-status-neutral-text: #BFBFBF;
@@ -280,9 +280,9 @@
     -wl-tag-amber-bg: #4A3512;
     -wl-tag-amber-border: #B7791F;
     -wl-tag-amber-text: #FACC15;
-    -wl-tag-red-bg: #3B1518;
-    -wl-tag-red-border: #EF4444;
-    -wl-tag-red-text: #FF3D32;
+    -wl-tag-red-bg: #4A2512;
+    -wl-tag-red-border: #9A1D1B;
+    -wl-tag-red-text: #FDBA74;
 
     -wl-activity-user-bg: #74849A;
     -wl-activity-profile-bg: #8B5CF6;
@@ -293,7 +293,7 @@
     -wl-activity-document-bg: #B7791F;
     -wl-activity-system-bg: #64748B;
     -wl-activity-export-bg: #059669;
-    -wl-activity-security-bg: #EF4444;
+    -wl-activity-security-bg: #DC2626;
     -wl-activity-text: #FFFFFF;
 
     -wl-date-range-between-bg: #143358;
@@ -304,13 +304,13 @@
     -wl-workspace-paper-border: #415060;
     -wl-workspace-placeholder: #697489;
 
-    -wl-role-admin-bg: -wl-tag-blue-bg;
-    -wl-role-admin-text: -wl-tag-blue-text;
-    -wl-role-admin-border: -wl-tag-blue-border;
+    -wl-role-admin-bg: #0D4F73;
+    -wl-role-admin-text: #7DD3FC;
+    -wl-role-admin-border: #176B94;
 
-    -wl-role-user-bg: #1E1B4B;
-    -wl-role-user-text: #C7D2FE;
-    -wl-role-user-border: #312E81;
+    -wl-role-user-bg: #123E37;
+    -wl-role-user-text: #4CD07D;
+    -wl-role-user-border: #1B5A4E;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
@@ -335,10 +335,10 @@
     -wl-status-warning-border: #B7791F;
     -wl-status-warning-text: #FACC15;
 
-    -wl-status-error-bg: #3B1518;
-    -wl-status-error-border: #EF4444;
-    -wl-status-error-text: #FF3D32;
-    -wl-status-error-hover-bg: #451A1E;
+    -wl-status-error-bg: #4A2512;
+    -wl-status-error-border: #9A1D1B;
+    -wl-status-error-text: #FDBA74;
+    -wl-status-error-hover-bg: #4A2512;
 
     -wl-status-success-bg: #123E37;
     -wl-status-success-border: #1B5A4E;
@@ -347,7 +347,7 @@
 
     -wl-progress-track: #415060;
     -wl-progress-review: #7DD3FC;
-    -wl-progress-issues: #FF3D32;
+    -wl-progress-issues: #FDBA74;
     -wl-progress-complete: #4CD07D;
 
     -fx-background-color: -wl-background;
@@ -4652,7 +4652,7 @@
 .document-tree-document-header-framed {
     -fx-background-color: -wl-surface;
     -fx-background-radius: 14;
-    -fx-border-color: #F2C94C;
+    -fx-border-color: #2b3b4c;
     -fx-border-radius: 14;
     -fx-border-width: 1;
     -fx-padding: 0 12 0 12;
@@ -4661,7 +4661,7 @@
 .document-tree-list-header {
     -fx-background-color: -wl-surface;
     -fx-background-radius: 14 14 0 0;
-    -fx-border-color: #F2C94C;
+    -fx-border-color: #2b3b4c;
     -fx-border-radius: 14 14 0 0;
     -fx-border-width: 1 1 1 1;
     -fx-padding: 0 18 0 18;
@@ -8150,7 +8150,7 @@
     -fx-padding: 0;
     -fx-background-color: #ffffff;
     -fx-background-radius: 14;
-    -fx-border-color: #F2C94C;
+    -fx-border-color: #2b3b4c;
     -fx-border-radius: 14;
     -fx-border-width: 1;
 }
