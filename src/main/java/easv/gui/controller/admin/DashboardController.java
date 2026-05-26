@@ -8,13 +8,9 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.ArcType;
-import javafx.scene.shape.Circle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,11 +22,6 @@ import java.util.Set;
 public class DashboardController {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
-    private static final double DONUT_SIZE = 54;
-    private static final double DONUT_CENTER = DONUT_SIZE / 2;
-    private static final double DONUT_RADIUS = 19;
-    private static final double DONUT_HOLE_RADIUS = 12;
 
     private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
 
@@ -56,15 +47,6 @@ public class DashboardController {
     @FXML private HBox failedEventsRow;
     @FXML private HBox draftProfilesRow;
 
-    @FXML private Label inProgressValueLabel;
-    @FXML private Label workflowWaitingQaValueLabel;
-    @FXML private Label exportedValueLabel;
-
-    @FXML private Label inProgressPercentLabel;
-    @FXML private Label waitingQaPercentLabel;
-    @FXML private Label exportedPercentLabel;
-
-    @FXML private StackPane workflowDonutChart;
     @FXML private VBox recentActivityList;
 
     private AdminNavigator navigator = AdminNavigator.none();
@@ -95,7 +77,6 @@ public class DashboardController {
 
         populateSummaryCards();
         populateNeedsAttention();
-        populateWorkflowStatus();
         populateRecentActivity();
     }
 
@@ -132,10 +113,10 @@ public class DashboardController {
          * If the previous baseline is zero and the current value is above zero,
          * the trend shows "+ X" instead of fake "+ 100%".
          */
-        setTrend(totalUsersTrendLabel, summary.getTotalUsers(), 0);
-        setTrend(activeProfilesTrendLabel, summary.getActiveProfiles(), 0);
-        setTrend(scansTodayTrendLabel, scansToday, scansYesterday);
-        setTrend(waitingForQaTrendLabel, waitingForQa, 0);
+        setTrend(totalUsersTrendLabel, summary.getTotalUsers(), 0, "vs last 7 days");
+        setTrend(activeProfilesTrendLabel, summary.getActiveProfiles(), 0, "vs last 7 days");
+        setTrend(scansTodayTrendLabel, scansToday, scansYesterday, "vs yesterday");
+        setTrend(waitingForQaTrendLabel, waitingForQa, 0, "vs yesterday");
     }
 
     private void populateNeedsAttention() {
@@ -160,32 +141,6 @@ public class DashboardController {
         failedExportsCountLabel.setText(pluralize(summary.getFailedEvents(), "failed event"));
         draftProfilesCountLabel.setText(pluralize(summary.getDraftProfiles(), "draft profile"));
         needsAttentionValueLabel.setText(String.valueOf(totalNeedsAttention));
-    }
-
-    private void populateWorkflowStatus() {
-        int inProgress = countLogs(log ->
-                "Scans".equalsIgnoreCase(log.getType())
-                        && (contains(log.getStatus(), "progress") || contains(log.getAction(), "started"))
-        );
-
-        int waitingForQa = countWaitingForQaRecords();
-
-        int exported = countLogs(log ->
-                "Exports".equalsIgnoreCase(log.getType())
-                        && "Success".equalsIgnoreCase(log.getStatus())
-        );
-
-        int total = inProgress + waitingForQa + exported;
-
-        inProgressValueLabel.setText(String.valueOf(inProgress));
-        workflowWaitingQaValueLabel.setText(String.valueOf(waitingForQa));
-        exportedValueLabel.setText(String.valueOf(exported));
-
-        inProgressPercentLabel.setText(formatPercent(inProgress, total));
-        waitingQaPercentLabel.setText(formatPercent(waitingForQa, total));
-        exportedPercentLabel.setText(formatPercent(exported, total));
-
-        renderWorkflowDonut(inProgress, waitingForQa, exported);
     }
 
     private void populateRecentActivity() {
@@ -300,19 +255,19 @@ public class DashboardController {
         );
     }
 
-    private void setNeutralTrend(Label label) {
-        label.setText("0");
+    private void setNeutralTrend(Label label, String comparison) {
+        label.setText(comparison);
         label.getStyleClass().setAll("dashboard-trend-neutral");
     }
 
-    private void setTrend(Label label, int currentValue, int previousValue) {
+    private void setTrend(Label label, int currentValue, int previousValue, String comparison) {
         if (previousValue == 0) {
             if (currentValue == 0) {
-                setNeutralTrend(label);
+                setNeutralTrend(label, comparison);
                 return;
             }
 
-            label.setText("+ " + currentValue);
+            label.setText("+" + currentValue + " " + comparison);
             label.getStyleClass().setAll("dashboard-trend-up");
             return;
         }
@@ -320,77 +275,14 @@ public class DashboardController {
         int changePercent = (int) Math.round(((currentValue - previousValue) / (double) previousValue) * 100);
 
         if (changePercent == 0) {
-            setNeutralTrend(label);
+            setNeutralTrend(label, comparison);
         } else if (changePercent > 0) {
-            label.setText("+ " + changePercent + "%");
+            label.setText("+" + changePercent + "% " + comparison);
             label.getStyleClass().setAll("dashboard-trend-up");
         } else {
-            label.setText("- " + Math.abs(changePercent) + "%");
+            label.setText("-" + Math.abs(changePercent) + "% " + comparison);
             label.getStyleClass().setAll("dashboard-trend-down");
         }
-    }
-
-    private String formatPercent(int value, int total) {
-        if (total == 0 || value == 0) {
-            return "0%";
-        }
-
-        return Math.round((value / (double) total) * 100) + "%";
-    }
-
-    private void renderWorkflowDonut(int inProgress, int waitingForQa, int exported) {
-        if (workflowDonutChart == null) {
-            return;
-        }
-
-        workflowDonutChart.getChildren().clear();
-
-        int total = inProgress + waitingForQa + exported;
-
-        Pane chartPane = new Pane();
-        chartPane.setMinSize(DONUT_SIZE, DONUT_SIZE);
-        chartPane.setPrefSize(DONUT_SIZE, DONUT_SIZE);
-        chartPane.setMaxSize(DONUT_SIZE, DONUT_SIZE);
-
-        Circle track = new Circle(DONUT_CENTER, DONUT_CENTER, DONUT_RADIUS);
-        track.getStyleClass().add("dashboard-donut-track");
-        chartPane.getChildren().add(track);
-
-        if (total > 0) {
-            double startAngle = 90;
-            startAngle = addDonutSegment(chartPane, inProgress, total, startAngle, "dashboard-donut-blue");
-            startAngle = addDonutSegment(chartPane, waitingForQa, total, startAngle, "dashboard-donut-amber");
-            addDonutSegment(chartPane, exported, total, startAngle, "dashboard-donut-green");
-        }
-
-        Circle hole = new Circle(DONUT_CENTER, DONUT_CENTER, DONUT_HOLE_RADIUS);
-        hole.getStyleClass().add("dashboard-donut-hole");
-        chartPane.getChildren().add(hole);
-
-        workflowDonutChart.getChildren().add(chartPane);
-    }
-
-    private double addDonutSegment(Pane chartPane, int value, int total, double startAngle, String styleClass) {
-        if (value <= 0) {
-            return startAngle;
-        }
-
-        if (value == total) {
-            Circle fullSegment = new Circle(DONUT_CENTER, DONUT_CENTER, DONUT_RADIUS);
-            fullSegment.getStyleClass().add(styleClass);
-            chartPane.getChildren().add(fullSegment);
-            return startAngle - 360;
-        }
-
-        double length = -360.0 * value / total;
-
-        Arc segment = new Arc(DONUT_CENTER, DONUT_CENTER, DONUT_RADIUS, DONUT_RADIUS, startAngle, length);
-        segment.setType(ArcType.OPEN);
-        segment.getStyleClass().add(styleClass);
-
-        chartPane.getChildren().add(segment);
-
-        return startAngle + length;
     }
 
     private void setAttentionRowState(HBox row, boolean shouldShow) {

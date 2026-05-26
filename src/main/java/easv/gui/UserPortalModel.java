@@ -142,27 +142,31 @@ public class UserPortalModel {
 
         User currentUser = UserSession.getCurrentUser();
         List<ScanProfile> availableProfiles = safeProfiles();
+
         if (availableProfiles.isEmpty()) {
             return List.of();
         }
 
         LinkedHashSet<String> allowedNames = new LinkedHashSet<>();
-        if (currentUser != null && currentUser.getAssignedProfiles() != null && !currentUser.getAssignedProfiles().isEmpty()) {
+        if (currentUser != null
+                && currentUser.getAssignedProfiles() != null
+                && !currentUser.getAssignedProfiles().isEmpty()) {
             allowedNames.addAll(currentUser.getAssignedProfiles());
         }
 
         List<ScanProfile> filteredProfiles = allowedNames.isEmpty()
-                ? availableProfiles.stream().filter(profile -> !profile.isArchived()).toList()
+                ? availableProfiles.stream()
+                .filter(profile -> !profile.isArchived())
+                .toList()
                 : availableProfiles.stream()
-                .filter(profile -> allowedNames.stream().anyMatch(assigned -> assigned.equalsIgnoreCase(profile.getName())))
+                .filter(profile -> !profile.isArchived())
+                .filter(profile -> allowedNames.stream()
+                        .anyMatch(assigned -> assigned.equalsIgnoreCase(profile.getName())))
                 .toList();
-
-        if (filteredProfiles.isEmpty()) {
-            filteredProfiles = availableProfiles.stream().filter(profile -> !profile.isArchived()).toList();
-        }
 
         List<BoxItem> boxes = fetchDistinctBoxes();
         List<ProfileItem> items = new ArrayList<>();
+
         for (int index = 0; index < filteredProfiles.size(); index++) {
             ScanProfile profile = filteredProfiles.get(index);
             items.add(new ProfileItem(
@@ -173,6 +177,7 @@ public class UserPortalModel {
                     boxes
             ));
         }
+
         return items;
     }
 

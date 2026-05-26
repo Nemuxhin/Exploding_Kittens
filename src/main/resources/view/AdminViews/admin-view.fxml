@@ -158,19 +158,7 @@
                                 styleClass="admin-toolbar-button">
                             <graphic>
                                 <StackPane styleClass="admin-toolbar-icon-shell">
-                                    <Label text="&#xe981;" styleClass="prime-icon admin-toolbar-icon"/>
-                                </StackPane>
-                            </graphic>
-                        </Button>
-
-                        <Button focusTraversable="false"
-                                contentDisplay="GRAPHIC_ONLY"
-                                styleClass="admin-toolbar-button">
-                            <graphic>
-                                <StackPane styleClass="admin-toolbar-icon-shell">
-                                    <Label text="&#xe97c;" styleClass="prime-icon admin-toolbar-icon"/>
-                                    <Region styleClass="admin-notification-dot"
-                                            StackPane.alignment="TOP_RIGHT"/>
+                                    <Label text="&#xe959;" styleClass="prime-icon admin-toolbar-icon"/>
                                 </StackPane>
                             </graphic>
                         </Button>

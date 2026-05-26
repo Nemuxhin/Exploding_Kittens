@@ -2,6 +2,8 @@ package easv.bll;
 
 import easv.be.AuditLog;
 import easv.be.AuditLog.AuditLogDetail;
+import easv.be.Document;
+import easv.be.PageImage;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -436,6 +439,48 @@ public class AdminManager {
         return qaReviewDAO.findById(parseQaReviewId(recordId));
     }
 
+    public List<Document> getExportableDocumentsForRecord(String recordId) {
+        QAService.QaAssignmentSnapshot assignment = getQaAssignmentForReviewRecord(recordId);
+        if (assignment == null || assignment.status() != QAService.QaReviewStatus.APPROVED) {
+            return List.of();
+        }
+
+        List<Document> documents = new ArrayList<>();
+        for (QAService.QaDocumentSnapshot qaDocument : assignment.documents()) {
+            List<PageImage> pages = new ArrayList<>();
+            for (QAService.QaPageSnapshot qaPage : qaDocument.pages()) {
+                if (qaPage.reviewStatus() != QAService.QaPageReviewStatus.APPROVED) {
+                    continue;
+                }
+                String sourceReference = qaPage.sourceReference() == null || qaPage.sourceReference().isBlank()
+                        ? "Document " + qaDocument.number()
+                        : qaPage.sourceReference();
+                PageImage pageImage = new PageImage(qaPage.pageNumber(), PageImage.PageType.TIFF, sourceReference);
+                pageImage.setRotationDegrees(qaPage.rotationDegrees());
+                pageImage.setDisplayContent(qaPage.displayContent());
+                pages.add(pageImage);
+            }
+            if (!pages.isEmpty()) {
+                documents.add(new Document(
+                        "document_" + String.format(Locale.US, "%03d", qaDocument.number()),
+                        pages
+                ));
+            }
+        }
+        return documents;
+    }
+
+    public ScanProfile findProfileByName(String profileName) {
+        if (profileName == null || profileName.isBlank()) {
+            return null;
+        }
+        String normalized = profileName.trim();
+        return profiles.stream()
+                .filter(profile -> profile.getName().equalsIgnoreCase(normalized))
+                .findFirst()
+                .orElse(null);
+    }
+
     public List<User> getEligibleQaAssignees(String recordId) {
         if (!isQaRecordId(recordId)) {
             return List.of();
@@ -491,6 +536,7 @@ public class AdminManager {
     }
 
     public List<AuditLog> getAuditLogs() {
+        loadAuditLogs();
         return auditLogs.stream()
                 .sorted(Comparator.comparing(AuditLog::getTimestamp).reversed())
                 .toList();
@@ -532,6 +578,7 @@ public class AdminManager {
     }
 
     public DashboardSummary getDashboardSummary() {
+        loadAuditLogs();
         int totalUsers = users.size();
 
         int activeProfiles = (int) profiles.stream()
@@ -1038,7 +1085,7 @@ public class AdminManager {
                 continue;
             }
 
-            ScanProfile profile = findProfileByName(profileName)
+            ScanProfile profile = findProfileOptionalByName(profileName)
                     .orElseThrow(() -> new IllegalArgumentException("Profile could not be found: " + profileName));
             profileIds.add(profile.getId());
         }
@@ -1050,7 +1097,7 @@ public class AdminManager {
         removeUserFromAssignments(user.getId());
 
         for (String assignedProfileName : user.getAssignedProfiles()) {
-            findProfileByName(assignedProfileName).ifPresent(profile ->
+            findProfileOptionalByName(assignedProfileName).ifPresent(profile ->
                     profileAssignments
                             .computeIfAbsent(profile.getId(), profileId -> new HashSet<>())
                             .add(user.getId())
@@ -1058,7 +1105,7 @@ public class AdminManager {
         }
     }
 
-    private java.util.Optional<ScanProfile> findProfileByName(String profileName) {
+    private java.util.Optional<ScanProfile> findProfileOptionalByName(String profileName) {
         String normalizedProfileName = Strings.normalize(profileName);
 
         return profiles.stream()
