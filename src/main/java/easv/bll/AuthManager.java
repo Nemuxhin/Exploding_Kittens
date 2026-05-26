@@ -68,6 +68,9 @@ public class AuthManager {
 
             // After a successful login, we keep the user in memory for later actions.
             UserSession.setCurrentUser(storedUser);
+            System.err.println("[AuthManager] login OK user=" + storedUser.getUsername()
+                    + " role=" + storedUser.getRole()
+                    + " assignedProfiles=" + storedUser.getAssignedProfiles());
             recordAuthSuccess(storedUser);
             return AuthResult.success(storedUser);
         } catch (DataAccessException exception) {

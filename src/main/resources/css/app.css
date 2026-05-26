@@ -141,9 +141,9 @@
     -wl-role-admin-text: #0B6FAE;
     -wl-role-admin-border: #CFE8FF;
 
-    -wl-role-user-bg: #E9FBF6;
-    -wl-role-user-text: #168A72;
-    -wl-role-user-border: #C8F0E4;
+    -wl-role-user-bg: #F3E8FF;
+    -wl-role-user-text: #7C3AED;
+    -wl-role-user-border: #DDD6FE;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);
@@ -308,9 +308,9 @@
     -wl-role-admin-text: #7DD3FC;
     -wl-role-admin-border: #176B94;
 
-    -wl-role-user-bg: #123E37;
-    -wl-role-user-text: #4CD07D;
-    -wl-role-user-border: #1B5A4E;
+    -wl-role-user-bg: #3B255A;
+    -wl-role-user-text: #D8B4FE;
+    -wl-role-user-border: #5B3B83;
 
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
     -wl-overlay-bg: rgba(0, 0, 0, 0.25);

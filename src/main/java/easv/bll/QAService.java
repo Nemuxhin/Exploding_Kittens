@@ -1,13 +1,16 @@
 package easv.bll;
 
+import easv.be.AuditLog;
 import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.User;
+import easv.dal.AuditLogDAO;
 import easv.dal.NotificationDAO;
 import easv.dal.QaReviewDAO;
 import easv.dal.UserDAO;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,15 +21,21 @@ public class QAService {
     private final QaReviewDAO qaReviewDAO;
     private final NotificationDAO notificationDAO;
     private final UserDAO userDAO;
+    private final AuditLogDAO auditLogDAO;
 
     public QAService() {
-        this(new QaReviewDAO(), new NotificationDAO(), new UserDAO());
+        this(new QaReviewDAO(), new NotificationDAO(), new UserDAO(), new AuditLogDAO());
     }
 
     QAService(QaReviewDAO qaReviewDAO, NotificationDAO notificationDAO, UserDAO userDAO) {
+        this(qaReviewDAO, notificationDAO, userDAO, new AuditLogDAO());
+    }
+
+    QAService(QaReviewDAO qaReviewDAO, NotificationDAO notificationDAO, UserDAO userDAO, AuditLogDAO auditLogDAO) {
         this.qaReviewDAO = Objects.requireNonNull(qaReviewDAO, "qaReviewDAO");
         this.notificationDAO = Objects.requireNonNull(notificationDAO, "notificationDAO");
         this.userDAO = Objects.requireNonNull(userDAO, "userDAO");
+        this.auditLogDAO = Objects.requireNonNull(auditLogDAO, "auditLogDAO");
     }
 
     public void submitScanForQa(UUID sessionId, String boxId, String profileName, List<QaDocumentSnapshot> documents) {
@@ -34,26 +43,23 @@ public class QAService {
         User currentUser = UserSession.getCurrentUser();
         Integer creatorUserId = currentUser == null ? null : currentUser.getId();
         String scannedBy = currentUser == null ? "" : currentUser.getName();
-        Integer assignedReviewerId = selectReviewer(profileName, creatorUserId);
 
         QaAssignmentSnapshot assignment = qaReviewDAO.createOrResetSubmission(
                 sessionId,
                 boxId,
                 profileName,
                 creatorUserId,
-                assignedReviewerId,
+                null,
                 scannedBy,
                 documents
         );
 
-        if (assignedReviewerId != null) {
-            notificationDAO.create(
-                    assignedReviewerId,
-                    assignment.reviewId(),
-                    "New QA work assigned",
-                    "Box " + assignment.boxId() + " from " + assignment.profileName() + " is waiting for QA."
-            );
-        }
+        writeQaAuditLog(
+                "Submitted for QA",
+                qaTarget(profileName, boxId),
+                "Success",
+                "Scan submitted for QA review."
+        );
     }
 
     public List<QaAssignmentSnapshot> getAssignmentsForCurrentUser() {
@@ -143,6 +149,15 @@ public class QAService {
                 );
             }
         }
+
+        writeQaAuditLog(
+                approved ? "Approved QA" : "Rejected QA",
+                qaTarget(assignment.profileName(), assignment.boxId()),
+                approved ? "Success" : "Failed",
+                approved
+                        ? "QA approved — ready for export."
+                        : "QA rejected — returned to scan owner."
+        );
     }
 
     public QaAssignmentSnapshot assignReview(UUID reviewId) {
@@ -173,6 +188,16 @@ public class QAService {
                     reviewId,
                     "New QA work assigned",
                     "Box " + assignment.boxId() + " from " + assignment.profileName() + " is waiting for QA."
+            );
+
+            String reviewerName = reviewerNameFor(resolvedReviewerId);
+            writeQaAuditLog(
+                    "Assigned QA reviewer",
+                    qaTarget(assignment.profileName(), assignment.boxId()),
+                    "Success",
+                    reviewerName.isBlank()
+                            ? "QA reviewer assigned."
+                            : "QA review assigned to " + reviewerName + "."
             );
         }
 
@@ -259,6 +284,53 @@ public class QAService {
 
     private String clean(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String reviewerNameFor(Integer reviewerId) {
+        if (reviewerId == null) {
+            return "";
+        }
+        return userDAO.getAllUsers().stream()
+                .filter(user -> user.getId() == reviewerId)
+                .map(User::getName)
+                .map(this::clean)
+                .findFirst()
+                .orElse("");
+    }
+
+    private String qaTarget(String profileName, String boxId) {
+        String profile = clean(profileName);
+        String box = clean(boxId);
+        if (profile.isBlank() && box.isBlank()) {
+            return "QA";
+        }
+        if (profile.isBlank()) {
+            return box;
+        }
+        if (box.isBlank()) {
+            return profile;
+        }
+        return profile + " / " + box;
+    }
+
+    private void writeQaAuditLog(String action, String target, String status, String description) {
+        try {
+            User currentUser = UserSession.getCurrentUser();
+            String actor = currentUser == null ? "SYSTEM" : currentUser.getUsername();
+            AuditLog log = new AuditLog(
+                    auditLogDAO.nextAuditLogId(),
+                    LocalDateTime.now(),
+                    "QA",
+                    actor,
+                    action,
+                    target,
+                    status,
+                    description,
+                    List.of()
+            );
+            auditLogDAO.saveAuditLog(log);
+        } catch (RuntimeException ignored) {
+        }
     }
 
     public static List<QaDocumentSnapshot> fromDocuments(List<Document> documents) {

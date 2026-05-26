@@ -213,6 +213,7 @@ public class ScanController {
     public void setPortalModel(UserPortalModel portalModel) {
         if (portalModel != null) {
             this.portalModel = portalModel;
+            refreshAssignedProfiles();
         }
     }
 
@@ -408,19 +409,91 @@ public class ScanController {
     }
 
     private void configureProfiles() {
-        profileComboBox.getItems().setAll(
-                "Building Archive",
-                "Technical Drawings",
-                "Court Records",
-                "Standard Scan"
-        );
+        if (profileComboBox == null) {
+            return;
+        }
 
         profileComboBox.setPromptText("Select profile");
-        profileComboBox.getSelectionModel().clearSelection();
 
-        profileComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
-                updateProfileInfo(newValue)
-        );
+        profileComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            updateProfileInfo(newValue);
+            updateStartScanningState();
+        });
+
+        refreshAssignedProfiles();
+    }
+
+    private void refreshAssignedProfiles() {
+        if (profileComboBox == null) {
+            return;
+        }
+
+        easv.be.User sessionUser = easv.bll.UserSession.getCurrentUser();
+
+        List<String> names = new ArrayList<>();
+
+        if (sessionUser != null && sessionUser.getAssignedProfiles() != null) {
+            for (String profileName : sessionUser.getAssignedProfiles()) {
+                if (profileName == null || profileName.isBlank()) {
+                    continue;
+                }
+
+                String cleanedProfileName = profileName.trim();
+
+                boolean alreadyAdded = names.stream()
+                        .anyMatch(existingName -> existingName.equalsIgnoreCase(cleanedProfileName));
+
+                if (!alreadyAdded) {
+                    names.add(cleanedProfileName);
+                }
+            }
+        }
+
+        System.err.println("[ScanController] DIRECT sessionUser="
+                + (sessionUser == null ? "null" : sessionUser.getUsername())
+                + " role="
+                + (sessionUser == null ? "null" : sessionUser.getRole())
+                + " assignedInSession="
+                + (sessionUser == null ? "[]" : sessionUser.getAssignedProfiles())
+                + " appliedProfileNames="
+                + names);
+
+        applyAssignedProfiles(names);
+    }
+
+    private void applyAssignedProfiles(List<String> profileNames) {
+        if (profileComboBox == null) {
+            return;
+        }
+
+        List<String> safeProfileNames = profileNames == null ? List.of() : profileNames;
+
+        String previousSelection = profileComboBox.getValue();
+
+        profileComboBox.getItems().clear();
+        profileComboBox.getItems().addAll(safeProfileNames);
+
+        if (safeProfileNames.isEmpty()) {
+            profileComboBox.getSelectionModel().clearSelection();
+            profileComboBox.setValue(null);
+            profileComboBox.setPromptText("No profiles assigned");
+        } else {
+            profileComboBox.setPromptText("Select profile");
+
+            if (previousSelection != null && safeProfileNames.stream().anyMatch(previousSelection::equalsIgnoreCase)) {
+                profileComboBox.setValue(previousSelection);
+            } else {
+                profileComboBox.getSelectionModel().select(0);
+            }
+        }
+
+        System.err.println("[ScanController] comboItems="
+                + profileComboBox.getItems()
+                + " selected="
+                + profileComboBox.getValue());
+
+        updateProfileInfo(profileComboBox.getValue());
+        updateStartScanningState();
     }
 
     private void configureBoxRotation() {
@@ -1862,7 +1935,7 @@ public class ScanController {
         finishReviewOverlay.setManaged(false);
     }
 
-        private void updateSubmitConfirmationModal() {
+    private void updateSubmitConfirmationModal() {
         submitConfirmationBoxIdLabel.setText(getBoxId());
         submitConfirmationProfileLabel.setText(getSelectedProfile());
         submitConfirmationSummaryLabel.setText(
