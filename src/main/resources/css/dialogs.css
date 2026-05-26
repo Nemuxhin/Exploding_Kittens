@@ -391,7 +391,8 @@
     -fx-alignment: center-left;
 }
 
-.weblager-shortcuts-header-icon-shell {
+.weblager-shortcuts-header-icon-shell,
+.weblager-shortcuts-title-icon-shell {
     -fx-min-width: 48;
     -fx-pref-width: 48;
     -fx-max-width: 48;
@@ -406,10 +407,30 @@
     -fx-effect: dropshadow(gaussian, rgba(37, 67, 105, 0.10), 8, 0.14, 0, 2);
 }
 
+.weblager-shortcuts-title-icon {
+    -fx-text-fill: #20d3ac;
+}
+
 .weblager-shortcuts-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 21px;
     -fx-font-weight: 700;
+}
+
+.weblager-shortcuts-subtitle {
+    -fx-text-fill: #526174;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+}
+
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-subtitle {
+    -fx-text-fill: #c7d2e2;
+}
+
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-title-icon-shell {
+    -fx-background-color: #29384a;
+    -fx-border-color: #46576d;
+    -fx-effect: none;
 }
 
 .weblager-shortcuts-x-button {
