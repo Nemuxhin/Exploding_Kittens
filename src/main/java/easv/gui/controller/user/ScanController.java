@@ -1105,11 +1105,7 @@ public class ScanController {
 
         BackgroundExecutor.scan().execute(() -> {
             try {
-                ScanImportResult result = scanManager.scanNextItem(
-                        activeScanSession,
-                        activeScanSession.getSelectedBarcodeBehavior(),
-                        "Keep barcode page in final document"
-                );
+                ScanImportResult result = scanManager.scanNextItem(activeScanSession);
                 Platform.runLater(() -> applyScanImportResult(result));
             } catch (RuntimeException exception) {
                 Platform.runLater(() -> {
