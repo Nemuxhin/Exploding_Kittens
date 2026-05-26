@@ -58,6 +58,8 @@ public class AdminController implements AdminNavigator {
     private static final String PRIVACY_SECTION = "Settings and Privacy";
     private static final String MOON_ICON = "\ue9c7";
     private static final String SUN_ICON = "\ue9c8";
+    private static final double SHORTCUTS_DIALOG_WIDTH = 880;
+    private static final double SHORTCUTS_DIALOG_HEIGHT = 620;
 
     @FXML private StackPane appShell;
     @FXML private StackPane contentHost;
@@ -71,6 +73,7 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton profilesNavItem;
     @FXML private ToggleButton assignmentsNavItem;
     @FXML private ToggleButton reviewNavItem;
+    @FXML private ToggleButton exportsNavItem;
     @FXML private ToggleButton activityNavItem;
 
     @FXML private Button accountMenuButton;
@@ -221,7 +224,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private void handleAdminShortcut(KeyEvent event) {
-        if (event.isConsumed() || isUserEditingTextInput(event)) {
+        if (event.isConsumed()) {
             return;
         }
 
@@ -231,8 +234,24 @@ public class AdminController implements AdminNavigator {
             return;
         }
 
+        if (isUserEditingTextInput(event)) {
+            return;
+        }
+
+        if (isQuestionShortcut(event)) {
+            showAdminShortcutsDialog("Keyboard Shortcuts");
+            event.consume();
+            return;
+        }
+
         if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
             showAdminShortcutsDialog("Search Help");
+            event.consume();
+            return;
+        }
+
+        if (event.isShortcutDown() && event.getCode() == KeyCode.E) {
+            showPage(AdminPage.EXPORTS);
             event.consume();
             return;
         }
@@ -270,6 +289,11 @@ public class AdminController implements AdminNavigator {
             showAdminShortcutsDialog("Keyboard Shortcuts");
             event.consume();
         }
+    }
+
+    private boolean isQuestionShortcut(KeyEvent event) {
+        return "?".equals(event.getText())
+                || event.isShiftDown() && event.getCode() == KeyCode.SLASH;
     }
 
     private void reloadCurrentPage() {
@@ -449,6 +473,8 @@ public class AdminController implements AdminNavigator {
             assignmentsController.setAdminManager(adminManager);
         } else if (controller instanceof ReviewController reviewController) {
             reviewController.setAdminManager(adminManager);
+        } else if (controller instanceof AdminExportsController adminExportsController) {
+            adminExportsController.setAdminManager(adminManager);
         } else if (controller instanceof ActivityController activityController) {
             activityController.setAdminManager(adminManager);
         }
@@ -505,6 +531,7 @@ public class AdminController implements AdminNavigator {
                 profilesNavItem,
                 assignmentsNavItem,
                 reviewNavItem,
+                exportsNavItem,
                 activityNavItem
         );
     }
@@ -516,6 +543,7 @@ public class AdminController implements AdminNavigator {
             case PROFILES -> profilesNavItem;
             case ASSIGNMENTS -> assignmentsNavItem;
             case REVIEW -> reviewNavItem;
+            case EXPORTS -> exportsNavItem;
             case ACTIVITY -> activityNavItem;
         };
     }
@@ -832,8 +860,8 @@ public class AdminController implements AdminNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
-        dialog.getDialogPane().setPrefSize(1000, 780);
-        dialog.getDialogPane().setMaxSize(1000, 780);
+        dialog.getDialogPane().setPrefSize(SHORTCUTS_DIALOG_WIDTH, SHORTCUTS_DIALOG_HEIGHT);
+        dialog.getDialogPane().setMaxSize(SHORTCUTS_DIALOG_WIDTH, SHORTCUTS_DIALOG_HEIGHT);
         dialog.getDialogPane().setContent(createAdminShortcutsContent(dialog, titleText));
         PrimeIcons.applyFont(dialog.getDialogPane());
 
@@ -844,10 +872,14 @@ public class AdminController implements AdminNavigator {
         VBox root = new VBox();
         root.getStyleClass().add("weblager-shortcuts-root");
 
-        root.getChildren().addAll(
-                createAdminShortcutsHeader(dialog, titleText),
-                createAdminShortcutsBody(dialog)
-        );
+        ScrollPane bodyScrollPane = new ScrollPane(createAdminShortcutsBody(dialog));
+        bodyScrollPane.setFitToWidth(true);
+        bodyScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        bodyScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        bodyScrollPane.getStyleClass().add("weblager-shortcuts-scroll");
+        VBox.setVgrow(bodyScrollPane, Priority.ALWAYS);
+
+        root.getChildren().addAll(createAdminShortcutsHeader(dialog, titleText), bodyScrollPane);
 
         return root;
     }

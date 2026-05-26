@@ -32,7 +32,7 @@ public class LoginController {
     @FXML
     private Label messageLabel;
 
-    private final AuthManager authManager = new AuthManager();
+    private AuthManager authManager;
     private MainApp mainApp;
 
     @FXML
@@ -54,7 +54,7 @@ public class LoginController {
         String password = passwordField.getText();
 
         CompletableFuture
-                .supplyAsync(() -> authManager.login(username, password), BackgroundExecutor.io())
+                .supplyAsync(() -> login(username, password), BackgroundExecutor.io())
                 .whenComplete((authResult, throwable) -> Platform.runLater(() -> {
                     setLoginInProgress(false);
 
@@ -98,5 +98,12 @@ public class LoginController {
         if (loginButton != null) {
             loginButton.setDisable(inProgress);
         }
+    }
+
+    private AuthResult login(String username, String password) {
+        if (authManager == null) {
+            authManager = new AuthManager();
+        }
+        return authManager.login(username, password);
     }
 }

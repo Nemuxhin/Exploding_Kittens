@@ -65,6 +65,8 @@ public class UserController implements UserNavigator {
 
     private static final String DARK_MODE_LOGO =
             "/images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png";
+    private static final double SHORTCUTS_DIALOG_WIDTH = 880;
+    private static final double SHORTCUTS_DIALOG_HEIGHT = 620;
 
     private static final String MOON_ICON_PATH =
             "M12 3.25a8.75 8.75 0 1 0 8.75 8.75c0-.45-.04-.89-.1-1.32A6.75 6.75 0 0 1 12.32 3.4c-.1-.05-.21-.1-.32-.15zM5.25 12A6.74 6.74 0 0 1 9.83 5.6a8.75 8.75 0 0 0 8.57 8.57A6.75 6.75 0 0 1 5.25 12z";
@@ -222,11 +224,17 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        if (event.getCode() == KeyCode.F1) {
+            showKeyboardShortcutsDialog();
+            event.consume();
+            return;
+        }
+
         if (isUserEditingTextInput(event)) {
             return;
         }
 
-        if (event.getCode() == KeyCode.F1) {
+        if (isQuestionShortcut(event)) {
             showKeyboardShortcutsDialog();
             event.consume();
             return;
@@ -280,6 +288,11 @@ public class UserController implements UserNavigator {
                 && activeScanController.runTypedShortcut(event.getCharacter())) {
             event.consume();
         }
+    }
+
+    private boolean isQuestionShortcut(KeyEvent event) {
+        return "?".equals(event.getText())
+                || event.isShiftDown() && event.getCode() == KeyCode.SLASH;
     }
 
     private void configureNotificationMenu() {
@@ -400,6 +413,7 @@ public class UserController implements UserNavigator {
         loadPage(page);
         setActiveNavItem(getNavItem(page));
         currentPage = page;
+        resetShortcutFocus();
     }
 
     @Override
@@ -1096,8 +1110,8 @@ public class UserController implements UserNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
-        dialog.getDialogPane().setPrefSize(1000, 780);
-        dialog.getDialogPane().setMaxSize(1000, 780);
+        dialog.getDialogPane().setPrefSize(SHORTCUTS_DIALOG_WIDTH, SHORTCUTS_DIALOG_HEIGHT);
+        dialog.getDialogPane().setMaxSize(SHORTCUTS_DIALOG_WIDTH, SHORTCUTS_DIALOG_HEIGHT);
         dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
         PrimeIcons.applyFont(dialog.getDialogPane());
         dialog.showAndWait();
@@ -1107,10 +1121,14 @@ public class UserController implements UserNavigator {
         VBox root = new VBox();
         root.getStyleClass().add("weblager-shortcuts-root");
 
-        root.getChildren().addAll(
-                createKeyboardShortcutsHeader(dialog),
-                createKeyboardShortcutsBody(dialog)
-        );
+        ScrollPane bodyScrollPane = new ScrollPane(createKeyboardShortcutsBody(dialog));
+        bodyScrollPane.setFitToWidth(true);
+        bodyScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        bodyScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        bodyScrollPane.getStyleClass().add("weblager-shortcuts-scroll");
+        VBox.setVgrow(bodyScrollPane, Priority.ALWAYS);
+
+        root.getChildren().addAll(createKeyboardShortcutsHeader(dialog), bodyScrollPane);
 
         return root;
     }

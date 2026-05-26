@@ -131,6 +131,20 @@
                             </graphic>
                         </ToggleButton>
 
+                        <ToggleButton fx:id="exportsNavItem"
+                                      focusTraversable="false"
+                                      contentDisplay="GRAPHIC_ONLY">
+                            <styleClass>
+                                <String fx:value="admin-top-nav-button"/>
+                            </styleClass>
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label text="&#xe956;" styleClass="prime-icon admin-top-nav-icon"/>
+                                    <Label text="Exports" styleClass="admin-top-nav-label"/>
+                                </HBox>
+                            </graphic>
+                        </ToggleButton>
+
                         <ToggleButton fx:id="activityNavItem"
                                       focusTraversable="false"
                                       contentDisplay="GRAPHIC_ONLY">

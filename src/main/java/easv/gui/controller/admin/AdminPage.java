@@ -6,6 +6,7 @@ enum AdminPage {
     PROFILES("/view/AdminViews/manage-profiles-view.fxml", "Profiles"),
     ASSIGNMENTS("/view/AdminViews/assignments-view.fxml", "Assignments"),
     REVIEW("/view/AdminViews/review-view.fxml", "Review Center"),
+    EXPORTS("/view/AdminViews/exports-view.fxml", "Exports"),
     ACTIVITY("/view/AdminViews/activity-view.fxml", "Activity");
 
     private final String fxmlPath;

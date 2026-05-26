@@ -23,6 +23,10 @@ interface AdminNavigator {
         showPage(AdminPage.REVIEW);
     }
 
+    default void showExports() {
+        showPage(AdminPage.EXPORTS);
+    }
+
     default void showActivity() {
         showPage(AdminPage.ACTIVITY);
     }

@@ -332,8 +332,8 @@
    ========================================================= */
 
 .weblager-shortcuts-dialog-pane {
-    -fx-pref-width: 1000;
-    -fx-pref-height: 780;
+    -fx-pref-width: 880;
+    -fx-pref-height: 620;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 22;
     -fx-border-color: -wl-border;
@@ -478,12 +478,12 @@
 }
 
 .weblager-shortcuts-card {
-    -fx-min-width: 472;
-    -fx-pref-width: 472;
-    -fx-max-width: 472;
-    -fx-min-height: 94;
-    -fx-pref-height: 94;
-    -fx-max-height: 94;
+    -fx-min-width: 400;
+    -fx-pref-width: 400;
+    -fx-max-width: 400;
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-max-height: 84;
     -fx-padding: 14 24 14 24;
     -fx-background-color: linear-gradient(to bottom, #fbfcfe, #f8fafc);
     -fx-background-radius: 14;

@@ -173,8 +173,8 @@ public class ProfilesController {
         contrastComboBox.getItems().setAll("Normal", "Higher", "Lower");
 
         exportFormatComboBox.getItems().setAll(
-                "Multi-page TIFF",
-                "Single-page TIFF"
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF
         );
 
         profileNameField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
@@ -579,7 +579,7 @@ public class ProfilesController {
         deskewToggle.setSelected(profile.isDeskew());
         qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
-        exportFormatComboBox.setValue(profile.getExportFormat());
+        exportFormatComboBox.setValue(ScanProfile.normalizeExportFormat(profile.getExportFormat()));
         exportNamingField.setText(profile.getExportNaming());
 
         populateAccessRows(profile);
@@ -611,7 +611,7 @@ public class ProfilesController {
         deskewToggle.setSelected(true);
         qaRequiredToggle.setSelected(true);
 
-        exportFormatComboBox.setValue("Multi-page TIFF");
+        exportFormatComboBox.setValue(ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF);
         exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
 
         populateCreateAccessRows();
@@ -793,10 +793,7 @@ public class ProfilesController {
         showEditorPane();
         selectTab(EditorTab.GENERAL);
 
-        Platform.runLater(() -> {
-            pageScrollPane.setVvalue(0);
-            profileNameField.requestFocus();
-        });
+        Platform.runLater(() -> pageScrollPane.setVvalue(0));
     }
 
     private void showCreateProfileDialog() {
@@ -817,7 +814,6 @@ public class ProfilesController {
             configureCreateProfileButton(createButton, fields);
         }
 
-        dialog.setOnShown(event -> fields.nameField.requestFocus());
         dialog.showAndWait();
     }
 
@@ -897,7 +893,11 @@ public class ProfilesController {
         fields.deskewToggle = createProfileDialogToggle(true);
         fields.qaRequiredToggle = createProfileDialogToggle(true);
 
-        fields.exportFormatComboBox = createProfileDialogComboBox("Multi-page TIFF", "Multi-page TIFF", "Single-page TIFF");
+        fields.exportFormatComboBox = createProfileDialogComboBox(
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF
+        );
         fields.exportNamingField = createProfileDialogTextField(ScanProfile.DEFAULT_EXPORT_NAMING);
         fields.exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
 
@@ -1354,7 +1354,7 @@ public class ProfilesController {
                 safeValue(fields.brightnessComboBox),
                 safeValue(fields.contrastComboBox),
                 fields.deskewToggle.isSelected(),
-                safeValue(fields.exportFormatComboBox),
+                ScanProfile.normalizeExportFormat(safeValue(fields.exportFormatComboBox)),
                 fields.qaRequiredToggle.isSelected()
         );
     }
@@ -1449,7 +1449,7 @@ public class ProfilesController {
                 safeValue(brightnessComboBox),
                 safeValue(contrastComboBox),
                 deskewToggle.isSelected(),
-                safeValue(exportFormatComboBox),
+                ScanProfile.normalizeExportFormat(safeValue(exportFormatComboBox)),
                 qaRequiredToggle.isSelected()
         );
     }

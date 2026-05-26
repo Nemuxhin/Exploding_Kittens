@@ -541,7 +541,7 @@ public class ExportsController {
         String profileName = item == null ? "" : item.profileName();
         String boxId = item == null ? "" : item.boxId();
         String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
-        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), "{profileCode}_{boxId}");
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING);
 
         try {
             TiffExportPlan plan = createExportPlan(exportType, profileName, profileCode, exportNaming, boxId, documents);

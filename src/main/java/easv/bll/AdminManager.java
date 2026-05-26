@@ -382,6 +382,21 @@ public class AdminManager {
         return allRecords;
     }
 
+    public List<QAService.QaAssignmentSnapshot> getApprovedExportsForAdmin() {
+        return qaService.getAllAssignmentsForAdmin().stream()
+                .filter(assignment -> assignment.status() == QAService.QaReviewStatus.APPROVED)
+                .sorted(Comparator
+                        .comparing(
+                                QAService.QaAssignmentSnapshot::completedAt,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        )
+                        .thenComparing(
+                                QAService.QaAssignmentSnapshot::submittedAt,
+                                Comparator.nullsLast(Comparator.reverseOrder())
+                        ))
+                .toList();
+    }
+
     public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
         if (updatedRecord == null || Strings.clean(updatedRecord.getId()).isBlank()) {
             throw new IllegalArgumentException("Review record is required.");

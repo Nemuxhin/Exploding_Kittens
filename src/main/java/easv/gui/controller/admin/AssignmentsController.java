@@ -803,7 +803,6 @@ public class AssignmentsController {
             close.run();
         });
 
-        Platform.runLater(searchField::requestFocus);
     }
 
     private void openProfilePicker() {
@@ -849,7 +848,6 @@ public class AssignmentsController {
             close.run();
         });
 
-        Platform.runLater(searchField::requestFocus);
     }
 
     private Button buildPickerUserRow(User user, Set<Integer> alreadyAssigned, Set<Integer> pending, Label countLabel, Button assignBtn) {

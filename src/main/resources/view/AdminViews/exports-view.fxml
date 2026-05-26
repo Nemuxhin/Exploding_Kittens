@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="easv.gui.controller.admin.AdminExportsController"
+            fitToWidth="true"
+            fitToHeight="false"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            minWidth="0"
+            minHeight="0"
+            maxWidth="Infinity"
+            maxHeight="Infinity"
+            styleClass="admin-page-scroll">
+
+    <content>
+        <VBox spacing="18"
+              fillWidth="true"
+              minWidth="0"
+              maxWidth="Infinity">
+
+            <styleClass>
+                <String fx:value="admin-page"/>
+                <String fx:value="main-content"/>
+                <String fx:value="exports-page-host"/>
+            </styleClass>
+
+            <padding>
+                <Insets top="24" right="24" bottom="24" left="24"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT"
+                  maxWidth="Infinity"
+                  styleClass="page-header">
+
+                <VBox spacing="3" styleClass="page-heading-copy">
+                    <Label text="Exports" styleClass="page-title"/>
+                    <Label text="Export QA-approved boxes across all users"
+                           styleClass="page-subtitle"/>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <HBox spacing="18"
+                  maxWidth="Infinity"
+                  styleClass="exports-summary-row">
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS" styleClass="exports-metric-card">
+                    <Label text="Ready Exports" styleClass="exports-metric-label"/>
+                    <Label fx:id="totalExportsLabel" text="0" styleClass="exports-metric-value"/>
+                </VBox>
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS" styleClass="exports-metric-card">
+                    <Label text="Ready Pages" styleClass="exports-metric-label"/>
+                    <Label fx:id="readyFilesLabel" text="0" styleClass="exports-metric-value"/>
+                </VBox>
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS" styleClass="exports-metric-card">
+                    <Label text="Documents" styleClass="exports-metric-label"/>
+                    <Label fx:id="totalDocumentsLabel" text="0" styleClass="exports-metric-value"/>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="18"
+                  alignment="CENTER_LEFT"
+                  maxWidth="Infinity"
+                  styleClass="exports-filter-panel">
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS" styleClass="exports-filter-wrap">
+                    <Label text="Search" styleClass="exports-filter-label"/>
+
+                    <HBox styleClass="search-field-shell"
+                          maxWidth="Infinity">
+                        <StackPane styleClass="field-icon-shell">
+                            <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
+                        </StackPane>
+
+                        <TextField fx:id="searchField"
+                                   promptText="Search by box, profile, or user"
+                                   maxWidth="Infinity"
+                                   HBox.hgrow="ALWAYS"
+                                   styleClass="exports-filter-input"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="6" styleClass="exports-filter-wrap">
+                    <Label text="Profile" styleClass="exports-filter-label"/>
+                    <ComboBox fx:id="profileFilterComboBox"
+                              minWidth="240"
+                              prefWidth="240"
+                              styleClass="exports-status-filter"/>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="0"
+                  fillWidth="true"
+                  maxWidth="Infinity"
+                  styleClass="exports-table-panel">
+                <VBox fx:id="exportsRowsContainer"
+                      spacing="0"
+                      fillWidth="true"
+                      maxWidth="Infinity"
+                      styleClass="exports-table"/>
+            </VBox>
+        </VBox>
+    </content>
+</ScrollPane>
