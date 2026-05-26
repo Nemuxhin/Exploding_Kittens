@@ -1096,8 +1096,8 @@ public class UserController implements UserNavigator {
             dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
         }
 
-        dialog.getDialogPane().setPrefSize(560, 430);
-        dialog.getDialogPane().setMaxSize(560, 430);
+        dialog.getDialogPane().setPrefSize(1000, 780);
+        dialog.getDialogPane().setMaxSize(1000, 780);
         dialog.getDialogPane().setContent(createKeyboardShortcutsContent(dialog));
         PrimeIcons.applyFont(dialog.getDialogPane());
         dialog.showAndWait();
@@ -1151,28 +1151,76 @@ public class UserController implements UserNavigator {
     }
 
     private VBox createKeyboardShortcutsBody(Dialog<ButtonType> dialog) {
-        VBox sections = new VBox(8);
-        sections.getChildren().setAll(
-                createShortcutSection("General shortcuts", "Save", "Undo", "Search / jump", "Escape", "Shortcut help"),
-                createShortcutSection("Navigation shortcuts", "Next section / scan page", "Previous section / scan page", "Export"),
-                createShortcutSection("Scanning shortcuts", "Rotate", "Delete", "Zoom in", "Zoom out")
+        VBox cards = new VBox(18,
+                createShortcutCardsRow(
+                        createShortcutCard("M5 12h14M13 6l6 6-6 6", "->", "Next Page", "Move to the next scanned page."),
+                        createShortcutCard("M19 12H5m6-6-6 6 6 6", "<-", "Previous Page", "Move to the previous scanned page.")
+                ),
+                createShortcutCardsRow(
+                        createShortcutCard("M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5", "R", "Rotate", "Rotate the selected page by degree."),
+                        createShortcutCard("M7 7h10M10 11v6m4-6v6M9 7l1-2h4l1 2m-8 0 1 13h8l1-13", "Del", "Delete", "Delete the selected page.")
+                ),
+                createShortcutCardsRow(
+                        createShortcutCard("M9 7l-5 5 5 5M4 12h11a5 5 0 0 1 0 10", "Ctrl + Z", "Undo", "Undo the last supported action."),
+                        createShortcutCard("M5 4h12l2 2v14H5zM8 4v6h8V4M8 15h8v5H8z", "Ctrl + S", "Save", "Save the current work.")
+                ),
+                createShortcutCardsRow(
+                        createShortcutCard("M10 18a8 8 0 1 1 5.66-2.34L21 21", "Ctrl + F", "Search / Jump", "Search for a page, file, or document."),
+                        createShortcutCard("M12 4v12m-5-5 5 5 5-5M5 20h14", "Ctrl + E", "Export", "Open the export dialog.")
+                ),
+                createShortcutCardsRow(
+                        createShortcutCard("M10 17a7 7 0 1 1 4.95-2.05L21 21M10 7v6m-3-3h6", "+", "Zoom in", "Zoom in on the current page."),
+                        createShortcutCard("M10 17a7 7 0 1 1 4.95-2.05L21 21M7 10h6", "-", "Zoom out", "Zoom out from the current page.")
+                ),
+                createShortcutCardsRow(
+                        createShortcutCard("M7 7l10 10M17 7 7 17", "Esc", "Escape", "Close modals or cancel the current action."),
+                        createShortcutCard("M5 5h14v14H5zM8 9h8M8 12h8M8 15h5", "F1", "Shortcut Help", "Open the keyboard shortcuts help dialog.")
+                )
         );
 
-        Label footerText = new Label("Open this dialog anytime from the keyboard button, Fn + F1, or ?.");
-        footerText.getStyleClass().add("weblager-shortcuts-footer-text");
-
-        Button closeButton = new Button("Close");
-        closeButton.getStyleClass().add("weblager-shortcuts-close-button");
-        closeButton.setOnAction(event -> {
-            dialog.setResult(ButtonType.CLOSE);
-            dialog.close();
-        });
-
-        VBox body = new VBox(9, sections, footerText, closeButton);
+        VBox body = new VBox(cards);
         body.getStyleClass().add("weblager-shortcuts-body");
-        body.setAlignment(Pos.TOP_CENTER);
 
         return body;
+    }
+
+    private HBox createShortcutCardsRow(Node leftCard, Node rightCard) {
+        HBox row = new HBox(18, leftCard, rightCard);
+        row.getStyleClass().add("weblager-shortcuts-card-row");
+        HBox.setHgrow(leftCard, Priority.ALWAYS);
+        HBox.setHgrow(rightCard, Priority.ALWAYS);
+        return row;
+    }
+
+    private HBox createShortcutCard(String iconPath, String keyText, String titleText, String descriptionText) {
+        SVGPath icon = new SVGPath();
+        icon.setContent(iconPath);
+        icon.getStyleClass().add("weblager-shortcuts-card-icon");
+
+        StackPane iconFrame = new StackPane(icon);
+        iconFrame.getStyleClass().add("weblager-shortcuts-card-icon-frame");
+
+        Label key = new Label(keyText);
+        key.getStyleClass().add("weblager-shortcuts-key-pill");
+
+        Label title = new Label(titleText);
+        title.getStyleClass().add("weblager-shortcuts-card-title");
+
+        HBox titleRow = new HBox(16, key, title);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label description = new Label(descriptionText);
+        description.getStyleClass().add("weblager-shortcuts-card-description");
+        description.setWrapText(true);
+
+        VBox copy = new VBox(10, titleRow, description);
+        copy.setMinWidth(0);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        HBox card = new HBox(16, iconFrame, copy);
+        card.getStyleClass().add("weblager-shortcuts-card");
+        card.setAlignment(Pos.CENTER_LEFT);
+        return card;
     }
 
     private VBox createShortcutSection(String titleText, String... actionNames) {
