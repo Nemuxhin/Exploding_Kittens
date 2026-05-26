@@ -1220,22 +1220,23 @@ public class UserController implements UserNavigator {
 
         Label key = new Label(keyText);
         key.getStyleClass().add("weblager-shortcuts-key-pill");
+        key.setMinWidth(Region.USE_PREF_SIZE);
 
         Label title = new Label(titleText);
         title.getStyleClass().add("weblager-shortcuts-card-title");
 
-        HBox titleRow = new HBox(16, key, title);
+        HBox titleRow = new HBox(10, key, title);
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
         Label description = new Label(descriptionText);
         description.getStyleClass().add("weblager-shortcuts-card-description");
         description.setWrapText(true);
 
-        VBox copy = new VBox(10, titleRow, description);
+        VBox copy = new VBox(5, titleRow, description);
         copy.setMinWidth(0);
         HBox.setHgrow(copy, Priority.ALWAYS);
 
-        HBox card = new HBox(16, iconFrame, copy);
+        HBox card = new HBox(12, iconFrame, copy);
         card.getStyleClass().add("weblager-shortcuts-card");
         card.setAlignment(Pos.CENTER_LEFT);
         return card;
