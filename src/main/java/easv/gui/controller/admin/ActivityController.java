@@ -2,6 +2,7 @@ package easv.gui.controller.admin;
 
 import easv.be.AuditLog;
 import easv.bll.AdminManager;
+import easv.gui.BackgroundExecutor;
 import easv.gui.controller.utilities.AppDates;
 import easv.gui.PrimeIcons;
 import easv.util.Strings;
@@ -129,6 +130,8 @@ public class ActivityController {
 
     private static final String TARGET_ID_PATTERN_TEXT = "\\b[A-Z]{2,}(?:[-_][A-Z0-9]+)+\\b";
     private static final Pattern TARGET_ID_PATTERN = Pattern.compile(TARGET_ID_PATTERN_TEXT);
+    private static final int INITIAL_VISIBLE_LOG_LIMIT = 60;
+    private static final int LOG_LOAD_MORE_INCREMENT = 60;
 
     private static final DateTimeFormatter ACTIVITY_TIMESTAMP_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -162,6 +165,9 @@ public class ActivityController {
     private boolean logKeyNavAttached;
     private boolean detailClosed;
     private ContextMenu searchHistoryMenu;
+    private int visibleLogLimit = INITIAL_VISIBLE_LOG_LIMIT;
+    private long activityLoadSequence;
+    private boolean activityLoading;
 
     private boolean updatingDateControls;
     private DateFilterMode dateFilterMode = DateFilterMode.ALL;
@@ -219,11 +225,13 @@ public class ActivityController {
         this.adminManager = adminManager;
 
         if (this.adminManager == null) {
+            activityEntries.clear();
+            refreshUserFilterOptions();
+            renderTimeline();
             return;
         }
 
-        loadActivity();
-        renderTimeline();
+        loadActivityAsync();
     }
 
     private void configureFilters() {
@@ -865,11 +873,22 @@ public class ActivityController {
 
     private void renderTimeline() {
         List<ActivityLogEntry> filteredEntries = filteredActivityEntries();
-        boolean hasEntries = !filteredEntries.isEmpty();
+        int totalEntryCount = filteredEntries.size();
+        List<ActivityLogEntry> visibleEntries = filteredEntries.stream()
+                .limit(visibleLogLimit)
+                .toList();
+        boolean hasEntries = !visibleEntries.isEmpty();
+        boolean hasMoreEntries = totalEntryCount > visibleEntries.size();
 
         if (logsShowingLabel != null) {
-            String noun = filteredEntries.size() == 1 ? "event" : "events";
-            logsShowingLabel.setText("Showing " + filteredEntries.size() + " " + noun);
+            if (activityLoading) {
+                logsShowingLabel.setText("Loading events...");
+            } else if (hasMoreEntries) {
+                logsShowingLabel.setText("Showing " + visibleEntries.size() + " of " + totalEntryCount + " events");
+            } else {
+                String noun = totalEntryCount == 1 ? "event" : "events";
+                logsShowingLabel.setText("Showing " + totalEntryCount + " " + noun);
+            }
         }
 
         if (timelineContainer != null) {
@@ -879,8 +898,9 @@ public class ActivityController {
         }
 
         if (emptyStateBox != null) {
-            emptyStateBox.setVisible(!hasEntries);
-            emptyStateBox.setManaged(!hasEntries);
+            boolean showEmptyState = !activityLoading && !hasEntries;
+            emptyStateBox.setVisible(showEmptyState);
+            emptyStateBox.setManaged(showEmptyState);
         }
 
         if (!hasEntries) {
@@ -888,16 +908,16 @@ public class ActivityController {
             return;
         }
 
-        keepSelectedEntryVisible(filteredEntries);
+        keepSelectedEntryVisible(visibleEntries);
 
         if (timelineContainer != null) {
-            timelineContainer.getChildren().setAll(createLogWorkspace(filteredEntries));
+            timelineContainer.getChildren().setAll(createLogWorkspace(visibleEntries, hasMoreEntries));
             Platform.runLater(this::scrollSelectedRowIntoView);
         }
     }
 
-    private Node createLogWorkspace(List<ActivityLogEntry> entries) {
-        VBox stream = createEventStream(entries);
+    private Node createLogWorkspace(List<ActivityLogEntry> entries, boolean hasMoreEntries) {
+        VBox stream = createEventStream(entries, hasMoreEntries);
         stream.setMinWidth(0);
 
         ScrollPane listScroll = new ScrollPane(stream);
@@ -1026,7 +1046,7 @@ public class ActivityController {
                 .findFirst();
     }
 
-    private VBox createEventStream(List<ActivityLogEntry> entries) {
+    private VBox createEventStream(List<ActivityLogEntry> entries, boolean hasMoreEntries) {
         selectedLogRow = null;
         VBox stream = new VBox(0);
         stream.getStyleClass().add("logs-event-stream-shell");
@@ -1038,7 +1058,9 @@ public class ActivityController {
             group.getValue().forEach(entry -> stream.getChildren().add(createExpandableEventRow(entry)));
         }
 
-        stream.getChildren().add(createLoadMoreButton());
+        if (hasMoreEntries) {
+            stream.getChildren().add(createLoadMoreButton());
+        }
         return stream;
     }
 
@@ -2813,7 +2835,10 @@ public class ActivityController {
         button.getStyleClass().add("logs-load-more-button");
         button.setMaxWidth(Double.MAX_VALUE);
         button.setFocusTraversable(false);
-        button.setDisable(true);
+        button.setOnAction(event -> {
+            visibleLogLimit += LOG_LOAD_MORE_INCREMENT;
+            renderTimeline();
+        });
         return button;
     }
 
@@ -4290,7 +4315,12 @@ public class ActivityController {
     }
 
     private void refreshFilteredTimeline() {
+        resetVisibleLogLimit();
         renderTimeline();
+    }
+
+    private void resetVisibleLogLimit() {
+        visibleLogLimit = INITIAL_VISIBLE_LOG_LIMIT;
     }
 
     private void handleDateInputChange() {
@@ -4720,20 +4750,42 @@ public class ActivityController {
         return String.join(" ", formattedWords);
     }
 
-    private void loadActivity() {
-        if (adminManager == null) {
+    private void loadActivityAsync() {
+        AdminManager managerSnapshot = adminManager;
+        if (managerSnapshot == null) {
             activityEntries.clear();
             refreshUserFilterOptions();
+            renderTimeline();
             return;
         }
 
-        activityEntries.setAll(
-                adminManager.getAuditLogs().stream()
-                        .map(this::toActivityLogEntry)
-                        .toList()
-        );
+        long loadId = ++activityLoadSequence;
+        activityLoading = true;
+        renderTimeline();
 
-        refreshUserFilterOptions();
+        BackgroundExecutor.io().execute(() -> {
+            List<ActivityLogEntry> loadedEntries;
+            try {
+                loadedEntries = managerSnapshot.getAuditLogs().stream()
+                        .map(this::toActivityLogEntry)
+                        .toList();
+            } catch (RuntimeException exception) {
+                loadedEntries = List.of();
+            }
+
+            List<ActivityLogEntry> finalLoadedEntries = loadedEntries;
+            Platform.runLater(() -> {
+                if (loadId != activityLoadSequence || adminManager != managerSnapshot) {
+                    return;
+                }
+
+                activityLoading = false;
+                activityEntries.setAll(finalLoadedEntries);
+                refreshUserFilterOptions();
+                resetVisibleLogLimit();
+                renderTimeline();
+            });
+        });
     }
 
     private ActivityLogEntry toActivityLogEntry(AuditLog log) {
