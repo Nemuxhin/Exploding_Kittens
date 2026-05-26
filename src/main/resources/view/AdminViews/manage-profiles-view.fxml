@@ -300,6 +300,8 @@
                             </styleClass>
 
                             <VBox spacing="27"
+                                  visible="false"
+                                  managed="false"
                                   maxWidth="Infinity"
                                   styleClass="profile-editor-section">
 
@@ -562,7 +564,7 @@
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 
-                            <VBox spacing="6">
+                            <VBox spacing="6" visible="false" managed="false">
                                 <Label text="Page correction:"
                                        styleClass="profile-editor-preview-key"/>
                                 <Label fx:id="previewPageCorrectionLabel"

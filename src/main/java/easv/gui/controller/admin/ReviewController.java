@@ -1,8 +1,10 @@
 package easv.gui.controller.admin;
 
 import easv.be.Document;
+import easv.be.PageImage;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
+import easv.be.TiffExportPlan;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.QAService;
@@ -647,18 +649,20 @@ public class ReviewController {
 
             try {
                 Path recordDirectory = outputDirectory.resolve(safeFolderSegment(row.profile(), row.identity()));
-                TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
-                        tiffExportManager.createMultiPagePlan(
-                                row.profile(),
-                                profileCode,
-                                exportNaming,
-                                row.identity(),
-                                documents
-                        ),
-                        recordDirectory
-                );
+                int writtenForRecord = 0;
+                for (TiffExportPlan exportPlan : createAdminExportPlans(
+                        tiffExportManager,
+                        profile,
+                        row,
+                        profileCode,
+                        exportNaming,
+                        documents
+                )) {
+                    TiffExportManager.ExportResult result = tiffExportManager.exportPlan(exportPlan, recordDirectory);
+                    writtenForRecord += result.writtenFiles().size();
+                }
                 exportedRecords++;
-                filesWritten += result.writtenFiles().size();
+                filesWritten += writtenForRecord;
             } catch (IOException | RuntimeException exception) {
                 failures.add(row.identity() + ": " + (exception.getMessage() == null ? "unknown error" : exception.getMessage()));
             }
@@ -722,6 +726,52 @@ public class ReviewController {
         String profilePart = firstNonBlank(profileName, "profile").replaceAll("[^a-zA-Z0-9._-]", "_");
         String identityPart = firstNonBlank(identity, "record").replaceAll("[^a-zA-Z0-9._-]", "_");
         return profilePart + "_" + identityPart;
+    }
+
+    private List<TiffExportPlan> createAdminExportPlans(
+            TiffExportManager tiffExportManager,
+            ScanProfile profile,
+            ReviewRow row,
+            String profileCode,
+            String exportNaming,
+            List<Document> documents
+    ) {
+        String exportFormat = ScanProfile.normalizeExportFormat(profile == null ? null : profile.getExportFormat());
+        List<TiffExportPlan> plans = new ArrayList<>();
+
+        if (ScanProfile.EXPORT_FORMAT_BOTH.equals(exportFormat)
+                || ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF.equals(exportFormat)) {
+            plans.add(tiffExportManager.createMultiPagePlan(
+                    row.profile(),
+                    profileCode,
+                    exportNaming,
+                    row.identity(),
+                    documents
+            ));
+        }
+
+        if (ScanProfile.EXPORT_FORMAT_BOTH.equals(exportFormat)
+                || ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF.equals(exportFormat)) {
+            plans.add(tiffExportManager.createSinglePagePlan(
+                    row.profile(),
+                    profileCode,
+                    exportNaming,
+                    row.identity(),
+                    flattenDocumentPages(documents)
+            ));
+        }
+
+        return plans;
+    }
+
+    private List<PageImage> flattenDocumentPages(List<Document> documents) {
+        List<PageImage> pages = new ArrayList<>();
+        for (Document document : documents) {
+            if (document != null && document.getPages() != null) {
+                pages.addAll(document.getPages());
+            }
+        }
+        return pages;
     }
 
     private String firstNonBlank(String preferred, String fallback) {

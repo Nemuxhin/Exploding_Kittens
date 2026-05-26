@@ -2,6 +2,7 @@ package easv.be;
 
 public class ScanProfile {
     public static final String DEFAULT_EXPORT_NAMING = "{profileName}_{boxId}";
+    public static final String EXPORT_FORMAT_BOTH = "Both";
     public static final String EXPORT_FORMAT_MULTI_PAGE_TIFF = "Multi-page TIFF";
     public static final String EXPORT_FORMAT_SINGLE_PAGE_TIFF = "Single-page TIFF";
 
@@ -184,6 +185,14 @@ public class ScanProfile {
 
         if (cleaned.isBlank()) {
             return EXPORT_FORMAT_MULTI_PAGE_TIFF;
+        }
+
+        if (cleaned.equalsIgnoreCase(EXPORT_FORMAT_BOTH)
+                || cleaned.equalsIgnoreCase("Both TIFF")
+                || cleaned.equalsIgnoreCase("Both TIFF formats")
+                || cleaned.equalsIgnoreCase("Single-page and multi-page TIFF")
+                || cleaned.equalsIgnoreCase("Multi-page and single-page TIFF")) {
+            return EXPORT_FORMAT_BOTH;
         }
 
         if (cleaned.equalsIgnoreCase(EXPORT_FORMAT_SINGLE_PAGE_TIFF)

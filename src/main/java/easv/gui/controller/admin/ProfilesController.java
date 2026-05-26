@@ -173,6 +173,7 @@ public class ProfilesController {
         contrastComboBox.getItems().setAll("Normal", "Higher", "Lower");
 
         exportFormatComboBox.getItems().setAll(
+                ScanProfile.EXPORT_FORMAT_BOTH,
                 ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
                 ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF
         );
@@ -895,6 +896,7 @@ public class ProfilesController {
 
         fields.exportFormatComboBox = createProfileDialogComboBox(
                 ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_BOTH,
                 ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
                 ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF
         );
@@ -1087,8 +1089,6 @@ public class ProfilesController {
         sections.getChildren().addAll(
                 barcodeSection,
                 createDivider(),
-                correctionSection,
-                createDivider(),
                 exportSection
         );
 
@@ -1124,7 +1124,6 @@ public class ProfilesController {
                 createPreviewBlock("Box ID:", fields.previewBoxIdLabel),
                 createPreviewBlock("Export folder:", fields.previewExportFolderLabel),
                 createPreviewBlock("Barcode splitting:", fields.previewBarcodeLabel),
-                createPreviewBlock("Page correction:", fields.previewPageCorrectionLabel),
                 createPreviewBlock("QA required:", fields.previewQaRequiredLabel),
                 createPreviewBlock("Export format:", fields.previewExportFormatLabel)
         );
@@ -1549,14 +1548,6 @@ public class ProfilesController {
         chips.add(profile.isBarcodeSplitting()
                 ? new ConfigChip("Barcode Split On", "chip-teal")
                 : new ConfigChip("Barcode Split Off", "chip-neutral"));
-
-        chips.add(profile.isDeskew()
-                ? new ConfigChip("Deskew", "chip-indigo")
-                : new ConfigChip("Deskew Off", "chip-neutral"));
-
-        if (!profile.getBrightness().equalsIgnoreCase("Normal")) {
-            chips.add(new ConfigChip("Brightness Correction", "chip-orange"));
-        }
 
         return chips;
     }

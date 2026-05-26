@@ -73,7 +73,6 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton profilesNavItem;
     @FXML private ToggleButton assignmentsNavItem;
     @FXML private ToggleButton reviewNavItem;
-    @FXML private ToggleButton exportsNavItem;
     @FXML private ToggleButton activityNavItem;
 
     @FXML private Button accountMenuButton;
@@ -251,7 +250,7 @@ public class AdminController implements AdminNavigator {
         }
 
         if (event.isShortcutDown() && event.getCode() == KeyCode.E) {
-            showPage(AdminPage.EXPORTS);
+            showPage(AdminPage.REVIEW);
             event.consume();
             return;
         }
@@ -473,8 +472,6 @@ public class AdminController implements AdminNavigator {
             assignmentsController.setAdminManager(adminManager);
         } else if (controller instanceof ReviewController reviewController) {
             reviewController.setAdminManager(adminManager);
-        } else if (controller instanceof AdminExportsController adminExportsController) {
-            adminExportsController.setAdminManager(adminManager);
         } else if (controller instanceof ActivityController activityController) {
             activityController.setAdminManager(adminManager);
         }
@@ -531,7 +528,6 @@ public class AdminController implements AdminNavigator {
                 profilesNavItem,
                 assignmentsNavItem,
                 reviewNavItem,
-                exportsNavItem,
                 activityNavItem
         );
     }
@@ -543,7 +539,6 @@ public class AdminController implements AdminNavigator {
             case PROFILES -> profilesNavItem;
             case ASSIGNMENTS -> assignmentsNavItem;
             case REVIEW -> reviewNavItem;
-            case EXPORTS -> exportsNavItem;
             case ACTIVITY -> activityNavItem;
         };
     }
