@@ -1177,15 +1177,16 @@ public class ScanController {
 
     private ScannedPage mapImportedPage(PageImage pageImage) {
         boolean barcode = pageImage.getPageType() == PageImage.PageType.BARCODE;
+        byte[] previewSourceBytes = pageImage.getPreviewSourceBytes();
         ScannedPage page = new ScannedPage(
                 Math.max(pageImage.getReferenceId(), nextReferenceId),
                 nextFileId,
                 barcode,
                 false,
                 pageImage.getSourceReference(),
-                pageImage.getDisplayContent(),
-                pageImage.getPreviewContent(),
-                pageImage.getPreviewSourceBytes()
+                previewSourceBytes.length == 0 ? pageImage.getDisplayContent() : "",
+                "",
+                previewSourceBytes
         );
         page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees() + sessionRotationDegrees);
         nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
@@ -1195,6 +1196,7 @@ public class ScanController {
 
     private ScannedPage mapStoredPage(PageImage pageImage) {
         boolean barcode = pageImage.getPageType() == PageImage.PageType.BARCODE;
+        byte[] previewSourceBytes = pageImage.getPreviewSourceBytes();
         ScannedPage page = new ScannedPage(
                 Math.max(pageImage.getReferenceId(), nextReferenceId),
                 nextFileId,
@@ -1202,8 +1204,8 @@ public class ScanController {
                 false,
                 pageImage.getSourceReference(),
                 pageImage.getDisplayContent(),
-                pageImage.getPreviewContent(),
-                pageImage.getPreviewSourceBytes()
+                "",
+                previewSourceBytes
         );
         page.rotationDegrees = normalizeRotation(pageImage.getRotationDegrees());
         nextReferenceId = Math.max(nextReferenceId, page.referenceId + 1);
@@ -1945,6 +1947,7 @@ public class ScanController {
     }
 
     private UserPortalModel.InMemoryScanPage toInMemoryScanPage(ScannedPage page) {
+        String encodedContent = materializePageImageContent(page);
         return new UserPortalModel.InMemoryScanPage(
                 page.referenceId,
                 page.fileId,
@@ -1954,8 +1957,8 @@ public class ScanController {
                 page.needsRescan,
                 page.splitReasonAfter,
                 page.sourceReference,
-                page.displayContent,
-                page.previewContent
+                encodedContent,
+                encodedContent
         );
     }
 
@@ -3106,6 +3109,22 @@ public class ScanController {
         }
     }
 
+    private String materializePageImageContent(ScannedPage page) {
+        if (page == null) {
+            return "";
+        }
+        if (page.displayContent != null && !page.displayContent.isBlank()) {
+            return page.displayContent;
+        }
+        if (page.previewContent != null && !page.previewContent.isBlank()) {
+            return page.previewContent;
+        }
+        if (page.previewSourceBytes.length == 0) {
+            return "";
+        }
+        return "data:image/tiff;base64," + Base64.getEncoder().encodeToString(page.previewSourceBytes);
+    }
+
     private Region createLine(String styleClass, double width, double height) {
         Region line = new Region();
         line.getStyleClass().add(styleClass);
@@ -4092,7 +4111,7 @@ public class ScanController {
             );
             pageImage.setReferenceId(scannedPage.referenceId);
             pageImage.setRotationDegrees(scannedPage.rotationDegrees);
-            pageImage.setDisplayContent(scannedPage.displayContent);
+            pageImage.setDisplayContent(materializePageImageContent(scannedPage));
             pageImage.setPreviewSourceBytes(scannedPage.previewSourceBytes);
             pages.add(pageImage);
         }
