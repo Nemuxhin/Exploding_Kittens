@@ -3,7 +3,9 @@ package easv.gui.controller.admin;
 import easv.be.AuditLog;
 import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
+import easv.gui.BackgroundExecutor;
 import easv.gui.PrimeIcons;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -51,6 +53,7 @@ public class DashboardController {
 
     private AdminNavigator navigator = AdminNavigator.none();
     private AdminManager adminManager;
+    private int dashboardLoadVersion = 0;
 
     void setNavigator(AdminNavigator navigator) {
         this.navigator = navigator == null ? AdminNavigator.none() : navigator;
@@ -75,35 +78,93 @@ public class DashboardController {
             return;
         }
 
-        populateSummaryCards();
-        populateNeedsAttention();
-        populateRecentActivity();
+        int loadVersion = ++dashboardLoadVersion;
+        showLoadingState();
+
+        BackgroundExecutor.io().execute(() -> {
+            DashboardSnapshot snapshot;
+            try {
+                snapshot = buildDashboardSnapshot();
+            } catch (RuntimeException exception) {
+                snapshot = DashboardSnapshot.empty();
+            }
+
+            DashboardSnapshot finalSnapshot = snapshot;
+            Platform.runLater(() -> {
+                if (loadVersion != dashboardLoadVersion || adminManager == null) {
+                    return;
+                }
+
+                applyDashboardSnapshot(finalSnapshot);
+            });
+        });
     }
 
-    private void populateSummaryCards() {
+    private DashboardSnapshot buildDashboardSnapshot() {
         AdminManager.DashboardSummary summary = adminManager.getDashboardSummary();
+        List<AuditLog> logs = adminManager.getAuditLogs();
+        List<ReviewRecord> records = adminManager.getReviewRecords();
 
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
 
-        int scansToday = countLogs(log ->
+        int scansToday = countLogs(logs, log ->
                 "Scans".equalsIgnoreCase(log.getType())
                         && log.getTimestamp() != null
                         && today.equals(log.getTimestamp().toLocalDate())
         );
 
-        int scansYesterday = countLogs(log ->
+        int scansYesterday = countLogs(logs, log ->
                 "Scans".equalsIgnoreCase(log.getType())
                         && log.getTimestamp() != null
                         && yesterday.equals(log.getTimestamp().toLocalDate())
         );
 
-        int waitingForQa = countWaitingForQaRecords();
+        int waitingForQa = countReviewRecords(records, record ->
+                contains(record.getQaStatus(), "waiting")
+                        || contains(record.getQaStatus(), "ready")
+                        || contains(record.getDocumentDetailsStatus(), "ready")
+        );
+
+        List<AuditLog> recentLogs = logs.stream()
+                .filter(log -> !isLoginLog(log))
+                .limit(MAX_RECENT_ACTIVITY_ITEMS)
+                .toList();
+
+        return new DashboardSnapshot(summary, scansToday, scansYesterday, waitingForQa, recentLogs);
+    }
+
+    private void applyDashboardSnapshot(DashboardSnapshot snapshot) {
+        populateSummaryCards(snapshot);
+        populateNeedsAttention(snapshot.summary());
+        populateRecentActivity(snapshot.recentLogs());
+    }
+
+    private void showLoadingState() {
+        totalUsersValueLabel.setText("-");
+        activeProfilesValueLabel.setText("-");
+        scansTodayValueLabel.setText("-");
+        waitingForQaValueLabel.setText("-");
+
+        setNeutralTrend(totalUsersTrendLabel, "Loading");
+        setNeutralTrend(activeProfilesTrendLabel, "Loading");
+        setNeutralTrend(scansTodayTrendLabel, "Loading");
+        setNeutralTrend(waitingForQaTrendLabel, "Loading");
+
+        if (recentActivityList != null) {
+            Label loadingLabel = new Label("Loading activity...");
+            loadingLabel.getStyleClass().add("dashboard-activity-detail");
+            recentActivityList.getChildren().setAll(loadingLabel);
+        }
+    }
+
+    private void populateSummaryCards(DashboardSnapshot snapshot) {
+        AdminManager.DashboardSummary summary = snapshot.summary();
 
         totalUsersValueLabel.setText(String.valueOf(summary.getTotalUsers()));
         activeProfilesValueLabel.setText(String.valueOf(summary.getActiveProfiles()));
-        scansTodayValueLabel.setText(String.valueOf(scansToday));
-        waitingForQaValueLabel.setText(String.valueOf(waitingForQa));
+        scansTodayValueLabel.setText(String.valueOf(snapshot.scansToday()));
+        waitingForQaValueLabel.setText(String.valueOf(snapshot.waitingForQa()));
 
         /*
          * Important:
@@ -115,13 +176,11 @@ public class DashboardController {
          */
         setTrend(totalUsersTrendLabel, summary.getTotalUsers(), 0, "vs last 7 days");
         setTrend(activeProfilesTrendLabel, summary.getActiveProfiles(), 0, "vs last 7 days");
-        setTrend(scansTodayTrendLabel, scansToday, scansYesterday, "vs yesterday");
-        setTrend(waitingForQaTrendLabel, waitingForQa, 0, "vs yesterday");
+        setTrend(scansTodayTrendLabel, snapshot.scansToday(), snapshot.scansYesterday(), "vs yesterday");
+        setTrend(waitingForQaTrendLabel, snapshot.waitingForQa(), 0, "vs yesterday");
     }
 
-    private void populateNeedsAttention() {
-        AdminManager.DashboardSummary summary = adminManager.getDashboardSummary();
-
+    private void populateNeedsAttention(AdminManager.DashboardSummary summary) {
         int totalNeedsAttention = summary.getUsersWithoutProfiles()
                 + summary.getFailedEvents()
                 + summary.getDraftProfiles();
@@ -143,15 +202,10 @@ public class DashboardController {
         needsAttentionValueLabel.setText(String.valueOf(totalNeedsAttention));
     }
 
-    private void populateRecentActivity() {
+    private void populateRecentActivity(List<AuditLog> recentLogs) {
         if (recentActivityList == null) {
             return;
         }
-
-        List<AuditLog> recentLogs = adminManager.getAuditLogs().stream()
-                .filter(log -> !isLoginLog(log))
-                .limit(MAX_RECENT_ACTIVITY_ITEMS)
-                .toList();
 
         if (recentLogs.isEmpty()) {
             Label emptyLabel = new Label("No activity yet");
@@ -221,8 +275,7 @@ public class DashboardController {
         return activityDate.toString();
     }
 
-    private int countLogs(LogPredicate predicate) {
-        List<AuditLog> logs = adminManager.getAuditLogs();
+    private int countLogs(List<AuditLog> logs, LogPredicate predicate) {
         int matches = 0;
 
         for (AuditLog log : logs) {
@@ -234,8 +287,7 @@ public class DashboardController {
         return matches;
     }
 
-    private int countReviewRecords(ReviewPredicate predicate) {
-        List<ReviewRecord> records = adminManager.getReviewRecords();
+    private int countReviewRecords(List<ReviewRecord> records, ReviewPredicate predicate) {
         int matches = 0;
 
         for (ReviewRecord record : records) {
@@ -245,14 +297,6 @@ public class DashboardController {
         }
 
         return matches;
-    }
-
-    private int countWaitingForQaRecords() {
-        return countReviewRecords(record ->
-                contains(record.getQaStatus(), "waiting")
-                        || contains(record.getQaStatus(), "ready")
-                        || contains(record.getDocumentDetailsStatus(), "ready")
-        );
     }
 
     private void setNeutralTrend(Label label, String comparison) {
@@ -431,6 +475,24 @@ public class DashboardController {
     @FXML
     private void reviewFailedExports() {
         navigator.showReview();
+    }
+
+    private record DashboardSnapshot(
+            AdminManager.DashboardSummary summary,
+            int scansToday,
+            int scansYesterday,
+            int waitingForQa,
+            List<AuditLog> recentLogs
+    ) {
+        private static DashboardSnapshot empty() {
+            return new DashboardSnapshot(
+                    new AdminManager.DashboardSummary(0, 0, 0, 0, 0),
+                    0,
+                    0,
+                    0,
+                    List.of()
+            );
+        }
     }
 
     private interface LogPredicate {
