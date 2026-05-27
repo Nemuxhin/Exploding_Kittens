@@ -1198,6 +1198,31 @@
     -fx-text-fill: -wl-text;
 }
 
+.scan-tool-button.combo-box-base {
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.scan-tool-button.combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scan-tool-button.combo-box-base > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.scan-tool-button.combo-box-base > .list-cell,
+.scan-tool-button.combo-box-base .text-field,
+.scan-tool-button.combo-box-base .text-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-highlight-fill: -wl-primary-selected;
+    -fx-highlight-text-fill: -wl-on-primary;
+}
+
 .scan-tool-button:hover,
 .scan-tool-button:pressed {
     -fx-background-color: -wl-tertiary-hover;

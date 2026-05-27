@@ -279,14 +279,6 @@ public class ScanController {
             });
         }
 
-        if (rotateLeftButton != null) {
-            rotateLeftButton.setVisible(false);
-            rotateLeftButton.setManaged(false);
-        }
-        if (rotateRightButton != null) {
-            rotateRightButton.setVisible(false);
-            rotateRightButton.setManaged(false);
-        }
     }
 
     private void configureDocumentTreeScroll() {
@@ -2188,8 +2180,8 @@ public class ScanController {
             return;
         }
 
-        rotateLeftButton.setText("Rotate Left (1\u00B0)");
-        rotateRightButton.setText("Rotate Right (1\u00B0)");
+        rotateLeftButton.setText("\u21BA");
+        rotateRightButton.setText("\u21BB");
     }
 
     private void syncBoxRotationComboBox() {

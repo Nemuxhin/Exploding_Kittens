@@ -577,11 +577,16 @@
 
 .status-completed,
 .status-active,
-.status-submitted-for-qa,
 .status-ready {
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
+}
+
+.status-submitted-for-qa {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
 }
 
 .status-processing {

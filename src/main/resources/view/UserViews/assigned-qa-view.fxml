@@ -230,20 +230,6 @@
                           maxWidth="Infinity">
                         <Label text="Box Structure"
                                styleClass="qa-review-panel-title"/>
-
-                        <Region HBox.hgrow="ALWAYS"/>
-
-                        <Button fx:id="qaDocumentGridViewButton"
-                                text="⧉"
-                                onAction="#onShowQaDocumentGridView"
-                                focusTraversable="false"
-                                styleClass="document-tree-view-toggle-button"/>
-
-                        <Button fx:id="qaDocumentListViewButton"
-                                text="☰"
-                                onAction="#onShowQaDocumentListView"
-                                focusTraversable="false"
-                                styleClass="document-tree-view-toggle-button"/>
                     </HBox>
 
                     <ScrollPane fitToWidth="true"
@@ -496,36 +482,6 @@
 
                         <Region styleClass="scan-panel-divider"/>
 
-                        <!-- Page utility actions -->
-                        <VBox spacing="9"
-                              maxWidth="Infinity">
-                            <Label text="Rotation"
-                                   styleClass="qa-tools-section-title"/>
-
-                            <ComboBox fx:id="qaRotationComboBox"
-                                      maxWidth="Infinity"
-                                      promptText="Enter rotation in degrees"
-                                      styleClass="scan-tool-button"/>
-
-                            <Button text="Rotate Left (1°)"
-                                    fx:id="qaRotateLeftButton"
-                                    onAction="#onRotateLeft"
-                                    maxWidth="Infinity"
-                                    visible="false"
-                                    managed="false"
-                                    focusTraversable="false"
-                                    styleClass="qa-neutral-button"/>
-
-                            <Button text="Rotate Right (1°)"
-                                    fx:id="qaRotateRightButton"
-                                    onAction="#onRotateRight"
-                                    maxWidth="Infinity"
-                                    visible="false"
-                                    managed="false"
-                                    focusTraversable="false"
-                                    styleClass="qa-neutral-button"/>
-                        </VBox>
-
                         <Button text="Complete QA"
                                 onAction="#onCompleteQa"
                                 maxWidth="Infinity"
@@ -543,3 +499,5 @@
         </center>
     </BorderPane>
 </StackPane>
+
+

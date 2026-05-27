@@ -579,22 +579,25 @@
                               promptText="Enter rotation in degrees"
                               styleClass="scan-tool-button"/>
 
-                    <Button text="Rotation"
-                            onAction="#onApplyPageRotation"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
+                    <HBox spacing="6"
+                          alignment="CENTER"
+                          maxWidth="Infinity">
+                        <Button text="↺"
+                                fx:id="rotateLeftButton"
+                                onAction="#onRotateLeft"
+                                styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Left (1°)"
-                            fx:id="rotateLeftButton"
-                            onAction="#onRotateLeft"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
+                        <Button text="Rotation"
+                                onAction="#onApplyPageRotation"
+                                HBox.hgrow="ALWAYS"
+                                maxWidth="Infinity"
+                                styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Right (1°)"
-                            fx:id="rotateRightButton"
-                            onAction="#onRotateRight"
-                            maxWidth="Infinity"
-                            styleClass="scan-tool-button"/>
+                        <Button text="↻"
+                                fx:id="rotateRightButton"
+                                onAction="#onRotateRight"
+                                styleClass="scan-tool-button"/>
+                    </HBox>
 
                     <Button text="Delete Page"
                             onAction="#onDeleteSelectedPage"

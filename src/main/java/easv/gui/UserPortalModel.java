@@ -226,7 +226,7 @@ public class UserPortalModel {
                                 formatHistoryTime(summary.startedAt()),
                                 completedAt,
                                 summary.pageCount(),
-                                "-"
+                                formatHistorySize(summary.totalSizeBytes())
                         );
                     })
                     .toList();
@@ -627,6 +627,20 @@ public class UserPortalModel {
             case APPROVED -> "QA Approved";
             case REJECTED -> "QA Rejected";
         };
+    }
+
+    private String formatHistorySize(long totalSizeBytes) {
+        if (totalSizeBytes <= 0) {
+            return "-";
+        }
+
+        double sizeKb = totalSizeBytes / 1024.0;
+        if (sizeKb < 1024) {
+            return String.format(Locale.US, "%.1f KB", sizeKb);
+        }
+
+        double sizeMb = sizeKb / 1024.0;
+        return String.format(Locale.US, "%.1f MB", sizeMb);
     }
 
     private List<Document> toExportDocuments(QAService.QaAssignmentSnapshot assignment) {
