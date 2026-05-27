@@ -4483,6 +4483,16 @@
     -fx-alignment: center;
 }
 
+.qa-progress-chip-issues {
+    -fx-text-fill: #FF3D32;
+    -fx-border-color: #FF3D32;
+}
+
+.qa-progress-chip-complete {
+    -fx-text-fill: #4CD07D;
+    -fx-border-color: #4CD07D;
+}
+
 .scan-center-panel {
     -fx-background-color: -wl-background;
 }

@@ -957,6 +957,15 @@ public class AssignedQaController {
                         + selectedAssignment.totalPages
                         + " pages reviewed"
         );
+        qaProgressLabel.getStyleClass().removeAll(
+                "qa-progress-chip-issues",
+                "qa-progress-chip-complete"
+        );
+        if (selectedAssignment.status == QaStatus.ISSUES_FOUND) {
+            qaProgressLabel.getStyleClass().add("qa-progress-chip-issues");
+        } else if (selectedAssignment.status == QaStatus.QA_COMPLETED) {
+            qaProgressLabel.getStyleClass().add("qa-progress-chip-complete");
+        }
 
         reviewStatusBadge.setText(selectedAssignment.status.displayName);
         reviewStatusBadge.getStyleClass().removeAll(

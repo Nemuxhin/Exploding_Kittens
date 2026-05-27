@@ -234,6 +234,16 @@
     -fx-background-color: #4CD07D;
 }
 
+.qa-progress-chip-issues {
+    -fx-text-fill: #FF3D32;
+    -fx-border-color: #FF3D32;
+}
+
+.qa-progress-chip-complete {
+    -fx-text-fill: #4CD07D;
+    -fx-border-color: #4CD07D;
+}
+
 /* =========================================================
    17.7 ASSIGNED QA ACTION BUTTONS
    ========================================================= */
