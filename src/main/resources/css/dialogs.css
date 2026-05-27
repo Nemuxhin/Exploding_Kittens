@@ -1184,6 +1184,186 @@
     -fx-line-spacing: 2px;
 }
 
+/* =========================================================
+   BARCODE ALERT DIALOG
+   ========================================================= */
+
+.barcode-alert-dialog-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-family: "Montserrat";
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.barcode-alert-dialog-pane > .header-panel {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.barcode-alert-dialog-pane > .button-bar > .container {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.barcode-alert-dialog-pane > .content {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.barcode-alert-dialog-root {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-root {
+    -fx-background-color: #243242;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-effect: none;
+}
+
+.barcode-alert-dialog-header {
+    -fx-min-height: 58;
+    -fx-pref-height: 58;
+    -fx-padding: 0 16 0 16;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18 18 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-header {
+    -fx-background-color: #243242;
+    -fx-border-color: transparent transparent rgba(255, 255, 255, 0.08) transparent;
+}
+
+.barcode-alert-dialog-brand-shell {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 7;
+    -fx-alignment: center;
+}
+
+.barcode-alert-dialog-brand-label {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.barcode-alert-dialog-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-title {
+    -fx-text-fill: white;
+}
+
+.barcode-alert-dialog-close-button {
+    -fx-min-width: 28;
+    -fx-pref-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-secondary;
+    -fx-font-size: 18px;
+    -fx-font-weight: 300;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.barcode-alert-dialog-close-button:hover,
+.barcode-alert-dialog-close-button:pressed,
+.barcode-alert-dialog-close-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button {
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button:hover,
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button:pressed,
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button:focused {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: white;
+}
+
+.barcode-alert-dialog-body {
+    -fx-padding: 18 22 18 22;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 0 0 18 18;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-body {
+    -fx-background-color: #243242;
+}
+
+.barcode-alert-dialog-message {
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 16px;
+    -fx-font-weight: 400;
+    -fx-line-spacing: 2px;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-message {
+    -fx-text-fill: white;
+}
+
+.barcode-alert-dialog-actions {
+    -fx-padding: 0;
+}
+
+.barcode-alert-dialog-ok-button {
+    -fx-min-width: 96;
+    -fx-pref-width: 96;
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: transparent;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.barcode-alert-dialog-ok-button:hover,
+.barcode-alert-dialog-ok-button:pressed,
+.barcode-alert-dialog-ok-button:focused {
+    -fx-background-color: derive(-wl-primary, 8%);
+    -fx-text-fill: -wl-on-primary;
+    -fx-border-color: transparent;
+}
+
 .profile-created-dialog-actions {
     -fx-alignment: center-right;
 }
