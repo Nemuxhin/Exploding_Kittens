@@ -25,8 +25,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class BarcodeSplitService {
-    private static final int BARCODE_SCAN_WIDTH = 1200;
-    private static final int BARCODE_SCAN_HEIGHT = 1200;
+    private static final int BARCODE_SCAN_WIDTH = 900;
+    private static final int BARCODE_SCAN_HEIGHT = 900;
     private static final Map<DecodeHintType, Object> DECODE_HINTS = createDecodeHints();
 
     public DetectionResult classify(String sourceReference, String barcodeValue, String displayContent) {
@@ -45,13 +45,13 @@ public class BarcodeSplitService {
             return new DetectionResult(PageImage.PageType.BARCODE, providedBarcodeValue);
         }
 
+        if (isStrongProvidedBarcodeValue(providedBarcodeValue)) {
+            return new DetectionResult(PageImage.PageType.BARCODE, providedBarcodeValue);
+        }
+
         String decodedBarcodeValue = decodeBarcodeValue(imageBytes);
         if (!decodedBarcodeValue.isBlank()) {
             return new DetectionResult(PageImage.PageType.BARCODE, decodedBarcodeValue);
-        }
-
-        if (isStrongProvidedBarcodeValue(providedBarcodeValue)) {
-            return new DetectionResult(PageImage.PageType.BARCODE, providedBarcodeValue);
         }
 
         return new DetectionResult(PageImage.PageType.TIFF, "");
@@ -90,7 +90,7 @@ public class BarcodeSplitService {
         }
 
         BufferedImage rotated90 = rotateClockwise(image);
-        decoded = tryDecodeRegions(focusRegions(rotated90));
+        decoded = tryDecodeRegions(rotationFocusRegions(rotated90));
         if (!decoded.isBlank()) {
             return decoded;
         }
@@ -100,17 +100,13 @@ public class BarcodeSplitService {
         }
 
         BufferedImage rotated180 = rotateClockwise(rotated90);
-        decoded = tryDecodeRegions(focusRegions(rotated180));
-        if (!decoded.isBlank()) {
-            return decoded;
-        }
         decoded = firstAcceptedDecode(rotated180);
         if (!decoded.isBlank()) {
             return decoded;
         }
 
         BufferedImage rotated270 = rotateClockwise(rotated180);
-        decoded = tryDecodeRegions(focusRegions(rotated270));
+        decoded = tryDecodeRegions(rotationFocusRegions(rotated270));
         if (!decoded.isBlank()) {
             return decoded;
         }
@@ -180,13 +176,41 @@ public class BarcodeSplitService {
 
         regions.add(bottomHalf);
         regions.add(bottomBand);
-        regions.add(lowerLeftHalf);
-        regions.add(lowerLeftThird);
         regions.add(lowerCenterBand);
         regions.add(barcodeCluster);
-        regions.add(scale(lowerLeftHalf, lowerLeftHalf.getWidth() * 2, lowerLeftHalf.getHeight() * 2));
-        regions.add(scale(barcodeCluster, barcodeCluster.getWidth() * 3, barcodeCluster.getHeight() * 3));
+        regions.add(lowerLeftHalf);
+        regions.add(lowerLeftThird);
+        regions.add(scale(barcodeCluster, barcodeCluster.getWidth() * 2, barcodeCluster.getHeight() * 2));
 
+        return regions;
+    }
+
+    private List<BufferedImage> rotationFocusRegions(BufferedImage image) {
+        List<BufferedImage> regions = new java.util.ArrayList<>();
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        if (width < 60 || height < 60) {
+            return regions;
+        }
+
+        BufferedImage centerBand = crop(
+                image,
+                Math.max(0, (width * 30) / 100),
+                0,
+                Math.max(1, (width * 40) / 100),
+                height
+        );
+        BufferedImage leftBand = crop(
+                image,
+                0,
+                0,
+                Math.max(1, width / 3),
+                height
+        );
+
+        regions.add(centerBand);
+        regions.add(leftBand);
         return regions;
     }
 

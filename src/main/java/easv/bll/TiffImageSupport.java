@@ -54,10 +54,9 @@ public final class TiffImageSupport {
                 if (maxWidth > 0 && maxHeight > 0) {
                     int width = reader.getWidth(0);
                     int height = reader.getHeight(0);
-                    int subsampling = Math.max(1, Math.min(
-                            Math.max(1, width / maxWidth),
-                            Math.max(1, height / maxHeight)
-                    ));
+                    int widthSubsampling = divideRoundUp(width, maxWidth);
+                    int heightSubsampling = divideRoundUp(height, maxHeight);
+                    int subsampling = Math.max(1, Math.max(widthSubsampling, heightSubsampling));
                     param.setSourceSubsampling(subsampling, subsampling, 0, 0);
                 }
 
@@ -81,5 +80,12 @@ public final class TiffImageSupport {
             ImageIO.scanForPlugins();
             imageIoPluginsLoaded = true;
         }
+    }
+
+    private static int divideRoundUp(int value, int divisor) {
+        if (divisor <= 0) {
+            return 1;
+        }
+        return Math.max(1, (value + divisor - 1) / divisor);
     }
 }
