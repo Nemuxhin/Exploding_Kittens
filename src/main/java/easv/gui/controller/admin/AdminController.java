@@ -4,6 +4,7 @@ import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.AuthManager;
 import easv.bll.UserSession;
+import easv.gui.BackgroundExecutor;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
 import easv.util.Strings;
@@ -86,11 +87,12 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private Label darkModeToggleIcon;
 
-    private final AdminManager adminManager = new AdminManager();
     private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
+    private AdminManager adminManager;
     private AdminPage currentPage = AdminPage.DASHBOARD;
+    private Object activePageController;
     private Scene shortcutScene;
     private boolean sceneListenerRegistered;
     private boolean userEditingTextInput;
@@ -108,6 +110,7 @@ public class AdminController implements AdminNavigator {
         configureThemeToggle();
         configureNavigation();
         showPage(AdminPage.DASHBOARD);
+        loadAdminManagerAsync();
     }
 
     private void configureBrandLogo() {
@@ -416,6 +419,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private void loadPage(AdminPage page) {
+        activePageController = null;
         URL pageUrl = getClass().getResource(page.fxmlPath());
 
         if (pageUrl == null) {
@@ -427,7 +431,8 @@ public class AdminController implements AdminNavigator {
             FXMLLoader loader = new FXMLLoader(pageUrl);
             Parent loadedPage = loader.load();
 
-            configureLoadedController(loader.getController());
+            activePageController = loader.getController();
+            configureLoadedController(activePageController);
             configureLoadedPageSize(loadedPage);
             PrimeIcons.applyFont(loadedPage);
             contentHost.getChildren().setAll(loadedPage);
@@ -439,19 +444,43 @@ public class AdminController implements AdminNavigator {
     private void configureLoadedController(Object controller) {
         if (controller instanceof DashboardController dashboardController) {
             dashboardController.setNavigator(this);
-            dashboardController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                dashboardController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ManageUsersController manageUsersController) {
-            manageUsersController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                manageUsersController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ProfilesController profilesController) {
             profilesController.setNavigator(this);
-            profilesController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                profilesController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof AssignmentsController assignmentsController) {
-            assignmentsController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                assignmentsController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ReviewController reviewController) {
-            reviewController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                reviewController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ActivityController activityController) {
-            activityController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                activityController.setAdminManager(adminManager);
+            }
         }
+    }
+
+    private void loadAdminManagerAsync() {
+        BackgroundExecutor.io().execute(() -> {
+            AdminManager loadedAdminManager = new AdminManager();
+            Platform.runLater(() -> {
+                adminManager = loadedAdminManager;
+                if (activePageController != null) {
+                    configureLoadedController(activePageController);
+                }
+            });
+        });
     }
 
     private void configureLoadedPageSize(Parent page) {

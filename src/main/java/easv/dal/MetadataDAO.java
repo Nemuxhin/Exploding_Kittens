@@ -32,6 +32,7 @@ public class MetadataDAO {
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
                             name,
+                            %s
                             code,
                             description,
                             status,
@@ -50,12 +51,13 @@ public class MetadataDAO {
                             metadata_required_before_export
                      FROM scan_profiles
                      ORDER BY id
-                     """);
+                     """.formatted(selectClientColumn(connection)));
              ResultSet resultSet = statement.executeQuery()) {
             List<ScanProfile> profiles = new ArrayList<>();
+            boolean includeClient = hasProfileClientColumn(connection);
 
             while (resultSet.next()) {
-                profiles.add(readScanProfile(resultSet));
+                profiles.add(readScanProfile(resultSet, includeClient));
             }
 
             return profiles;
@@ -72,13 +74,16 @@ public class MetadataDAO {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO scan_profiles
-                     (name, code, description, status, metadata_template_name, export_naming,
+                     (name, %scode, description, status, metadata_template_name, export_naming,
                       last_updated, archived, barcode_splitting, barcode_detected_behavior,
                       barcode_page_behavior, default_rotation, brightness, contrast, deskew,
                       export_format, metadata_required_before_export, created_at, updated_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                     """, Statement.RETURN_GENERATED_KEYS)) {
-            setProfileValues(statement, profile);
+                     VALUES (%s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                     """.formatted(
+                     insertClientColumn(connection),
+                     insertProfileValuePlaceholders(connection)
+             ), Statement.RETURN_GENERATED_KEYS)) {
+            setProfileValues(statement, profile, hasProfileClientColumn(connection));
             statement.executeUpdate();
             return copyProfileWithId(readGeneratedIntId(statement, "scan profile"), profile);
         } catch (SQLException exception) {
@@ -91,6 +96,7 @@ public class MetadataDAO {
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE scan_profiles
                      SET name = ?,
+                         %s
                          code = ?,
                          description = ?,
                          status = ?,
@@ -109,25 +115,9 @@ public class MetadataDAO {
                          metadata_required_before_export = ?,
                          updated_at = CURRENT_TIMESTAMP
                      WHERE id = ?
-                     """)) {
-            statement.setString(1, profile.getName());
-            statement.setString(2, profile.getCode());
-            statement.setString(3, profile.getDescription());
-            statement.setString(4, profile.getStatus());
-            statement.setString(5, profile.getMetadataTemplateName());
-            statement.setString(6, profile.getExportNaming());
-            statement.setString(7, profile.getLastUpdated());
-            statement.setBoolean(8, profile.isArchived());
-            statement.setBoolean(9, profile.isBarcodeSplitting());
-            statement.setString(10, profile.getBarcodeDetectedBehavior());
-            statement.setString(11, profile.getBarcodePageBehavior());
-            statement.setString(12, profile.getDefaultRotation());
-            statement.setString(13, profile.getBrightness());
-            statement.setString(14, profile.getContrast());
-            statement.setBoolean(15, profile.isDeskew());
-            statement.setString(16, profile.getExportFormat());
-            statement.setBoolean(17, profile.isMetadataRequiredBeforeExport());
-            statement.setInt(18, profile.getId());
+                     """.formatted(updateClientColumn(connection)))) {
+            int nextIndex = setProfileValues(statement, profile, hasProfileClientColumn(connection));
+            statement.setInt(nextIndex, profile.getId());
             statement.executeUpdate();
         } catch (SQLException exception) {
             throw new DataAccessException("Failed to update scan profile " + profile.getName(), exception);
@@ -303,10 +293,11 @@ public class MetadataDAO {
         }
     }
 
-    private ScanProfile readScanProfile(ResultSet resultSet) throws SQLException {
+    private ScanProfile readScanProfile(ResultSet resultSet, boolean includeClient) throws SQLException {
         return new ScanProfile(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
+                includeClient ? resultSet.getString("client") : "",
                 resultSet.getString("code"),
                 resultSet.getString("description"),
                 displayStatus(resultSet.getString("status")),
@@ -326,24 +317,29 @@ public class MetadataDAO {
         );
     }
 
-    private void setProfileValues(PreparedStatement statement, ScanProfile profile) throws SQLException {
-        statement.setString(1, profile.getName());
-        statement.setString(2, profile.getCode());
-        statement.setString(3, profile.getDescription());
-        statement.setString(4, profile.getStatus());
-        statement.setString(5, profile.getMetadataTemplateName());
-        statement.setString(6, profile.getExportNaming());
-        statement.setString(7, profile.getLastUpdated());
-        statement.setBoolean(8, profile.isArchived());
-        statement.setBoolean(9, profile.isBarcodeSplitting());
-        statement.setString(10, profile.getBarcodeDetectedBehavior());
-        statement.setString(11, profile.getBarcodePageBehavior());
-        statement.setString(12, profile.getDefaultRotation());
-        statement.setString(13, profile.getBrightness());
-        statement.setString(14, profile.getContrast());
-        statement.setBoolean(15, profile.isDeskew());
-        statement.setString(16, profile.getExportFormat());
-        statement.setBoolean(17, profile.isMetadataRequiredBeforeExport());
+    private int setProfileValues(PreparedStatement statement, ScanProfile profile, boolean includeClient) throws SQLException {
+        int index = 1;
+        statement.setString(index++, profile.getName());
+        if (includeClient) {
+            statement.setString(index++, profile.getClient());
+        }
+        statement.setString(index++, profile.getCode());
+        statement.setString(index++, profile.getDescription());
+        statement.setString(index++, profile.getStatus());
+        statement.setString(index++, profile.getMetadataTemplateName());
+        statement.setString(index++, profile.getExportNaming());
+        statement.setString(index++, profile.getLastUpdated());
+        statement.setBoolean(index++, profile.isArchived());
+        statement.setBoolean(index++, profile.isBarcodeSplitting());
+        statement.setString(index++, profile.getBarcodeDetectedBehavior());
+        statement.setString(index++, profile.getBarcodePageBehavior());
+        statement.setString(index++, profile.getDefaultRotation());
+        statement.setString(index++, profile.getBrightness());
+        statement.setString(index++, profile.getContrast());
+        statement.setBoolean(index++, profile.isDeskew());
+        statement.setString(index++, profile.getExportFormat());
+        statement.setBoolean(index++, profile.isMetadataRequiredBeforeExport());
+        return index;
     }
 
     private Map<Integer, List<MetadataField>> loadFieldsByTemplate(Connection connection) throws SQLException {
@@ -656,6 +652,7 @@ public class MetadataDAO {
         return new ScanProfile(
                 id,
                 profile.getName(),
+                profile.getClient(),
                 profile.getCode(),
                 profile.getDescription(),
                 profile.getStatus(),
@@ -673,6 +670,28 @@ public class MetadataDAO {
                 profile.getExportFormat(),
                 profile.isMetadataRequiredBeforeExport()
         );
+    }
+
+    private boolean hasProfileClientColumn(Connection connection) throws SQLException {
+        return DatabaseConnection.columnExists(connection, "scan_profiles", "client");
+    }
+
+    private String selectClientColumn(Connection connection) throws SQLException {
+        return hasProfileClientColumn(connection) ? "client,\n                            " : "";
+    }
+
+    private String insertClientColumn(Connection connection) throws SQLException {
+        return hasProfileClientColumn(connection) ? "client, " : "";
+    }
+
+    private String updateClientColumn(Connection connection) throws SQLException {
+        return hasProfileClientColumn(connection) ? "client = ?,\n                         " : "";
+    }
+
+    private String insertProfileValuePlaceholders(Connection connection) throws SQLException {
+        return hasProfileClientColumn(connection)
+                ? "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?"
+                : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
     }
 
     private MetadataTemplate copyTemplateWithId(int id, MetadataTemplate template, List<MetadataField> fields) {
