@@ -20,6 +20,7 @@ public class PageImage {
     private int rotationDegrees;
     private String displayContent;
     private byte[] previewSourceBytes = new byte[0];
+    private transient String previewContentCache = "";
     private Instant deletedAt;
 
     public PageImage(int pageNumber, PageType pageType, String sourceReference) {
@@ -90,10 +91,14 @@ public class PageImage {
     }
 
     public String getPreviewContent() {
+        if (!previewContentCache.isBlank()) {
+            return previewContentCache;
+        }
         if (previewSourceBytes.length == 0) {
             return "";
         }
-        return "data:image/tiff;base64," + Base64.getEncoder().encodeToString(previewSourceBytes);
+        previewContentCache = "data:image/tiff;base64," + Base64.getEncoder().encodeToString(previewSourceBytes);
+        return previewContentCache;
     }
 
     public boolean isDeleted() {
@@ -121,6 +126,7 @@ public class PageImage {
 
     public void setPreviewSourceBytes(byte[] previewSourceBytes) {
         this.previewSourceBytes = previewSourceBytes == null ? new byte[0] : Arrays.copyOf(previewSourceBytes, previewSourceBytes.length);
+        this.previewContentCache = "";
     }
 
     public void markDeleted(Instant deletedAt) {
