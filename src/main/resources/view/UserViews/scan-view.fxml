@@ -589,6 +589,7 @@
 
                         <Button text="Rotation"
                                 onAction="#onApplyPageRotation"
+                                disable="true"
                                 HBox.hgrow="ALWAYS"
                                 maxWidth="Infinity"
                                 styleClass="scan-tool-button"/>
