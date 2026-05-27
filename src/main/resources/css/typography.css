@@ -1,56 +1,48 @@
 /* =========================================================
    WEBLAGER TYPOGRAPHY
-   Single source of truth for all font family, sizes, and weights.
+   Single source of truth for font family, font size, and font weight.
 
-   Load this file LAST after:
-   app.css, shell.css, page CSS files, dialogs.css, etc.
+   Load this file LAST after app.css, shell.css, page CSS files,
+   dialogs.css, and any screen-specific CSS.
+
+   JavaFX font note:
+   MainApp registers Montserrat Medium and Montserrat SemiBold as
+   separate font families, not as weights of "Montserrat".
+
+   Use:
+   - Regular:  "Montserrat" + normal
+   - Medium:   "Montserrat Medium" + normal
+   - SemiBold: "Montserrat SemiBold" + normal
+   - Bold:     "Montserrat" + bold
 
    WebLager scale:
-   - H1: 21px / 700 Bold
-   - H2: 18px / 600 SemiBold
-   - H3: 15px / 600 SemiBold
-   - Body: 12px / 400 Regular
-   - Labels: 12px / 400 Regular or 12px / 500 Medium
-   - Buttons: 12px / 500 Medium
-   - Helper text: 10px / 400 Regular
-   - Icons: PrimeIcons, usually 14px
+   - H1: 21px / Bold
+   - H2: 18px / SemiBold
+   - H3: 15px / SemiBold
+   - Body: 12px / Regular
+   - Labels: 12px / Regular or Medium
+   - Buttons: 12px / Medium
+   - Helper text: 10px / Regular
    ========================================================= */
 
-
 /* =========================================================
-   01. FONT FAMILY BASELINE
+   01. BASELINE
+   Do not directly flatten every .label here.
+   Root inheritance gives normal text the default without blocking
+   page-specific hierarchy classes.
    ========================================================= */
 
 .root,
 .app-shell,
-.login-page,
-.label,
-.text,
-.button,
-.toggle-button,
-.menu-button,
-.text-field,
-.password-field,
-.text-area,
-.combo-box-base,
-.choice-box,
-.date-picker,
-.list-cell,
-.table-view,
-.table-row-cell,
-.tree-view,
-.tree-cell,
-.check-box,
-.radio-button,
-.hyperlink,
-.tooltip {
+.login-page {
     -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
 }
-
 
 /* =========================================================
    02. PRIME ICONS
-   PrimeIcons must NOT inherit Montserrat.
+   PrimeIcons must not inherit Montserrat.
    ========================================================= */
 
 .prime-icon,
@@ -66,96 +58,57 @@
 .sidebar-theme-icon,
 .top-icon-toggle-svg {
     -fx-font-family: "primeicons";
-    -fx-font-weight: 400;
-}
-
-/* Standard icon glyph sizing. Icon container sizing stays in component CSS. */
-.prime-icon,
-.admin-toolbar-icon,
-.admin-top-nav-icon,
-.admin-account-theme-icon {
     -fx-font-size: 14px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
-
 
 /* =========================================================
-   03. DEFAULT CONTROL TYPOGRAPHY
-   ========================================================= */
-
-.label,
-.text,
-.text-field,
-.password-field,
-.text-area,
-.combo-box-base,
-.combo-box-base .list-cell,
-.combo-box-popup .list-cell,
-.choice-box,
-.choice-box .list-cell,
-.date-picker,
-.date-picker .text-field,
-.list-cell,
-.table-view,
-.table-row-cell,
-.tree-view,
-.tree-cell,
-.check-box,
-.radio-button,
-.tooltip {
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-.button,
-.toggle-button,
-.menu-button {
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-
-/* =========================================================
-   04. H1 — PAGE / SCREEN TITLES
-   21px / 700
+   03. H1 — PAGE / SCREEN TITLES
+   21px / Bold
    ========================================================= */
 
 .wl-h1,
 .page-title,
 .assigned-qa-title,
 .create-user-editor-title,
+.login-brand-title,
+.login-form-title,
+.login-page .login-brand-title,
+.login-page .login-form-title,
 .login-page .page-title,
 .login-page .card-title {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 21px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
-
 /* =========================================================
-   05. H2 — MAJOR SECTION HEADINGS
-   18px / 600
+   04. H2 — MAJOR SECTION HEADINGS
+   18px / SemiBold
    ========================================================= */
 
 .wl-h2,
 .section-heading,
 .workspace-title,
+.dashboard-section-title,
+.settings-section-heading,
+.exports-title,
+.exports-dialog-title,
 .scan-setup-primary-title,
 .review-summary-title,
 .qa-review-title,
 .review-panel-title,
 .qa-review-panel-title,
 .qa-tools-section-title,
-.settings-section-heading,
-.exports-title,
-.exports-dialog-title {
+.weblager-help-section-title {
+    -fx-font-family: "Montserrat SemiBold";
     -fx-font-size: 18px;
-    -fx-font-weight: 600;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   06. H3 — CARD / PANEL / SMALL SECTION TITLES
-   15px / 600
+   05. H3 — CARD / PANEL / SMALL SECTION TITLES
+   15px / SemiBold
    ========================================================= */
 
 .wl-h3,
@@ -164,8 +117,10 @@
 .dialog-section-title,
 .portal-section-title,
 .portal-card-title,
-.dashboard-section-title,
+.dashboard-stat-title,
+.dashboard-summary-title,
 .dashboard-simple-title,
+.dashboard-activity-title,
 .admin-action-title,
 .profile-card-title,
 .profile-editor-section-title,
@@ -189,15 +144,17 @@
 .scan-preview-empty-title,
 .exports-dialog-section-label,
 .exports-dialog-files-title,
-.exports-dialog-option-title {
+.exports-dialog-option-title,
+.create-user-section-title,
+.weblager-help-row-title {
+    -fx-font-family: "Montserrat SemiBold";
     -fx-font-size: 15px;
-    -fx-font-weight: 600;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   07. BODY TEXT — REGULAR
-   12px / 400
+   06. BODY TEXT
+   12px / Regular
    ========================================================= */
 
 .wl-body,
@@ -251,16 +208,23 @@
 .exports-dialog-file-name,
 .exports-dialog-empty-state,
 .exports-dialog-output-label,
+.login-brand-copy,
+.login-helper-text,
+.login-page .login-brand-copy,
+.login-page .login-helper-text,
 .login-page .body-text,
-.login-page .message-label {
+.login-page .message-label,
+.weblager-help-row-copy,
+.weblager-help-answer,
+.weblager-help-support-copy {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   08. LABELS — REGULAR
-   12px / 400
+   07. LABELS — REGULAR
+   12px / Regular
    ========================================================= */
 
 .wl-label,
@@ -270,19 +234,21 @@
 .review-current-selection-label,
 .exports-metric-label,
 .exports-filter-label {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   09. LABELS — MEDIUM
-   12px / 500
+   08. LABELS — MEDIUM
+   12px / Medium
    ========================================================= */
 
 .form-label,
 .field-label,
+.login-field-label,
 .login-page .field-label,
+.login-page .login-field-label,
 .admin-brand-title,
 .admin-top-nav-label,
 .admin-account-name,
@@ -291,7 +257,6 @@
 .settings-nav-label,
 .pagination-summary-label,
 .rows-per-page-label,
-.dashboard-summary-title,
 .dashboard-workflow-label,
 .dashboard-activity-time,
 .dashboard-simple-metric,
@@ -310,44 +275,45 @@
 .qa-view-label,
 .qa-zoom-label,
 .qa-review-meta-strong,
-.review-summary-value,
 .finish-review-title,
 .submit-confirmation-title,
 .finish-review-box-id,
 .submit-confirmation-box-id,
 .exports-dialog-box-value,
-.exports-dialog-output-value {
+.exports-dialog-output-value,
+.create-user-profile-name,
+.create-user-generated-note {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   10. STRONG / IMPORTANT VALUES
-   Use sparingly for important numbers, stats, selected values.
+   09. STRONG / IMPORTANT VALUES
+   21px / Bold unless otherwise scoped.
    ========================================================= */
 
+.dashboard-stat-value,
 .dashboard-summary-value,
-.exports-metric-value,
-.barcode-preview-title {
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
-}
-
 .dashboard-summary-card .dashboard-summary-value,
 .dashboard-page .dashboard-summary-value,
-.exports-metric-card .exports-metric-value {
+.exports-metric-value,
+.exports-metric-card .exports-metric-value,
+.review-summary-value,
+.barcode-preview-title {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 21px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
-
 /* =========================================================
-   11. BUTTONS
-   12px / 500
+   10. BUTTONS
+   12px / Medium
    ========================================================= */
 
 .button,
+.toggle-button,
+.menu-button,
 .primary-button,
 .secondary-button,
 .tertiary-button,
@@ -405,12 +371,14 @@
 .my-scans-action-button,
 .my-scans-box-button,
 .profile-info-link-button,
-.create-user-generate-button {
+.create-user-generate-button,
+.login-page .primary-button,
+.login-page .button {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
-/* Primary/critical completion buttons may keep the same size, just stronger weight. */
 .scan-finish-button,
 .review-submit-button,
 .review-export-type-button,
@@ -418,14 +386,14 @@
 .qa-export-type-button,
 .finish-review-primary-button,
 .submit-confirmation-primary-button {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
-
 /* =========================================================
-   12. INPUTS / DROPDOWNS / DATE PICKERS
-   12px / 400
+   11. INPUTS / DROPDOWNS / DATE PICKERS
+   12px / Regular
    ========================================================= */
 
 .text-field,
@@ -462,14 +430,16 @@
 .create-user-input,
 .admin-dialog-pane .text-field,
 .admin-dialog-pane .password-field,
-.admin-dialog-pane .combo-box-base {
+.admin-dialog-pane .combo-box-base,
+.login-page .text-field,
+.login-page .password-field {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   13. TABLES / LISTS
+   12. TABLES / LISTS
    ========================================================= */
 
 .list-header-label,
@@ -478,30 +448,31 @@
 .exports-table-header,
 .exports-table-header-row,
 .users-list-header .label {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
 .table-cell-text,
 .table-cell-text-muted,
 .portal-table-cell,
 .exports-table-cell,
-.exports-table-cell-primary,
 .user-record .label,
 .assignment-list-item .label,
 .assignment-checkbox-row .label {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
 
 .exports-table-cell-primary {
+    -fx-font-family: "Montserrat SemiBold";
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   14. CHIPS / BADGES / STATUS
+   13. CHIPS / BADGES / STATUS
    ========================================================= */
 
 .role-badge,
@@ -519,13 +490,13 @@
 .scan-setup-step-number,
 .scan-status-chip,
 .admin-status-chip,
-.sidebar-language-text,
 .page-tray-status-badge,
 .qa-tree-page-status,
 .qa-tray-status-mark,
 .barcode-preview-badge {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
 .sidebar-language-text,
@@ -533,14 +504,14 @@
 .page-tray-status-badge,
 .qa-tree-page-status,
 .qa-tray-status-mark {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 10px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
-
 /* =========================================================
-   15. HELPER / VALIDATION / TINY META
-   10px / 400
+   14. HELPER / VALIDATION / TINY META
+   10px / Regular
    ========================================================= */
 
 .helper-text,
@@ -548,6 +519,7 @@
 .inline-feedback,
 .validation-message,
 .message-label,
+.login-page .message-label,
 .profile-editor-helper-text,
 .profile-editor-preview-key,
 .admin-brand-subtitle,
@@ -559,38 +531,13 @@
 .review-split-label,
 .page-tray-barcode-split-label,
 .user-notification-time {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 10px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
-
 
 /* =========================================================
-   16. LOGIN-SPECIFIC SPECIFICITY
-   Matches existing page-specific selectors so typography.css wins.
-   ========================================================= */
-
-.login-page .page-title,
-.login-page .card-title {
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
-}
-
-.login-page .body-text,
-.login-page .text-field,
-.login-page .password-field,
-.login-page .message-label {
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
-}
-
-.login-page .field-label {
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
-
-
-/* =========================================================
-   17. ADMIN / PORTAL TOP BAR SPECIFICITY
+   15. ADMIN / PORTAL TOP BAR
    ========================================================= */
 
 .admin-account-menu-name,
@@ -599,27 +546,29 @@
 .admin-account-logout-button,
 .admin-account-section-button,
 .account-dropdown-item-label {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
 .admin-account-menu-detail,
 .admin-status-label,
 .admin-breadcrumb {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 10px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
 
 .admin-avatar-label,
 .avatar-initials-text,
 .account-dropdown-avatar-label {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
-
 /* =========================================================
-   18. SCAN / REVIEW / QA SPECIFICITY
+   16. SCAN / REVIEW / QA SPECIFICITY
    ========================================================= */
 
 .scan-setup-primary-card .primary-button,
@@ -627,8 +576,9 @@
 .finish-review-actions-frame .button,
 .review-next-step-panel .button,
 .qa-tools-panel .button {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
 .document-embedded-page-card .page-tray-number,
@@ -636,8 +586,9 @@
 .review-embedded-page-card .review-page-tray-number,
 .page-tray-number,
 .review-page-tray-number {
+    -fx-font-family: "Montserrat Medium";
     -fx-font-size: 12px;
-    -fx-font-weight: 500;
+    -fx-font-weight: normal;
 }
 
 .qa-page-status-text-approved,
@@ -645,13 +596,13 @@
 .document-tree-warning,
 .review-document-warning,
 .assigned-qa-card-issues {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
-
 /* =========================================================
-   19. EXPORTS / TABLE SPECIFICITY
+   17. EXPORTS / TABLE SPECIFICITY
    ========================================================= */
 
 .dashboard-page .exports-table-header,
@@ -667,15 +618,17 @@
 }
 
 .exports-dialog-title {
+    -fx-font-family: "Montserrat SemiBold";
     -fx-font-size: 18px;
-    -fx-font-weight: 600;
+    -fx-font-weight: normal;
 }
 
 .exports-dialog-section-label,
 .exports-dialog-files-title,
 .exports-dialog-option-title {
+    -fx-font-family: "Montserrat SemiBold";
     -fx-font-size: 15px;
-    -fx-font-weight: 600;
+    -fx-font-weight: normal;
 }
 
 .exports-dialog-option-subtitle,
@@ -684,32 +637,36 @@
 .exports-dialog-empty-state,
 .exports-dialog-output-label,
 .exports-dialog-box-detail {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }
 
-
 /* =========================================================
-   20. INTENTIONAL DISPLAY / DOCUMENT PREVIEW TEXT
-   These are special preview elements, not normal UI body text.
+   18. INTENTIONAL DISPLAY / DOCUMENT PREVIEW TEXT
+   Special preview elements, not normal UI body text.
    ========================================================= */
 
 .mock-barcode-bars {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 21px;
-    -fx-font-weight: 900;
+    -fx-font-weight: bold;
 }
 
 .barcode-preview-bars {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 42px;
-    -fx-font-weight: 900;
+    -fx-font-weight: bold;
 }
 
 .scan-preview-loading-title {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 21px;
-    -fx-font-weight: 700;
+    -fx-font-weight: bold;
 }
 
 .preview-arrow-button {
+    -fx-font-family: "Montserrat";
     -fx-font-size: 21px;
-    -fx-font-weight: 400;
+    -fx-font-weight: normal;
 }

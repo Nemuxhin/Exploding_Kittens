@@ -31,8 +31,6 @@
 
 .user-brand-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .top-nav-item,
@@ -46,9 +44,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-border-width: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -97,8 +92,6 @@
 
 .top-help-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .top-icon-toggle {
@@ -148,14 +141,10 @@
 
 .avatar-initials-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .top-user-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .top-user-chevron {
@@ -276,18 +265,14 @@
 .portal-card-title,
 .exports-title {
     -fx-text-fill: -wl-text;
-    -fx-font-weight: 700;
 }
 
 .portal-card-title,
 .exports-title {
-    -fx-font-size: 12px;
 }
 
 .dashboard-simple-title,
 .admin-action-title {
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .dashboard-summary-subtitle,
@@ -297,7 +282,6 @@
 .exports-subtitle,
 .exports-footer-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 .admin-action-tile {
@@ -347,7 +331,6 @@
 .settings-nav-icon {
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
     -fx-alignment: center;
 }
 
@@ -368,8 +351,6 @@
     -fx-border-radius: 6;
     -fx-min-height: 30;
     -fx-pref-height: 30;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -426,13 +407,11 @@
 .exports-table-cell,
 .exports-table-cell-primary {
     -fx-padding: 12;
-    -fx-font-size: 12px;
 }
 
 .portal-table-cell-head,
 .exports-table-header {
     -fx-text-fill: -wl-table-header-text;
-    -fx-font-weight: 600;
 }
 
 .portal-table-cell,
@@ -442,7 +421,6 @@
 
 .exports-table-cell-primary {
     -fx-text-fill: -wl-text;
-    -fx-font-weight: 600;
 }
 
 .portal-table-link {
@@ -450,8 +428,6 @@
     -fx-border-color: transparent;
     -fx-text-fill: -wl-primary;
     -fx-padding: 12;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-cursor: hand;
 }
 
@@ -460,8 +436,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-primary;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-cursor: hand;
 }
 
@@ -477,8 +451,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 12;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-text-fill: -wl-text;
     -fx-alignment: center-left;
     -fx-cursor: hand;
@@ -566,8 +538,6 @@
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-padding: 3 9;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .status-completed,
@@ -603,13 +573,10 @@
 .exports-metric-label,
 .exports-filter-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 .exports-metric-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .exports-filter-panel {
@@ -640,7 +607,6 @@
     -fx-max-height: 30;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
 }
 
 .exports-filter-input:hover {
@@ -680,7 +646,6 @@
     -fx-padding: 0 0 0 12;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
 }
 
 .exports-date-picker:hover {
@@ -719,7 +684,6 @@
 }
 
 .date-picker-popup > * > .day-cell {
-    -fx-font-size: 12px;
 }
 
 .exports-table-panel {
@@ -768,15 +732,11 @@
 
 .exports-dialog-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-section-label,
 .exports-dialog-files-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-box-card {
@@ -791,13 +751,10 @@
 
 .exports-dialog-box-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-box-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 .exports-dialog-type-row {
@@ -849,13 +806,10 @@
 
 .exports-dialog-option-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-option-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 .exports-dialog-option-check-badge {
@@ -873,7 +827,6 @@
 .exports-dialog-option-check-icon {
     -fx-fill: -wl-on-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 12px;
     -fx-scale-x: 0.82;
     -fx-scale-y: 0.82;
 }
@@ -901,7 +854,6 @@
 .exports-dialog-empty-state,
 .exports-dialog-output-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 .exports-dialog-file-cell-box {
@@ -984,8 +936,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-secondary-nav-bg;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -1018,8 +968,6 @@
 
 .exports-dialog-output-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-pref-width: 420;
     -fx-max-width: 420;
 }

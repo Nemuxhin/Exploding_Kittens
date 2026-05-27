@@ -4,7 +4,6 @@
    ========================================================= */
 
 .login-page {
-    -fx-font-family: "Montserrat";
     -fx-background-color: #F5F5F5;
 }
 
@@ -35,32 +34,22 @@
 
 .login-page .login-brand-title {
     -fx-text-fill: #FFFFFF;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .login-page .login-brand-copy {
     -fx-text-fill: #FFFFFF;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .login-page .login-form-title {
     -fx-text-fill: #2D3D4F;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .login-page .login-helper-text {
     -fx-text-fill: #64748B;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .login-page .login-field-label {
     -fx-text-fill: #2D3D4F;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .login-page .text-field,
@@ -71,7 +60,6 @@
     -fx-border-radius: 6;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-    -fx-font-size: 12px;
     -fx-text-fill: #2D3D4F;
     -fx-prompt-text-fill: #BFBFBF;
 }
@@ -93,9 +81,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: #FFFFFF;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -110,7 +95,6 @@
 
 .login-page .message-label {
     -fx-text-fill: #64748B;
-    -fx-font-size: 12px;
     -fx-min-height: 30;
 }
 
@@ -122,18 +106,3 @@
     -fx-text-fill: #4CD07D;
 }
 
-/* =========================================================
-   TYPOGRAPHY OVERRIDES
-   Project note: keep login headings prominent while normal copy,
-   fields, buttons, and status text render at the requested 18px.
-   ========================================================= */
-
-.login-page .login-brand-copy,
-.login-page .login-helper-text,
-.login-page .login-field-label,
-.login-page .text-field,
-.login-page .password-field,
-.login-page .primary-button,
-.login-page .message-label {
-    -fx-font-size: 18px;
-}

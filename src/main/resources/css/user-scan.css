@@ -55,26 +55,18 @@
 
 .scan-setup-primary-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .scan-setup-primary-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .scan-setup-quick-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .scan-setup-quick-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .scan-setup-quick-item {
@@ -96,21 +88,15 @@
     -fx-background-color: -wl-primary;
     -fx-background-radius: 999;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
 .scan-setup-step-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .scan-setup-step-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .scan-setup-meta-row {
@@ -125,20 +111,14 @@
     -fx-border-radius: 3;
     -fx-border-width: 1;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .summary-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .helper-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .profile-info-link-button {
@@ -151,8 +131,6 @@
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -182,8 +160,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-logout-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -213,8 +189,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -242,14 +216,10 @@
 
 .profile-info-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .profile-info-line {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .weblager-text-field,
@@ -294,15 +264,12 @@
 
 .weblager-combo-box .list-cell {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
 }
 
 .scan-setup-primary-card .primary-button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-padding: 0 18 0 18;
 }
 
@@ -310,8 +277,6 @@
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-padding: 0 15 0 15;
 }
 
@@ -330,9 +295,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -399,14 +361,10 @@
 
 .workspace-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .workspace-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .scan-session-info-chip {
@@ -421,8 +379,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-alignment: center;
 }
 
@@ -438,14 +394,10 @@
 
 .selected-file-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .selected-file-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -461,15 +413,11 @@
 
 .scan-panel-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .scan-panel-subtitle,
 .scan-tools-section-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .document-tree-scroll,
@@ -529,14 +477,10 @@
 
 .document-tree-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .document-tree-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .document-tree-document-block {
@@ -573,20 +517,14 @@
 .document-tree-chevron,
 .document-tree-document-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .document-tree-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .document-tree-warning {
     -fx-text-fill: -wl-error;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .document-tree-page-row {
@@ -610,14 +548,10 @@
 
 .document-tree-page-drag {
     -fx-text-fill: -wl-placeholder;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .document-tree-page-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .document-tree-barcode-split-row {
@@ -635,8 +569,6 @@
 .document-tree-split-row {
     -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
     -fx-alignment: center;
 }
 
@@ -652,20 +584,14 @@
 
 .view-toolbar-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .view-toolbar-muted-label {
     -fx-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .view-zoom-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .view-tool-button {
@@ -683,8 +609,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -707,8 +631,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -758,8 +680,6 @@
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 400;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-background-insets: 0;
@@ -786,13 +706,10 @@
 
 .scan-preview-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .scan-preview-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 /* =========================================================
@@ -858,8 +775,6 @@
 
 .document-preview-barcode-bars {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .preview-warning-banner {
@@ -870,8 +785,6 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 /* =========================================================
@@ -886,25 +799,18 @@
     -fx-border-radius: 999;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .barcode-preview-title {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .barcode-preview-bars {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .barcode-preview-copy {
     -fx-text-fill: -wl-secondary;
-    -fx-font-size: 12px;
     -fx-text-alignment: center;
 }
 
@@ -926,8 +832,6 @@
 .page-tray-title,
 .page-tray-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .page-tray-scroll,
@@ -995,8 +899,6 @@
 
 .page-tray-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-padding: 12 0 12 0;
 }
 
@@ -1069,12 +971,9 @@
 .page-tray-barcode-split-label,
 .review-page-tray-number {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .page-tray-barcode-split-label {
-    -fx-font-weight: 600;
 }
 
 .page-tray-status-badge {
@@ -1090,15 +989,11 @@
     -fx-border-radius: 999;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
 .page-tray-barcode-mark {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .page-tray-document-split {
@@ -1171,9 +1066,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -1233,7 +1125,6 @@
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 700;
 }
 
 .scan-finish-button:hover,
@@ -1292,8 +1183,6 @@
 .finish-review-title,
 .submit-confirmation-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .finish-review-summary-card,
@@ -1309,8 +1198,6 @@
 .finish-review-box-id,
 .submit-confirmation-box-id {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .finish-review-summary-muted,
@@ -1318,8 +1205,6 @@
 .submit-confirmation-summary-muted,
 .submit-confirmation-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .finish-review-secondary-button,
@@ -1336,9 +1221,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -1365,7 +1247,6 @@
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 700;
 }
 
 .finish-review-primary-button:hover,
@@ -1406,8 +1287,6 @@
 
 .finish-review-button-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .finish-review-secondary-button:hover .finish-review-button-icon,
@@ -1437,20 +1316,14 @@
 .review-summary-title,
 .qa-review-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-summary-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-left-panel {
@@ -1462,8 +1335,6 @@
 
 .review-panel-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-document-scroll,
@@ -1506,14 +1377,10 @@
 
 .review-document-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-document-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .review-document-card-selected .review-document-title,
@@ -1523,8 +1390,6 @@
 
 .review-document-warning {
     -fx-text-fill: -wl-error;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .review-split-row {
@@ -1542,8 +1407,6 @@
 .review-split-label {
     -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .review-center-panel {
@@ -1558,8 +1421,6 @@
 
 .review-selected-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-view-icon {
@@ -1568,8 +1429,6 @@
     -fx-max-width: 0;
     -fx-alignment: center;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-opacity: 0;
 }
 
@@ -1607,14 +1466,10 @@
 
 .review-preview-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-page-tray-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-page-tray-item-selected,
@@ -1643,9 +1498,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -1658,8 +1510,6 @@
 
 .review-next-step-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-wrap-text: true;
 }
 
@@ -1674,8 +1524,6 @@
 
 .review-current-selection-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-padding: 0 0 3 0;
 }
 
@@ -1685,15 +1533,11 @@
 
 .review-current-selection-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-padding: 3 0 0 0;
 }
 
 .review-current-selection-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .review-empty-state {
@@ -1707,14 +1551,10 @@
 
 .review-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================

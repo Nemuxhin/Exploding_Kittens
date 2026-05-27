@@ -15,14 +15,10 @@
 
 .activity-log-page.logs-page .logs-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* Toolbar */
@@ -81,8 +77,6 @@
 .activity-log-page.logs-page .field-icon-path,
 .activity-log-page.logs-page .logs-filter-icon-path {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .activity-log-page.logs-page .field-icon-path .text,
@@ -100,8 +94,6 @@
     -fx-padding: 0;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
@@ -125,8 +117,6 @@
 
 .activity-log-page.logs-page .logs-filter-button-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-filter-copy {
@@ -135,14 +125,10 @@
 
 .activity-log-page.logs-page .logs-filter-heading {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-filter-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-page.logs-page .logs-filter > .arrow-button,
@@ -163,8 +149,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-cursor: hand;
 }
 
@@ -187,8 +171,6 @@
     -fx-padding: 0 16 0 16;
     -fx-graphic-text-gap: 9;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-cursor: hand;
 }
 
@@ -206,7 +188,6 @@
 .activity-log-page.logs-page .logs-export-icon .text {
     -fx-text-fill: -wl-on-primary;
     -fx-fill: -wl-on-primary;
-    -fx-font-size: 15px;
 }
 
 .activity-log-page.logs-page .logs-count-row {
@@ -215,8 +196,6 @@
 
 .activity-log-page.logs-page .logs-showing-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .combo-box-popup .list-view {
@@ -236,8 +215,6 @@
     -fx-background-color: transparent;
     -fx-background-radius: 5;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .combo-box-popup .list-cell:hover,
@@ -283,8 +260,6 @@
 
 .logs-popover-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .logs-popover-link-button {
@@ -294,14 +269,11 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-primary;
-    -fx-font-size: 11px;
-    -fx-font-weight: 700;
     -fx-cursor: hand;
 }
 
 .logs-popover-empty-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 .logs-search-recent-row,
@@ -328,14 +300,11 @@
 .logs-sort-option-icon .text {
     -fx-text-fill: -wl-text-muted;
     -fx-fill: -wl-text-muted;
-    -fx-font-size: 13px;
 }
 
 .logs-search-recent-text,
 .logs-sort-option-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .logs-status-popover {
@@ -348,8 +317,6 @@
 
 .logs-status-popover-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 800;
 }
 
 .logs-status-selected-count {
@@ -359,8 +326,6 @@
     -fx-background-color: -wl-surface-hover;
     -fx-background-radius: 6;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
 }
 
 .logs-status-options {
@@ -375,8 +340,6 @@
     -fx-background-color: transparent;
     -fx-background-radius: 6;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
 }
 
 .logs-status-checkbox-highlighted {
@@ -407,8 +370,6 @@
 
 .logs-status-checkbox-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
 }
 
 .logs-status-pill {
@@ -416,8 +377,6 @@
     -fx-pref-height: 26;
     -fx-padding: 0 12 0 12;
     -fx-background-radius: 6;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
 }
 
 .logs-status-pill-success {
@@ -451,8 +410,6 @@
 .logs-status-helper-text {
     -fx-padding: 12 16 12 16;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .logs-popover-footer {
@@ -468,8 +425,6 @@
     -fx-max-width: 92;
     -fx-min-height: 34;
     -fx-pref-height: 34;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
 }
 
 .logs-status-popover .logs-date-apply-button {
@@ -493,7 +448,6 @@
 .logs-sort-option-check .text {
     -fx-text-fill: -wl-primary;
     -fx-fill: -wl-primary;
-    -fx-font-size: 13px;
 }
 
 .logs-filters-popover {
@@ -537,7 +491,6 @@
     -fx-padding: 0 10 0 10;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
 }
 
 .activity-log-page.logs-page .logs-calendar-panel {
@@ -551,8 +504,6 @@
 
 .activity-log-page.logs-page .logs-calendar-month-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 800;
 }
 
 .activity-log-page.logs-page .logs-calendar-nav-button {
@@ -565,8 +516,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 13px;
-    -fx-font-weight: 800;
     -fx-cursor: hand;
 }
 
@@ -587,8 +536,6 @@
     -fx-pref-height: 24;
     -fx-alignment: center;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 800;
 }
 
 .activity-log-page.logs-page .logs-calendar-day-button {
@@ -603,8 +550,6 @@
     -fx-background-radius: 999;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 11px;
-    -fx-font-weight: 600;
     -fx-cursor: hand;
 }
 
@@ -641,8 +586,6 @@
     -fx-border-radius: 6;
     -fx-padding: 0 12 0 12;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-date-mode-button-active,
@@ -664,8 +607,6 @@
 
 .activity-log-page.logs-page .logs-date-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-popover-date-picker {
@@ -683,7 +624,6 @@
     -fx-border-color: transparent;
     -fx-padding: 0 9 0 12;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
 }
 
 .activity-log-page.logs-page .logs-popover-date-picker > .arrow-button {
@@ -702,8 +642,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-padding: 0 15 0 15;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-date-clear-button {
@@ -747,8 +685,6 @@
 
 .activity-log-page.logs-page .logs-event-group-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-event-count-badge {
@@ -760,8 +696,6 @@
     -fx-background-color: -wl-surface-hover;
     -fx-background-radius: 999;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-expandable-row {
@@ -834,8 +768,6 @@
 }
 
 .activity-log-page.logs-page .logs-event-icon-path {
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-text-fill: -wl-primary;
 }
 
@@ -912,20 +844,14 @@
     -fx-pref-width: 72;
     -fx-max-width: 72;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-event-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-event-meta {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-page.logs-page .logs-area-chip,
@@ -938,8 +864,6 @@
     -fx-border-radius: 999;
     -fx-border-width: 1;
     -fx-alignment: center;
-    -fx-font-size: 10px;
-    -fx-font-weight: 600;
 }
 
 .activity-log-page.logs-page .logs-area-users {
@@ -1018,8 +942,6 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 /* Empty state */
@@ -1059,8 +981,6 @@
 }
 
 .activity-log-page.logs-page .logs-payload-header-title-text {
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
     -fx-fill: -wl-text;
 }
 
@@ -1070,8 +990,6 @@
 
 .activity-log-page.logs-page .logs-payload-header-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-page.logs-page .logs-payload-header-actor-link {
@@ -1085,8 +1003,6 @@
 
 .activity-log-page.logs-page .logs-payload-header-date {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-page.logs-page .logs-payload-close-button {
@@ -1101,8 +1017,6 @@
     -fx-background-radius: 4;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-cursor: hand;
 }
 
@@ -1117,8 +1031,6 @@
     -fx-max-height: 24;
     -fx-padding: 0 12 0 12;
     -fx-background-radius: 999;
-    -fx-font-size: 11px;
-    -fx-font-weight: 600;
     -fx-alignment: center;
 }
 
@@ -1186,7 +1098,6 @@
 
 .activity-log-page.logs-page .logs-payload-simple-header-icon,
 .activity-log-page.logs-page .logs-payload-simple-header-icon .text {
-    -fx-font-size: 18px;
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
@@ -1217,14 +1128,10 @@
 
 .activity-log-page.logs-page .logs-payload-simple-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-simple-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-page.logs-page .logs-payload-simple-body {
@@ -1242,14 +1149,10 @@
     -fx-pref-width: 118;
     -fx-max-width: 118;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-payload-simple-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-payload-simple-footer {
@@ -1258,14 +1161,10 @@
 
 .activity-log-page.logs-page .logs-payload-simple-footer-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-simple-trace {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* ----- HERO ICON VARIANTS ----- */
@@ -1294,7 +1193,6 @@
 
 .activity-log-page.logs-page .logs-payload-hero-diff-icon,
 .activity-log-page.logs-page .logs-payload-hero-diff-icon .text {
-    -fx-font-size: 20px;
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
 }
@@ -1316,7 +1214,6 @@
 
 .activity-log-page.logs-page .logs-payload-hero-asset-icon,
 .activity-log-page.logs-page .logs-payload-hero-asset-icon .text {
-    -fx-font-size: 26px;
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
@@ -1328,8 +1225,6 @@
     -fx-background-color: -wl-primary;
     -fx-background-radius: 3;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 8px;
-    -fx-font-weight: 700;
     -fx-translate-x: 4;
     -fx-translate-y: -4;
 }
@@ -1347,7 +1242,6 @@
 
 .activity-log-page.logs-page .logs-payload-hero-failure-icon,
 .activity-log-page.logs-page .logs-payload-hero-failure-icon .text {
-    -fx-font-size: 32px;
     -fx-fill: -wl-status-error-text;
     -fx-text-fill: -wl-status-error-text;
 }
@@ -1370,7 +1264,6 @@
 
 .activity-log-page.logs-page .logs-payload-hero-snapshot-icon,
 .activity-log-page.logs-page .logs-payload-hero-snapshot-icon .text {
-    -fx-font-size: 24px;
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
@@ -1401,21 +1294,16 @@
 
 .activity-log-page.logs-page .logs-payload-error-icon,
 .activity-log-page.logs-page .logs-payload-error-icon .text {
-    -fx-font-size: 16px;
     -fx-fill: -wl-status-error-text;
     -fx-text-fill: -wl-status-error-text;
 }
 
 .activity-log-page.logs-page .logs-payload-error-title {
     -fx-text-fill: -wl-status-error-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-error-copy {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* ----- SECTIONS ----- */
@@ -1426,8 +1314,6 @@
 
 .activity-log-page.logs-page .logs-payload-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-section-divider {
@@ -1492,14 +1378,10 @@
 
 .activity-log-page.logs-page .logs-payload-change-field-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-payload-change-header-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-payload-change-header-before {
@@ -1520,8 +1402,6 @@
     -fx-max-width: 156;
     -fx-padding: 0 10 0 10;
     -fx-background-radius: 6;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-alignment: center;
 }
 
@@ -1537,8 +1417,6 @@
 
 .activity-log-page.logs-page .logs-payload-change-center-arrow {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: 800;
 }
 
 /* ----- KV ROWS ----- */
@@ -1550,16 +1428,12 @@
 
 .activity-log-page.logs-page .logs-payload-kv-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-min-width: 128;
     -fx-pref-width: 128;
 }
 
 .activity-log-page.logs-page .logs-payload-kv-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
     -fx-alignment: center-left;
     -fx-text-alignment: left;
 }
@@ -1593,7 +1467,6 @@
 
 .activity-log-page.logs-page .logs-payload-kv-icon,
 .activity-log-page.logs-page .logs-payload-kv-icon .text {
-    -fx-font-size: 13px;
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
@@ -1628,22 +1501,17 @@
 
 .activity-log-page.logs-page .logs-payload-tile-icon,
 .activity-log-page.logs-page .logs-payload-tile-icon .text {
-    -fx-font-size: 12px;
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
 
 .activity-log-page.logs-page .logs-payload-tile-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 11px;
-    -fx-font-weight: 400;
     -fx-padding: 2 0 0 0;
 }
 
 .activity-log-page.logs-page .logs-payload-tile-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-tile-value-line {
@@ -1663,8 +1531,6 @@
 
 .activity-log-page.logs-page .logs-payload-trace-line {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-page.logs-page .logs-payload-copy-button {
@@ -1687,7 +1553,6 @@
 
 .activity-log-page.logs-page .logs-payload-copy-icon,
 .activity-log-page.logs-page .logs-payload-copy-icon .text {
-    -fx-font-size: 13px;
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
@@ -1695,8 +1560,6 @@
 /* ----- NOTE TEXT ----- */
 .activity-log-page.logs-page .logs-payload-note-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* ----- WORKSPACE SPLIT (list + detail) ----- */
@@ -1745,14 +1608,11 @@
 }
 
 .activity-log-page.logs-page .logs-payload-header-title-text {
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
     -fx-fill: -wl-text;
 }
 
 .activity-log-page.logs-page .logs-payload-header-subtitle,
 .activity-log-page.logs-page .logs-payload-header-date {
-    -fx-font-size: 12px;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -1774,8 +1634,6 @@
 
 .activity-log-page.logs-page .logs-payload-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-section-divider {
@@ -1819,14 +1677,10 @@
     -fx-pref-width: 132;
     -fx-max-width: 132;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-payload-kv-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .activity-log-page.logs-page .logs-payload-changes-card {
@@ -1860,8 +1714,6 @@
 
 .activity-log-page.logs-page .logs-payload-change-header-label,
 .activity-log-page.logs-page .logs-payload-change-field-label {
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -1881,8 +1733,6 @@
     -fx-max-height: 24;
     -fx-padding: 0 10 0 10;
     -fx-background-radius: 6;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-alignment: center;
 }
 
@@ -1906,8 +1756,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 17px;
-    -fx-font-weight: 900;
     -fx-alignment: center;
 }
 
@@ -1930,14 +1778,10 @@
 
 .activity-log-page.logs-page .logs-payload-tile-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 11px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-page.logs-page .logs-payload-tile-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-page.logs-page .logs-payload-trace-row {
@@ -1947,14 +1791,10 @@
 
 .activity-log-page.logs-page .logs-payload-trace-line {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 
 /* Final diff-table alignment override: keep Before/After header text centered and use a medium-weight arrow. */
 .activity-log-page.logs-page .logs-payload-change-center-arrow {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: 800;
 }

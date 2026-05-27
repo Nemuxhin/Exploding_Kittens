@@ -25,8 +25,10 @@ public class MainApp extends Application {
     private static final String LOGIN_VIEW = "/view/LoginViews/login-view.fxml";
     private static final String ADMIN_VIEW = "/view/AdminViews/admin-view.fxml";
     private static final String USER_VIEW = "/view/UserViews/user-view.fxml";
+
     private static final String[] LOGIN_STYLESHEETS = {
-            "/css/login.css"
+            "/css/login.css",
+            "/css/typography.css"
     };
 
     private static final String[] ADMIN_STYLESHEETS = {
@@ -140,6 +142,14 @@ public class MainApp extends Application {
         stage.setTitle(title);
         stage.setScene(scene);
         centerStage(width, height);
+
+        javafx.application.Platform.runLater(() -> {
+            debugTypography(scene, "FIRST CSS PASS");
+
+            javafx.application.Platform.runLater(() ->
+                    debugTypography(scene, "SECOND CSS PASS AFTER NEXT PULSE")
+            );
+        });
     }
 
     private void addStylesheets(Scene scene, String[] stylesheets) {
@@ -150,22 +160,145 @@ public class MainApp extends Application {
 
             if (stylesheetUrl != null) {
                 scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+            } else {
+                System.out.println("STYLESHEET MISSING: " + stylesheet);
             }
         }
     }
 
     private void loadApplicationFonts() {
+        System.out.println("\n===== FONT LOAD DEBUG =====");
+
         for (String fontResource : FONT_RESOURCES) {
             URL fontUrl = getClass().getResource(fontResource);
 
-            if (fontUrl != null) {
-                Font loadedFont = Font.loadFont(fontUrl.toExternalForm(), 12);
+            if (fontUrl == null) {
+                System.out.println("FONT RESOURCE MISSING: " + fontResource);
+                continue;
+            }
 
-                if ("/fonts/primeicons.ttf".equals(fontResource)) {
-                    PrimeIcons.registerFont(loadedFont);
-                }
+            Font loadedFont = Font.loadFont(fontUrl.toExternalForm(), 12);
+
+            if (loadedFont == null) {
+                System.out.println("FONT LOAD FAILED: " + fontResource);
+                continue;
+            }
+
+            System.out.println(
+                    "FONT LOADED: " + fontResource
+                            + " | family=" + loadedFont.getFamily()
+                            + " | name=" + loadedFont.getName()
+                            + " | style=" + loadedFont.getStyle()
+            );
+
+            if ("/fonts/primeicons.ttf".equals(fontResource)) {
+                PrimeIcons.registerFont(loadedFont);
             }
         }
+
+        printRegisteredFontInfo();
+    }
+
+    private void printRegisteredFontInfo() {
+        System.out.println("\n===== REGISTERED MONTSERRAT FAMILIES =====");
+        Font.getFamilies().stream()
+                .filter(family -> family.toLowerCase().contains("montserrat"))
+                .sorted()
+                .forEach(System.out::println);
+
+        System.out.println("\n===== REGISTERED MONTSERRAT FONT NAMES =====");
+        Font.getFontNames().stream()
+                .filter(fontName -> fontName.toLowerCase().contains("montserrat"))
+                .sorted()
+                .forEach(System.out::println);
+
+        System.out.println("\n===== REGISTERED PRIMEICON FONT NAMES =====");
+        Font.getFontNames().stream()
+                .filter(fontName -> fontName.toLowerCase().contains("prime"))
+                .sorted()
+                .forEach(System.out::println);
+
+        System.out.println("===========================================\n");
+    }
+
+    private void debugTypography(Scene scene, String passName) {
+        scene.getRoot().applyCss();
+
+        System.out.println("\n===== TYPOGRAPHY RUNTIME DEBUG: " + passName + " =====");
+
+        System.out.println("\nStylesheet order:");
+        scene.getStylesheets().forEach(System.out::println);
+
+        String[] selectors = {
+                ".page-title",
+                ".label.page-title",
+                ".page-subtitle",
+                ".label.page-subtitle",
+
+                ".dashboard-stat-title",
+                ".label.dashboard-stat-title",
+                ".dashboard-stat-value",
+                ".label.dashboard-stat-value",
+                ".dashboard-section-title",
+                ".label.dashboard-section-title",
+                ".dashboard-activity-title",
+                ".label.dashboard-activity-title",
+
+                ".admin-top-nav-label",
+                ".label.admin-top-nav-label",
+
+                ".login-brand-title",
+                ".label.login-brand-title",
+                ".login-form-title",
+                ".label.login-form-title",
+                ".login-helper-text",
+                ".label.login-helper-text",
+                ".login-field-label",
+                ".label.login-field-label",
+
+                ".button",
+                ".text-field"
+        };
+
+        for (String selector : selectors) {
+            var nodes = scene.getRoot().lookupAll(selector);
+
+            System.out.println("\nSelector: " + selector);
+            System.out.println("Matches: " + nodes.size());
+
+            nodes.stream()
+                    .limit(8)
+                    .forEach(node -> {
+                        System.out.println("Node type: " + node.getClass().getName());
+                        System.out.println("Style classes: " + node.getStyleClass());
+                        System.out.println("Node id: " + node.getId());
+                        System.out.println("Inline style: " + node.getStyle());
+
+                        if (node instanceof javafx.scene.control.Labeled labeled) {
+                            Font font = labeled.getFont();
+
+                            System.out.println("Text: " + labeled.getText());
+                            System.out.println("Computed font family: " + font.getFamily());
+                            System.out.println("Computed font name: " + font.getName());
+                            System.out.println("Computed font style: " + font.getStyle());
+                            System.out.println("Computed font size: " + font.getSize());
+                        }
+
+                        if (node instanceof javafx.scene.text.Text text) {
+                            Font font = text.getFont();
+
+                            System.out.println("Text node content: " + text.getText());
+                            System.out.println("Computed font family: " + font.getFamily());
+                            System.out.println("Computed font name: " + font.getName());
+                            System.out.println("Computed font style: " + font.getStyle());
+                            System.out.println("Computed font size: " + font.getSize());
+                        }
+
+                        System.out.println("---");
+                    });
+        }
+
+        System.out.println("===== END TYPOGRAPHY RUNTIME DEBUG: " + passName + " =====\n");
     }
 
     private void setWindowIcon() {

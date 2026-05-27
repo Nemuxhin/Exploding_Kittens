@@ -47,14 +47,10 @@
 
 .profile-card-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .profile-card-description {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-wrap-text: true;
 }
 
@@ -70,15 +66,11 @@
 
 .profile-info-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .profile-info-value,
 .profile-info-code {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .profile-info-code {
@@ -128,8 +120,6 @@
 
 .profile-assigned-avatar-initials {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-tabs,
@@ -154,8 +144,6 @@
     -fx-border-radius: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
 }
 
@@ -186,7 +174,6 @@
     -fx-border-color: transparent transparent -wl-primary transparent;
     -fx-border-width: 0 0 2 0;
     -fx-text-fill: -wl-primary;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-content {
@@ -226,8 +213,6 @@
 .review-workspace-panel-title,
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .profile-editor-subtitle,
@@ -237,8 +222,6 @@
 .assignment-list-subtitle,
 .assignment-row-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .profile-editor-strong-text,
@@ -246,8 +229,6 @@
 .admin-field-label,
 .review-workspace-field-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-switch {
@@ -294,9 +275,6 @@
 
 .profile-editor-code-preview {
     -fx-text-fill: -wl-text;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .profile-editor-field-preview-card,
@@ -313,8 +291,6 @@
 .profile-editor-field-preview-item,
 .profile-editor-access-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .profile-editor-access-list {
@@ -336,14 +312,10 @@
 
 .profile-editor-preview-key {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-preview-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-wrap-text: true;
 }
 
@@ -389,7 +361,6 @@
     -fx-background-color: -wl-primary-selected;
     -fx-border-color: -wl-primary-selected;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 600;
 }
 
 .assignment-panels {
@@ -469,8 +440,6 @@
 .assignment-row-title,
 .assignment-selected-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .assignment-checkbox,
@@ -529,8 +498,6 @@
 
 .assignment-save-status {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .edit-icon {
@@ -553,7 +520,6 @@
 .inline-action-button-muted .edit-link-icon {
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
 }
 
 .edit-link-button:hover .edit-link-icon,
@@ -567,7 +533,6 @@
 .deactivate-link-button .deactivate-link-icon {
     -fx-fill: -wl-destructive;
     -fx-text-fill: -wl-destructive;
-    -fx-font-size: 13px;
 }
 
 .deactivate-link-button:hover .deactivate-link-icon {
@@ -634,14 +599,10 @@
 .document-field-name,
 .profile-access-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .document-drag-handle {
     -fx-text-fill: -wl-muted-icon;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .profile-access-search,
@@ -688,8 +649,6 @@
 
 .profile-access-code {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .profile-access-check {
@@ -703,8 +662,6 @@
     -fx-border-radius: 3;
     -fx-border-width: 1;
     -fx-alignment: center;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .profile-access-check-selected {
@@ -735,7 +692,6 @@
     -fx-border-radius: 8;
     -fx-border-width: 1;
     -fx-alignment: center;
-    -fx-font-size: 15px;
 }
 
 .assignment-profile-icon-active,
@@ -761,7 +717,6 @@
    ========================================================= */
 
 .assignment-list-user-icon {
-    -fx-font-size: 11px;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -770,8 +725,6 @@
 }
 
 .assignment-list-count {
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -782,8 +735,6 @@
 
 .assignment-section-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 700;
 }
 
 /* =========================================================
@@ -801,8 +752,6 @@
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
 }
 
@@ -845,8 +794,6 @@
     -fx-border-radius: 6;
     -fx-border-width: 0;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 14px;
-    -fx-font-weight: 400;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -854,7 +801,6 @@
 .assignment-remove-icon {
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 14px;
 }
 
 .assignment-remove-button:hover,
@@ -898,8 +844,6 @@
 
 .assignment-picker-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
 }
 
 .assignment-picker-close-button {
@@ -914,8 +858,6 @@
     -fx-background-radius: 6;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -984,20 +926,14 @@
 
 .assignment-picker-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 500;
 }
 
 .assignment-picker-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 11px;
-    -fx-font-weight: 400;
 }
 
 .assignment-picker-in-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 11px;
-    -fx-font-weight: 400;
     -fx-font-style: italic;
 }
 
@@ -1011,8 +947,6 @@
 
 .assignment-picker-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .assignment-picker-assign-button {
@@ -1025,8 +959,6 @@
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-effect: none;
 }
 

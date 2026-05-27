@@ -14,15 +14,6 @@
     -fx-alignment: top-left;
 }
 
-.dashboard-page > .page-heading-copy > .page-title {
-    -fx-font-size: 26px;
-    -fx-font-weight: 700;
-}
-
-.dashboard-page > .page-heading-copy > .page-subtitle {
-    -fx-font-size: 13px;
-}
-
 .dashboard-summary-card {
     -fx-min-height: 144;
     -fx-pref-height: 144;
@@ -54,27 +45,17 @@
 
 .dashboard-stat-title {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 13px;
-    -fx-font-weight: 500;
+
 }
 
 .dashboard-stat-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 30px;
-    -fx-font-weight: 700;
+
 }
 
 .dashboard-stat-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-}
 
-.dashboard-trend-neutral,
-.dashboard-trend-up,
-.dashboard-trend-down {
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .dashboard-trend-neutral {
@@ -203,7 +184,7 @@
 .dashboard-activity-icon-qa-path,
 .dashboard-activity-icon-warning-path,
 .dashboard-activity-icon-access-path {
-    -fx-font-size: 14px;
+
     -fx-alignment: center;
     -fx-scale-x: 0.68;
     -fx-scale-y: 0.68;
@@ -282,22 +263,19 @@
 
 .dashboard-summary-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
+
 }
 
 .dashboard-workflow-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
+
     -fx-text-overrun: clip;
     -fx-min-width: 0;
 }
 
 .dashboard-section-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 13px;
-    -fx-font-weight: 400;
+
     -fx-wrap-text: true;
 }
 
@@ -305,15 +283,13 @@
 .dashboard-activity-detail,
 .dashboard-simple-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
+
     -fx-wrap-text: true;
 }
 
 .dashboard-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 26px;
-    -fx-font-weight: 700;
+
 }
 
 .dashboard-section-header {
@@ -334,8 +310,7 @@
 
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 20px;
-    -fx-font-weight: 700;
+
 }
 
 .dashboard-activity-list,
@@ -375,23 +350,20 @@
 .dashboard-activity-title,
 .dashboard-simple-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 500;
+
 }
 
 .dashboard-activity-time {
     -fx-min-width: 72;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
+
     -fx-alignment: center-right;
 }
 
 .dashboard-simple-metric,
 .dashboard-workflow-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
+
 }
 
 .dashboard-workflow-value {
@@ -492,8 +464,7 @@
 .dashboard-workflow-percent {
     -fx-min-width: 30;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
+
     -fx-alignment: center-right;
 }
 
@@ -532,8 +503,7 @@
 
 .dashboard-quick-action-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
+
     -fx-text-alignment: center;
 }
 
@@ -563,7 +533,6 @@
     -fx-background-color: -wl-status-success-text;
 }
 
-
 /* Existing dashboard refinements */
 
 .dashboard-history-attention-layout {
@@ -581,29 +550,3 @@
 .dashboard-left-stack {
     -fx-alignment: top-left;
 }
-
-/* =========================================================
-   TYPOGRAPHY OVERRIDES
-   Project note: dashboard section labels, cards, rows, and helper
-   content use 18px while larger numeric metrics stay prominent.
-   ========================================================= */
-
-.dashboard-stat-title,
-.dashboard-stat-subtitle,
-.dashboard-trend-neutral,
-.dashboard-trend-up,
-.dashboard-trend-down,
-.dashboard-summary-title,
-.dashboard-summary-subtitle,
-.dashboard-section-subtitle,
-.dashboard-activity-detail,
-.dashboard-simple-detail,
-.dashboard-section-title,
-.dashboard-activity-time,
-.dashboard-simple-metric,
-.dashboard-workflow-value,
-.dashboard-workflow-percent,
-.dashboard-quick-action-label {
-    -fx-font-size: 18px;
-}
-

@@ -52,14 +52,10 @@
 
 .review-card-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-card-count {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .review-card-icon-box,
@@ -99,7 +95,6 @@
 .review-card-icon-danger,
 .review-card-icon-success,
 .review-card-icon-neutral {
-    -fx-font-size: 15px;
     -fx-scale-x: 0.82;
     -fx-scale-y: 0.82;
 }
@@ -161,8 +156,6 @@
 
 .review-batch-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .review-page-host .review-workspace-header,
@@ -254,15 +247,12 @@
 .review-workspace-warning-icon {
     -fx-fill: -wl-status-warning-text;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 15px;
     -fx-scale-x: 0.78;
     -fx-scale-y: 0.78;
 }
 
 .review-workspace-warning-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-left-panel,
@@ -294,15 +284,11 @@
 
 .review-workspace-tree-root {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-case {
     -fx-padding: 0 0 0 12;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-tree-row,
@@ -325,38 +311,26 @@
 .review-workspace-tree-title,
 .review-workspace-tree-title-active {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-complete {
     -fx-text-fill: -wl-status-success-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-warning {
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-danger {
     -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tree-status-neutral {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-viewer-panel {
@@ -374,8 +348,6 @@
 
 .review-workspace-viewer-page-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-tool-button {
@@ -385,8 +357,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-tool-button:hover {
@@ -413,8 +383,6 @@
 
 .review-workspace-paper-placeholder {
     -fx-text-fill: -wl-workspace-placeholder;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-thumbnail-strip {
@@ -453,18 +421,13 @@
 .review-workspace-thumbnail-label,
 .review-workspace-thumbnail-label-active {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-thumbnail-label-active {
-    -fx-font-weight: 700;
 }
 
 .review-workspace-thumbnail-note {
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .review-workspace-tabs {
@@ -483,8 +446,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-border-color: transparent;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-tab-button {
@@ -504,7 +465,6 @@
     -fx-background-color: -wl-primary-selected;
     -fx-border-color: -wl-primary-selected;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-validation-summary {
@@ -518,14 +478,10 @@
 
 .review-workspace-validation-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .review-workspace-validation-copy {
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-workspace-input-error {
@@ -535,32 +491,22 @@
 
 .review-workspace-field-error {
     -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .review-workspace-check-complete {
     -fx-text-fill: -wl-status-success-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .review-workspace-check-warning {
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .review-workspace-check-neutral {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .review-workspace-check-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .review-workspace-side-actions {
@@ -666,13 +612,10 @@
 }
 
 .review-strip-label {
-    -fx-font-size: 11px;
-    -fx-font-weight: 500;
     -fx-text-fill: -wl-text-muted;
 }
 
 .review-strip-icon {
-    -fx-font-size: 12px;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -692,8 +635,6 @@
 }
 
 .review-strip-num {
-    -fx-font-size: 22px;
-    -fx-font-weight: 500;
     -fx-text-fill: -wl-text;
 }
 
@@ -712,8 +653,6 @@
 }
 
 .review-filter-label {
-    -fx-font-size: 11px;
-    -fx-font-weight: 500;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -732,8 +671,6 @@
    ========================================================= */
 
 .review-waiting-pill {
-    -fx-font-size: 11px;
-    -fx-font-weight: 500;
     -fx-padding: 2 7 2 7;
     -fx-background-radius: 999;
     -fx-border-width: 0;
@@ -759,13 +696,9 @@
    ========================================================= */
 
 .review-box-id {
-    -fx-font-family: "Consolas";
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .review-box-profile {
-    -fx-font-size: 11px;
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -806,14 +739,10 @@
 
 .qa-picker-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .qa-picker-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .qa-picker-close-button {
@@ -828,8 +757,6 @@
     -fx-background-radius: 6;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -905,26 +832,18 @@
     -fx-background-radius: 999;
     -fx-alignment: center;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
 }
 
 .qa-picker-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
 }
 
 .qa-picker-email {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .qa-picker-check {
     -fx-text-fill: -wl-primary;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
     -fx-min-width: 24;
     -fx-pref-width: 24;
     -fx-alignment: center;
@@ -940,8 +859,6 @@
     -fx-min-height: 38;
     -fx-pref-height: 38;
     -fx-padding: 0 18 0 18;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
 }
 
 .qa-picker-assign-button {
@@ -954,8 +871,6 @@
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
     -fx-effect: none;
     -fx-cursor: hand;
 }

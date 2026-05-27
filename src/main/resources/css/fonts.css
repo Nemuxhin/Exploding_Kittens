@@ -1,7 +1,8 @@
 /* =========================================================
    WEBLAGER FONTS
-   Runtime font registration happens in MainApp. This stylesheet
-   keeps every scene pointed at the same family names.
+   Font files are registered at runtime in MainApp.
+   This file is kept as a CSS fallback only.
+   Do not put typography hierarchy or component font styling here.
    ========================================================= */
 
 @font-face {
@@ -27,15 +28,4 @@
 @font-face {
     font-family: "primeicons";
     src: url("../fonts/primeicons.ttf");
-}
-
-.root,
-.app-shell {
-    -fx-font-family: "Montserrat";
-}
-
-.prime-icon,
-.prime-icon .text {
-    -fx-font-family: "primeicons";
-    -fx-font-weight: 400;
 }

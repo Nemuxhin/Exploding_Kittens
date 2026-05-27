@@ -41,14 +41,10 @@
 
 .assigned-qa-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .assigned-qa-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -74,8 +70,6 @@
     -fx-padding: 0 12 0 12;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
     -fx-effect: none;
@@ -103,7 +97,6 @@
 
 .assigned-qa-filter-combo .list-cell {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
 }
 
 /* =========================================================
@@ -126,27 +119,19 @@
 
 .assigned-qa-card-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .assigned-qa-card-meta,
 .assigned-qa-card-detail {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-card-meta-separator {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-card-issues {
     -fx-text-fill: -wl-status-error-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -162,8 +147,6 @@
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-border-width: 1;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-alignment: center;
 }
 
@@ -248,9 +231,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -297,14 +277,10 @@
 
 .assigned-qa-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .assigned-qa-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -324,18 +300,13 @@
 .qa-review-meta-strong,
 .qa-review-meta {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .qa-review-meta-strong {
-    -fx-font-weight: 600;
 }
 
 .qa-review-meta-separator {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .qa-review-left-panel {
@@ -357,8 +328,6 @@
 
 .qa-review-panel-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 /* =========================================================
@@ -376,14 +345,10 @@
 
 .qa-view-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .qa-zoom-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
@@ -402,8 +367,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -426,8 +389,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -469,8 +430,6 @@
 
 .qa-tools-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 /* =========================================================
@@ -485,8 +444,6 @@
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-border-width: 1;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-alignment: center-left;
 }
 
@@ -510,8 +467,6 @@
 
 .qa-preview-page-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .qa-tray-page-block {
@@ -539,8 +494,6 @@
     -fx-background-radius: 999;
     -fx-border-radius: 999;
     -fx-border-width: 1;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
     -fx-alignment: center;
 }
 
@@ -567,8 +520,6 @@
 
 .qa-checklist-check-box {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -649,9 +600,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -700,7 +648,6 @@
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 700;
 }
 
 .qa-complete-button:hover,
