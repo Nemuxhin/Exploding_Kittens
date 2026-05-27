@@ -1,0 +1,231 @@
+/* =========================================================
+   WEBLAGER DARK MODE
+   Central dark-mode tokens and rare dark-only JavaFX skin guards.
+   Load immediately after app.css.
+   ========================================================= */
+
+/* =========================================================
+   01. DARK MODE TOKENS
+   Project note: page CSS should use -wl-* tokens instead of
+   declaring .app-shell.dark page-specific overrides.
+   ========================================================= */
+
+.app-shell.dark {
+    -wl-background: #465160;
+    -wl-surface: #354556;
+    -wl-card-content: #2D3D4F;
+    -wl-input-bg: #465160;
+
+    -wl-text: #FFFFFF;
+    -wl-text-muted: #BFBFBF;
+    -wl-table-header-text: #FFFFFF;
+    -wl-on-primary: #FFFFFF;
+    -wl-text-inverse: #2D3D4F;
+
+    -wl-primary: #008FF7;
+    -wl-primary-hover: #33A9EE;
+    -wl-primary-nav-bg: #0094EA;
+    -wl-primary-nav-button: #33A9EE;
+    -wl-primary-selected: #33A9EE;
+
+    -wl-secondary: #697489;
+    -wl-secondary-action: #697489;
+    -wl-secondary-hover: #2B3B4C;
+    -wl-secondary-nav-bg: #2D3D4F;
+    -wl-secondary-nav-button: #008FF7;
+
+    -wl-tertiary: #4B5563;
+    -wl-tertiary-button: #4B5563;
+    -wl-tertiary-hover: #2B3B4C;
+
+    -wl-border: #2B3B4C;
+    -wl-placeholder: #697489;
+    -wl-surface-hover: #2B3B4C;
+
+    -wl-destructive: #EF4444;
+    -wl-destructive-hover: #FF3D32;
+    -wl-error: #FF3D32;
+    -wl-success: #4CD07D;
+
+    -wl-sidebar-bg: #2D3D4F;
+    -wl-sidebar-text: #FFFFFF;
+    -wl-sidebar-icon: #FFFFFF;
+    -wl-sidebar-hover-bg: #008FF7;
+    -wl-sidebar-hover-text: #FFFFFF;
+    -wl-sidebar-active-bg: #008FF7;
+    -wl-sidebar-active-text: #FFFFFF;
+    -wl-sidebar-divider: #2B3B4C;
+
+    -wl-logout-bg: #008FF7;
+    -wl-logout-hover-bg: #33A9EE;
+    -wl-logout-text: #FFFFFF;
+    -wl-logout-icon: #FFFFFF;
+
+    -wl-switch-track: #008FF7;
+    -wl-switch-track-hover: #33A9EE;
+    -wl-switch-off-track: #697489;
+    -wl-switch-off-track-hover: #2B3B4C;
+    -wl-switch-thumb: #FFFFFF;
+    -wl-switch-icon: #008FF7;
+
+    -wl-avatar-bg: #2D3D4F;
+
+    /* Dark mode should not carry light-mode card shadows. */
+    -wl-shadow-color: transparent;
+    -wl-overlay-bg: rgba(0, 0, 0, 0.25);
+
+    -wl-sidebar-language-bg: #FFFFFF;
+    -wl-sidebar-language-text: #2D3D4F;
+
+    -wl-status-info-bg: #0D4F73;
+    -wl-status-info-border: #176B94;
+    -wl-status-info-text: #7DD3FC;
+
+    -wl-status-success-bg: #123E37;
+    -wl-status-success-border: #1B5A4E;
+    -wl-status-success-text: #4CD07D;
+    -wl-status-success-hover-bg: #123E37;
+
+    -wl-status-warning-bg: #4A3512;
+    -wl-status-warning-border: #B7791F;
+    -wl-status-warning-text: #FACC15;
+
+    -wl-status-danger-bg: #4A2512;
+    -wl-status-danger-border: #9A1D1B;
+    -wl-status-danger-strong-border: #9A1D1B;
+    -wl-status-danger-text: #FDBA74;
+
+    -wl-status-error-bg: #4A2512;
+    -wl-status-error-border: #9A1D1B;
+    -wl-status-error-text: #FDBA74;
+    -wl-status-error-hover-bg: #4A2512;
+
+    -wl-status-neutral-bg: #2D3D4F;
+    -wl-status-neutral-border: #415060;
+    -wl-status-neutral-text: #BFBFBF;
+
+    -wl-tag-teal-bg: #123E37;
+    -wl-tag-teal-border: #1B5A4E;
+    -wl-tag-teal-text: #4CD07D;
+
+    -wl-tag-blue-bg: #0D4F73;
+    -wl-tag-blue-border: #176B94;
+    -wl-tag-blue-text: #7DD3FC;
+
+    -wl-tag-purple-bg: #3B255A;
+    -wl-tag-purple-border: #5B3B83;
+    -wl-tag-purple-text: #D8B4FE;
+
+    -wl-tag-amber-bg: #4A3512;
+    -wl-tag-amber-border: #B7791F;
+    -wl-tag-amber-text: #FACC15;
+
+    -wl-tag-red-bg: #4A2512;
+    -wl-tag-red-border: #9A1D1B;
+    -wl-tag-red-text: #FDBA74;
+
+    -wl-activity-user-bg: #74849A;
+    -wl-activity-profile-bg: #8B5CF6;
+    -wl-activity-accent-bg: #3B82F6;
+    -wl-activity-qa-bg: #16A34A;
+    -wl-activity-access-bg: #0D9488;
+    -wl-activity-scan-bg: #0891B2;
+    -wl-activity-document-bg: #B7791F;
+    -wl-activity-documents-bg: #B7791F;
+    -wl-activity-system-bg: #64748B;
+    -wl-activity-export-bg: #059669;
+    -wl-activity-security-bg: #DC2626;
+    -wl-activity-text: #FFFFFF;
+
+    -wl-date-range-between-bg: #143358;
+    -wl-progress-amber: #B7791F;
+    -wl-muted-icon: #697489;
+
+    -wl-workspace-viewer-bg: #2D3D4F;
+    -wl-workspace-paper-bg: #FFFFFF;
+    -wl-workspace-paper-border: #415060;
+    -wl-workspace-placeholder: #697489;
+
+    -wl-role-admin-bg: #0D4F73;
+    -wl-role-admin-text: #7DD3FC;
+    -wl-role-admin-border: #176B94;
+
+    -wl-role-user-bg: #3B255A;
+    -wl-role-user-text: #D8B4FE;
+    -wl-role-user-border: #5B3B83;
+
+    -wl-preview-bg: #2D3D4F;
+    -wl-paper-bg: #FFFFFF;
+    -wl-paper-muted-bg: #F9F9F9;
+    -wl-paper-border: #CBD5E1;
+    -wl-paper-line-strong: #2D3D4F;
+    -wl-paper-line-medium: #94A3B8;
+    -wl-paper-line-light: #CBD5E1;
+
+    -wl-muted-control-bg: #2D3D4F;
+    -wl-scroll-track: #2B3B4C;
+    -wl-scroll-thumb: #697489;
+    -wl-scroll-thumb-hover: #8FA4BF;
+
+    -wl-progress-track: #415060;
+    -wl-progress-review: #7DD3FC;
+    -wl-progress-issues: #FDBA74;
+    -wl-progress-complete: #4CD07D;
+
+    -fx-background-color: -wl-background;
+}
+
+/* =========================================================
+   02. DARK MODE JAVAFX SKIN GUARDS
+   Project note: these are centralized because JavaFX controls
+   sometimes create internal nodes that do not inherit cleanly.
+   ========================================================= */
+
+.app-shell.dark .text-area .content {
+    -fx-background-color: -wl-input-bg;
+}
+
+.app-shell.dark .combo-box-popup .list-view,
+.app-shell.dark .context-menu {
+    -fx-effect: none;
+}
+
+/* =========================================================
+   03. INTENTIONAL PAPER/PREVIEW EXCEPTIONS
+   Project note: document paper stays white in dark mode because
+   it represents scanned/exported paper, not app chrome.
+   ========================================================= */
+
+.app-shell.dark .document-preview-page,
+.app-shell.dark .mock-document-page,
+.app-shell.dark .review-preview-empty,
+.app-shell.dark .scan-preview-empty,
+.app-shell.dark .page-tray-thumbnail,
+.app-shell.dark .review-page-tray-thumbnail,
+.app-shell.dark .review-page-tray-item-selected,
+.app-shell.dark .review-page-tray-item-selected:hover {
+    -fx-background-color: -wl-paper-bg;
+    -fx-border-color: -wl-paper-line-light;
+}
+
+.app-shell.dark .document-preview-form-area,
+.app-shell.dark .document-preview-input,
+.app-shell.dark .document-preview-barcode-box,
+.app-shell.dark .mock-form-area,
+.app-shell.dark .mock-input,
+.app-shell.dark .mock-barcode-box {
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-border-color: -wl-paper-line-light;
+}
+
+.app-shell.dark .barcode-preview-title,
+.app-shell.dark .barcode-preview-bars,
+.app-shell.dark .document-preview-barcode-bars,
+.app-shell.dark .mock-barcode-bars,
+.app-shell.dark .page-tray-barcode-mark {
+    -fx-text-fill: -wl-paper-line-strong;
+}
+
+.app-shell.dark .barcode-preview-copy {
+    -fx-text-fill: -wl-secondary;
+}

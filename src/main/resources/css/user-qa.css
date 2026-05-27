@@ -4,11 +4,7 @@
    ========================================================= */
 
 /* =========================================================
-   ASSIGNED QA LIST + QA REVIEW WORKSPACE
-   ========================================================= */
-
-/* =========================================================
-   17.1 ASSIGNED QA PAGE SHELL
+   01. ASSIGNED QA PAGE SHELL
    ========================================================= */
 
 .assigned-qa-page,
@@ -36,7 +32,7 @@
 }
 
 /* =========================================================
-   17.2 ASSIGNED QA HEADER
+   02. ASSIGNED QA HEADER
    ========================================================= */
 
 .assigned-qa-title {
@@ -48,7 +44,7 @@
 }
 
 /* =========================================================
-   17.3 ASSIGNED QA FILTER BAR
+   03. ASSIGNED QA FILTER BAR
    ========================================================= */
 
 .assigned-qa-toolbar {
@@ -100,7 +96,7 @@
 }
 
 /* =========================================================
-   17.4 ASSIGNED QA CARD LIST
+   04. ASSIGNED QA CARD LIST
    ========================================================= */
 
 .assigned-qa-card-list {
@@ -111,10 +107,11 @@
     -fx-padding: 24;
     -fx-spacing: 15;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 6;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .assigned-qa-card-title {
@@ -135,7 +132,7 @@
 }
 
 /* =========================================================
-   17.5 ASSIGNED QA STATUS BADGES
+   05. ASSIGNED QA STATUS BADGES
    ========================================================= */
 
 .assigned-qa-status-badge,
@@ -179,7 +176,7 @@
 }
 
 /* =========================================================
-   17.6 ASSIGNED QA PROGRESS BARS
+   06. ASSIGNED QA PROGRESS BARS
    ========================================================= */
 
 .assigned-qa-progress-track {
@@ -218,7 +215,7 @@
 }
 
 /* =========================================================
-   17.7 ASSIGNED QA ACTION BUTTONS
+   07. ASSIGNED QA ACTION BUTTONS
    ========================================================= */
 
 .assigned-qa-primary-button,
@@ -262,17 +259,18 @@
 }
 
 /* =========================================================
-   17.8 ASSIGNED QA EMPTY STATE
+   08. ASSIGNED QA EMPTY STATE
    ========================================================= */
 
 .assigned-qa-empty-state {
     -fx-padding: 36;
     -fx-spacing: 6;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 6;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .assigned-qa-empty-title {
@@ -284,7 +282,7 @@
 }
 
 /* =========================================================
-   17.9 QA REVIEW WORKSPACE SHELL
+   09. QA REVIEW WORKSPACE SHELL
    ========================================================= */
 
 .qa-review-workspace {
@@ -300,9 +298,6 @@
 .qa-review-meta-strong,
 .qa-review-meta {
     -fx-text-fill: -wl-text;
-}
-
-.qa-review-meta-strong {
 }
 
 .qa-review-meta-separator {
@@ -331,7 +326,7 @@
 }
 
 /* =========================================================
-   17.10 QA REVIEW PREVIEW / VIEW TOOLS
+   10. QA REVIEW PREVIEW / VIEW TOOLS
    ========================================================= */
 
 .qa-preview-stage {
@@ -400,7 +395,7 @@
 }
 
 /* =========================================================
-   17.11 QA RIGHT TOOLS PANEL
+   11. QA RIGHT TOOLS PANEL
    ========================================================= */
 
 .qa-tools-panel {
@@ -433,7 +428,7 @@
 }
 
 /* =========================================================
-   17.12 QA CURRENT STATUS
+   12. QA CURRENT STATUS
    ========================================================= */
 
 .qa-current-status-chip {
@@ -477,9 +472,9 @@
     -fx-pref-height: 54;
     -fx-max-height: 54;
     -fx-background-color: -wl-paper-muted-bg;
-    -fx-background-radius: 4;
+    -fx-background-radius: 6;
     -fx-border-color: -wl-paper-line-light;
-    -fx-border-radius: 4;
+    -fx-border-radius: 6;
     -fx-border-width: 1;
 }
 
@@ -497,25 +492,25 @@
     -fx-alignment: center;
 }
 
-.qa-status-pending {
+.qa-review-workspace .qa-status-pending {
     -fx-background-color: transparent;
     -fx-border-color: -wl-border;
 }
 
-.qa-status-approved {
+.qa-review-workspace .qa-status-approved {
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
 }
 
-.qa-status-fix {
+.qa-review-workspace .qa-status-fix {
     -fx-background-color: -wl-status-error-bg;
-    -fx-border-color: -wl-error;
+    -fx-border-color: -wl-status-error-border;
     -fx-text-fill: -wl-status-error-text;
 }
 
 /* =========================================================
-   17.13 QA CHECKLIST + COMMENT
+   13. QA CHECKLIST + COMMENT
    ========================================================= */
 
 .qa-checklist-check-box {
@@ -585,7 +580,7 @@
 }
 
 /* =========================================================
-   17.14 QA BUTTONS
+   14. QA BUTTONS
    ========================================================= */
 
 .qa-approve-button,
@@ -656,4 +651,3 @@
     -fx-border-color: -wl-primary-hover;
     -fx-text-fill: -wl-on-primary;
 }
-

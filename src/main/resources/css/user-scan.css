@@ -34,14 +34,9 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
-.app-shell.dark .scan-card,
-.app-shell.dark .scan-setup-primary-card,
-.app-shell.dark .scan-setup-quick-card {
-    -fx-effect: none;
-}
 
 .scan-setup-primary-card {
     -fx-padding: 30;
@@ -113,11 +108,15 @@
     -fx-text-fill: -wl-text-muted;
 }
 
-.summary-label {
+.scan-setup-view .summary-label,
+.scan-workspace .summary-label,
+.scan-review-workspace .summary-label {
     -fx-text-fill: -wl-text;
 }
 
-.helper-text {
+.scan-setup-view .helper-text,
+.scan-workspace .helper-text,
+.scan-review-workspace .helper-text {
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -222,8 +221,8 @@
     -fx-text-fill: -wl-text;
 }
 
-.weblager-text-field,
-.weblager-combo-box {
+.scan-setup-view .weblager-text-field,
+.scan-setup-view .weblager-combo-box {
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -242,42 +241,28 @@
     -fx-effect: none;
 }
 
-.weblager-text-field:hover,
-.weblager-combo-box:hover {
+.scan-setup-view .weblager-text-field:hover,
+.scan-setup-view .weblager-combo-box:hover {
     -fx-border-color: -wl-secondary;
 }
 
-.weblager-text-field:focused,
-.weblager-combo-box:focused {
+.scan-setup-view .weblager-text-field:focused,
+.scan-setup-view .weblager-combo-box:focused {
     -fx-border-color: -wl-primary;
 }
 
-.weblager-combo-box > .arrow-button {
+.scan-setup-view .weblager-combo-box > .arrow-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 0 15 0 9;
 }
 
-.weblager-combo-box > .arrow-button > .arrow {
+.scan-setup-view .weblager-combo-box > .arrow-button > .arrow {
     -fx-background-color: -wl-text;
 }
 
-.weblager-combo-box .list-cell {
+.scan-setup-view .weblager-combo-box .list-cell {
     -fx-text-fill: -wl-text;
-}
-
-.scan-setup-primary-card .primary-button {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-    -fx-padding: 0 18 0 18;
-}
-
-.scan-setup-primary-card .tertiary-button {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-padding: 0 15 0 15;
 }
 
 /* =========================================================
@@ -433,7 +418,7 @@
 
 .document-tree-scroll .scroll-bar:vertical {
     -fx-background-color: transparent;
-    -fx-padding: 4 0 4 6;
+    -fx-padding: 3 0 3 6;
 }
 
 .document-tree-scroll .scroll-bar:vertical .track {
@@ -472,7 +457,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .document-tree-empty-title {
@@ -490,6 +475,16 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 6;
     -fx-border-width: 1;
+}
+
+/* List view: document header should sit flush against page rows. */
+.document-tree-list-block {
+    -fx-spacing: 0;
+}
+
+.document-tree-list-page-stack {
+    -fx-spacing: 0;
+    -fx-padding: 0;
 }
 
 .document-tree-document-header {
@@ -701,7 +696,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .scan-preview-empty-title {
@@ -959,7 +954,7 @@
     -fx-min-height: 66;
     -fx-pref-height: 66;
     -fx-max-height: 66;
-    -fx-padding: 8;
+    -fx-padding: 9;
     -fx-background-color: -wl-paper-bg;
     -fx-background-radius: 6;
     -fx-border-color: -wl-paper-line-light;
@@ -971,9 +966,6 @@
 .page-tray-barcode-split-label,
 .review-page-tray-number {
     -fx-text-fill: -wl-text;
-}
-
-.page-tray-barcode-split-label {
 }
 
 .page-tray-status-badge {
@@ -1033,7 +1025,7 @@
    ========================================================= */
 
 .scan-tools-panel {
-    -fx-padding: 8 15 15 15;
+    -fx-padding: 9 15 15 15;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent transparent -wl-border;
     -fx-border-width: 0 0 0 1;
@@ -1152,7 +1144,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .finish-review-success-icon,
@@ -1514,7 +1506,7 @@
 }
 
 .review-current-selection-card {
-    -fx-padding: 10 10 10 10;
+    -fx-padding: 9;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
     -fx-border-color: -wl-border;
@@ -1558,148 +1550,148 @@
 }
 
 /* =========================================================
-   DARK MODE
+   MOCK DOCUMENT PREVIEW + EMBEDDED PAGE CARDS
+   Actual scan thumbnail renderer uses mock-document-page/mock-* and
+   document-embedded-page-card / qa-embedded-page-card /
+   review-embedded-page-card. Keep the full preview large, but force
+   embedded/tray cards to be compact so thumbnails stop overflowing.
    ========================================================= */
 
-.app-shell.dark .top-nav-bar,
-.app-shell.dark .scan-session-header,
-.app-shell.dark .scan-current-file-header,
-.app-shell.dark .scan-view-toolbar,
-.app-shell.dark .scan-left-panel,
-.app-shell.dark .scan-tools-panel,
-.app-shell.dark .page-tray-shell,
-.app-shell.dark .page-tray-scroll,
-.app-shell.dark .page-tray-scroll > .viewport,
-.app-shell.dark .page-tray-container,
-.app-shell.dark .document-tree-scroll,
-.app-shell.dark .document-tree-scroll > .viewport,
-.app-shell.dark .document-tree-container,
-.app-shell.dark .scan-workflow-box,
-.app-shell.dark .review-summary-bar,
-.app-shell.dark .review-left-panel,
-.app-shell.dark .review-document-scroll,
-.app-shell.dark .review-document-scroll > .viewport,
-.app-shell.dark .review-document-list,
-.app-shell.dark .review-current-file-header,
-.app-shell.dark .review-page-tray-shell,
-.app-shell.dark .review-page-tray-scroll,
-.app-shell.dark .review-page-tray-scroll > .viewport,
-.app-shell.dark .review-page-tray-container,
-.app-shell.dark .review-next-step-panel {
-    -fx-background-color: -wl-surface;
-}
-
-.app-shell.dark .avatar-initials {
-    -fx-background-color: -wl-card-content;
-    -fx-border-color: -wl-border;
-}
-
-.app-shell.dark .scan-preview-stage,
-.app-shell.dark .review-preview-stage {
-    -fx-background-color: -wl-preview-bg;
-}
-
-.app-shell.dark .document-preview-page,
-.app-shell.dark .page-tray-thumbnail,
-.app-shell.dark .page-tray-status-badge,
-.app-shell.dark .review-page-tray-thumbnail,
-.app-shell.dark .review-page-tray-item-selected,
-.app-shell.dark .review-page-tray-item-selected:hover {
+.mock-document-page {
+    -fx-padding: 30;
     -fx-background-color: -wl-paper-bg;
-    -fx-border-color: -wl-paper-line-light;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-paper-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
-.app-shell.dark .document-preview-form-area,
-.app-shell.dark .document-preview-input,
-.app-shell.dark .document-preview-barcode-box {
+.mock-line-dark,
+.mock-line-medium,
+.mock-line-light,
+.tray-line-dark,
+.tray-line-light {
+    -fx-background-radius: 3;
+}
+
+.mock-line-dark,
+.tray-line-dark {
+    -fx-background-color: -wl-paper-line-strong;
+}
+
+.mock-line-medium {
+    -fx-background-color: -wl-paper-line-medium;
+}
+
+.mock-line-light,
+.tray-line-light {
+    -fx-background-color: -wl-paper-line-light;
+}
+
+.mock-form-area {
+    -fx-padding: 15;
     -fx-background-color: -wl-paper-muted-bg;
-    -fx-border-color: -wl-paper-line-light;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-medium;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
 }
 
-.app-shell.dark .barcode-preview-title,
-.app-shell.dark .barcode-preview-bars,
-.app-shell.dark .document-preview-barcode-bars,
-.app-shell.dark .page-tray-barcode-mark {
+.mock-input {
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-light;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.mock-barcode-box {
+    -fx-padding: 6;
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-medium;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.mock-barcode-bars {
     -fx-text-fill: -wl-paper-line-strong;
 }
 
-.app-shell.dark .barcode-preview-copy {
-    -fx-text-fill: -wl-secondary;
-}
-
-.app-shell.dark .page-tray-item,
-.app-shell.dark .page-tray-barcode-split-card,
-.app-shell.dark .review-page-tray-item {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-}
-
-.app-shell.dark .page-tray-item:hover,
-.app-shell.dark .page-tray-barcode-split-card:hover,
-.app-shell.dark .review-page-tray-item:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.app-shell.dark .page-tray-item-selected,
-.app-shell.dark .page-tray-item-selected:hover,
-.app-shell.dark .page-tray-barcode-split-card-selected,
-.app-shell.dark .page-tray-barcode-split-card-selected:hover {
-    -fx-background-color: -wl-status-info-bg;
-    -fx-border-color: -wl-primary;
-}
-
-.app-shell.dark .page-tray-drop-target,
-.app-shell.dark .document-tree-drop-target,
-.app-shell.dark .document-tree-drop-target:hover {
-    -fx-background-color: -wl-status-info-bg;
-    -fx-border-color: -wl-primary;
-}
-
-.app-shell.dark .scan-danger-button:hover,
-.app-shell.dark .scan-danger-button:pressed {
-    -fx-background-color: -wl-status-error-bg;
-}
-
-.app-shell.dark .scan-warning-button:hover,
-.app-shell.dark .scan-warning-button:pressed,
-.app-shell.dark .preview-warning-banner,
-.app-shell.dark .barcode-preview-badge {
-    -fx-background-color: -wl-status-warning-bg;
-    -fx-border-color: -wl-status-warning-border;
-    -fx-text-fill: -wl-status-warning-text;
-}
-
-.app-shell.dark .finish-review-modal,
-.app-shell.dark .submit-confirmation-modal {
+/* Embedded cards must not behave like normal tray cards. */
+.document-embedded-page-card.page-tray-item,
+.qa-embedded-page-card.page-tray-item,
+.review-embedded-page-card.review-page-tray-item {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-effect: none;
 }
 
-.app-shell.dark .finish-review-success-icon,
-.app-shell.dark .submit-confirmation-success-icon {
-    -fx-background-color: -wl-status-success-bg;
+.document-embedded-page-card.page-tray-item:hover,
+.qa-embedded-page-card.page-tray-item:hover,
+.review-embedded-page-card.review-page-tray-item:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
-.app-shell.dark .finish-review-success-check,
-.app-shell.dark .submit-confirmation-success-check {
-    -fx-background-color: -wl-status-success-text;
-}
-
-.app-shell.dark .scan-review-workspace {
-    -fx-background-color: -wl-background;
-}
-
-.app-shell.dark .review-center-panel {
-    -fx-background-color: -wl-background;
-}
-
-.app-shell.dark .review-document-card-selected,
-.app-shell.dark .review-document-card-selected:hover {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-}
-
-.app-shell.dark .review-preview-empty {
-    -fx-background-color: -wl-paper-bg;
+/* Compact mock page inside embedded page cards. */
+.document-embedded-page-card .mock-document-page,
+.qa-embedded-page-card .mock-document-page,
+.review-embedded-page-card .mock-document-page,
+.page-tray-item .mock-document-page,
+.review-page-tray-item .mock-document-page {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-max-height: 66;
+    -fx-padding: 9;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
     -fx-effect: none;
 }
 
+.document-embedded-page-card .mock-form-area,
+.qa-embedded-page-card .mock-form-area,
+.review-embedded-page-card .mock-form-area,
+.page-tray-item .mock-form-area,
+.review-page-tray-item .mock-form-area,
+.document-embedded-page-card .mock-input,
+.qa-embedded-page-card .mock-input,
+.review-embedded-page-card .mock-input,
+.page-tray-item .mock-input,
+.review-page-tray-item .mock-input,
+.document-embedded-page-card .mock-barcode-box,
+.qa-embedded-page-card .mock-barcode-box,
+.review-embedded-page-card .mock-barcode-box,
+.page-tray-item .mock-barcode-box,
+.review-page-tray-item .mock-barcode-box {
+    -fx-padding: 3;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+}
+
+.document-embedded-page-card .mock-line-dark,
+.document-embedded-page-card .mock-line-medium,
+.document-embedded-page-card .mock-line-light,
+.qa-embedded-page-card .mock-line-dark,
+.qa-embedded-page-card .mock-line-medium,
+.qa-embedded-page-card .mock-line-light,
+.review-embedded-page-card .mock-line-dark,
+.review-embedded-page-card .mock-line-medium,
+.review-embedded-page-card .mock-line-light,
+.page-tray-item .mock-line-dark,
+.page-tray-item .mock-line-medium,
+.page-tray-item .mock-line-light,
+.review-page-tray-item .mock-line-dark,
+.review-page-tray-item .mock-line-medium,
+.review-page-tray-item .mock-line-light {
+    -fx-min-height: 3;
+    -fx-pref-height: 3;
+    -fx-max-height: 3;
+    -fx-background-radius: 3;
+}

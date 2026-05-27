@@ -1,18 +1,53 @@
 /* =========================================================
    WEBLAGER ADMIN DASHBOARD
-   Dashboard-specific styles split from app.css.
+   Dashboard-specific styles only.
+   Typography lives in typography.css.
+   Shared tokens/components live in app.css and admin-common.css.
    ========================================================= */
 
 /* =========================================================
-   DASHBOARD
-   Project note: dashboard status cards use soft icon backgrounds
-   and separate attention styling for blocked work.
+   PAGE / LAYOUT
    ========================================================= */
 
+.dashboard-page {
+    -fx-background-color: -wl-background;
+}
+
 .dashboard-summary-grid,
-.dashboard-main-layout {
+.dashboard-main-layout,
+.dashboard-history-attention-layout,
+.dashboard-left-stack {
     -fx-alignment: top-left;
 }
+
+.dashboard-history-attention-layout {
+    -fx-fill-height: true;
+}
+
+.dashboard-balanced-column,
+.dashboard-recent-activity-card {
+    -fx-min-height: 426;
+    -fx-pref-height: 426;
+    -fx-max-height: 426;
+}
+
+/* =========================================================
+   CARDS / SURFACES
+   ========================================================= */
+
+.dashboard-summary-card,
+.dashboard-section-card,
+.dashboard-attention-card,
+.dashboard-needs-attention-card,
+.dashboard-stat-card {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
 
 .dashboard-summary-card {
     -fx-min-height: 144;
@@ -21,10 +56,6 @@
 }
 
 .dashboard-stat-card {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
     -fx-min-height: 126;
     -fx-pref-height: 126;
     -fx-max-height: 126;
@@ -37,29 +68,91 @@
     -fx-max-height: 9999;
 }
 
-.dashboard-stat-visual {
-    -fx-min-width: 84;
-    -fx-pref-width: 84;
-    -fx-max-width: 84;
+.dashboard-attention-card {
+    -fx-border-color: -wl-status-danger-border;
 }
 
-.dashboard-stat-title {
-    -fx-text-fill: -wl-text-muted;
-
+.dashboard-attention-summary-row {
+    -fx-padding: 18;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-.dashboard-stat-value {
-    -fx-text-fill: -wl-text;
-
+.dashboard-section-header {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+    -fx-padding: 15 18 15 18;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-.dashboard-stat-subtitle {
-    -fx-text-fill: -wl-text-muted;
-
+.dashboard-workflow-header {
+    -fx-min-height: 57;
+    -fx-pref-height: 57;
+    -fx-max-height: 57;
+    -fx-padding: 12 18 9 18;
+    -fx-border-width: 0;
 }
 
+/* =========================================================
+   TEXT COLOR HOOKS
+   ========================================================= */
+
+.dashboard-stat-title,
+.dashboard-stat-subtitle,
+.dashboard-section-subtitle,
+.dashboard-summary-subtitle,
+.dashboard-activity-detail,
+.dashboard-simple-detail,
+.dashboard-activity-time,
+.dashboard-workflow-percent,
 .dashboard-trend-neutral {
     -fx-text-fill: -wl-text-muted;
+}
+
+.dashboard-stat-value,
+.dashboard-summary-title,
+.dashboard-summary-value,
+.dashboard-section-title,
+.dashboard-workflow-label,
+.dashboard-activity-title,
+.dashboard-simple-title,
+.dashboard-simple-metric,
+.dashboard-workflow-value,
+.dashboard-quick-action-label {
+    -fx-text-fill: -wl-text;
+}
+
+.dashboard-section-subtitle,
+.dashboard-summary-subtitle,
+.dashboard-activity-detail,
+.dashboard-simple-detail {
+    -fx-wrap-text: true;
+}
+
+.dashboard-workflow-label {
+    -fx-text-overrun: clip;
+    -fx-min-width: 0;
+}
+
+.dashboard-activity-time,
+.dashboard-workflow-value,
+.dashboard-workflow-percent {
+    -fx-alignment: center-right;
+}
+
+.dashboard-activity-time {
+    -fx-min-width: 72;
+}
+
+.dashboard-workflow-value {
+    -fx-min-width: 18;
+}
+
+.dashboard-workflow-percent {
+    -fx-min-width: 30;
 }
 
 .dashboard-trend-up {
@@ -70,57 +163,14 @@
     -fx-text-fill: -wl-tag-red-text;
 }
 
-.dashboard-sparkline-teal,
-.dashboard-sparkline-blue,
-.dashboard-sparkline-purple,
-.dashboard-sparkline-orange {
-    -fx-fill: transparent;
-    -fx-stroke-width: 2;
-    -fx-stroke-line-cap: round;
-    -fx-stroke-line-join: round;
-    -fx-scale-x: 0.72;
-    -fx-scale-y: 0.72;
-}
+/* =========================================================
+   SUMMARY / ACTIVITY ICONS
+   ========================================================= */
 
-.dashboard-sparkline-teal {
-    -fx-stroke: -wl-tag-teal-text;
-}
-
-.dashboard-sparkline-blue {
-    -fx-stroke: -wl-tag-blue-text;
-}
-
-.dashboard-sparkline-purple {
-    -fx-stroke: -wl-tag-purple-text;
-}
-
-.dashboard-sparkline-orange {
-    -fx-stroke: -wl-tag-amber-text;
-}
-
-.dashboard-attention-card {
-    -fx-background-color: -wl-surface;
-    -fx-background-radius: 10;
-    -fx-border-color: -wl-status-danger-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
-}
-
-.dashboard-needs-attention-card {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
-}
-
-.dashboard-attention-summary-row {
-    -fx-padding: 18;
-    -fx-spacing: 15;
-    -fx-alignment: center-left;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
+.dashboard-stat-visual {
+    -fx-min-width: 84;
+    -fx-pref-width: 84;
+    -fx-max-width: 84;
 }
 
 .dashboard-summary-icon-box,
@@ -174,8 +224,8 @@
 }
 
 .dashboard-summary-icon-red-path {
-    -fx-scale-x: 2.0;
-    -fx-scale-y: 2.0;
+    -fx-scale-x: 2;
+    -fx-scale-y: 2;
 }
 
 .dashboard-activity-icon,
@@ -184,7 +234,6 @@
 .dashboard-activity-icon-qa-path,
 .dashboard-activity-icon-warning-path,
 .dashboard-activity-icon-access-path {
-
     -fx-alignment: center;
     -fx-scale-x: 0.68;
     -fx-scale-y: 0.68;
@@ -261,61 +310,54 @@
     -fx-text-fill: -wl-tag-purple-text;
 }
 
-.dashboard-summary-title {
-    -fx-text-fill: -wl-text;
+/* =========================================================
+   SPARKLINES
+   ========================================================= */
 
+.dashboard-sparkline-teal,
+.dashboard-sparkline-blue,
+.dashboard-sparkline-purple,
+.dashboard-sparkline-orange {
+    -fx-fill: transparent;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
 }
 
-.dashboard-workflow-label {
-    -fx-text-fill: -wl-text;
-
-    -fx-text-overrun: clip;
-    -fx-min-width: 0;
+.dashboard-sparkline-teal {
+    -fx-stroke: -wl-tag-teal-text;
 }
 
-.dashboard-section-subtitle {
-    -fx-text-fill: -wl-text-muted;
-
-    -fx-wrap-text: true;
+.dashboard-sparkline-blue {
+    -fx-stroke: -wl-tag-blue-text;
 }
 
-.dashboard-summary-subtitle,
-.dashboard-activity-detail,
-.dashboard-simple-detail {
-    -fx-text-fill: -wl-text-muted;
-
-    -fx-wrap-text: true;
+.dashboard-sparkline-purple {
+    -fx-stroke: -wl-tag-purple-text;
 }
 
-.dashboard-summary-value {
-    -fx-text-fill: -wl-text;
-
+.dashboard-sparkline-orange {
+    -fx-stroke: -wl-tag-amber-text;
 }
 
-.dashboard-section-header {
-    -fx-min-height: 66;
-    -fx-pref-height: 66;
-    -fx-padding: 15 18 15 18;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.dashboard-workflow-header {
-    -fx-min-height: 57;
-    -fx-pref-height: 57;
-    -fx-max-height: 57;
-    -fx-padding: 12 18 9 18;
-    -fx-border-width: 0;
-}
-
-.dashboard-section-title {
-    -fx-text-fill: -wl-text;
-
-}
+/* =========================================================
+   LISTS
+   ========================================================= */
 
 .dashboard-activity-list,
 .dashboard-simple-list {
     -fx-background-color: -wl-surface;
+}
+
+.dashboard-activity-row,
+.dashboard-simple-row {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
 .dashboard-activity-row {
@@ -323,11 +365,6 @@
     -fx-pref-height: 72;
     -fx-max-height: 72;
     -fx-padding: 15 18 15 18;
-    -fx-spacing: 12;
-    -fx-alignment: center-left;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
 }
 
 .dashboard-simple-row {
@@ -335,11 +372,6 @@
     -fx-pref-height: 66;
     -fx-max-height: 66;
     -fx-padding: 12 18 12 18;
-    -fx-spacing: 12;
-    -fx-alignment: center-left;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
 }
 
 .dashboard-activity-row:hover,
@@ -347,42 +379,19 @@
     -fx-background-color: -wl-surface-hover;
 }
 
-.dashboard-activity-title,
-.dashboard-simple-title {
-    -fx-text-fill: -wl-text;
-
-}
-
-.dashboard-activity-time {
-    -fx-min-width: 72;
-    -fx-text-fill: -wl-text-muted;
-
-    -fx-alignment: center-right;
-}
-
-.dashboard-simple-metric,
-.dashboard-workflow-value {
-    -fx-text-fill: -wl-text;
-
-}
-
-.dashboard-workflow-value {
-    -fx-min-width: 18;
-    -fx-alignment: center-right;
-}
+/* =========================================================
+   WORKFLOW / CHARTS
+   ========================================================= */
 
 .dashboard-workflow-body,
-.dashboard-actions-grid {
-    -fx-padding: 18;
-}
-
+.dashboard-actions-grid,
 .dashboard-workflow-status-body,
 .dashboard-quick-actions-grid {
     -fx-padding: 18;
 }
 
 .dashboard-workflow-status-body {
-    -fx-padding: 14 18 18 18;
+    -fx-padding: 15 18 18 18;
     -fx-spacing: 15;
     -fx-alignment: center-left;
 }
@@ -426,15 +435,15 @@
     -fx-fill: -wl-surface;
 }
 
+.dashboard-workflow-legend {
+    -fx-fill-width: true;
+    -fx-min-width: 0;
+}
+
 .dashboard-workflow-legend-row {
     -fx-min-height: 26;
     -fx-pref-height: 26;
     -fx-spacing: 6;
-}
-
-.dashboard-workflow-legend {
-    -fx-fill-width: true;
-    -fx-min-width: 0;
 }
 
 .dashboard-workflow-marker-blue,
@@ -461,12 +470,35 @@
     -fx-background-color: -wl-status-success-text;
 }
 
-.dashboard-workflow-percent {
-    -fx-min-width: 30;
-    -fx-text-fill: -wl-text-muted;
-
-    -fx-alignment: center-right;
+.dashboard-progress-track,
+.dashboard-progress-fill-blue,
+.dashboard-progress-fill-amber,
+.dashboard-progress-fill-green {
+    -fx-min-height: 12;
+    -fx-pref-height: 12;
+    -fx-max-height: 12;
+    -fx-background-radius: 999;
 }
+
+.dashboard-progress-track {
+    -fx-background-color: -wl-card-content;
+}
+
+.dashboard-progress-fill-blue {
+    -fx-background-color: -wl-status-info-text;
+}
+
+.dashboard-progress-fill-amber {
+    -fx-background-color: -wl-progress-amber;
+}
+
+.dashboard-progress-fill-green {
+    -fx-background-color: -wl-status-success-text;
+}
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
 
 .dashboard-quick-action {
     -fx-background-color: transparent;
@@ -502,51 +534,5 @@
 }
 
 .dashboard-quick-action-label {
-    -fx-text-fill: -wl-text;
-
     -fx-text-alignment: center;
-}
-
-.dashboard-progress-track,
-.dashboard-progress-fill-blue,
-.dashboard-progress-fill-amber,
-.dashboard-progress-fill-green {
-    -fx-min-height: 12;
-    -fx-pref-height: 12;
-    -fx-max-height: 12;
-    -fx-background-radius: 999;
-}
-
-.dashboard-progress-track {
-    -fx-background-color: -wl-card-content;
-}
-
-.dashboard-progress-fill-blue {
-    -fx-background-color: -wl-status-info-text;
-}
-
-.dashboard-progress-fill-amber {
-    -fx-background-color: -wl-progress-amber;
-}
-
-.dashboard-progress-fill-green {
-    -fx-background-color: -wl-status-success-text;
-}
-
-/* Existing dashboard refinements */
-
-.dashboard-history-attention-layout {
-    -fx-alignment: top-left;
-    -fx-fill-height: true;
-}
-
-.dashboard-balanced-column,
-.dashboard-recent-activity-card {
-    -fx-min-height: 426;
-    -fx-pref-height: 426;
-    -fx-max-height: 426;
-}
-
-.dashboard-left-stack {
-    -fx-alignment: top-left;
 }

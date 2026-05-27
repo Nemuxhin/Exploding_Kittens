@@ -3263,13 +3263,14 @@ public class ScanController {
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("page-tray-thumbnail");
         configureThumbnailFrame(thumbnail, page, 72, 66);
+        applyThumbnailClip(thumbnail, 6);
 
         if (page.barcode) {
             Label barcode = new Label("||||");
             barcode.getStyleClass().add("page-tray-barcode-mark");
             thumbnail.getChildren().add(barcode);
         } else {
-            Node imageNode = createRotatedThumbnailNode(page, 148, 214);
+            Node imageNode = createRotatedThumbnailNode(page, 64, 58);
             if (imageNode != null) {
                 thumbnail.getChildren().add(imageNode);
             } else {
@@ -4327,7 +4328,13 @@ public class ScanController {
     private VBox createEmbeddedPageCard(ScannedPage page, String labelText) {
         VBox card = new VBox(3);
         card.setAlignment(Pos.CENTER);
-        configureEmbeddedPageCardFrame(card, page, 184, 164, 218);
+
+        /*
+         * Used by the left Box Structure grid cards.
+         * Keep this compact. The review workspace has its own larger
+         * createReviewEmbeddedPageCard(...) method.
+         */
+        configureEmbeddedPageCardFrame(card, page, 90, 72, 66);
 
         if (page.barcode) {
             card.getStyleClass().add("page-tray-barcode-split-card");
@@ -4348,9 +4355,10 @@ public class ScanController {
 
         StackPane thumbnail = new StackPane();
         thumbnail.getStyleClass().add("page-tray-thumbnail");
-        configureThumbnailFrame(thumbnail, page, 164, 218);
-        applyThumbnailClip(thumbnail, 28);
-        Node imageNode = createRotatedThumbnailNode(page, 148, 214);
+        configureThumbnailFrame(thumbnail, page, 72, 66);
+        applyThumbnailClip(thumbnail, 6);
+
+        Node imageNode = createRotatedThumbnailNode(page, 64, 58);
         if (imageNode != null) {
             thumbnail.getChildren().add(imageNode);
         } else if (page.barcode) {
@@ -4384,6 +4392,7 @@ public class ScanController {
             HBox labelRow = createScanPageLabelRow(page, labelText, true);
             card.getChildren().addAll(thumbnail, labelRow);
         }
+
         return card;
     }
 

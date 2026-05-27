@@ -56,8 +56,7 @@
 
 .profile-card-divider,
 .profile-editor-section-divider,
-.assignment-divider,
-.review-workspace-divider {
+.assignment-divider {
     -fx-min-height: 1;
     -fx-pref-height: 1;
     -fx-max-height: 1;
@@ -209,16 +208,13 @@
 
 .profile-editor-section-title,
 .assignment-panel-title,
-.admin-section-title,
-.review-workspace-panel-title,
-.dashboard-section-title {
+.admin-section-title {
     -fx-text-fill: -wl-text;
 }
 
 .profile-editor-subtitle,
 .profile-editor-helper-text,
 .admin-helper-text,
-.review-workspace-panel-subtitle,
 .assignment-list-subtitle,
 .assignment-row-subtitle {
     -fx-text-fill: -wl-text-muted;
@@ -226,8 +222,7 @@
 
 .profile-editor-strong-text,
 .profile-editor-field-label,
-.admin-field-label,
-.review-workspace-field-label {
+.admin-field-label {
     -fx-text-fill: -wl-text;
 }
 
@@ -442,8 +437,7 @@
     -fx-text-fill: -wl-text;
 }
 
-.assignment-checkbox,
-.review-checkbox {
+.assignment-checkbox {
     -fx-cursor: hand;
     -fx-padding: 0;
     -fx-min-width: 24;
@@ -457,8 +451,7 @@
 .assignment-checkbox > .box,
 .assignment-checkbox-row > .box,
 .create-user-profile-row > .box,
-.profile-access-row > .box,
-.review-checkbox > .box {
+.profile-access-row > .box {
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
@@ -474,8 +467,7 @@
 .assignment-checkbox:selected > .box,
 .assignment-checkbox-row:selected > .box,
 .create-user-profile-row:selected > .box,
-.profile-access-row:selected > .box,
-.review-checkbox:selected > .box {
+.profile-access-row:selected > .box {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
 }
@@ -483,8 +475,7 @@
 .assignment-checkbox:selected > .box > .mark,
 .assignment-checkbox-row:selected > .box > .mark,
 .create-user-profile-row:selected > .box > .mark,
-.profile-access-row:selected > .box > .mark,
-.review-checkbox:selected > .box > .mark {
+.profile-access-row:selected > .box > .mark {
     -fx-background-color: -wl-on-primary;
 }
 
@@ -688,8 +679,8 @@
     -fx-min-height: 36;
     -fx-pref-height: 36;
     -fx-max-height: 36;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-alignment: center;
 }
@@ -745,7 +736,7 @@
 .assignment-add-button {
     -fx-min-height: 28;
     -fx-pref-height: 28;
-    -fx-padding: 0 10 0 10;
+    -fx-padding: 0 9 0 9;
     -fx-background-color: -wl-primary;
     -fx-background-radius: 6;
     -fx-background-insets: 0;
@@ -815,8 +806,8 @@
 }
 
 .assignment-remove-button:pressed .assignment-remove-icon {
-    -fx-fill: derive(-wl-destructive, -20%);
-    -fx-text-fill: derive(-wl-destructive, -20%);
+    -fx-fill: -wl-destructive-hover;
+    -fx-text-fill: -wl-destructive-hover;
 }
 
 /* =========================================================
@@ -830,11 +821,11 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.14), 14, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .assignment-picker-drag-handle {
-    -fx-padding: 10 12 10 16;
+    -fx-padding: 9 12 9 15;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10 10 0 0;
     -fx-border-color: transparent transparent -wl-border transparent;
@@ -868,7 +859,7 @@
 }
 
 .assignment-picker-header {
-    -fx-padding: 14 16 14 16;
+    -fx-padding: 15 15 15 15;
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 0;
     -fx-border-color: transparent transparent -wl-border transparent;
@@ -916,12 +907,12 @@
 .assignment-picker-row-assigned:hover,
 .assignment-picker-row-assigned:disabled {
     -fx-background-color: -wl-surface;
-    -fx-opacity: 0.5;
+    -fx-opacity: 0.6;
     -fx-cursor: default;
 }
 
 .assignment-picker-row-content {
-    -fx-padding: 0 16 0 16;
+    -fx-padding: 0 15 0 15;
 }
 
 .assignment-picker-name {
@@ -934,11 +925,10 @@
 
 .assignment-picker-in-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-style: italic;
 }
 
 .assignment-picker-footer {
-    -fx-padding: 12 16 12 16;
+    -fx-padding: 12 15 12 15;
     -fx-background-color: -wl-card-content;
     -fx-background-radius: 0 0 10 10;
     -fx-border-color: -wl-border transparent transparent transparent;
@@ -952,7 +942,7 @@
 .assignment-picker-assign-button {
     -fx-min-height: 30;
     -fx-pref-height: 30;
-    -fx-padding: 0 14 0 14;
+    -fx-padding: 0 15 0 15;
     -fx-background-color: -wl-primary;
     -fx-background-radius: 6;
     -fx-background-insets: 0;

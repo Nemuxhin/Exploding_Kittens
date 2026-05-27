@@ -1,13 +1,29 @@
 /* =========================================================
    WEBLAGER SHARED SHELL
-   App shell, top navigation, account menu, and shared page helpers.
-   Loaded for admin and user portals only.
+   Shell-level UI only:
+   - app shell background
+   - shared top navigation
+   - brand area
+   - account menu
+   - notification indicator
+   - status/breadcrumb bar
+
+   Page content, cards, pagination, forms, settings pages, dashboards,
+   scan/review/QA screens, and portal content belong in their own CSS files.
+   Typography lives in typography.css.
    ========================================================= */
 
-.app-shell {
+/* =========================================================
+   01. ROOT SHELL
+   ========================================================= */
+
+.app-shell,
+.user-portal-shell {
     -fx-background-color: -wl-background;
 }
 
+/* PrimeIcons are registered by MainApp and typed in typography.css.
+   Shell only controls their shell-level color. */
 .prime-icon {
     -fx-text-fill: -wl-text;
     -fx-alignment: center;
@@ -18,365 +34,8 @@
     -fx-fill: -wl-text;
 }
 
-.content-host,
-.user-portal-shell,
-.user-page,
-.admin-page,
-.dashboard-page,
-.assignments-page,
-.profiles-page-host,
-.profiles-overview-page,
-.profile-editor-page,
-.review-page-host,
-.review-page,
-.review-workspace-page {
-    -fx-background-color: -wl-background;
-}
-
-.main-content {
-    -fx-spacing: 18;
-}
-
-.page-heading-copy {
-    -fx-spacing: 3;
-    -fx-min-width: 0;
-}
-
-.page-title {
-    -fx-text-fill: -wl-text;
-    -fx-text-overrun: ellipsis;
-}
-
-.page-subtitle {
-    -fx-text-fill: -wl-text-muted;
-    -fx-text-overrun: ellipsis;
-}
-
-.back-button,
-.profile-editor-back-button {
-    -fx-min-width: 96;
-    -fx-pref-width: 96;
-    -fx-max-width: 96;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-padding: 0 12 0 12;
-    -fx-background-color: -wl-tertiary;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-    -fx-text-fill: -wl-text;
-    -fx-effect: none;
-    -fx-cursor: hand;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.back-button:hover,
-.profile-editor-back-button:hover,
-.back-button:focused,
-.profile-editor-back-button:focused {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
-    -fx-text-fill: -wl-text;
-}
-
-.searchable-combo-box {
-    -fx-prompt-text-fill: -wl-placeholder;
-}
-
-.searchable-combo-box .text-field,
-.searchable-combo-box .text-input {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
-    -fx-padding: 0 6 0 6;
-}
-
-.searchable-combo-box .text-field:focused,
-.searchable-combo-box .text-input:focused {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-effect: none;
-}
-
-.skeleton-line {
-    -fx-min-height: 12;
-    -fx-pref-height: 12;
-    -fx-background-color: -wl-surface-hover;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-}
-
-.loading-spinner {
-    -fx-progress-color: -wl-primary;
-    -fx-min-width: 30;
-    -fx-min-height: 30;
-    -fx-pref-width: 30;
-    -fx-pref-height: 30;
-}
-
-.inline-feedback {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.inline-feedback.success {
-    -fx-text-fill: -wl-success;
-}
-
-.inline-feedback.error {
-    -fx-text-fill: -wl-error;
-}
-
-/* ---------- Shared Account / Form Patterns ---------- */
-
-.portal-card {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-}
-
-.portal-section-title {
-    -fx-text-fill: -wl-text;
-}
-
-.portal-muted,
-.portal-inline-message {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.portal-inline-message.success {
-    -fx-text-fill: -wl-status-success-text;
-}
-
-.portal-inline-message.error {
-    -fx-text-fill: -wl-status-danger-text;
-}
-
-.settings-panel,
-.settings-form {
-    -fx-padding: 18;
-}
-
-.form-label {
-    -fx-text-fill: -wl-text;
-}
-
-.portal-text-field {
-    -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
-    -fx-padding: 0 9 0 9;
-}
-
-.portal-text-field:hover {
-    -fx-border-color: -wl-secondary;
-}
-
-.portal-text-field:focused {
-    -fx-border-color: -wl-primary;
-}
-
-.portal-primary-button,
-.portal-secondary-button {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-padding: 0 15 0 15;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-cursor: hand;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-    -fx-effect: none;
-}
-
-.portal-primary-button {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.portal-primary-button:hover,
-.portal-primary-button:focused {
-    -fx-background-color: -wl-primary-hover;
-    -fx-border-color: -wl-primary-hover;
-}
-
-.portal-secondary-button {
-    -fx-background-color: -wl-tertiary-button;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
-}
-
-.portal-secondary-button:hover,
-.portal-secondary-button:focused {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
-}
-
-.portal-divider {
-    -fx-background-color: -wl-border;
-    -fx-min-height: 1;
-    -fx-pref-height: 1;
-    -fx-max-height: 1;
-}
-
-/* ---------- Shared Settings Layout ---------- */
-
-.settings-layout {
-    -fx-alignment: top-left;
-}
-
-.settings-nav {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-    -fx-min-width: 240;
-    -fx-pref-width: 240;
-}
-
-.settings-nav-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-    -fx-background-radius: 0;
-    -fx-border-radius: 0;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-    -fx-padding: 6 18 6 18;
-    -fx-min-height: 66;
-    -fx-pref-height: 66;
-    -fx-max-height: 66;
-    -fx-alignment: center-left;
-    -fx-cursor: hand;
-}
-
-.settings-nav-button > .graphic-container {
-    -fx-padding: 0;
-    -fx-alignment: center-left;
-}
-
-.settings-nav-button-first {
-    -fx-background-radius: 10 10 0 0;
-    -fx-border-radius: 10 10 0 0;
-}
-
-.settings-nav-button:hover,
-.settings-nav-button.active {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.settings-nav-button-last {
-    -fx-border-width: 0;
-    -fx-background-radius: 0 0 10 10;
-    -fx-border-radius: 0 0 10 10;
-}
-
-.settings-nav-label,
-.form-label {
-    -fx-text-fill: -wl-text;
-}
-
-.settings-nav-row {
-    -fx-alignment: center-left;
-}
-
-.settings-section-heading {
-    -fx-text-fill: -wl-text;
-}
-
-/* ---------- Shared Pagination ---------- */
-
-.pagination-bar {
-    -fx-padding: 15 18 18 18;
-    -fx-spacing: 12;
-    -fx-alignment: center;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
-}
-
-.pagination-summary-label,
-.rows-per-page-label {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.pagination-buttons-box,
-.rows-per-page-box {
-    -fx-spacing: 6;
-    -fx-alignment: center;
-}
-
-.pagination-summary-box {
-    -fx-alignment: center-left;
-}
-
-.pagination-center-box {
-    -fx-alignment: center;
-}
-
-.rows-per-page-box {
-    -fx-spacing: 9;
-    -fx-alignment: center-right;
-}
-
-.pagination-button {
-    -fx-min-width: 39;
-    -fx-pref-width: 39;
-    -fx-max-width: 39;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-padding: 0;
-    -fx-background-color: -wl-tertiary;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-background-insets: 0;
-    -fx-border-insets: 0;
-    -fx-effect: none;
-}
-
-.pagination-button:hover,
-.pagination-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
-    -fx-text-fill: -wl-text;
-}
-
-.pagination-button-active,
-.pagination-button-active:hover,
-.pagination-button-active:pressed {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.pagination-button:disabled {
-    -fx-opacity: 0.6;
-}
-
-.pagination-ellipsis {
-    -fx-text-fill: -wl-text-muted;
-    -fx-padding: 0 6 0 6;
-}
-
 /* =========================================================
-   MERGED ADMIN TOP BAR + USER PORTAL PAGES
+   02. SHELL HEADER WRAPPER
    ========================================================= */
 
 .admin-shell-head {
@@ -400,7 +59,9 @@
     -fx-background-color: -wl-surface;
 }
 
-/* ---------- Brand ---------- */
+/* =========================================================
+   03. BRAND
+   ========================================================= */
 
 .admin-brand {
     -fx-min-height: 33;
@@ -439,7 +100,9 @@
     -fx-text-fill: -wl-text-muted;
 }
 
-/* ---------- Center Navigation ---------- */
+/* =========================================================
+   04. CENTER NAVIGATION
+   ========================================================= */
 
 .admin-nav-bar {
     -fx-min-height: 33;
@@ -497,17 +160,16 @@
 }
 
 .admin-top-nav-button:selected .admin-top-nav-icon,
-.admin-top-nav-button.active .admin-top-nav-icon {
+.admin-top-nav-button.active .admin-top-nav-icon,
+.admin-top-nav-button:selected .admin-top-nav-label,
+.admin-top-nav-button.active .admin-top-nav-label {
     -fx-fill: -wl-on-primary;
     -fx-text-fill: -wl-on-primary;
 }
 
-.admin-top-nav-button:selected .admin-top-nav-label,
-.admin-top-nav-button.active .admin-top-nav-label {
-    -fx-text-fill: -wl-on-primary;
-}
-
-/* ---------- Right Account / Utility Area ---------- */
+/* =========================================================
+   05. RIGHT ACCOUNT / UTILITY AREA
+   ========================================================= */
 
 .admin-account {
     -fx-min-height: 33;
@@ -543,6 +205,13 @@
     -fx-alignment: center;
 }
 
+.admin-toolbar-button:hover,
+.admin-toolbar-button:pressed,
+.admin-toolbar-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
 .admin-toolbar-icon-shell,
 .admin-account-chevron-shell {
     -fx-min-width: 18;
@@ -553,13 +222,6 @@
     -fx-max-height: 18;
     -fx-alignment: center;
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.admin-toolbar-button:hover,
-.admin-toolbar-button:pressed,
-.admin-toolbar-button:focused {
-    -fx-background-color: -wl-surface-hover;
     -fx-border-color: transparent;
 }
 
@@ -584,7 +246,67 @@
     -fx-translate-y: -2;
 }
 
-/* ---------- Account Menu Button ---------- */
+/* =========================================================
+   USER/ACCOUNT UTILITY BUTTONS
+   Actual FXML classes: account-utility-button, account-utility-icon-shell,
+   account-utility-icon. These are used by the keyboard and notification
+   buttons in the user shell.
+   ========================================================= */
+
+.account-utility-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-border-width: 1;
+    -fx-effect: none;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.account-utility-button:hover,
+.account-utility-button:pressed,
+.account-utility-button:focused {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.account-utility-button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+.account-utility-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.account-utility-icon {
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   06. ACCOUNT MENU BUTTON
+   ========================================================= */
 
 .admin-account-menu-button {
     -fx-min-height: 33;
@@ -658,7 +380,9 @@
     -fx-text-fill: -wl-text-muted;
 }
 
-/* ---------- Account Dropdown ---------- */
+/* =========================================================
+   07. ACCOUNT DROPDOWN
+   ========================================================= */
 
 .admin-account-dropdown {
     -fx-background-color: -wl-surface;
@@ -668,11 +392,7 @@
     -fx-border-width: 1;
     -fx-padding: 9;
     -fx-spacing: 6;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
-}
-
-.app-shell.dark .admin-account-dropdown {
-    -fx-effect: none;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .admin-account-dropdown-header {
@@ -791,7 +511,9 @@
     -fx-text-fill: -wl-status-danger-text;
 }
 
-/* ---------- Status / Breadcrumb ---------- */
+/* =========================================================
+   08. STATUS / BREADCRUMB
+   ========================================================= */
 
 .admin-status-bar {
     -fx-padding: 0 18 9 18;
@@ -816,21 +538,413 @@
     -fx-padding: 0 18 12 18;
 }
 
-/* ---------- Small admin support pages ---------- */
+/* =========================================================
+   WEBLAGER USER SHELL / TOP NAVIGATION
+   Moved from user-portal.css.
+   Shell-level UI belongs in shell.css.
+   ========================================================= */
 
-.admin-account-settings-page {
-    -fx-padding: 24;
+/* =========================================================
+   USER SHELL / TOP NAVIGATION
+   ========================================================= */
+
+.user-portal-shell,
+.user-page,
+.scan-page {
+    -fx-background-color: -wl-background;
 }
 
-.admin-account-section-button {
+.top-nav-bar {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.top-brand-row {
+    -fx-min-width: 150;
+    -fx-pref-width: 150;
+    -fx-max-width: 150;
+    -fx-alignment: center-left;
+}
+
+.user-brand-title {
     -fx-text-fill: -wl-text;
 }
 
-.admin-account-readonly-field {
+/* User top-bar button fallback.
+   Some utility buttons are plain JavaFX Buttons instead of top-icon-toggle.
+   Reset them here so Modena/default button styling cannot leak into the shell. */
+.user-portal-shell .top-nav-bar .button,
+.user-page .top-nav-bar .button,
+.scan-page .top-nav-bar .button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-insets: 0;
+    -fx-border-width: 0;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.user-portal-shell .top-nav-bar .button:hover,
+.user-portal-shell .top-nav-bar .button:pressed,
+.user-portal-shell .top-nav-bar .button:focused,
+.user-page .top-nav-bar .button:hover,
+.user-page .top-nav-bar .button:pressed,
+.user-page .top-nav-bar .button:focused,
+.scan-page .top-nav-bar .button:hover,
+.scan-page .top-nav-bar .button:pressed,
+.scan-page .top-nav-bar .button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+}
+
+.user-portal-shell .top-nav-bar .button > .graphic-container,
+.user-page .top-nav-bar .button > .graphic-container,
+.scan-page .top-nav-bar .button > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center;
+}
+
+/* Explicit user utility aliases for keyboard + notification buttons. */
+.top-keyboard-button,
+.top-notification-button,
+.keyboard-shortcuts-button,
+.notification-button,
+.user-keyboard-button,
+.user-notification-button,
+.user-toolbar-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.top-keyboard-button:hover,
+.top-notification-button:hover,
+.keyboard-shortcuts-button:hover,
+.notification-button:hover,
+.user-keyboard-button:hover,
+.user-notification-button:hover,
+.user-toolbar-button:hover,
+.top-keyboard-button:pressed,
+.top-notification-button:pressed,
+.keyboard-shortcuts-button:pressed,
+.notification-button:pressed,
+.user-keyboard-button:pressed,
+.user-notification-button:pressed,
+.user-toolbar-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.top-nav-item,
+.top-nav-item-active {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-border-width: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.top-nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.top-nav-item:hover,
+.top-nav-item:pressed,
+.top-nav-item:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.top-nav-item-active,
+.top-nav-item-active:hover,
+.top-nav-item-active:pressed,
+.top-nav-item-active:focused,
+.top-nav-item-active:selected {
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.top-help-icon,
+.avatar-initials {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-alignment: center;
+}
+
+.top-help-icon {
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+}
+
+.top-help-label {
+    -fx-text-fill: -wl-text;
+}
+
+.top-icon-toggle {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.top-icon-toggle:hover,
+.top-icon-toggle:selected,
+.top-icon-toggle:selected:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.top-icon-toggle > .graphic-container {
+    -fx-padding: 0;
+}
+
+.top-icon-toggle-svg {
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
+    -fx-scale-x: 0.58;
+    -fx-scale-y: 0.58;
+}
+
+.avatar-initials {
+    -fx-background-color: -wl-avatar-bg;
+    -fx-border-color: -wl-border;
+    -fx-border-width: 1;
+}
+
+.avatar-initials-text {
+    -fx-text-fill: -wl-text;
+}
+
+.top-user-name {
+    -fx-text-fill: -wl-text;
+}
+
+.top-user-chevron {
+    -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
 }
 
-.admin-keyboard-shortcuts-dialog {
+/* =========================================================
+   USER NOTIFICATION DROPDOWN
+   Shell-level overlay used by the user portal top bar.
+   ========================================================= */
+
+.user-notification-dropdown {
+    -fx-min-width: 420;
+    -fx-pref-width: 420;
+    -fx-max-width: 420;
     -fx-background-color: -wl-surface;
-    -fx-padding: 15;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.user-notification-header,
+.user-notification-footer {
+    -fx-padding: 15 18 15 18;
+    -fx-background-color: -wl-surface;
+}
+
+.user-notification-header {
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.user-notification-footer {
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.user-notification-title,
+.user-notification-item-title {
+    -fx-text-fill: -wl-text;
+}
+
+.user-notification-list {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.user-notification-item {
+    -fx-padding: 12 18 12 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.user-notification-item:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.user-notification-unread-dot,
+.user-notification-read-spacer {
+    -fx-min-width: 6;
+    -fx-pref-width: 6;
+    -fx-max-width: 6;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+}
+
+.user-notification-unread-dot {
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 999;
+}
+
+.user-notification-icon-shell {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.user-notification-icon {
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.user-notification-icon-danger {
+    -fx-background-color: -wl-status-danger-bg;
+}
+
+.user-notification-icon-danger .user-notification-icon {
+    -fx-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.user-notification-icon-success {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.user-notification-icon-success .user-notification-icon {
+    -fx-fill: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.user-notification-icon-info {
+    -fx-background-color: -wl-status-info-bg;
+}
+
+.user-notification-icon-info .user-notification-icon {
+    -fx-fill: -wl-status-info-text;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.user-notification-icon-warning {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.user-notification-icon-warning .user-notification-icon {
+    -fx-fill: -wl-status-warning-text;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.user-notification-item-copy,
+.user-notification-time,
+.user-notification-footer-button {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.user-notification-link-button,
+.user-notification-footer-button {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.user-notification-link-button {
+    -fx-text-fill: -wl-primary;
+}
+
+.user-notification-link-button:hover,
+.user-notification-footer-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+.top-nav-item .prime-icon,
+.top-nav-item .prime-icon-vector,
+.top-nav-item-active .prime-icon,
+.top-nav-item-active .prime-icon-vector {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.top-nav-item-active .prime-icon,
+.top-nav-item-active .prime-icon-vector {
+    -fx-text-fill: -wl-on-primary;
+    -fx-fill: -wl-on-primary;
 }

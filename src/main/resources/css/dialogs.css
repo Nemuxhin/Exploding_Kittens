@@ -21,12 +21,7 @@
 
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
-}
-
-.app-shell.dark.weblager-help-dialog-pane,
-.weblager-help-dialog-pane.dark {
-    -fx-effect: none;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .weblager-help-dialog-pane > .content {
@@ -75,7 +70,6 @@
 .weblager-help-title {
     -fx-text-fill: -wl-text;
 
-
 }
 
 .weblager-help-close-button {
@@ -93,7 +87,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text-muted;
-
 
     -fx-cursor: hand;
     -fx-effect: none;
@@ -130,7 +123,6 @@
 .weblager-help-section-title {
     -fx-text-fill: -wl-text;
 
-
 }
 
 .weblager-help-row {
@@ -163,12 +155,10 @@
 .weblager-help-row-title {
     -fx-text-fill: -wl-text;
 
-
 }
 
 .weblager-help-row-copy {
     -fx-text-fill: -wl-text-muted;
-
 
     -fx-line-spacing: 2;
 }
@@ -202,7 +192,6 @@
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
     -fx-text-fill: -wl-text;
-
 
 }
 
@@ -268,7 +257,6 @@
 .weblager-help-question:collapsed > .title > .text {
     -fx-fill: -wl-text;
 
-
 }
 
 .weblager-help-question > .content,
@@ -287,7 +275,6 @@
 .weblager-help-answer {
     -fx-text-fill: -wl-text-muted;
 
-
     -fx-padding: 3 0 6 0;
 }
 
@@ -299,7 +286,6 @@
 .weblager-help-support-copy {
     -fx-text-fill: -wl-text-muted;
 
-
 }
 
 .weblager-help-support-link {
@@ -309,7 +295,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-primary;
-
 
     -fx-underline: true;
     -fx-cursor: hand;
@@ -333,25 +318,21 @@
     -fx-pref-width: 1000;
     -fx-pref-height: 780;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 22;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 22;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
     -fx-padding: 0;
 
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-effect: dropshadow(gaussian, rgba(18, 34, 62, 0.14), 28, 0.20, 0, 8);
-}
-
-.weblager-shortcuts-dialog-pane.dark {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.34), 42, 0.24, 0, 12);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .weblager-shortcuts-dialog-pane > .content {
     -fx-padding: 0;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 22;
+    -fx-background-radius: 10;
 }
 
 .weblager-shortcuts-dialog-pane > .header-panel {
@@ -373,7 +354,7 @@
 
 .weblager-shortcuts-root {
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 22;
+    -fx-background-radius: 10;
     -fx-padding: 0;
 }
 
@@ -381,9 +362,9 @@
     -fx-min-height: 72;
     -fx-pref-height: 72;
     -fx-max-height: 72;
-    -fx-padding: 12 30 12 34;
+    -fx-padding: 12 30 12 33;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 22 22 0 0;
+    -fx-background-radius: 10 10 0 0;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
     -fx-alignment: center-left;
@@ -396,17 +377,16 @@
     -fx-min-height: 48;
     -fx-pref-height: 48;
     -fx-max-height: 48;
-    -fx-background-color: linear-gradient(to bottom, #fbfdff, #eef4fb);
-    -fx-background-radius: 14;
-    -fx-border-color: #d8e2ef;
-    -fx-border-radius: 14;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(37, 67, 105, 0.10), 8, 0.14, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .weblager-shortcuts-title {
     -fx-text-fill: -wl-text;
-
 
 }
 
@@ -419,15 +399,14 @@
     -fx-max-height: 48;
     -fx-padding: 0;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 24;
+    -fx-background-radius: 6;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 24;
+    -fx-border-radius: 6;
     -fx-border-width: 1;
-    -fx-text-fill: #617089;
-
+    -fx-text-fill: -wl-text-muted;
 
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(37, 67, 105, 0.08), 8, 0.14, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
@@ -435,22 +414,22 @@
 .weblager-shortcuts-x-button:hover,
 .weblager-shortcuts-x-button:pressed,
 .weblager-shortcuts-x-button:focused {
-    -fx-background-color: #f6f9fd;
-    -fx-border-color: #cfdbea;
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
     -fx-text-fill: -wl-text;
 }
 
 .weblager-shortcuts-header-icon,
 .weblager-shortcuts-card-icon {
     -fx-fill: transparent;
-    -fx-stroke: #20d3ac;
+    -fx-stroke: -wl-secondary-nav-bg;
     -fx-stroke-width: 2.4;
 }
 
 .weblager-shortcuts-scroll,
 .weblager-shortcuts-scroll > .viewport {
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0 0 22 22;
+    -fx-background-radius: 0 0 10 10;
 }
 
 .weblager-shortcuts-scroll {
@@ -461,9 +440,9 @@
 }
 
 .weblager-shortcuts-body {
-    -fx-padding: 16 18 24 18;
+    -fx-padding: 15 18 24 18;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0 0 22 22;
+    -fx-background-radius: 0 0 10 10;
 }
 
 .weblager-shortcuts-card-row {
@@ -472,7 +451,7 @@
 }
 
 .weblager-shortcuts-grid {
-    -fx-padding: 4 4 4 4;
+    -fx-padding: 3;
 }
 
 .weblager-shortcuts-card {
@@ -482,13 +461,13 @@
     -fx-min-height: 94;
     -fx-pref-height: 94;
     -fx-max-height: 94;
-    -fx-padding: 14 24 14 24;
-    -fx-background-color: linear-gradient(to bottom, #fbfcfe, #f8fafc);
-    -fx-background-radius: 14;
-    -fx-border-color: #e4ebf4;
-    -fx-border-radius: 14;
+    -fx-padding: 15 24 15 24;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(26, 47, 79, 0.08), 10, 0.14, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .weblager-shortcuts-card-icon-frame {
@@ -498,22 +477,21 @@
     -fx-min-height: 58;
     -fx-pref-height: 58;
     -fx-max-height: 58;
-    -fx-background-color: white;
-    -fx-background-radius: 16;
-    -fx-border-color: #d9e3ef;
-    -fx-border-radius: 16;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(37, 67, 105, 0.12), 8, 0.14, 0, 2);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .weblager-shortcuts-key-pill {
     -fx-min-height: 30;
     -fx-pref-height: 30;
-    -fx-padding: 0 16 0 16;
-    -fx-background-color: #314560;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-primary;
     -fx-background-radius: 10;
-    -fx-text-fill: white;
-
+    -fx-text-fill: -wl-on-primary;
 
     -fx-alignment: center;
 }
@@ -521,13 +499,11 @@
 .weblager-shortcuts-card-title {
     -fx-text-fill: -wl-text;
 
-
     -fx-wrap-text: false;
 }
 
 .weblager-shortcuts-card-description {
     -fx-text-fill: -wl-text-muted;
-
 
     -fx-wrap-text: true;
     -fx-line-spacing: 0px;
@@ -575,7 +551,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
 
-
     -fx-effect: none;
 }
 
@@ -620,13 +595,11 @@
 .create-user-editor-title {
     -fx-text-fill: -wl-text;
 
-
 }
 
 .create-user-editor-subtitle,
 .create-user-section-copy {
     -fx-text-fill: -wl-text-muted;
-
 
 }
 
@@ -643,7 +616,6 @@
 .create-user-section-title {
     -fx-text-fill: -wl-text;
 
-
 }
 
 .create-user-details-grid {
@@ -657,7 +629,6 @@
 
 .create-user-field-label {
     -fx-text-fill: -wl-text;
-
 
 }
 
@@ -767,7 +738,6 @@
 .create-user-profile-name {
     -fx-text-fill: -wl-text;
 
-
 }
 
 .create-user-profile-status-active {
@@ -785,7 +755,6 @@
 .create-user-generated-note {
     -fx-text-fill: -wl-text-muted;
 
-
 }
 
 .create-user-warning-message {
@@ -797,7 +766,6 @@
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
 
-
 }
 
 .create-user-validation-message {
@@ -808,7 +776,6 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-danger-text;
-
 
 }
 
@@ -875,15 +842,11 @@
 
 .profile-delete-dialog-root {
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 18;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
-}
-
-.profile-delete-dialog-pane.dark .profile-delete-dialog-root {
-    -fx-effect: none;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .profile-delete-dialog-header {
@@ -891,7 +854,7 @@
     -fx-pref-height: 64;
     -fx-padding: 0 18 0 18;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18 18 0 0;
+    -fx-background-radius: 10 10 0 0;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -900,23 +863,21 @@
     -fx-min-width: 40;
     -fx-pref-width: 40;
     -fx-max-width: 40;
-    -fx-min-height: 40;
-    -fx-pref-height: 40;
-    -fx-max-height: 40;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
     -fx-background-color: -wl-primary;
-    -fx-background-radius: 7;
+    -fx-background-radius: 6;
     -fx-alignment: center;
 }
 
 .profile-delete-dialog-brand-label {
     -fx-text-fill: -wl-on-primary;
 
-
 }
 
 .profile-delete-dialog-title {
     -fx-text-fill: -wl-text;
-
 
 }
 
@@ -934,7 +895,6 @@
     -fx-border-radius: 999;
     -fx-text-fill: -wl-secondary;
 
-
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -950,14 +910,13 @@
 }
 
 .profile-delete-dialog-body {
-    -fx-padding: 24 28 24 28;
+    -fx-padding: 24 27 24 27;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0 0 18 18;
+    -fx-background-radius: 0 0 10 10;
 }
 
 .profile-delete-dialog-message {
     -fx-text-fill: -wl-primary;
-
 
     -fx-line-spacing: 2px;
 }
@@ -1012,15 +971,11 @@
 
 .profile-created-dialog-root {
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 18;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
-}
-
-.profile-created-dialog-pane.dark .profile-created-dialog-root {
-    -fx-effect: none;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .profile-created-dialog-header {
@@ -1028,7 +983,7 @@
     -fx-pref-height: 64;
     -fx-padding: 0 18 0 18;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18 18 0 0;
+    -fx-background-radius: 10 10 0 0;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -1037,23 +992,21 @@
     -fx-min-width: 40;
     -fx-pref-width: 40;
     -fx-max-width: 40;
-    -fx-min-height: 40;
-    -fx-pref-height: 40;
-    -fx-max-height: 40;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
     -fx-background-color: -wl-primary;
-    -fx-background-radius: 7;
+    -fx-background-radius: 6;
     -fx-alignment: center;
 }
 
 .profile-created-dialog-brand-label {
     -fx-text-fill: -wl-on-primary;
 
-
 }
 
 .profile-created-dialog-title {
     -fx-text-fill: -wl-text;
-
 
 }
 
@@ -1071,7 +1024,6 @@
     -fx-border-radius: 999;
     -fx-text-fill: -wl-secondary;
 
-
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -1087,14 +1039,13 @@
 }
 
 .profile-created-dialog-body {
-    -fx-padding: 24 28 24 28;
+    -fx-padding: 24 27 24 27;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0 0 18 18;
+    -fx-background-radius: 0 0 10 10;
 }
 
 .profile-created-dialog-message {
     -fx-text-fill: -wl-primary;
-
 
     -fx-line-spacing: 2px;
 }
@@ -1108,4 +1059,303 @@
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+}
+/* =========================================================
+   WEBLAGER EXPORT DIALOG
+   Moved from user-portal.css.
+   Dialog-specific styling belongs in dialogs.css.
+   ========================================================= */
+
+.exports-dialog-stage {
+    -fx-background-color: transparent;
+    -fx-padding: 18;
+}
+
+.exports-dialog-pane {
+    -fx-pref-width: 760;
+}
+
+.exports-dialog-pane > .content {
+    -fx-background-color: -wl-surface;
+}
+
+.exports-dialog-pane > .button-bar,
+.exports-dialog-pane > .button-bar > .container {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-max-height: 0;
+    -fx-pref-height: 0;
+}
+
+.exports-dialog-content {
+    -fx-padding: 18;
+    -fx-spacing: 12;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-header {
+    -fx-spacing: 3;
+}
+
+.exports-dialog-title {
+    -fx-text-fill: -wl-text;
+}
+
+.exports-dialog-section-label,
+.exports-dialog-files-title {
+    -fx-text-fill: -wl-text;
+}
+
+.exports-dialog-box-card {
+    -fx-padding: 9 12 9 12;
+    -fx-spacing: 0;
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-box-value {
+    -fx-text-fill: -wl-text;
+}
+
+.exports-dialog-box-detail {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.exports-dialog-type-row {
+    -fx-spacing: 9;
+}
+
+.exports-dialog-option-button {
+    -fx-min-height: 78;
+    -fx-pref-height: 78;
+    -fx-max-width: 9999;
+    -fx-padding: 9 12 9 12;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 2;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.exports-dialog-option-button-unselected {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+}
+
+.exports-dialog-option-button-unselected:hover,
+.exports-dialog-option-button-unselected:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.exports-dialog-option-button-selected,
+.exports-dialog-option-button-selected:hover,
+.exports-dialog-option-button-selected:pressed {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-primary;
+}
+
+.exports-dialog-option-content {
+    -fx-alignment: top-left;
+}
+
+.exports-dialog-option-copy {
+    -fx-spacing: 3;
+    -fx-alignment: top-left;
+}
+
+.exports-dialog-option-title {
+    -fx-text-fill: -wl-text;
+}
+
+.exports-dialog-option-subtitle {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.exports-dialog-option-check-badge {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+}
+
+.exports-dialog-option-check-icon {
+    -fx-fill: -wl-on-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.exports-dialog-files-card {
+    -fx-padding: 9 12 9 12;
+    -fx-spacing: 6;
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-file-grid {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.exports-dialog-files-count,
+.exports-dialog-file-name,
+.exports-dialog-empty-state,
+.exports-dialog-output-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.exports-dialog-file-cell-box {
+    -fx-alignment: center-left;
+    -fx-padding: 15 18 15 18;
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.exports-dialog-file-cell-box-bordered {
+    -fx-border-color: transparent -wl-border -wl-border transparent;
+    -fx-border-width: 0 1 1 0;
+}
+
+.exports-dialog-file-icon {
+    -fx-fill: -wl-secondary;
+    -fx-text-fill: -wl-secondary;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.exports-dialog-file-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-max-height: 210;
+}
+
+.exports-dialog-file-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.exports-dialog-file-scroll > .corner {
+    -fx-background-color: transparent;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-padding: 3;
+    -fx-pref-width: 12;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .track {
+    -fx-background-color: -wl-scroll-track;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: -wl-scroll-thumb;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .thumb:hover,
+.exports-dialog-file-scroll .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: -wl-scroll-thumb-hover;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .increment-button,
+.exports-dialog-file-scroll .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.exports-dialog-file-scroll .scroll-bar:vertical .increment-arrow,
+.exports-dialog-file-scroll .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: transparent;
+}
+
+.exports-dialog-empty-state {
+    -fx-padding: 9 12 9 12;
+}
+
+.exports-dialog-link-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-secondary-nav-bg;
+    -fx-cursor: hand;
+}
+
+.exports-dialog-link-button:hover,
+.exports-dialog-link-button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-underline: true;
+}
+
+.exports-dialog-footer,
+.exports-dialog-output-box {
+    -fx-alignment: center-left;
+}
+
+.exports-dialog-footer {
+    -fx-spacing: 6;
+}
+
+.exports-dialog-output-box {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+}
+
+.exports-dialog-footer-actions {
+    -fx-alignment: center-right;
+    -fx-spacing: 9;
+}
+
+.exports-dialog-output-value {
+    -fx-text-fill: -wl-text;
+    -fx-pref-width: 420;
+    -fx-max-width: 420;
+}
+
+.exports-dialog-export-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+}
+
+.exports-dialog-cancel-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+}
+
+.exports-dialog-export-button,
+.exports-dialog-cancel-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
 }

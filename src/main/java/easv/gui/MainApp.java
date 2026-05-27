@@ -34,6 +34,7 @@ public class MainApp extends Application {
 
     private static final String[] ADMIN_STYLESHEETS = {
             "/css/app.css",
+            "/css/dark-mode.css",
             "/css/shell.css",
             "/css/admin-common.css",
             "/css/dashboard.css",
@@ -46,6 +47,7 @@ public class MainApp extends Application {
 
     private static final String[] USER_STYLESHEETS = {
             "/css/app.css",
+            "/css/dark-mode.css",
             "/css/shell.css",
             "/css/user-portal.css",
             "/css/user-scan.css",

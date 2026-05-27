@@ -1,205 +1,71 @@
 /* =========================================================
-   WEBLAGER ADMIN REVIEW WORKSPACE
-   Review center and review workspace styles.
+   WEBLAGER ADMIN REVIEW / QA
+   Review center, QA assignment, and review workspace styles.
+   Typography lives in typography.css.
+   Shared tokens / primitives live in app.css.
+   Shell navigation lives in shell.css.
    ========================================================= */
 
 /* =========================================================
-   REVIEW WORKSPACE
-   Project note: review has a denser workspace layout, so
-   workspace widths and toolbar actions are scoped to that screen.
+   01. REVIEW PAGE SHELL
    ========================================================= */
 
-.review-queue-grid {
-    -fx-alignment: center;
+.review-page-host,
+.review-page,
+.review-workspace-page {
+    -fx-background-color: -wl-background;
 }
 
-.review-queue-card {
-    -fx-min-height: 111;
-    -fx-pref-height: 111;
-    -fx-max-height: 111;
-    -fx-padding: 18 21 18 21;
-    -fx-spacing: 15;
-    -fx-background-color: -wl-surface;
-    -fx-background-insets: 0;
-    -fx-background-radius: 10;
-    -fx-border-insets: 0;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-    -fx-alignment: center-left;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
+.review-page-scroll,
+.review-page-scroll > .viewport,
+.review-workspace-scroll,
+.review-workspace-scroll > .viewport {
+    -fx-background-color: -wl-background;
 }
 
-.review-queue-card:hover {
-    -fx-background-color: -wl-surface-hover;
+.review-page-scroll,
+.review-workspace-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
 }
 
-.review-queue-warning {
-    -fx-border-color: -wl-status-warning-border;
-}
-
-.review-queue-danger {
-    -fx-border-color: -wl-status-danger-border;
-}
-
-.review-queue-success {
-    -fx-border-color: -wl-status-success-border;
-}
-
-.review-queue-neutral {
-    -fx-border-color: -wl-border;
-}
-
-.review-card-title {
-    -fx-text-fill: -wl-text;
-}
-
-.review-card-count {
-    -fx-text-fill: -wl-text;
-}
-
-.review-card-icon-box,
-.review-card-icon-warning-box,
-.review-card-icon-danger-box,
-.review-card-icon-success-box,
-.review-card-icon-neutral-box {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-max-width: 30;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-background-radius: 999;
-    -fx-border-radius: 999;
-    -fx-border-width: 0;
-    -fx-alignment: center;
-}
-
-.review-card-icon-warning-box {
-    -fx-background-color: -wl-status-warning-bg;
-}
-
-.review-card-icon-danger-box {
-    -fx-background-color: -wl-status-danger-bg;
-}
-
-.review-card-icon-success-box {
-    -fx-background-color: -wl-status-success-bg;
-}
-
-.review-card-icon-neutral-box {
-    -fx-background-color: -wl-card-content;
-}
-
-.review-card-icon-warning,
-.review-card-icon-danger,
-.review-card-icon-success,
-.review-card-icon-neutral {
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
-}
-
-.review-card-icon-warning {
-    -fx-fill: -wl-status-warning-text;
-    -fx-text-fill: -wl-status-warning-text;
-}
-
-.review-card-icon-warning.prime-icon-vector {
-    -fx-fill: -wl-status-warning-text;
-}
-
-.review-card-icon-danger {
-    -fx-fill: -wl-status-danger-text;
-    -fx-text-fill: -wl-status-danger-text;
-}
-
-.review-card-icon-danger.prime-icon-vector {
-    -fx-fill: -wl-status-danger-text;
-}
-
-.review-card-icon-success {
-    -fx-fill: -wl-status-success-text;
-    -fx-text-fill: -wl-status-success-text;
-}
-
-.review-card-icon-success.prime-icon-vector {
-    -fx-fill: -wl-status-success-text;
-}
-
-.review-card-icon-neutral {
-    -fx-fill: -wl-text-muted;
-    -fx-text-fill: -wl-text-muted;
-}
-
-.review-card-icon-neutral.prime-icon-vector {
-    -fx-fill: -wl-text-muted;
-}
-
-.review-filter-card {
-    -fx-padding: 10 16 10 16;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-border-width: 1;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-}
-
-.review-batch-bar {
-    -fx-padding: 12 15 12 15;
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 10;
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
-}
-
-.review-batch-label {
-    -fx-text-fill: -wl-text;
-}
-
-.review-page-host .review-workspace-header,
-.review-page-host .review-workspace-header-grid {
+.review-workspace-header,
+.review-workspace-header-grid {
     -fx-alignment: center-left;
     -fx-spacing: 18;
     -fx-hgap: 18;
     -fx-vgap: 3;
 }
 
-.review-page-host .review-workspace-header .page-heading-copy {
-    -fx-min-width: 0;
-    -fx-pref-width: 390;
-    -fx-max-width: 9999;
-}
-
-.review-page-host .review-workspace-title-area,
-.review-workspace-title-area {
+.review-workspace-title-area,
+.review-workspace-header .page-heading-copy {
     -fx-min-width: 0;
     -fx-max-width: 9999;
 }
 
-.review-page-host .review-workspace-header .page-title,
-.review-page-host .review-workspace-header .page-subtitle,
-.review-page-host .review-workspace-header-grid .page-title,
-.review-page-host .review-workspace-header-grid .page-subtitle {
+.review-workspace-header .page-title,
+.review-workspace-header .page-subtitle,
+.review-workspace-header-grid .page-title,
+.review-workspace-header-grid .page-subtitle {
     -fx-min-width: 0;
     -fx-text-overrun: ellipsis;
 }
 
-.review-page-host .review-workspace-header .header-actions,
-.review-page-host .review-workspace-header-grid .header-actions {
+.review-workspace-header .header-actions,
+.review-workspace-header-grid .header-actions {
     -fx-alignment: center-right;
     -fx-spacing: 12;
 }
 
-.review-page-host .review-workspace-header .header-actions .button,
-.review-page-host .review-workspace-header-grid .header-actions .button {
+.review-workspace-header .header-actions .button,
+.review-workspace-header-grid .header-actions .button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
-    -fx-padding: 0 18 0 18;
     -fx-alignment: center;
 }
 
@@ -233,6 +99,541 @@
     -fx-max-width: 105;
 }
 
+/* =========================================================
+   02. REVIEW CARDS / PANELS
+   ========================================================= */
+
+.review-panel,
+.review-results-card,
+.review-filter-card,
+.review-workspace-shell,
+.review-status-strip,
+.review-queue-card,
+.review-batch-bar {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+
+.review-filter-card {
+    -fx-padding: 9 15 9 15;
+}
+
+.review-batch-bar {
+    -fx-padding: 12 15 12 15;
+    -fx-background-color: -wl-card-content;
+}
+
+.review-batch-label {
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   03. REVIEW QUEUE CARDS
+   ========================================================= */
+
+.review-queue-grid {
+    -fx-alignment: center;
+}
+
+.review-queue-card {
+    -fx-min-height: 111;
+    -fx-pref-height: 111;
+    -fx-max-height: 111;
+    -fx-padding: 18 21 18 21;
+    -fx-spacing: 15;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.review-queue-card:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-queue-card > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.review-queue-warning {
+    -fx-border-color: -wl-status-warning-border;
+}
+
+.review-queue-danger {
+    -fx-border-color: -wl-status-danger-border;
+}
+
+.review-queue-success {
+    -fx-border-color: -wl-status-success-border;
+}
+
+.review-queue-neutral {
+    -fx-border-color: -wl-border;
+}
+
+.review-card-title,
+.review-card-count {
+    -fx-text-fill: -wl-text;
+}
+
+.review-card-icon-box,
+.review-card-icon-warning-box,
+.review-card-icon-danger-box,
+.review-card-icon-success-box,
+.review-card-icon-neutral-box {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+    -fx-effect: none;
+}
+
+.review-card-icon-warning-box {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.review-card-icon-danger-box {
+    -fx-background-color: -wl-status-danger-bg;
+}
+
+.review-card-icon-success-box {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.review-card-icon-neutral-box {
+    -fx-background-color: -wl-card-content;
+}
+
+.review-card-icon-warning,
+.review-card-icon-danger,
+.review-card-icon-success,
+.review-card-icon-neutral {
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+}
+
+.review-card-icon-warning,
+.review-card-icon-warning.prime-icon-vector {
+    -fx-fill: -wl-status-warning-text;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-card-icon-danger,
+.review-card-icon-danger.prime-icon-vector {
+    -fx-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-card-icon-success,
+.review-card-icon-success.prime-icon-vector {
+    -fx-fill: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.review-card-icon-neutral,
+.review-card-icon-neutral.prime-icon-vector {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* =========================================================
+   04. REVIEW FILTERS / SEARCH
+   ========================================================= */
+
+.review-filter,
+.review-workspace-input,
+.review-workspace-textarea {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-filter {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.review-filter > .arrow-button,
+.review-workspace-input > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;
+}
+
+.review-filter > .arrow-button > .arrow,
+.review-workspace-input > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.review-filter .list-cell,
+.review-workspace-input .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+}
+
+.review-filter:hover,
+.review-workspace-input:hover,
+.review-workspace-textarea:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.review-filter:focused,
+.review-workspace-input:focused,
+.review-workspace-textarea:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.review-workspace-input,
+.review-workspace-input-error {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+}
+
+.review-workspace-textarea {
+    -fx-padding: 9;
+}
+
+.review-workspace-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+}
+
+.review-search-shell,
+.qa-picker-search {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.review-search-shell {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+}
+
+.review-search-shell:hover,
+.qa-picker-search:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-secondary;
+}
+
+.review-search-shell-focused,
+.qa-picker-search:focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-primary;
+}
+
+.review-filter-group {
+    -fx-padding: 0 9 0 9;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.review-filter-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-filter-divider {
+    -fx-background-color: -wl-border;
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+}
+
+/* =========================================================
+   05. REVIEW TABLE / LIST
+   ========================================================= */
+
+.review-table-header {
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+    -fx-padding: 0 12 0 12;
+    -fx-hgap: 10;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.review-header-label {
+    -fx-text-fill: -wl-table-header-text;
+    -fx-wrap-text: true;
+}
+
+.review-table-body {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.review-table-row {
+    -fx-min-height: 72;
+    -fx-padding: 9 12 9 12;
+    -fx-hgap: 9;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.review-table-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-table-row-warning,
+.review-table-row-warning:hover {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.review-main-cell,
+.review-cell-text,
+.review-box-id {
+    -fx-text-fill: -wl-text;
+    -fx-wrap-text: true;
+}
+
+.review-box-profile,
+.review-cell-muted {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-status-badge {
+    -fx-min-height: 24;
+    -fx-padding: 3 9 3 9;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.review-status-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.review-status-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.review-status-neutral {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.review-status-warning {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-status-danger {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-badge-icon-info {
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.review-badge-icon-success {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.review-badge-icon-danger {
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-badge-icon-warning {
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-badge-icon-neutral {
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+/* =========================================================
+   06. REVIEW STATUS STRIP
+   ========================================================= */
+
+.review-status-strip {
+    -fx-background-color: -wl-surface;
+}
+
+.review-strip-btn {
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+}
+
+.review-strip-btn:hover,
+.review-strip-btn.active {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.review-strip-btn:focused {
+    -fx-background-color: transparent;
+}
+
+.review-strip-btn.review-strip-warn.active {
+    -fx-border-color: transparent -wl-border -wl-status-warning-text transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn.review-strip-danger.active {
+    -fx-border-color: transparent -wl-border -wl-status-danger-text transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn.review-strip-info.active {
+    -fx-border-color: transparent -wl-border -wl-status-info-text transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn.review-strip-neutral.active {
+    -fx-border-color: transparent -wl-border -wl-text-muted transparent;
+    -fx-border-width: 0 1 2 0;
+}
+
+.review-strip-btn > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: top-left;
+}
+
+.review-strip-inner {
+    -fx-padding: 12 15 12 15;
+    -fx-spacing: 6;
+    -fx-alignment: top-left;
+}
+
+.review-strip-label-row {
+    -fx-alignment: center-left;
+    -fx-spacing: 5;
+}
+
+.review-strip-label,
+.review-strip-icon {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-strip-label-warn .review-strip-label,
+.review-strip-label-warn .review-strip-icon {
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-strip-label-danger .review-strip-label,
+.review-strip-label-danger .review-strip-icon {
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-strip-label-info .review-strip-label,
+.review-strip-label-info .review-strip-icon {
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.review-strip-num {
+    -fx-text-fill: -wl-text;
+}
+
+.review-strip-num-warn {
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-strip-num-danger {
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-strip-num-info {
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.review-waiting-pill {
+    -fx-padding: 3 6 3 6;
+    -fx-background-radius: 999;
+    -fx-border-width: 0;
+}
+
+.review-waiting-urgent {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+.review-waiting-warn {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-waiting-ok {
+    -fx-background-color: -wl-card-content;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-report-export-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.review-report-export-button:hover,
+.review-report-export-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+/* =========================================================
+   07. REVIEW WORKSPACE LAYOUT
+   ========================================================= */
+
 .review-workspace-warning-banner {
     -fx-min-height: 48;
     -fx-pref-height: 48;
@@ -262,9 +663,15 @@
 }
 
 .review-workspace-left-panel {
+    -fx-background-radius: 10 0 0 10;
     -fx-border-color: transparent -wl-border transparent transparent;
     -fx-border-width: 0 1 0 0;
-    -fx-background-radius: 10 0 0 10;
+}
+
+.review-workspace-right-panel {
+    -fx-background-radius: 0 10 10 0;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
 }
 
 .review-workspace-form {
@@ -272,23 +679,19 @@
     -fx-fill-width: true;
 }
 
-.review-workspace-right-panel {
-    -fx-border-color: transparent transparent transparent -wl-border;
-    -fx-border-width: 0 0 0 1;
-    -fx-background-radius: 0 10 10 0;
-}
-
 .review-workspace-tree {
     -fx-padding: 9 0 0 0;
 }
 
-.review-workspace-tree-root {
+.review-workspace-tree-root,
+.review-workspace-tree-case,
+.review-workspace-tree-title,
+.review-workspace-tree-title-active {
     -fx-text-fill: -wl-text;
 }
 
 .review-workspace-tree-case {
     -fx-padding: 0 0 0 12;
-    -fx-text-fill: -wl-text;
 }
 
 .review-workspace-tree-row,
@@ -308,12 +711,8 @@
     -fx-background-color: -wl-status-success-bg;
 }
 
-.review-workspace-tree-title,
-.review-workspace-tree-title-active {
-    -fx-text-fill: -wl-text;
-}
-
-.review-workspace-tree-status-text {
+.review-workspace-tree-status-text,
+.review-workspace-tree-status-neutral {
     -fx-text-fill: -wl-text-muted;
 }
 
@@ -329,9 +728,9 @@
     -fx-text-fill: -wl-status-danger-text;
 }
 
-.review-workspace-tree-status-neutral {
-    -fx-text-fill: -wl-text-muted;
-}
+/* =========================================================
+   08. REVIEW DOCUMENT VIEWER
+   ========================================================= */
 
 .review-workspace-viewer-panel {
     -fx-background-color: -wl-card-content;
@@ -423,12 +822,13 @@
     -fx-text-fill: -wl-text;
 }
 
-.review-workspace-thumbnail-label-active {
-}
-
 .review-workspace-thumbnail-note {
     -fx-text-fill: -wl-status-warning-text;
 }
+
+/* =========================================================
+   09. REVIEW SIDE PANEL / VALIDATION
+   ========================================================= */
 
 .review-workspace-tabs {
     -fx-padding: 3;
@@ -514,227 +914,27 @@
 }
 
 /* =========================================================
-   REVIEW QUEUE GUARDS
-   Project note: queue row graphics stay aligned with review rows.
-   ========================================================= */
-
-.review-queue-card > .graphic-container {
-    -fx-padding: 0;
-    -fx-alignment: center-left;
-}
-
-/* =========================================================
-   STATUS STRIP
-   ========================================================= */
-
-.review-status-strip {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-border-width: 1;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-effect: dropshadow(gaussian, #0000001A, 12, 0, 0, 2);
-}
-
-.review-strip-btn {
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent -wl-border transparent transparent;
-    -fx-border-width: 0 1 0 0;
-    -fx-border-insets: 0;
-    -fx-border-radius: 0;
-    -fx-padding: 0;
-    -fx-min-height: 72;
-    -fx-pref-height: 72;
-    -fx-cursor: hand;
-}
-
-.review-strip-btn:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.review-report-export-button {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.review-report-export-button:hover,
-.review-report-export-button:pressed {
-    -fx-background-color: -wl-primary-hover;
-    -fx-border-color: -wl-primary-hover;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.review-strip-btn:focused {
-    -fx-background-color: transparent;
-}
-
-.review-strip-btn.active {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.review-strip-btn.review-strip-warn.active {
-    -fx-border-color: transparent -wl-border -wl-status-warning-text transparent;
-    -fx-border-width: 0 1 2 0;
-}
-
-.review-strip-btn.review-strip-danger.active {
-    -fx-border-color: transparent -wl-border -wl-status-danger-text transparent;
-    -fx-border-width: 0 1 2 0;
-}
-
-.review-strip-btn.review-strip-info.active {
-    -fx-border-color: transparent -wl-border -wl-status-info-text transparent;
-    -fx-border-width: 0 1 2 0;
-}
-
-.review-strip-btn.review-strip-neutral.active {
-    -fx-border-color: transparent -wl-border -wl-text-muted transparent;
-    -fx-border-width: 0 1 2 0;
-}
-
-.review-strip-btn > .graphic-container {
-    -fx-padding: 0;
-    -fx-alignment: top-left;
-}
-
-.review-strip-inner {
-    -fx-padding: 12 14 12 14;
-    -fx-spacing: 6;
-    -fx-alignment: top-left;
-}
-
-.review-strip-label-row {
-    -fx-alignment: center-left;
-    -fx-spacing: 5;
-}
-
-.review-strip-label {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.review-strip-icon {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.review-strip-label-warn .review-strip-label,
-.review-strip-label-warn .review-strip-icon {
-    -fx-text-fill: -wl-status-warning-text;
-}
-
-.review-strip-label-danger .review-strip-label,
-.review-strip-label-danger .review-strip-icon {
-    -fx-text-fill: -wl-status-danger-text;
-}
-
-.review-strip-label-info .review-strip-label,
-.review-strip-label-info .review-strip-icon {
-    -fx-text-fill: -wl-status-info-text;
-}
-
-.review-strip-num {
-    -fx-text-fill: -wl-text;
-}
-
-.review-strip-num-warn  { -fx-text-fill: -wl-status-warning-text; }
-.review-strip-num-danger { -fx-text-fill: -wl-status-danger-text; }
-.review-strip-num-info   { -fx-text-fill: -wl-status-info-text; }
-
-/* =========================================================
-   FILTER BAR LABELS
-   ========================================================= */
-
-.review-filter-group {
-    -fx-padding: 0 10 0 10;
-    -fx-spacing: 6;
-    -fx-alignment: center-left;
-}
-
-.review-filter-label {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.review-filter-divider {
-    -fx-background-color: -wl-border;
-    -fx-min-width: 1;
-    -fx-pref-width: 1;
-    -fx-max-width: 1;
-    -fx-min-height: 20;
-    -fx-pref-height: 20;
-    -fx-max-height: 20;
-}
-
-/* =========================================================
-   WAITING PILL
-   ========================================================= */
-
-.review-waiting-pill {
-    -fx-padding: 2 7 2 7;
-    -fx-background-radius: 999;
-    -fx-border-width: 0;
-}
-
-.review-waiting-urgent {
-    -fx-background-color: -wl-status-danger-bg;
-    -fx-text-fill: -wl-status-danger-text;
-}
-
-.review-waiting-warn {
-    -fx-background-color: -wl-status-warning-bg;
-    -fx-text-fill: -wl-status-warning-text;
-}
-
-.review-waiting-ok {
-    -fx-background-color: -wl-card-content;
-    -fx-text-fill: -wl-text-muted;
-}
-
-/* =========================================================
-   BOX CELL
-   ========================================================= */
-
-.review-box-id {
-}
-
-.review-box-profile {
-    -fx-text-fill: -wl-text-muted;
-}
-
-/* =========================================================
-   BADGE ICON COLORS
-   ========================================================= */
-
-.review-badge-icon-info    { -fx-text-fill: -wl-status-info-text; }
-.review-badge-icon-success  { -fx-text-fill: -wl-status-success-text; }
-.review-badge-icon-danger   { -fx-text-fill: -wl-status-danger-text; }
-.review-badge-icon-warning  { -fx-text-fill: -wl-status-warning-text; }
-.review-badge-icon-neutral  { -fx-text-fill: -wl-status-neutral-text; }
-
-/* =========================================================
-   ASSIGN QA — REVIEWER PICKER POPUP
-   Centered modal overlay with backdrop, search, and
-   single-select user list.
+   10. ASSIGN QA REVIEWER PICKER
    ========================================================= */
 
 .qa-picker-backdrop {
-    -fx-background-color: rgba(15, 23, 42, 0.45);
+    -fx-background-color: -wl-overlay-bg;
 }
 
 .qa-picker-popup {
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 12;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.28), 28, 0.1, 0, 10);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 18, 0, 0, 6);
 }
 
+
 .qa-picker-header {
-    -fx-padding: 20 20 16 24;
+    -fx-padding: 18 18 15 18;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 12 12 0 0;
+    -fx-background-radius: 10 10 0 0;
 }
 
 .qa-picker-title {
@@ -746,12 +946,12 @@
 }
 
 .qa-picker-close-button {
-    -fx-min-width: 28;
-    -fx-pref-width: 28;
-    -fx-max-width: 28;
-    -fx-min-height: 28;
-    -fx-pref-height: 28;
-    -fx-max-height: 28;
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-radius: 6;
@@ -767,13 +967,8 @@
 }
 
 .qa-picker-search-shell {
-    -fx-padding: 0 24 12 24;
+    -fx-padding: 0 18 12 18;
     -fx-background-color: -wl-surface;
-}
-
-.qa-picker-search {
-    -fx-min-height: 40;
-    -fx-pref-height: 40;
 }
 
 .qa-picker-list-scroll {
@@ -793,8 +988,8 @@
 }
 
 .qa-picker-row {
-    -fx-min-height: 64;
-    -fx-pref-height: 64;
+    -fx-min-height: 63;
+    -fx-pref-height: 63;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
@@ -818,16 +1013,16 @@
 }
 
 .qa-picker-row-content {
-    -fx-padding: 0 20 0 20;
+    -fx-padding: 0 18 0 18;
 }
 
 .qa-picker-avatar {
-    -fx-min-width: 38;
-    -fx-pref-width: 38;
-    -fx-max-width: 38;
-    -fx-min-height: 38;
-    -fx-pref-height: 38;
-    -fx-max-height: 38;
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
     -fx-background-color: -wl-avatar-bg;
     -fx-background-radius: 999;
     -fx-alignment: center;
@@ -843,46 +1038,264 @@
 }
 
 .qa-picker-check {
-    -fx-text-fill: -wl-primary;
     -fx-min-width: 24;
     -fx-pref-width: 24;
     -fx-alignment: center;
+    -fx-text-fill: -wl-primary;
 }
 
 .qa-picker-footer {
-    -fx-padding: 16 20 18 20;
+    -fx-padding: 15 18 18 18;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0 0 12 12;
+    -fx-background-radius: 0 0 10 10;
 }
 
-.qa-picker-cancel-button {
-    -fx-min-height: 38;
-    -fx-pref-height: 38;
-    -fx-padding: 0 18 0 18;
-}
-
+.qa-picker-cancel-button,
 .qa-picker-assign-button {
-    -fx-min-height: 38;
-    -fx-pref-height: 38;
-    -fx-padding: 0 22 0 22;
-    -fx-background-color: -wl-primary;
-    -fx-background-radius: 8;
-    -fx-background-insets: 0;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-text-fill: -wl-on-primary;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
     -fx-effect: none;
     -fx-cursor: hand;
 }
 
+.qa-picker-cancel-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.qa-picker-cancel-button:hover,
+.qa-picker-cancel-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.qa-picker-assign-button {
+    -fx-background-color: -wl-primary;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
 .qa-picker-assign-button:hover {
     -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
 }
 
 .qa-picker-assign-button:disabled {
     -fx-background-color: -wl-border;
+    -fx-border-color: -wl-border;
     -fx-text-fill: -wl-muted-icon;
     -fx-cursor: default;
-    -fx-opacity: 0.85;
+    -fx-opacity: 0.6;
 }
 
+/* =========================================================
+   11. REVIEW SCREEN REPAIR CLASSES
+   These classes are used by review-view.fxml / ReviewController and
+   belong here because they are review-screen components.
+   Typography stays in typography.css.
+   ========================================================= */
+
+.review-empty-state {
+    -fx-padding: 48 24 57 24;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.review-workspace-panel-title,
+.review-workspace-field-label {
+    -fx-text-fill: -wl-text;
+}
+
+.review-workspace-panel-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-wrap-text: true;
+}
+
+.review-workspace-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.review-workspace-tag,
+.review-workspace-tag-warning {
+    -fx-min-height: 24;
+    -fx-padding: 3 9 3 9;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.review-workspace-tag {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.review-workspace-tag-warning {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.review-workspace-thumbnail-scroll,
+.review-workspace-thumbnail-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.review-workspace-thumbnail-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.review-checkbox {
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+}
+
+.review-checkbox > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+}
+
+.review-checkbox:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.review-checkbox:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.review-action-button {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-action-button:hover,
+.review-action-button:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+.rows-per-page-box {
+    -fx-spacing: 9;
+    -fx-alignment: center-right;
+}
+
+.rows-per-page-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.rows-per-page-filter {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 9 0 9;
+    -fx-text-fill: -wl-text;
+}
+
+.rows-per-page-filter:hover {
+    -fx-border-color: -wl-secondary;
+}
+
+.rows-per-page-filter:focused {
+    -fx-border-color: -wl-primary;
+}
+
+.rows-per-page-filter > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 6 0 6;
+}
+
+.rows-per-page-filter > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.rows-per-page-filter .list-cell {
+    -fx-text-fill: -wl-text;
+    -fx-padding: 0 6 0 6;
+    -fx-alignment: center-left;
+}
+
+.activity-log-date-picker.review-filter .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0 0 0 9;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+}
+
+.activity-log-date-range-start,
+.activity-log-date-range-end {
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-date-range-between {
+    -fx-background-color: -wl-date-range-between-bg;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-date-range-start:hover,
+.activity-log-date-range-end:hover {
+    -fx-background-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-date-disabled {
+    -fx-opacity: 0.6;
+}
