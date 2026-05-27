@@ -118,9 +118,9 @@
     -fx-padding: 24;
     -fx-spacing: 15;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 6;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
 }
 
@@ -227,11 +227,11 @@
 }
 
 .assigned-qa-progress-issues {
-    -fx-background-color: -wl-progress-issues;
+    -fx-background-color: #FF3D32;
 }
 
 .assigned-qa-progress-complete {
-    -fx-background-color: -wl-progress-complete;
+    -fx-background-color: #4CD07D;
 }
 
 /* =========================================================
