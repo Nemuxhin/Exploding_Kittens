@@ -2427,38 +2427,7 @@ public class ScanController {
             }
 
             documentTreeContainer.getChildren().add(pendingBlock);
-        } else if (shouldShowNextPendingDocumentPlaceholder()) {
-            int pendingDocumentNumber = documents.size() + 1;
-            VBox pendingBlock = new VBox(12);
-            pendingBlock.setAlignment(Pos.TOP_LEFT);
-            pendingBlock.getStyleClass().add("document-tree-document-block");
-            if (documentTreeListView) {
-                pendingBlock.getStyleClass().add("document-tree-list-block");
-            }
-
-            HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, List.of());
-            pendingHeader.getStyleClass().add("document-tree-document-header-framed");
-            if (documentTreeListView) {
-                pendingHeader.getStyleClass().add("document-tree-list-header");
-            }
-            pendingBlock.getChildren().add(pendingHeader);
-
-            if (!collapsedDocuments.contains(pendingDocumentNumber)) {
-                Label waitingLabel = new Label("Waiting for the next scanned page");
-                waitingLabel.getStyleClass().add("document-tree-empty-copy");
-                waitingLabel.setWrapText(true);
-                waitingLabel.setMaxWidth(180);
-                pendingBlock.getChildren().add(waitingLabel);
-            }
-
-            documentTreeContainer.getChildren().add(pendingBlock);
         }
-    }
-
-    private boolean shouldShowNextPendingDocumentPlaceholder() {
-        return pendingPages.isEmpty()
-                && !allPages.isEmpty()
-                && allPages.get(allPages.size() - 1).barcode;
     }
 
     private HBox createDocumentHeader(DocumentGroup document) {
