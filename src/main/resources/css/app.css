@@ -7256,6 +7256,86 @@
     -fx-background-color: -wl-surface;
 }
 
+.app-shell.dark .scan-session-header,
+.app-shell.dark .scan-current-file-header,
+.app-shell.dark .review-current-file-header,
+.app-shell.dark .qa-review-current-file-header,
+.app-shell.dark .scan-view-toolbar,
+.app-shell.dark .review-summary-bar,
+.app-shell.dark .qa-review-header {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .review-next-step-panel,
+.app-shell.dark .qa-tools-panel,
+.app-shell.dark .page-tray-shell,
+.app-shell.dark .review-page-tray-shell,
+.app-shell.dark .scan-side-scroll,
+.app-shell.dark .scan-side-scroll > .viewport,
+.app-shell.dark .document-tree-scroll,
+.app-shell.dark .document-tree-scroll > .viewport,
+.app-shell.dark .document-tree-container,
+.app-shell.dark .review-document-scroll,
+.app-shell.dark .review-document-scroll > .viewport,
+.app-shell.dark .review-document-list,
+.app-shell.dark .qa-tools-scroll,
+.app-shell.dark .qa-tools-scroll > .viewport,
+.app-shell.dark .qa-tools-content {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .review-next-step-panel,
+.app-shell.dark .qa-tools-panel {
+    -fx-border-color: transparent #465160 transparent transparent;
+}
+
+.app-shell.dark .qa-tools-panel {
+    -fx-border-color: transparent transparent transparent #465160;
+}
+
+.app-shell.dark .document-tree-document-block,
+.app-shell.dark .document-tree-page-stack,
+.app-shell.dark .document-tree-list-page-stack,
+.app-shell.dark .review-document-list {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .document-tree-document-header,
+.app-shell.dark .document-tree-document-header-framed,
+.app-shell.dark .document-tree-list-header,
+.app-shell.dark .review-document-card {
+    -fx-background-color: #354556;
+    -fx-border-color: #465160;
+}
+
+.app-shell.dark .document-tree-document-header:hover,
+.app-shell.dark .review-document-card:hover {
+    -fx-background-color: #465160;
+}
+
+.app-shell.dark .document-tree-page-row,
+.app-shell.dark .document-tree-list-page-row {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .document-tree-page-row:hover,
+.app-shell.dark .document-tree-list-page-row:hover {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .document-tree-page-row.document-tree-page-selected,
+.app-shell.dark .document-tree-page-row.document-tree-page-selected:hover {
+    -fx-background-color: #354556;
+}
+
 .app-shell.dark .qa-review-center-panel {
     -fx-background-color: -wl-background;
 }

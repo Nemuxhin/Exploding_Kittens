@@ -463,6 +463,27 @@
     -fx-background-color: -wl-surface;
 }
 
+.app-shell.dark .qa-review-header,
+.app-shell.dark .qa-review-current-file-header {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .qa-tools-panel,
+.app-shell.dark .qa-tools-scroll,
+.app-shell.dark .qa-tools-scroll > .viewport,
+.app-shell.dark .qa-tools-content {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .qa-review-left-panel {
+    -fx-border-color: transparent #465160 transparent transparent;
+}
+
+.app-shell.dark .qa-tools-panel {
+    -fx-border-color: transparent transparent transparent #465160;
+}
+
 .qa-tools-section-box {
     -fx-background-color: transparent;
 }

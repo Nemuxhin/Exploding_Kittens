@@ -1341,8 +1341,8 @@
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-dialog-root {
-    -fx-background-color: #1f2330;
-    -fx-border-color: #4c566b;
+    -fx-background-color: #2d3d4f;
+    -fx-border-color: #465160;
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-title,
@@ -1351,23 +1351,34 @@
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-copy {
-    -fx-text-fill: #c2cad9;
+    -fx-text-fill: #d9e3ed;
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-hint {
-    -fx-text-fill: #c2cad9;
+    -fx-text-fill: #d9e3ed;
+}
+
+.first-login-password-dialog-pane.dark .portal-text-field,
+.first-login-password-dialog-pane.dark .portal-text-field:hover,
+.first-login-password-dialog-pane.dark .portal-text-field:focused,
+.first-login-password-dialog-pane.dark .portal-text-field:pressed,
+.first-login-password-dialog-pane.dark .portal-text-field:armed {
+    -fx-background-color: #465160;
+    -fx-border-color: #465160;
+    -fx-text-fill: #f7f9fd;
+    -fx-prompt-text-fill: #b8c4d0;
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-toggle-button {
-    -fx-background-color: #252c3b;
-    -fx-border-color: #4c566b;
+    -fx-background-color: #354556;
+    -fx-border-color: #465160;
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-toggle-button:hover,
 .first-login-password-dialog-pane.dark .first-login-password-toggle-button:pressed,
 .first-login-password-dialog-pane.dark .first-login-password-toggle-button:focused {
-    -fx-background-color: #2b3140;
-    -fx-border-color: #7a879c;
+    -fx-background-color: #465160;
+    -fx-border-color: #6f7d8d;
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-toggle-icon {
