@@ -2,10 +2,10 @@ package easv.gui.controller.admin;
 
 import easv.be.AuditLog;
 import easv.bll.AdminManager;
-import easv.gui.BackgroundExecutor;
-import easv.gui.controller.utilities.AppDates;
-import easv.gui.PrimeIcons;
-import easv.util.Strings;
+import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.AppDates;
+import easv.gui.controller.util.PrimeIcons;
+import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

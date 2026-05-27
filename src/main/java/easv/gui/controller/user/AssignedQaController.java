@@ -6,7 +6,7 @@ import easv.be.ScanProfile;
 import easv.bll.QAService;
 import easv.bll.TiffImageSupport;
 import easv.bll.TiffExportManager;
-import easv.gui.BackgroundExecutor;
+import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.UserPortalModel;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;

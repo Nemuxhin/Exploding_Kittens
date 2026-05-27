@@ -1,4 +1,4 @@
-package easv.gui;
+package easv.gui.controller.util;
 
 import easv.bll.KeyboardShortcut;
 import javafx.scene.control.Alert;

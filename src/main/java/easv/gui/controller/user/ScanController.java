@@ -8,7 +8,7 @@ import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
-import easv.gui.BackgroundExecutor;
+import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -53,7 +53,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

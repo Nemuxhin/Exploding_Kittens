@@ -2,9 +2,10 @@ package easv.gui;
 
 import easv.be.User;
 import easv.bll.UserSession;
-import easv.gui.controller.LoginController;
+import easv.gui.controller.util.LoginController;
 import easv.gui.controller.admin.AdminController;
 import easv.gui.controller.user.UserController;
+import easv.gui.controller.util.PrimeIcons;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -36,7 +37,8 @@ public class MainApp extends Application {
             "/css/admin-profiles.css",
             "/css/admin-review.css",
             "/css/dialogs.css",
-            "/css/activity-log.css"
+            "/css/activity-log.css",
+            "/css/typography.css"
     };
 
     private static final String[] USER_STYLESHEETS = {
@@ -45,7 +47,8 @@ public class MainApp extends Application {
             "/css/user-portal.css",
             "/css/user-scan.css",
             "/css/user-qa.css",
-            "/css/dialogs.css"
+            "/css/dialogs.css",
+            "/css/typography.css"
     };
 
     private static final String[] FONT_RESOURCES = {

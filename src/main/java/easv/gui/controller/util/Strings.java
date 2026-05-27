@@ -1,4 +1,4 @@
-package easv.util;
+package easv.gui.controller.util;
 
 import java.util.Locale;
 

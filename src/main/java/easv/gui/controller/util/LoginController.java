@@ -1,8 +1,6 @@
-package easv.gui.controller;
+package easv.gui.controller.util;
 
 import easv.bll.AuthManager;
-import easv.bll.AuthResult;
-import easv.gui.BackgroundExecutor;
 import easv.gui.MainApp;
 import javafx.application.Platform;
 import javafx.fxml.FXML;

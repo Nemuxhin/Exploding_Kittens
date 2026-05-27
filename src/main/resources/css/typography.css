@@ -1,0 +1,715 @@
+/* =========================================================
+   WEBLAGER TYPOGRAPHY
+   Single source of truth for all font family, sizes, and weights.
+
+   Load this file LAST after:
+   app.css, shell.css, page CSS files, dialogs.css, etc.
+
+   WebLager scale:
+   - H1: 21px / 700 Bold
+   - H2: 18px / 600 SemiBold
+   - H3: 15px / 600 SemiBold
+   - Body: 12px / 400 Regular
+   - Labels: 12px / 400 Regular or 12px / 500 Medium
+   - Buttons: 12px / 500 Medium
+   - Helper text: 10px / 400 Regular
+   - Icons: PrimeIcons, usually 14px
+   ========================================================= */
+
+
+/* =========================================================
+   01. FONT FAMILY BASELINE
+   ========================================================= */
+
+.root,
+.app-shell,
+.login-page,
+.label,
+.text,
+.button,
+.toggle-button,
+.menu-button,
+.text-field,
+.password-field,
+.text-area,
+.combo-box-base,
+.choice-box,
+.date-picker,
+.list-cell,
+.table-view,
+.table-row-cell,
+.tree-view,
+.tree-cell,
+.check-box,
+.radio-button,
+.hyperlink,
+.tooltip {
+    -fx-font-family: "Montserrat";
+}
+
+
+/* =========================================================
+   02. PRIME ICONS
+   PrimeIcons must NOT inherit Montserrat.
+   ========================================================= */
+
+.prime-icon,
+.prime-icon .text,
+.prime-icon-vector,
+.admin-brand-icon,
+.admin-toolbar-icon,
+.admin-top-nav-icon,
+.admin-account-theme-icon,
+.portal-button-icon,
+.portal-button-icon-inverse,
+.settings-nav-icon,
+.sidebar-theme-icon,
+.top-icon-toggle-svg {
+    -fx-font-family: "primeicons";
+    -fx-font-weight: 400;
+}
+
+/* Standard icon glyph sizing. Icon container sizing stays in component CSS. */
+.prime-icon,
+.admin-toolbar-icon,
+.admin-top-nav-icon,
+.admin-account-theme-icon {
+    -fx-font-size: 14px;
+    -fx-font-weight: 400;
+}
+
+
+/* =========================================================
+   03. DEFAULT CONTROL TYPOGRAPHY
+   ========================================================= */
+
+.label,
+.text,
+.text-field,
+.password-field,
+.text-area,
+.combo-box-base,
+.combo-box-base .list-cell,
+.combo-box-popup .list-cell,
+.choice-box,
+.choice-box .list-cell,
+.date-picker,
+.date-picker .text-field,
+.list-cell,
+.table-view,
+.table-row-cell,
+.tree-view,
+.tree-cell,
+.check-box,
+.radio-button,
+.tooltip {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.button,
+.toggle-button,
+.menu-button {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+
+/* =========================================================
+   04. H1 — PAGE / SCREEN TITLES
+   21px / 700
+   ========================================================= */
+
+.wl-h1,
+.page-title,
+.assigned-qa-title,
+.create-user-editor-title,
+.login-page .page-title,
+.login-page .card-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+
+/* =========================================================
+   05. H2 — MAJOR SECTION HEADINGS
+   18px / 600
+   ========================================================= */
+
+.wl-h2,
+.section-heading,
+.workspace-title,
+.scan-setup-primary-title,
+.review-summary-title,
+.qa-review-title,
+.review-panel-title,
+.qa-review-panel-title,
+.qa-tools-section-title,
+.settings-section-heading,
+.exports-title,
+.exports-dialog-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+
+/* =========================================================
+   06. H3 — CARD / PANEL / SMALL SECTION TITLES
+   15px / 600
+   ========================================================= */
+
+.wl-h3,
+.card-title,
+.panel-title,
+.dialog-section-title,
+.portal-section-title,
+.portal-card-title,
+.dashboard-section-title,
+.dashboard-simple-title,
+.admin-action-title,
+.profile-card-title,
+.profile-editor-section-title,
+.assignment-panel-title,
+.assignment-list-title,
+.assignment-row-title,
+.assignment-selected-title,
+.activity-log-date-title,
+.activity-log-event-title,
+.activity-log-details-title,
+.scan-setup-quick-title,
+.scan-setup-step-title,
+.scan-panel-title,
+.document-tree-empty-title,
+.document-tree-document-title,
+.document-tree-chevron,
+.review-document-title,
+.assigned-qa-card-title,
+.assigned-qa-empty-title,
+.review-empty-title,
+.scan-preview-empty-title,
+.exports-dialog-section-label,
+.exports-dialog-files-title,
+.exports-dialog-option-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+
+/* =========================================================
+   07. BODY TEXT — REGULAR
+   12px / 400
+   ========================================================= */
+
+.wl-body,
+.page-subtitle,
+.portal-muted,
+.portal-inline-message,
+.dashboard-summary-subtitle,
+.dashboard-section-subtitle,
+.dashboard-activity-detail,
+.dashboard-simple-detail,
+.admin-action-text,
+.profile-card-description,
+.profile-info-line,
+.profile-editor-subtitle,
+.assignment-list-subtitle,
+.assignment-row-subtitle,
+.assignment-selected-subtitle,
+.scan-setup-primary-copy,
+.scan-setup-quick-copy,
+.scan-setup-step-copy,
+.scan-panel-subtitle,
+.scan-tools-section-label,
+.workspace-subtitle,
+.selected-file-subtitle,
+.document-tree-empty-copy,
+.document-tree-subtitle,
+.document-tree-page-title,
+.review-next-step-copy,
+.review-empty-copy,
+.review-preview-empty-copy,
+.review-current-selection-value,
+.assigned-qa-subtitle,
+.assigned-qa-card-profile,
+.assigned-qa-card-meta,
+.assigned-qa-card-detail,
+.assigned-qa-card-detail-strong,
+.qa-review-meta,
+.qa-checklist-check-box,
+.page-tray-empty-copy,
+.scan-preview-empty-copy,
+.scan-preview-loading-copy,
+.barcode-preview-copy,
+.finish-review-copy,
+.submit-confirmation-copy,
+.finish-review-summary-muted,
+.submit-confirmation-summary-muted,
+.exports-subtitle,
+.exports-footer-text,
+.exports-dialog-option-subtitle,
+.exports-dialog-files-count,
+.exports-dialog-file-name,
+.exports-dialog-empty-state,
+.exports-dialog-output-label,
+.login-page .body-text,
+.login-page .message-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+
+/* =========================================================
+   08. LABELS — REGULAR
+   12px / 400
+   ========================================================= */
+
+.wl-label,
+.summary-label,
+.profile-info-label,
+.review-summary-label,
+.review-current-selection-label,
+.exports-metric-label,
+.exports-filter-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+
+/* =========================================================
+   09. LABELS — MEDIUM
+   12px / 500
+   ========================================================= */
+
+.form-label,
+.field-label,
+.login-page .field-label,
+.admin-brand-title,
+.admin-top-nav-label,
+.admin-account-name,
+.account-menu-name,
+.account-theme-label,
+.settings-nav-label,
+.pagination-summary-label,
+.rows-per-page-label,
+.dashboard-summary-title,
+.dashboard-workflow-label,
+.dashboard-activity-time,
+.dashboard-simple-metric,
+.dashboard-workflow-value,
+.profile-info-value,
+.profile-info-code,
+.profile-editor-field-label,
+.profile-editor-strong-text,
+.profile-editor-preview-value,
+.assignment-save-status,
+.scan-session-info-chip,
+.page-tray-title,
+.page-tray-count,
+.review-page-tray-title,
+.review-selected-title,
+.qa-view-label,
+.qa-zoom-label,
+.qa-review-meta-strong,
+.review-summary-value,
+.finish-review-title,
+.submit-confirmation-title,
+.finish-review-box-id,
+.submit-confirmation-box-id,
+.exports-dialog-box-value,
+.exports-dialog-output-value {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+
+/* =========================================================
+   10. STRONG / IMPORTANT VALUES
+   Use sparingly for important numbers, stats, selected values.
+   ========================================================= */
+
+.dashboard-summary-value,
+.exports-metric-value,
+.barcode-preview-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.dashboard-summary-card .dashboard-summary-value,
+.dashboard-page .dashboard-summary-value,
+.exports-metric-card .exports-metric-value {
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+
+/* =========================================================
+   11. BUTTONS
+   12px / 500
+   ========================================================= */
+
+.button,
+.primary-button,
+.secondary-button,
+.tertiary-button,
+.admin-primary-button,
+.admin-secondary-button,
+.portal-primary-button,
+.portal-secondary-button,
+.portal-row-button,
+.back-button,
+.profile-editor-back-button,
+.template-editor-back-button,
+.create-user-button,
+.header-action-button,
+.secondary-outline-button,
+.profile-open-button,
+.profile-secondary-button,
+.profile-icon-button,
+.secondary-action-button,
+.pagination-button,
+.assignment-mode-button,
+.profile-editor-primary-button,
+.profile-editor-secondary-button,
+.profile-editor-link-button,
+.review-back-button,
+.scan-back-button,
+.scan-primary-action-button,
+.scan-tool-button,
+.scan-danger-button,
+.scan-warning-button,
+.scan-finish-button,
+.view-tool-button,
+.view-reset-button,
+.preview-arrow-button,
+.review-submit-button,
+.review-export-type-button,
+.qa-approve-button,
+.qa-fix-button,
+.qa-neutral-button,
+.qa-export-type-button,
+.qa-complete-button,
+.qa-view-icon-button,
+.qa-view-reset-button,
+.assigned-qa-primary-button,
+.assigned-qa-secondary-button,
+.finish-review-secondary-button,
+.finish-review-primary-button,
+.finish-review-link-button,
+.submit-confirmation-secondary-button,
+.submit-confirmation-primary-button,
+.submit-confirmation-link-button,
+.exports-export-button,
+.exports-dialog-link-button,
+.exports-dialog-export-button,
+.exports-dialog-cancel-button,
+.my-scans-action-button,
+.my-scans-box-button,
+.profile-info-link-button,
+.create-user-generate-button {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+/* Primary/critical completion buttons may keep the same size, just stronger weight. */
+.scan-finish-button,
+.review-submit-button,
+.review-export-type-button,
+.qa-complete-button,
+.qa-export-type-button,
+.finish-review-primary-button,
+.submit-confirmation-primary-button {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+
+/* =========================================================
+   12. INPUTS / DROPDOWNS / DATE PICKERS
+   12px / 400
+   ========================================================= */
+
+.text-field,
+.password-field,
+.text-area,
+.combo-box-base,
+.combo-box-base .list-cell,
+.combo-box-popup .list-cell,
+.choice-box,
+.choice-box .list-cell,
+.date-picker,
+.date-picker .text-field,
+.search-field-input,
+.searchable-combo-box .text-field,
+.searchable-combo-box .text-input,
+.portal-text-field,
+.role-filter,
+.rows-per-page-filter,
+.activity-log-filter,
+.activity-log-date-picker,
+.profile-editor-input,
+.profile-editor-textarea,
+.weblager-text-field,
+.weblager-combo-box,
+.weblager-combo-box .list-cell,
+.exports-filter-input,
+.exports-status-filter,
+.exports-date-picker,
+.exports-date-picker .text-field,
+.assigned-qa-search-field,
+.assigned-qa-filter-combo,
+.assigned-qa-filter-combo .list-cell,
+.qa-comment-textarea,
+.create-user-input,
+.admin-dialog-pane .text-field,
+.admin-dialog-pane .password-field,
+.admin-dialog-pane .combo-box-base {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+
+/* =========================================================
+   13. TABLES / LISTS
+   ========================================================= */
+
+.list-header-label,
+.list-header-label-right,
+.portal-table-cell-head,
+.exports-table-header,
+.exports-table-header-row,
+.users-list-header .label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.table-cell-text,
+.table-cell-text-muted,
+.portal-table-cell,
+.exports-table-cell,
+.exports-table-cell-primary,
+.user-record .label,
+.assignment-list-item .label,
+.assignment-checkbox-row .label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.exports-table-cell-primary {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+
+/* =========================================================
+   14. CHIPS / BADGES / STATUS
+   ========================================================= */
+
+.role-badge,
+.profile-status-badge,
+.profile-config-chip,
+.activity-log-type-badge,
+.activity-log-status-badge,
+.profile-editor-small-badge,
+.user-profiles-badge,
+.status-chip,
+.assigned-qa-status-badge,
+.qa-review-status-badge,
+.qa-current-status-chip,
+.scan-setup-meta-pill,
+.scan-setup-step-number,
+.scan-status-chip,
+.admin-status-chip,
+.sidebar-language-text,
+.page-tray-status-badge,
+.qa-tree-page-status,
+.qa-tray-status-mark,
+.barcode-preview-badge {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.sidebar-language-text,
+.admin-status-chip,
+.page-tray-status-badge,
+.qa-tree-page-status,
+.qa-tray-status-mark {
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+
+/* =========================================================
+   15. HELPER / VALIDATION / TINY META
+   10px / 400
+   ========================================================= */
+
+.helper-text,
+.wl-helper,
+.inline-feedback,
+.validation-message,
+.message-label,
+.profile-editor-helper-text,
+.profile-editor-preview-key,
+.admin-brand-subtitle,
+.admin-account-role,
+.admin-status-label,
+.admin-breadcrumb,
+.admin-account-menu-detail,
+.document-tree-split-row,
+.review-split-label,
+.page-tray-barcode-split-label,
+.user-notification-time {
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+
+/* =========================================================
+   16. LOGIN-SPECIFIC SPECIFICITY
+   Matches existing page-specific selectors so typography.css wins.
+   ========================================================= */
+
+.login-page .page-title,
+.login-page .card-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.login-page .body-text,
+.login-page .text-field,
+.login-page .password-field,
+.login-page .message-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.login-page .field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+
+/* =========================================================
+   17. ADMIN / PORTAL TOP BAR SPECIFICITY
+   ========================================================= */
+
+.admin-account-menu-name,
+.admin-account-dropdown-item,
+.admin-account-theme-toggle,
+.admin-account-logout-button,
+.admin-account-section-button,
+.account-dropdown-item-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.admin-account-menu-detail,
+.admin-status-label,
+.admin-breadcrumb {
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+}
+
+.admin-avatar-label,
+.avatar-initials-text,
+.account-dropdown-avatar-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+
+/* =========================================================
+   18. SCAN / REVIEW / QA SPECIFICITY
+   ========================================================= */
+
+.scan-setup-primary-card .primary-button,
+.scan-setup-primary-card .tertiary-button,
+.finish-review-actions-frame .button,
+.review-next-step-panel .button,
+.qa-tools-panel .button {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.document-embedded-page-card .page-tray-number,
+.qa-embedded-page-card .page-tray-number,
+.review-embedded-page-card .review-page-tray-number,
+.page-tray-number,
+.review-page-tray-number {
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.qa-page-status-text-approved,
+.qa-page-status-text-fix,
+.document-tree-warning,
+.review-document-warning,
+.assigned-qa-card-issues {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+
+/* =========================================================
+   19. EXPORTS / TABLE SPECIFICITY
+   ========================================================= */
+
+.dashboard-page .exports-table-header,
+.dashboard-page .exports-table-cell,
+.dashboard-page .exports-table-cell-primary,
+.portal-table-cell-head,
+.portal-table-cell,
+.exports-table-header,
+.exports-table-cell,
+.exports-table-cell-primary,
+.portal-table-link {
+    -fx-font-size: 12px;
+}
+
+.exports-dialog-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+}
+
+.exports-dialog-section-label,
+.exports-dialog-files-title,
+.exports-dialog-option-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+}
+
+.exports-dialog-option-subtitle,
+.exports-dialog-files-count,
+.exports-dialog-file-name,
+.exports-dialog-empty-state,
+.exports-dialog-output-label,
+.exports-dialog-box-detail {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+
+/* =========================================================
+   20. INTENTIONAL DISPLAY / DOCUMENT PREVIEW TEXT
+   These are special preview elements, not normal UI body text.
+   ========================================================= */
+
+.mock-barcode-bars {
+    -fx-font-size: 21px;
+    -fx-font-weight: 900;
+}
+
+.barcode-preview-bars {
+    -fx-font-size: 42px;
+    -fx-font-weight: 900;
+}
+
+.scan-preview-loading-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+}
+
+.preview-arrow-button {
+    -fx-font-size: 21px;
+    -fx-font-weight: 400;
+}

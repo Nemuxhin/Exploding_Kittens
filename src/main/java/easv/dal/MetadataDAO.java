@@ -4,7 +4,7 @@ import easv.be.MetadataField;
 import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
-import easv.util.Strings;
+import easv.gui.controller.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

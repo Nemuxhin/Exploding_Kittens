@@ -1,6 +1,6 @@
 package easv.gui.controller.user;
 
-import easv.gui.BackgroundExecutor;
+import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;

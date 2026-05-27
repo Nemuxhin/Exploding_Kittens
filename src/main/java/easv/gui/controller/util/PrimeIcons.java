@@ -1,4 +1,4 @@
-package easv.gui;
+package easv.gui.controller.util;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;

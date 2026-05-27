@@ -1,4 +1,4 @@
-package easv.gui;
+package easv.gui.controller.util;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

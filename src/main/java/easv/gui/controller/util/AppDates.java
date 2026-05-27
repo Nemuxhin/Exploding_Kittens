@@ -1,4 +1,4 @@
-package easv.gui.controller.utilities;
+package easv.gui.controller.util;
 
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;

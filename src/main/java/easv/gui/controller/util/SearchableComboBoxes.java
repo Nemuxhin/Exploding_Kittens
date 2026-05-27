@@ -1,4 +1,4 @@
-package easv.gui.controller.utilities;
+package easv.gui.controller.util;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

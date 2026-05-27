@@ -3,7 +3,7 @@ package easv.bll;
 import easv.be.CaseMetadata;
 import easv.be.AuditLog;
 import easv.dal.MetadataDAO;
-import easv.util.Strings;
+import easv.gui.controller.util.Strings;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

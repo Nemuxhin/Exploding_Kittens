@@ -6,12 +6,9 @@
 
 .app-shell {
     -fx-background-color: -wl-background;
-    -fx-font-family: "Montserrat";
 }
 
 .prime-icon {
-    -fx-font-family: "primeicons";
-    -fx-font-weight: 400;
     -fx-text-fill: -wl-text;
     -fx-alignment: center;
     -fx-text-alignment: center;
@@ -47,15 +44,11 @@
 
 .page-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
     -fx-text-overrun: ellipsis;
 }
 
 .page-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-text-overrun: ellipsis;
 }
 
@@ -75,8 +68,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -102,8 +93,6 @@
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-padding: 0 6 0 6;
 }
 
@@ -132,8 +121,6 @@
 
 .inline-feedback {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .inline-feedback.success {
@@ -155,15 +142,11 @@
 
 .portal-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .portal-muted,
 .portal-inline-message {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .portal-inline-message.success {
@@ -181,8 +164,6 @@
 
 .form-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .portal-text-field {
@@ -195,8 +176,6 @@
     -fx-max-height: 30;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-padding: 0 9 0 9;
 }
 
@@ -216,8 +195,6 @@
     -fx-padding: 0 15 0 15;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -284,8 +261,6 @@
     -fx-pref-height: 66;
     -fx-max-height: 66;
     -fx-alignment: center-left;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -313,8 +288,6 @@
 .settings-nav-label,
 .form-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .settings-nav-row {
@@ -323,8 +296,6 @@
 
 .settings-section-heading {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 /* ---------- Shared Pagination ---------- */
@@ -341,8 +312,6 @@
 .pagination-summary-label,
 .rows-per-page-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .pagination-buttons-box,
@@ -379,8 +348,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-effect: none;
 }
 
@@ -405,8 +372,6 @@
 
 .pagination-ellipsis {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-padding: 0 6 0 6;
 }
 
@@ -468,14 +433,10 @@
 
 .admin-brand-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 600;
 }
 
 .admin-brand-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 /* ---------- Center Navigation ---------- */
@@ -529,13 +490,10 @@
 .admin-top-nav-icon {
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
 }
 
 .admin-top-nav-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .admin-top-nav-button:selected .admin-top-nav-icon,
@@ -608,8 +566,6 @@
 .admin-toolbar-icon {
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .admin-notification-dot {
@@ -684,29 +640,22 @@
 
 .admin-avatar-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
 .admin-account-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-padding: 0;
     -fx-alignment: center-left;
 }
 
 .admin-account-role {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .admin-account-chevron {
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
 }
 
 /* ---------- Account Dropdown ---------- */
@@ -735,14 +684,10 @@
 
 .admin-account-menu-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
 }
 
 .admin-account-menu-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
 }
 
 .admin-account-dropdown-divider {
@@ -764,8 +709,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 400;
     -fx-alignment: center-left;
     -fx-cursor: hand;
 }
@@ -789,8 +732,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-alignment: center-left;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -820,7 +761,6 @@
 .admin-account-theme-icon {
     -fx-fill: -wl-text;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
 }
 
 .admin-account-theme-toggle:selected .admin-account-theme-icon {
@@ -840,8 +780,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -862,7 +800,6 @@
 .admin-status-label,
 .admin-breadcrumb {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
 }
 
 .admin-status-chip {
@@ -873,8 +810,6 @@
     -fx-border-radius: 3;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-info-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .admin-breadcrumb-bar {
@@ -889,8 +824,6 @@
 
 .admin-account-section-button {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .admin-account-readonly-field {
@@ -901,46 +834,3 @@
     -fx-background-color: -wl-surface;
     -fx-padding: 15;
 }
-
-/* =========================================================
-   TYPOGRAPHY OVERRIDES
-   Project note: admin shell and shared portal content use 18px for
-   standard navigation, form, status, and account text.
-   ========================================================= */
-
-.page-subtitle,
-.back-button,
-.profile-editor-back-button,
-.searchable-combo-box .text-field,
-.searchable-combo-box .text-input,
-.inline-feedback,
-.portal-section-title,
-.portal-muted,
-.portal-inline-message,
-.form-label,
-.portal-text-field,
-.portal-primary-button,
-.portal-secondary-button,
-.settings-nav-label,
-.settings-section-heading,
-.pagination-summary-label,
-.rows-per-page-label,
-.pagination-button,
-.pagination-ellipsis,
-.admin-brand-subtitle,
-.admin-top-nav-label,
-.admin-account-name,
-.admin-avatar-label,
-.admin-account-role,
-.admin-account-menu-name,
-.admin-account-menu-detail,
-.admin-account-dropdown-item,
-.admin-account-theme-toggle,
-.admin-account-logout-button,
-.admin-status-label,
-.admin-breadcrumb,
-.admin-status-chip,
-.admin-account-section-button {
-    -fx-font-size: 18px;
-}
-

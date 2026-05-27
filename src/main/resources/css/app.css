@@ -1,7 +1,7 @@
 /* =========================================================
    WEBLAGER ADMIN CSS
    Exam project UI system:
-   - Montserrat only
+   - Typography lives in typography.css (Montserrat only)
    - 3px spacing scale
    - 30px default controls / 33px primary header actions
    - 10px cards, 6px controls, 3px chips
@@ -14,20 +14,15 @@
    these variables so light mode and dark mode stay consistent.
    ========================================================= */
 
-.root {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-}
-
 .app-shell {
     -wl-background: #F5F5F5;
     -wl-surface: #FFFFFF;
     -wl-card-content: #F9F9F9;
     -wl-input-bg: #FFFFFF;
 
-    -wl-text: #111827;
-    -wl-text-muted: #334155;
-    -wl-table-header-text: #1F2937;
+    -wl-text: #2D3D4F;
+    -wl-text-muted: #64748B;
+    -wl-table-header-text: #2D3D4F;
     -wl-on-primary: #FFFFFF;
     -wl-text-inverse: #FFFFFF;
 
@@ -119,7 +114,6 @@
 
     -wl-activity-user-bg: #64748B;
     -wl-activity-profile-bg: #7C3AED;
-    -wl-activity-metadata-bg: #2563EB;
     -wl-activity-qa-bg: #15803D;
     -wl-activity-access-bg: #0F766E;
     -wl-activity-scan-bg: #0E7490;
@@ -286,7 +280,6 @@
 
     -wl-activity-user-bg: #74849A;
     -wl-activity-profile-bg: #8B5CF6;
-    -wl-activity-metadata-bg: #3B82F6;
     -wl-activity-qa-bg: #16A34A;
     -wl-activity-access-bg: #0D9488;
     -wl-activity-scan-bg: #0891B2;
@@ -400,10 +393,7 @@
 .activity-log-page,
 .profiles-page-host,
 .profiles-overview-page,
-.profile-editor-page,
-.metadata-review-page-host,
-.metadata-review-page,
-.metadata-workspace-page {
+.profile-editor-page {
     -fx-background-color: -wl-background;
 }
 
@@ -422,8 +412,7 @@
 }
 
 .page-header,
-.profile-editor-header,
-.metadata-workspace-header {
+.profile-editor-header {
     -fx-alignment: center-left;
     -fx-spacing: 18;
 }
@@ -435,23 +424,18 @@
 
 .page-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
     -fx-wrap-text: false;
     -fx-text-overrun: ellipsis;
 }
 
 .page-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-wrap-text: false;
     -fx-text-overrun: ellipsis;
 }
 
 .page-header-actions,
-.profile-editor-header-actions,
-.metadata-header-actions {
+.profile-editor-header-actions {
     -fx-spacing: 12;
     -fx-alignment: center-right;
 }
@@ -470,9 +454,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -488,15 +469,6 @@
 .create-user-button,
 .header-action-button,
 .secondary-outline-button,
-.metadata-primary-header-button,
-.metadata-secondary-header-button,
-.metadata-destructive-header-button,
-.metadata-workspace-danger-button,
-.metadata-save-button,
-.metadata-complete-button,
-.metadata-send-review-button,
-.metadata-approve-button,
-.metadata-reject-button,
 .profile-editor-primary-button,
 .profile-editor-secondary-button,
 .profile-editor-link-button {
@@ -508,9 +480,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-wrap-text: false;
     -fx-alignment: center;
     -fx-effect: none;
@@ -518,9 +487,6 @@
 
 .create-user-button,
 .header-action-button,
-.metadata-primary-header-button,
-.metadata-send-review-button,
-.metadata-approve-button,
 .profile-editor-primary-button {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
@@ -531,12 +497,6 @@
 .create-user-button:pressed,
 .header-action-button:hover,
 .header-action-button:pressed,
-.metadata-primary-header-button:hover,
-.metadata-primary-header-button:pressed,
-.metadata-send-review-button:hover,
-.metadata-send-review-button:pressed,
-.metadata-approve-button:hover,
-.metadata-approve-button:pressed,
 .profile-editor-primary-button:hover,
 .profile-editor-primary-button:pressed {
     -fx-background-color: -wl-primary-hover;
@@ -544,9 +504,6 @@
 }
 
 .secondary-outline-button,
-.metadata-secondary-header-button,
-.metadata-save-button,
-.metadata-complete-button,
 .profile-editor-secondary-button,
 .profile-editor-link-button,
 .profile-secondary-button,
@@ -558,12 +515,6 @@
 
 .secondary-outline-button:hover,
 .secondary-outline-button:pressed,
-.metadata-secondary-header-button:hover,
-.metadata-secondary-header-button:pressed,
-.metadata-save-button:hover,
-.metadata-save-button:pressed,
-.metadata-complete-button:hover,
-.metadata-complete-button:pressed,
 .profile-editor-secondary-button:hover,
 .profile-editor-secondary-button:pressed,
 .profile-editor-link-button:hover,
@@ -576,32 +527,11 @@
     -fx-border-color: -wl-secondary;
 }
 
-.metadata-destructive-header-button,
-.metadata-workspace-danger-button,
-.metadata-reject-button {
-    -fx-background-color: -wl-destructive;
-    -fx-border-color: -wl-destructive;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.metadata-destructive-header-button:hover,
-.metadata-destructive-header-button:pressed,
-.metadata-workspace-danger-button:hover,
-.metadata-workspace-danger-button:pressed,
-.metadata-reject-button:hover,
-.metadata-reject-button:pressed {
-    -fx-background-color: -wl-destructive-hover;
-    -fx-border-color: -wl-destructive-hover;
-}
-
 .profile-open-button,
 .profile-secondary-button,
 .profile-icon-button,
 .secondary-action-button,
 .pagination-button,
-.metadata-workspace-tool-button,
-.metadata-workspace-tab-button,
-.metadata-workspace-tab-active,
 .assignment-mode-button {
     -fx-min-height: 30;
     -fx-pref-height: 30;
@@ -610,9 +540,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
 }
 
@@ -641,13 +568,7 @@
 }
 
 .edit-link-button,
-.delete-link-button,
-.metadata-action-button,
-.metadata-action-button-muted,
-.metadata-review-action-button,
-.metadata-template-action-button,
-.metadata-icon-action-button,
-.metadata-icon-action-button-destructive {
+.delete-link-button {
     -fx-min-height: 0;
     -fx-pref-height: -1;
     -fx-max-height: 9999;
@@ -658,49 +579,33 @@
     -fx-border-insets: 0;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 
-.edit-link-button,
-.metadata-action-button,
-.metadata-action-button-muted,
-.metadata-review-action-button,
-.metadata-template-action-button,
-.metadata-icon-action-button {
+.edit-link-button {
     -fx-text-fill: -wl-text;
 }
 
-.delete-link-button,
-.metadata-icon-action-button-destructive {
+.delete-link-button {
     -fx-text-fill: -wl-destructive;
 }
 
-.edit-link-button:hover,
-.metadata-action-button:hover,
-.metadata-action-button-muted:hover,
-.metadata-review-action-button:hover,
-.metadata-template-action-button:hover,
-.metadata-icon-action-button:hover {
+.edit-link-button:hover {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-primary-hover;
     -fx-underline: true;
 }
 
-.delete-link-button:hover,
-.metadata-icon-action-button-destructive:hover {
+.delete-link-button:hover {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-destructive-hover;
     -fx-underline: true;
 }
 
-.metadata-back-button,
 .profile-editor-back-button,
 .template-editor-back-button,
 .back-button {
@@ -718,19 +623,15 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 
-.metadata-back-button:hover,
 .profile-editor-back-button:hover,
 .template-editor-back-button:hover,
 .back-button:hover,
-.metadata-back-button:focused,
 .profile-editor-back-button:focused,
 .template-editor-back-button:focused,
 .back-button:focused {
@@ -757,13 +658,8 @@
 
 .role-filter,
 .rows-per-page-filter,
-.metadata-review-filter,
 .activity-log-filter,
 .activity-log-date-picker,
-.metadata-editor-input,
-.metadata-editor-textarea,
-.metadata-workspace-input,
-.metadata-workspace-textarea,
 .profile-editor-input,
 .profile-editor-textarea {
     -fx-background-color: -wl-input-bg;
@@ -781,7 +677,6 @@
 
 .role-filter,
 .rows-per-page-filter,
-.metadata-review-filter,
 .activity-log-filter,
 .activity-log-date-picker {
     -fx-min-height: 39;
@@ -810,8 +705,6 @@
 
 .activity-log-date-filter-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .activity-log-date-picker {
@@ -849,9 +742,6 @@
     -fx-text-fill: -wl-on-primary;
 }
 
-.metadata-editor-input,
-.metadata-workspace-input,
-.metadata-workspace-input-error,
 .profile-editor-input {
     -fx-min-height: 39;
     -fx-pref-height: 39;
@@ -859,14 +749,10 @@
     -fx-padding: 0 12 0 12;
 }
 
-.metadata-editor-textarea,
-.metadata-workspace-textarea,
 .profile-editor-textarea {
     -fx-padding: 9;
 }
 
-.metadata-editor-textarea .content,
-.metadata-workspace-textarea .content,
 .profile-editor-textarea .content {
     -fx-background-color: -wl-input-bg;
     -fx-background-radius: 6;
@@ -874,13 +760,8 @@
 
 .role-filter:hover,
 .rows-per-page-filter:hover,
-.metadata-review-filter:hover,
 .activity-log-filter:hover,
 .activity-log-date-picker:hover,
-.metadata-editor-input:hover,
-.metadata-editor-textarea:hover,
-.metadata-workspace-input:hover,
-.metadata-workspace-textarea:hover,
 .profile-editor-input:hover,
 .profile-editor-textarea:hover {
     -fx-border-color: -wl-secondary;
@@ -888,20 +769,14 @@
 
 .role-filter:focused,
 .rows-per-page-filter:focused,
-.metadata-review-filter:focused,
 .activity-log-filter:focused,
 .activity-log-date-picker:focused,
-.metadata-editor-input:focused,
-.metadata-editor-textarea:focused,
-.metadata-workspace-input:focused,
-.metadata-workspace-textarea:focused,
 .profile-editor-input:focused,
 .profile-editor-textarea:focused {
     -fx-border-color: -wl-primary;
 }
 
-.search-field-shell,
-.metadata-review-search-shell {
+.search-field-shell {
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -917,20 +792,12 @@
     -fx-alignment: center-left;
 }
 
-.metadata-review-search-shell {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-}
-
-.search-field-shell:hover,
-.metadata-review-search-shell:hover {
+.search-field-shell:hover {
     -fx-background-color: -wl-input-bg;
     -fx-border-color: -wl-secondary;
 }
 
-.search-field-shell-focused,
-.metadata-review-search-shell-focused {
+.search-field-shell-focused {
     -fx-background-color: -wl-input-bg;
     -fx-border-color: -wl-primary;
 }
@@ -959,8 +826,7 @@
 }
 
 .field-icon-shell,
-.action-icon-shell,
-.metadata-template-action-icon-shell {
+.action-icon-shell {
     -fx-min-width: 15;
     -fx-pref-width: 15;
     -fx-max-width: 15;
@@ -980,10 +846,8 @@
 .combo-box-base > .arrow-button,
 .role-filter > .arrow-button,
 .rows-per-page-filter > .arrow-button,
-.metadata-review-filter > .arrow-button,
 .activity-log-filter > .arrow-button,
 .activity-log-date-picker > .arrow-button,
-.metadata-workspace-input > .arrow-button,
 .profile-editor-input > .arrow-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -993,10 +857,8 @@
 .combo-box-base > .arrow-button > .arrow,
 .role-filter > .arrow-button > .arrow,
 .rows-per-page-filter > .arrow-button > .arrow,
-.metadata-review-filter > .arrow-button > .arrow,
 .activity-log-filter > .arrow-button > .arrow,
 .activity-log-date-picker > .arrow-button > .arrow,
-.metadata-workspace-input > .arrow-button > .arrow,
 .profile-editor-input > .arrow-button > .arrow {
     -fx-background-color: -wl-text;
 }
@@ -1004,13 +866,10 @@
 .combo-box-base .list-cell,
 .role-filter .list-cell,
 .rows-per-page-filter .list-cell,
-.metadata-review-filter .list-cell,
 .activity-log-filter .list-cell,
 .activity-log-date-picker .text-field,
-.metadata-workspace-input .list-cell,
 .profile-editor-input .list-cell {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
     -fx-padding: 0 12 0 12;
     -fx-alignment: center-left;
 }
@@ -1026,7 +885,6 @@
 .combo-box-popup .list-cell {
     -fx-background-color: -wl-surface;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
     -fx-padding: 0 12 0 12;
     -fx-alignment: center-left;
 }
@@ -1059,8 +917,6 @@
 
 .brand-title {
     -fx-text-fill: -wl-sidebar-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .sidebar-nav {
@@ -1145,8 +1001,6 @@
 .sidebar-nav-icon-users,
 .sidebar-nav-icon-profiles,
 .sidebar-nav-icon-assignments,
-.sidebar-nav-icon-metadata,
-.sidebar-nav-icon-metadata-review,
 .sidebar-nav-icon-activity,
 .sidebar-theme-icon {
     -fx-fill: -wl-sidebar-icon;
@@ -1160,8 +1014,6 @@
 .sidebar-nav-item-active .sidebar-nav-icon-users,
 .sidebar-nav-item-active .sidebar-nav-icon-profiles,
 .sidebar-nav-item-active .sidebar-nav-icon-assignments,
-.sidebar-nav-item-active .sidebar-nav-icon-metadata,
-.sidebar-nav-item-active .sidebar-nav-icon-metadata-review,
 .sidebar-nav-item-active .sidebar-nav-icon-activity {
     -fx-fill: -wl-sidebar-active-text;
 }
@@ -1170,8 +1022,6 @@
 .sidebar-nav-item:hover .sidebar-nav-icon-users,
 .sidebar-nav-item:hover .sidebar-nav-icon-profiles,
 .sidebar-nav-item:hover .sidebar-nav-icon-assignments,
-.sidebar-nav-item:hover .sidebar-nav-icon-metadata,
-.sidebar-nav-item:hover .sidebar-nav-icon-metadata-review,
 .sidebar-nav-item:hover .sidebar-nav-icon-activity,
 .sidebar-theme-row:hover .sidebar-theme-icon {
     -fx-fill: -wl-sidebar-hover-text;
@@ -1179,8 +1029,6 @@
 
 .sidebar-nav-icon-home,
 .sidebar-nav-icon-profiles,
-.sidebar-nav-icon-metadata,
-.sidebar-nav-icon-metadata-review,
 .sidebar-nav-icon-activity,
 .sidebar-logout-icon {
     -fx-translate-x: 2;
@@ -1195,14 +1043,10 @@
 .sidebar-utility-label,
 .sidebar-theme-label {
     -fx-text-fill: -wl-sidebar-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .sidebar-logout-label {
     -fx-text-fill: -wl-logout-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .sidebar-nav-item-active .sidebar-nav-label {
@@ -1229,8 +1073,6 @@
 
 .sidebar-language-text {
     -fx-text-fill: -wl-sidebar-language-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 700;
 }
 
 .dark-mode-toggle {
@@ -1329,7 +1171,6 @@
    ========================================================= */
 
 .users-panel,
-.metadata-panel,
 .dashboard-summary-card,
 .dashboard-section-card,
 .profile-card,
@@ -1337,10 +1178,6 @@
 .assignment-panel,
 .assignment-list-panel,
 .assignment-editor-panel,
-.metadata-editor-card,
-.metadata-review-results-card,
-.metadata-review-filter-card,
-.metadata-workspace-shell,
 .activity-log-summary-card,
 .activity-log-timeline-card {
     -fx-background-color: -wl-surface;
@@ -1352,7 +1189,6 @@
 }
 
 .app-shell.dark .users-panel,
-.app-shell.dark .metadata-panel,
 .app-shell.dark .dashboard-summary-card,
 .app-shell.dark .dashboard-section-card,
 .app-shell.dark .profile-card,
@@ -1360,10 +1196,6 @@
 .app-shell.dark .assignment-panel,
 .app-shell.dark .assignment-list-panel,
 .app-shell.dark .assignment-editor-panel,
-.app-shell.dark .metadata-editor-card,
-.app-shell.dark .metadata-review-results-card,
-.app-shell.dark .metadata-review-filter-card,
-.app-shell.dark .metadata-workspace-shell,
 .app-shell.dark .activity-log-summary-card,
 .app-shell.dark .activity-log-timeline-card {
     -fx-effect: none;
@@ -1373,37 +1205,30 @@
 .users-body-scroll-pane,
 .users-body-scroll-pane > .viewport,
 .assignment-list-scroll,
-.assignment-list-scroll > .viewport,
-.metadata-workspace-thumbnail-scroll,
-.metadata-workspace-thumbnail-scroll > .viewport {
+.assignment-list-scroll > .viewport {
     -fx-background-color: -wl-surface;
 }
 
 .users-body-scroll-pane,
-.assignment-list-scroll,
-.metadata-workspace-thumbnail-scroll {
+.assignment-list-scroll {
     -fx-background: -wl-surface;
     -fx-padding: 0;
 }
 
 .users-toolbar,
 .profiles-toolbar,
-.metadata-toolbar,
 .activity-log-toolbar {
     -fx-spacing: 12;
     -fx-alignment: center-left;
 }
 
-.users-toolbar,
-.metadata-toolbar {
+.users-toolbar {
     -fx-padding: 18;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
 
-.users-list-header,
-.metadata-list-header,
-.metadata-review-table-header {
+.users-list-header {
     -fx-hgap: 18;
     -fx-alignment: center-left;
     -fx-border-color: transparent transparent -wl-border transparent;
@@ -1415,44 +1240,19 @@
     -fx-background-color: -wl-surface;
 }
 
-.metadata-list-header,
-.metadata-review-table-header {
-    -fx-padding: 15 24 15 24;
-    -fx-background-color: -wl-card-content;
-}
-
-.metadata-review-table-header {
-    -fx-min-height: 60;
-    -fx-pref-height: 60;
-    -fx-padding: 0 12 0 12;
-    -fx-hgap: 10;
-    -fx-background-radius: 10 10 0 0;
-}
-
 .list-header-label,
-.list-header-label-right,
-.metadata-review-header-label {
+.list-header-label-right {
     -fx-text-fill: -wl-table-header-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-review-header-label {
-    -fx-wrap-text: true;
 }
 
 .users-list,
-.metadata-list,
-.metadata-review-table-body,
 .assignment-list,
 .assignment-checkbox-list {
     -fx-background-color: -wl-surface;
     -fx-spacing: 0;
 }
 
-.user-record,
-.metadata-row,
-.metadata-review-table-row {
+.user-record {
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
@@ -1468,44 +1268,13 @@
     -fx-alignment: center-left;
 }
 
-.metadata-row {
-    -fx-min-height: 105;
-    -fx-padding: 18 24 18 24;
-    -fx-hgap: 18;
-    -fx-cursor: hand;
-}
-
-.metadata-review-table-row {
-    -fx-min-height: 72;
-    -fx-padding: 9 12 9 12;
-    -fx-hgap: 9;
-}
-
-.user-record:hover,
-.metadata-row:hover,
-.metadata-review-table-row:hover {
+.user-record:hover {
     -fx-background-color: -wl-surface-hover;
 }
 
 .table-cell-text,
-.table-cell-text-muted,
-.metadata-table-text,
-.metadata-review-main-cell,
-.metadata-review-cell-text {
+.table-cell-text-muted {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
-}
-
-.metadata-table-text,
-.metadata-review-main-cell {
-    -fx-font-weight: 600;
-}
-
-.metadata-review-main-cell,
-.metadata-review-cell-text {
-    -fx-font-size: 18px;
-    -fx-wrap-text: true;
 }
 
 .name-cell {
@@ -1525,8 +1294,6 @@
     -fx-background-radius: 999;
     -fx-alignment: center;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .assignment-avatar {
@@ -1541,7 +1308,6 @@
 }
 
 .empty-state-box,
-.metadata-review-empty-state,
 .activity-log-empty-state {
     -fx-padding: 48 24 57 24;
     -fx-spacing: 6;
@@ -1550,14 +1316,10 @@
 
 .empty-state-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .empty-state-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -1571,23 +1333,15 @@
 }
 
 .role-badge,
-.metadata-status-badge,
 .profile-status-badge,
-.metadata-required-pill,
 .profile-config-chip,
-.metadata-review-status-badge,
 .activity-log-type-badge,
 .activity-log-status-badge,
 .profile-editor-small-badge,
-.metadata-profile-status,
-.metadata-workspace-tag,
-.metadata-workspace-tag-warning,
 .user-profiles-badge {
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-border-width: 1;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-alignment: center;
 }
 
@@ -1598,16 +1352,10 @@
     -fx-padding: 0 12 0 12;
 }
 
-.metadata-status-badge,
 .profile-status-badge,
-.metadata-required-pill,
-.metadata-review-status-badge,
 .activity-log-type-badge,
 .activity-log-status-badge,
 .profile-editor-small-badge,
-.metadata-profile-status,
-.metadata-workspace-tag,
-.metadata-workspace-tag-warning,
 .user-profiles-badge {
     -fx-min-height: 24;
     -fx-padding: 3 9 3 9;
@@ -1622,19 +1370,15 @@
 
 .profile-config-chip {
     -fx-padding: 3 9 3 9;
-    -fx-font-weight: 500;
 }
 
 .role-badge-admin,
 .profile-editor-admin-badge,
 .profile-status-draft,
-.metadata-status-draft,
-.metadata-profile-status-draft,
 .profile-editor-user-badge,
 .chip-blue,
 .chip-indigo,
 .chip-purple,
-.metadata-review-status-info,
 .activity-log-status-info {
     -fx-background-color: -wl-status-info-bg;
     -fx-border-color: -wl-status-info-border;
@@ -1643,12 +1387,8 @@
 
 .role-badge-user,
 .profile-status-active,
-.metadata-status-active,
-.metadata-required-yes,
-.metadata-profile-status-active,
 .profile-editor-active-badge,
 .chip-teal,
-.metadata-review-status-success,
 .activity-log-status-success,
 .user-profiles-badge-all {
     -fx-background-color: -wl-status-success-bg;
@@ -1658,13 +1398,8 @@
 
 .profile-status-archived,
 .profile-status-default,
-.metadata-status-archived,
-.metadata-required-no,
-.metadata-profile-status-archived,
 .chip-neutral,
-.metadata-review-status-neutral,
 .activity-log-status-neutral,
-.metadata-workspace-tag,
 .user-profiles-badge {
     -fx-background-color: -wl-status-neutral-bg;
     -fx-border-color: -wl-status-neutral-border;
@@ -1672,9 +1407,7 @@
 }
 
 .chip-amber,
-.metadata-review-status-warning,
 .activity-log-status-warning,
-.metadata-workspace-tag-warning,
 .user-profiles-badge-none {
     -fx-background-color: -wl-status-warning-bg;
     -fx-border-color: -wl-status-warning-border;
@@ -1682,7 +1415,6 @@
 }
 
 .chip-orange,
-.metadata-review-status-danger,
 .activity-log-status-failed {
     -fx-background-color: -wl-status-danger-bg;
     -fx-border-color: -wl-status-danger-border;
@@ -1711,8 +1443,6 @@
 .pagination-summary-label,
 .rows-per-page-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .pagination-buttons-box,
@@ -1770,8 +1500,6 @@
 
 .pagination-ellipsis {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-padding: 0 6 0 6;
 }
 
@@ -1922,8 +1650,6 @@
 .dashboard-summary-title,
 .dashboard-workflow-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .dashboard-summary-subtitle,
@@ -1931,15 +1657,11 @@
 .dashboard-activity-detail,
 .dashboard-simple-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-wrap-text: true;
 }
 
 .dashboard-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .dashboard-section-header {
@@ -1952,8 +1674,6 @@
 
 .dashboard-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .dashboard-activity-list,
@@ -1980,23 +1700,17 @@
 .dashboard-activity-title,
 .dashboard-simple-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .dashboard-activity-time {
     -fx-min-width: 72;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-alignment: center-right;
 }
 
 .dashboard-simple-metric,
 .dashboard-workflow-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .dashboard-workflow-body,
@@ -2031,8 +1745,8 @@
 }
 
 /* =========================================================
-   10. PROFILES, ASSIGNMENTS, METADATA
-   Project note: profile, assignment, and metadata editors reuse the
+   10. PROFILES AND ASSIGNMENTS
+   Project note: profile, assignment, and editors reuse the
    same section spacing so the admin area feels like one product.
    ========================================================= */
 
@@ -2055,9 +1769,7 @@
 }
 
 .profile-card-archived,
-.profile-card-archived:hover,
-.metadata-row-archived,
-.metadata-row-archived:hover {
+.profile-card-archived:hover {
     -fx-opacity: 0.6;
 }
 
@@ -2074,21 +1786,16 @@
 
 .profile-card-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .profile-card-description {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-wrap-text: true;
 }
 
 .profile-card-divider,
 .profile-editor-section-divider,
 .assignment-divider,
-.metadata-workspace-divider,
 .activity-log-date-line {
     -fx-min-height: 1;
     -fx-pref-height: 1;
@@ -2098,15 +1805,11 @@
 
 .profile-info-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .profile-info-value,
 .profile-info-code {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .profile-info-code,
@@ -2116,8 +1819,7 @@
     -fx-padding: 3 9 3 9;
 }
 
-.profile-editor-tabs,
-.metadata-tabs {
+.profile-editor-tabs {
     -fx-spacing: 0;
     -fx-alignment: center-left;
     -fx-background-color: transparent;
@@ -2125,8 +1827,7 @@
     -fx-border-width: 0 0 1 0;
 }
 
-.profile-editor-tab-button,
-.metadata-tab-button {
+.profile-editor-tab-button {
     -fx-min-height: 42;
     -fx-pref-height: 42;
     -fx-padding: 0 18 0 18;
@@ -2138,19 +1839,13 @@
     -fx-border-radius: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
 }
 
 .profile-editor-tab-button:hover,
 .profile-editor-tab-button:focused,
 .profile-editor-tab-button:pressed,
-.profile-editor-tab-button:armed,
-.metadata-tab-button:hover,
-.metadata-tab-button:focused,
-.metadata-tab-button:pressed,
-.metadata-tab-button:armed {
+.profile-editor-tab-button:armed {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-text;
@@ -2160,17 +1855,11 @@
 .profile-editor-tab-active:hover,
 .profile-editor-tab-active:focused,
 .profile-editor-tab-active:pressed,
-.profile-editor-tab-active:armed,
-.metadata-tab-active,
-.metadata-tab-active:hover,
-.metadata-tab-active:focused,
-.metadata-tab-active:pressed,
-.metadata-tab-active:armed {
+.profile-editor-tab-active:armed {
     -fx-background-color: transparent;
     -fx-border-color: transparent transparent -wl-primary transparent;
     -fx-border-width: 0 0 2 0;
     -fx-text-fill: -wl-primary;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-content {
@@ -2191,42 +1880,25 @@
 
 .profile-editor-section-title,
 .assignment-panel-title,
-.metadata-section-title,
-.metadata-workspace-panel-title,
 .dashboard-section-title,
 .activity-log-details-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-section-title {
-    -fx-font-size: 15px;
 }
 
 .profile-editor-subtitle,
 .profile-editor-helper-text,
-.metadata-helper-text,
-.metadata-workspace-panel-subtitle,
 .assignment-list-subtitle,
 .assignment-row-subtitle,
 .assignment-selected-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .profile-editor-strong-text,
-.profile-editor-field-label,
-.metadata-field-label,
-.metadata-workspace-field-label {
+.profile-editor-field-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-strong-text {
-    -fx-font-size: 18px;
 }
 
 .profile-editor-switch {
@@ -2273,14 +1945,10 @@
 
 .profile-editor-code-preview {
     -fx-text-fill: -wl-text;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .profile-editor-field-preview-card,
-.profile-editor-access-list,
-.metadata-profile-list {
+.profile-editor-access-list {
     -fx-padding: 21;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
@@ -2292,8 +1960,6 @@
 .profile-editor-field-preview-item,
 .profile-editor-access-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .profile-editor-access-list {
@@ -2315,14 +1981,10 @@
 
 .profile-editor-preview-key {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .profile-editor-preview-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-wrap-text: true;
 }
 
@@ -2368,7 +2030,6 @@
     -fx-background-color: -wl-primary-selected;
     -fx-border-color: -wl-primary-selected;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 600;
 }
 
 .assignment-panels {
@@ -2443,12 +2104,9 @@
 .assignment-row-title,
 .assignment-selected-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
-.assignment-checkbox,
-.metadata-review-checkbox {
+.assignment-checkbox {
     -fx-cursor: hand;
     -fx-padding: 0;
     -fx-min-width: 24;
@@ -2461,9 +2119,7 @@
 
 .assignment-checkbox > .box,
 .assignment-checkbox-row > .box,
-.create-user-profile-row > .box,
-.metadata-profile-row > .box,
-.metadata-review-checkbox > .box {
+.create-user-profile-row > .box {
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
@@ -2478,18 +2134,14 @@
 
 .assignment-checkbox:selected > .box,
 .assignment-checkbox-row:selected > .box,
-.create-user-profile-row:selected > .box,
-.metadata-profile-row:selected > .box,
-.metadata-review-checkbox:selected > .box {
+.create-user-profile-row:selected > .box {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
 }
 
 .assignment-checkbox:selected > .box > .mark,
 .assignment-checkbox-row:selected > .box > .mark,
-.create-user-profile-row:selected > .box > .mark,
-.metadata-profile-row:selected > .box > .mark,
-.metadata-review-checkbox:selected > .box > .mark {
+.create-user-profile-row:selected > .box > .mark {
     -fx-background-color: -wl-on-primary;
 }
 
@@ -2503,91 +2155,14 @@
 
 .assignment-save-status {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-template-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-template-description {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-}
-
-.metadata-template-actions {
-    -fx-alignment: center-left;
-    -fx-spacing: 15;
-}
-
-.metadata-template-action-button {
-    -fx-min-height: 24;
-    -fx-pref-height: 24;
-    -fx-padding: 0;
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
-}
-
-.metadata-template-action-button:hover,
-.metadata-template-action-button:focused,
-.metadata-template-action-button:pressed,
-.metadata-template-action-button:armed {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-underline: true;
-}
-
-.metadata-template-action-open,
-.metadata-template-action-preview,
-.metadata-template-action-restore {
-    -fx-text-fill: -wl-primary;
-}
-
-.metadata-template-action-open-icon,
-.metadata-template-action-preview-icon,
-.metadata-template-action-restore-icon {
-    -fx-fill: -wl-primary;
-    -fx-scale-x: 0.72;
-    -fx-scale-y: 0.72;
-}
-
-.metadata-template-action-archive {
-    -fx-text-fill: -wl-status-warning-text;
-}
-
-.metadata-template-action-archive-icon {
-    -fx-fill: -wl-status-warning-text;
-    -fx-scale-x: 0.72;
-    -fx-scale-y: 0.72;
-}
-
-.metadata-edit-icon {
-    -fx-fill: -wl-primary;
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
-}
-
-.metadata-delete-icon {
-    -fx-fill: -wl-destructive;
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
 }
 
 .edit-link-icon,
-.edit-link-button .edit-link-icon,
-.metadata-action-button .edit-link-icon,
-.metadata-action-button-muted .edit-link-icon {
+.edit-link-button .edit-link-icon {
     -fx-fill: -wl-text;
 }
 
-.edit-link-button:hover .edit-link-icon,
-.metadata-action-button:hover .edit-link-icon,
-.metadata-action-button-muted:hover .edit-link-icon {
+.edit-link-button:hover .edit-link-icon {
     -fx-fill: -wl-primary-hover;
 }
 
@@ -2598,669 +2173,6 @@
 
 .delete-link-button:hover .delete-link-icon {
     -fx-fill: -wl-destructive-hover;
-}
-
-.metadata-editor-card {
-    -fx-padding: 24;
-}
-
-.metadata-preview-form {
-    -fx-max-width: 900;
-}
-
-.metadata-fields-card {
-    -fx-padding: 0;
-}
-
-.metadata-fields-card-header {
-    -fx-padding: 24;
-}
-
-.metadata-fields-header {
-    -fx-padding: 15 24 15 24;
-    -fx-hgap: 18;
-    -fx-background-color: -wl-card-content;
-    -fx-border-color: -wl-border transparent -wl-border transparent;
-    -fx-border-width: 1 0 1 0;
-}
-
-.metadata-fields-list {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-}
-
-.metadata-field-row,
-.metadata-profile-row {
-    -fx-min-height: 60;
-    -fx-padding: 18 24 18 24;
-    -fx-hgap: 18;
-    -fx-alignment: center-left;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.metadata-field-row:hover,
-.metadata-profile-row:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.metadata-field-name,
-.metadata-profile-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
-}
-
-.metadata-drag-handle {
-    -fx-text-fill: -wl-muted-icon;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-profile-search,
-.metadata-profile-status-filter {
-    -fx-min-height: 39;
-    -fx-pref-height: 39;
-}
-
-.metadata-profile-status-filter {
-    -fx-pref-width: 150;
-}
-
-.metadata-profile-list {
-    -fx-padding: 0;
-    -fx-spacing: 0;
-}
-
-.metadata-profile-row {
-    -fx-min-height: 90;
-    -fx-pref-height: 90;
-    -fx-padding: 18 21 18 21;
-    -fx-spacing: 18;
-}
-
-.metadata-profile-row-last {
-    -fx-border-width: 0;
-    -fx-background-radius: 0 0 10 10;
-}
-
-.metadata-profile-row-archived,
-.metadata-profile-row-archived:hover {
-    -fx-background-color: -wl-surface;
-}
-
-.metadata-profile-row-archived .metadata-profile-title,
-.metadata-profile-row-archived .metadata-profile-code {
-    -fx-text-fill: -wl-text-muted;
-}
-
-.metadata-profile-code {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-profile-check {
-    -fx-min-width: 21;
-    -fx-pref-width: 21;
-    -fx-max-width: 21;
-    -fx-min-height: 21;
-    -fx-pref-height: 21;
-    -fx-max-height: 21;
-    -fx-background-radius: 3;
-    -fx-border-radius: 3;
-    -fx-border-width: 1;
-    -fx-alignment: center;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-profile-check-selected {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.metadata-profile-check-empty {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: transparent;
-}
-
-/* =========================================================
-   11. METADATA REVIEW WORKSPACE
-   Project note: metadata review has a denser workspace layout, so
-   workspace widths and toolbar actions are scoped to that screen.
-   ========================================================= */
-
-.metadata-review-queue-grid {
-    -fx-alignment: center;
-}
-
-.metadata-review-queue-card {
-    -fx-min-height: 111;
-    -fx-pref-height: 111;
-    -fx-max-height: 111;
-    -fx-padding: 18 21 18 21;
-    -fx-spacing: 15;
-    -fx-background-color: -wl-surface;
-    -fx-background-insets: 0;
-    -fx-background-radius: 10;
-    -fx-border-insets: 0;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
-    -fx-alignment: center-left;
-    -fx-cursor: hand;
-}
-
-.metadata-review-queue-card:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.metadata-review-queue-warning {
-    -fx-border-color: -wl-status-warning-border;
-}
-
-.metadata-review-queue-danger {
-    -fx-border-color: -wl-status-danger-border;
-}
-
-.metadata-review-queue-success {
-    -fx-border-color: -wl-status-success-border;
-}
-
-.metadata-review-queue-neutral {
-    -fx-border-color: -wl-border;
-}
-
-.metadata-review-card-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
-}
-
-.metadata-review-card-count {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
-}
-
-.metadata-review-card-icon-box,
-.metadata-review-card-icon-warning-box,
-.metadata-review-card-icon-danger-box,
-.metadata-review-card-icon-success-box,
-.metadata-review-card-icon-neutral-box {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-max-width: 30;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-background-radius: 999;
-    -fx-border-radius: 999;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-alignment: center;
-}
-
-.metadata-review-card-icon-warning-box {
-    -fx-background-color: -wl-status-warning-bg;
-}
-
-.metadata-review-card-icon-danger-box {
-    -fx-background-color: -wl-status-danger-bg;
-}
-
-.metadata-review-card-icon-success-box {
-    -fx-background-color: -wl-status-success-bg;
-}
-
-.metadata-review-card-icon-neutral-box {
-    -fx-background-color: -wl-card-content;
-}
-
-.metadata-review-card-icon-warning,
-.metadata-review-card-icon-danger,
-.metadata-review-card-icon-success,
-.metadata-review-card-icon-neutral {
-    -fx-scale-x: 0.82;
-    -fx-scale-y: 0.82;
-}
-
-.metadata-review-card-icon-warning {
-    -fx-fill: -wl-status-warning-text;
-}
-
-.metadata-review-card-icon-danger {
-    -fx-fill: -wl-status-danger-text;
-}
-
-.metadata-review-card-icon-success {
-    -fx-fill: -wl-status-success-text;
-}
-
-.metadata-review-card-icon-neutral {
-    -fx-fill: -wl-text-muted;
-}
-
-.metadata-review-filter-card {
-    -fx-padding: 18;
-}
-
-.metadata-review-batch-bar {
-    -fx-padding: 12 15 12 15;
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 10;
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-}
-
-.metadata-review-batch-label {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
-
-.metadata-review-page-host .metadata-workspace-header,
-.metadata-review-page-host .metadata-workspace-header-grid {
-    -fx-alignment: center-left;
-    -fx-spacing: 18;
-    -fx-hgap: 18;
-    -fx-vgap: 3;
-}
-
-.metadata-review-page-host .metadata-workspace-header .page-heading-copy {
-    -fx-min-width: 0;
-    -fx-pref-width: 390;
-    -fx-max-width: 9999;
-}
-
-.metadata-review-page-host .metadata-workspace-header .page-title,
-.metadata-review-page-host .metadata-workspace-header .page-subtitle,
-.metadata-review-page-host .metadata-workspace-header-grid .page-title,
-.metadata-review-page-host .metadata-workspace-header-grid .page-subtitle {
-    -fx-min-width: 0;
-    -fx-wrap-text: false;
-    -fx-text-overrun: ellipsis;
-}
-
-.metadata-review-page-host .metadata-workspace-header .metadata-header-actions,
-.metadata-review-page-host .metadata-workspace-header-grid .metadata-header-actions {
-    -fx-alignment: center-right;
-    -fx-spacing: 12;
-    -fx-min-width: 735;
-    -fx-pref-width: 735;
-    -fx-max-width: 735;
-}
-
-.metadata-review-page-host .metadata-workspace-header .metadata-header-actions .button,
-.metadata-review-page-host .metadata-workspace-header-grid .metadata-header-actions .button {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-padding: 0 18 0 18;
-    -fx-wrap-text: false;
-    -fx-alignment: center;
-}
-
-.metadata-workspace-header .metadata-save-button,
-.metadata-workspace-header-grid .metadata-save-button,
-.metadata-workspace-header .metadata-complete-button,
-.metadata-workspace-header-grid .metadata-complete-button {
-    -fx-min-width: 150;
-    -fx-pref-width: 150;
-    -fx-max-width: 150;
-}
-
-.metadata-workspace-header .metadata-send-review-button,
-.metadata-workspace-header-grid .metadata-send-review-button {
-    -fx-min-width: 126;
-    -fx-pref-width: 126;
-    -fx-max-width: 126;
-}
-
-.metadata-workspace-header .metadata-approve-button,
-.metadata-workspace-header-grid .metadata-approve-button {
-    -fx-min-width: 108;
-    -fx-pref-width: 108;
-    -fx-max-width: 108;
-}
-
-.metadata-workspace-header .metadata-reject-button,
-.metadata-workspace-header-grid .metadata-reject-button {
-    -fx-min-width: 105;
-    -fx-pref-width: 105;
-    -fx-max-width: 105;
-}
-
-.metadata-workspace-warning-banner {
-    -fx-min-height: 48;
-    -fx-pref-height: 48;
-    -fx-padding: 0 18 0 18;
-    -fx-background-color: -wl-status-warning-bg;
-    -fx-background-radius: 10;
-    -fx-border-color: -wl-status-warning-border;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-}
-
-.metadata-workspace-warning-icon {
-    -fx-fill: -wl-status-warning-text;
-    -fx-scale-x: 0.78;
-    -fx-scale-y: 0.78;
-}
-
-.metadata-workspace-warning-text {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-left-panel,
-.metadata-workspace-right-panel {
-    -fx-padding: 18;
-    -fx-background-color: -wl-surface;
-}
-
-.metadata-workspace-left-panel {
-    -fx-border-color: transparent -wl-border transparent transparent;
-    -fx-border-width: 0 1 0 0;
-    -fx-background-radius: 10 0 0 10;
-}
-
-.metadata-workspace-right-panel {
-    -fx-border-color: transparent transparent transparent -wl-border;
-    -fx-border-width: 0 0 0 1;
-    -fx-background-radius: 0 10 10 0;
-}
-
-.metadata-workspace-tree {
-    -fx-padding: 9 0 0 0;
-}
-
-.metadata-workspace-tree-root {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-tree-case {
-    -fx-padding: 0 0 0 12;
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-tree-row,
-.metadata-workspace-tree-row-active {
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
-    -fx-padding: 0 9 0 24;
-    -fx-spacing: 9;
-    -fx-background-radius: 6;
-}
-
-.metadata-workspace-tree-row:hover {
-    -fx-background-color: -wl-surface-hover;
-}
-
-.metadata-workspace-tree-row-active {
-    -fx-background-color: -wl-status-success-bg;
-}
-
-.metadata-workspace-tree-title,
-.metadata-workspace-tree-title-active {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-}
-
-.metadata-workspace-tree-title-active {
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-tree-status-text {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
-}
-
-.metadata-workspace-tree-status-complete {
-    -fx-text-fill: -wl-status-success-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-tree-status-warning {
-    -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-tree-status-danger {
-    -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-tree-status-neutral {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-viewer-panel {
-    -fx-background-color: -wl-card-content;
-}
-
-.metadata-workspace-viewer-toolbar {
-    -fx-min-height: 57;
-    -fx-pref-height: 57;
-    -fx-padding: 0 18 0 18;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: transparent transparent -wl-border transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.metadata-workspace-viewer-page-label {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-tool-button {
-    -fx-min-height: 27;
-    -fx-pref-height: 27;
-    -fx-padding: 0 9 0 9;
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
-}
-
-.metadata-workspace-tool-button:hover {
-    -fx-background-color: -wl-surface-hover;
-    -fx-text-fill: -wl-text;
-}
-
-.metadata-workspace-viewer-area {
-    -fx-padding: 36;
-    -fx-background-color: -wl-workspace-viewer-bg;
-}
-
-.metadata-workspace-paper-preview {
-    -fx-min-width: 360;
-    -fx-pref-width: 360;
-    -fx-max-width: 360;
-    -fx-min-height: 510;
-    -fx-pref-height: 510;
-    -fx-max-height: 510;
-    -fx-background-color: -wl-workspace-paper-bg;
-    -fx-border-color: -wl-workspace-paper-border;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
-}
-
-.metadata-workspace-paper-placeholder {
-    -fx-text-fill: -wl-workspace-placeholder;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-thumbnail-strip {
-    -fx-padding: 12 18 12 18;
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
-}
-
-.metadata-workspace-thumbnail,
-.metadata-workspace-thumbnail-active,
-.metadata-workspace-thumbnail-barcode {
-    -fx-min-width: 54;
-    -fx-pref-width: 54;
-    -fx-max-width: 54;
-    -fx-min-height: 72;
-    -fx-pref-height: 72;
-    -fx-max-height: 72;
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 6;
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-}
-
-.metadata-workspace-thumbnail-active {
-    -fx-background-color: -wl-status-success-bg;
-    -fx-border-color: -wl-status-success-text;
-    -fx-border-width: 2;
-}
-
-.metadata-workspace-thumbnail-barcode {
-    -fx-border-color: -wl-progress-amber;
-}
-
-.metadata-workspace-thumbnail-label,
-.metadata-workspace-thumbnail-label-active {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-thumbnail-label-active {
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-thumbnail-note {
-    -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 600;
-}
-
-.metadata-workspace-tabs {
-    -fx-padding: 3;
-    -fx-spacing: 3;
-    -fx-background-color: -wl-card-content;
-    -fx-background-radius: 6;
-}
-
-.metadata-workspace-tab-button,
-.metadata-workspace-tab-active {
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
-    -fx-padding: 0 12 0 12;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-border-color: transparent;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-tab-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: -wl-text-muted;
-}
-
-.metadata-workspace-tab-button:hover,
-.metadata-workspace-tab-button:pressed {
-    -fx-background-color: -wl-surface-hover;
-    -fx-text-fill: -wl-text;
-}
-
-.metadata-workspace-tab-active,
-.metadata-workspace-tab-active:hover,
-.metadata-workspace-tab-active:pressed {
-    -fx-background-color: -wl-primary-selected;
-    -fx-border-color: -wl-primary-selected;
-    -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 600;
-}
-
-.metadata-workspace-validation-summary {
-    -fx-padding: 12;
-    -fx-background-color: -wl-status-warning-bg;
-    -fx-background-radius: 6;
-    -fx-border-color: -wl-status-warning-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-}
-
-.metadata-workspace-validation-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-validation-copy {
-    -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-input-error {
-    -fx-background-color: -wl-status-danger-bg;
-    -fx-border-color: -wl-status-danger-strong-border;
-}
-
-.metadata-workspace-field-error {
-    -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 500;
-}
-
-.metadata-workspace-check-complete {
-    -fx-text-fill: -wl-status-success-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-check-warning {
-    -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-check-neutral {
-    -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
-
-.metadata-workspace-check-text {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
-}
-
-.metadata-workspace-side-actions {
-    -fx-padding: 15 0 0 0;
 }
 
 /* =========================================================
@@ -3284,7 +2196,6 @@
 }
 
 .activity-log-summary-card > .graphic-container,
-.metadata-review-queue-card > .graphic-container,
 .activity-log-event-summary-button > .graphic-container {
     -fx-padding: 0;
     -fx-alignment: center-left;
@@ -3341,14 +2252,10 @@
 
 .activity-log-summary-title {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .activity-log-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-timeline {
@@ -3367,8 +2274,6 @@
 
 .activity-log-date-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-event-row {
@@ -3390,21 +2295,15 @@
 
 .activity-log-event-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .activity-log-event-description {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-event-meta,
 .activity-log-event-time {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .activity-log-event-right {
@@ -3422,11 +2321,6 @@
 .activity-log-icon-profile,
 .activity-log-type-profile {
     -fx-background-color: -wl-activity-profile-bg;
-}
-
-.activity-log-icon-metadata,
-.activity-log-type-metadata {
-    -fx-background-color: -wl-activity-metadata-bg;
 }
 
 .activity-log-icon-qa,
@@ -3467,7 +2361,6 @@
 .activity-log-type-user,
 .activity-log-type-profile,
 .activity-log-type-access,
-.activity-log-type-metadata,
 .activity-log-type-scan,
 .activity-log-type-document,
 .activity-log-type-qa,
@@ -3496,20 +2389,15 @@
 
 .activity-log-detail-key {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .activity-log-detail-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
    13. USER EDITOR AND ADMIN DIALOG
-   Project note: the user editor shares these form styles, and the
-   metadata field editor still uses JavaFX DialogPane with the
+   Project note: the user editor shares these form styles, and the editor still uses JavaFX DialogPane with the
    app-shell/admin-dialog-pane/dark classes.
    ========================================================= */
 
@@ -3520,7 +2408,6 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-font-family: "Montserrat";
 }
 
 .admin-dialog-pane > .content {
@@ -3545,8 +2432,6 @@
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
 }
 
@@ -3590,15 +2475,11 @@
 
 .create-user-editor-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .create-user-editor-subtitle,
 .create-user-section-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .create-user-section {
@@ -3613,8 +2494,6 @@
 
 .create-user-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .create-user-details-grid {
@@ -3628,8 +2507,6 @@
 
 .create-user-field-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .create-user-input,
@@ -3725,8 +2602,7 @@
     -fx-cursor: hand;
 }
 
-.create-user-profile-row > .graphic-container,
-.metadata-profile-row > .graphic-container {
+.create-user-profile-row > .graphic-container {
     -fx-padding: 0 0 0 12;
     -fx-alignment: center-left;
 }
@@ -3737,8 +2613,6 @@
 
 .create-user-profile-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .create-user-profile-status-active {
@@ -3755,8 +2629,6 @@
 
 .create-user-generated-note {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .create-user-warning-message {
@@ -3767,8 +2639,6 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .create-user-validation-message {
@@ -3779,13 +2649,10 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .admin-dialog-pane .check-box {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
 }
 
 .admin-dialog-pane .check-box > .box {
@@ -3816,8 +2683,6 @@
    using darker surfaces and softer status backgrounds.
    ========================================================= */
 
-.app-shell.dark .metadata-editor-textarea .content,
-.app-shell.dark .metadata-workspace-textarea .content,
 .app-shell.dark .profile-editor-textarea .content {
     -fx-background-color: -wl-input-bg;
 }
@@ -3856,16 +2721,11 @@
 .dashboard-activity-icon-qa-box,
 .dashboard-activity-icon-warning-box,
 .dashboard-activity-icon-access-box,
-.metadata-review-card-icon-warning-box,
-.metadata-review-card-icon-danger-box,
-.metadata-review-card-icon-success-box,
-.metadata-review-card-icon-neutral-box,
 .activity-log-summary-icon-shell,
 .activity-log-event-icon-shell,
 .sidebar-row-icon-shell,
 .field-icon-shell,
-.action-icon-shell,
-.metadata-template-action-icon-shell {
+.action-icon-shell {
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-effect: none;
@@ -3918,8 +2778,6 @@
 
 .user-brand-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .top-nav-item,
@@ -3933,9 +2791,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-border-width: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -3984,8 +2839,6 @@
 
 .top-help-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .top-icon-toggle {
@@ -4034,21 +2887,17 @@
 
 .avatar-initials-text {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .top-user-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .top-user-chevron {
     -fx-fill: -wl-text-muted;
 }
 
-/* /* =========================================================
+/* =========================================================
    16B. SCAN SETUP PAGE
    ========================================================= */
 
@@ -4100,26 +2949,18 @@
 
 .scan-setup-primary-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .scan-setup-primary-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .scan-setup-quick-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .scan-setup-quick-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .scan-setup-quick-item {
@@ -4141,21 +2982,15 @@
     -fx-background-color: -wl-primary;
     -fx-background-radius: 999;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
 .scan-setup-step-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .scan-setup-step-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .scan-setup-meta-row {
@@ -4170,21 +3005,15 @@
     -fx-border-radius: 3;
     -fx-border-width: 1;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .form-label,
 .summary-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .helper-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .profile-info-link-button {
@@ -4197,8 +3026,6 @@
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -4228,8 +3055,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-logout-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -4259,8 +3084,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -4299,14 +3122,10 @@
 
 .profile-info-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .profile-info-line {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .weblager-text-field,
@@ -4351,15 +3170,12 @@
 
 .weblager-combo-box .list-cell {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
 }
 
 .scan-setup-primary-card .primary-button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
     -fx-max-height: 33;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-padding: 0 18 0 18;
 }
 
@@ -4367,8 +3183,6 @@
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-padding: 0 15 0 15;
 }
 
@@ -4387,9 +3201,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -4456,14 +3267,10 @@
 
 .workspace-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .workspace-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .scan-session-info-chip {
@@ -4478,8 +3285,6 @@
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-alignment: center;
 }
 
@@ -4495,14 +3300,10 @@
 
 .selected-file-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .selected-file-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -4518,15 +3319,11 @@
 
 .scan-panel-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .scan-panel-subtitle,
 .scan-tools-section-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .document-tree-view-toggle-button {
@@ -4540,8 +3337,6 @@
     -fx-background-color: -wl-tertiary;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: 700;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
     -fx-cursor: hand;
@@ -4614,14 +3409,10 @@
 
 .document-tree-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .document-tree-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .document-tree-document-block {
@@ -4669,8 +3460,6 @@
 
 .document-tree-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 13px;
-    -fx-font-weight: 400;
 }
 
 .document-tree-document-header:hover {
@@ -4687,8 +3476,6 @@
 .document-tree-chevron,
 .document-tree-document-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .document-tree-chevron-icon {
@@ -4704,14 +3491,10 @@
 
 .document-tree-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 15px;
-    -fx-font-weight: 500;
 }
 
 .document-tree-warning {
     -fx-text-fill: -wl-error;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .document-tree-page-row {
@@ -4842,8 +3625,6 @@
 .review-embedded-page-card .review-page-tray-number,
 .qa-embedded-page-card .page-tray-number {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: 500;
     -fx-padding: 2 0 0 0;
 }
 
@@ -4873,7 +3654,6 @@
 .qa-embedded-page-card.page-tray-item-selected .page-tray-number,
 .qa-embedded-page-card.page-tray-item-selected:hover .page-tray-number {
     -fx-text-fill: -wl-primary;
-    -fx-font-weight: 700;
 }
 
 .document-embedded-page-card.page-tray-item-selected .page-tray-number,
@@ -4881,7 +3661,6 @@
 .review-embedded-page-card.review-page-tray-item-selected .review-page-tray-number,
 .review-embedded-page-card.review-page-tray-item-selected:hover .review-page-tray-number {
     -fx-text-fill: -wl-primary;
-    -fx-font-weight: 700;
 }
 
 .document-tree-page-row.document-tree-page-selected,
@@ -4895,26 +3674,18 @@
 
 .document-tree-page-drag {
     -fx-text-fill: -wl-placeholder;
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
 }
 
 .document-tree-page-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .qa-page-status-text-approved {
     -fx-text-fill: -wl-status-success-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
 }
 
 .qa-page-status-text-fix {
     -fx-text-fill: -wl-status-error-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
 }
 
 .document-tree-barcode-split-row {
@@ -4932,8 +3703,6 @@
 .document-tree-split-row {
     -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 500;
     -fx-alignment: center;
 }
 
@@ -4952,20 +3721,14 @@
 
 .view-toolbar-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .view-toolbar-muted-label {
     -fx-text-fill: -wl-placeholder;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .view-zoom-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .view-tool-button {
@@ -4983,8 +3746,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -5007,8 +3768,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -5058,8 +3817,6 @@
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 400;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-background-insets: 0;
@@ -5085,13 +3842,10 @@
 
 .scan-preview-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .scan-preview-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
 }
 
 .scan-preview-loading {
@@ -5126,20 +3880,14 @@
 
 .scan-progress-indicator-copy {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .scan-preview-loading-title {
     -fx-text-fill: #0f2d63;
-    -fx-font-size: 28px;
-    -fx-font-weight: 800;
 }
 
 .scan-preview-loading-copy {
     -fx-text-fill: #60739a;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -5206,8 +3954,6 @@
 
 .mock-barcode-bars {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 21px;
-    -fx-font-weight: 900;
 }
 
 .preview-warning-banner {
@@ -5218,8 +3964,6 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 /* =========================================================
@@ -5234,25 +3978,18 @@
     -fx-border-radius: 999;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .barcode-preview-title {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .barcode-preview-bars {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 42px;
-    -fx-font-weight: 900;
 }
 
 .barcode-preview-copy {
     -fx-text-fill: -wl-secondary;
-    -fx-font-size: 18px;
     -fx-text-alignment: center;
 }
 
@@ -5273,8 +4010,6 @@
 .page-tray-title,
 .page-tray-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .page-tray-scroll,
@@ -5329,8 +4064,6 @@
 
 .page-tray-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-padding: 12 0 12 0;
 }
 
@@ -5398,12 +4131,9 @@
 .page-tray-number,
 .page-tray-barcode-split-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .page-tray-barcode-split-label {
-    -fx-font-weight: 600;
 }
 
 .page-tray-status-badge {
@@ -5419,15 +4149,11 @@
     -fx-border-radius: 999;
     -fx-border-width: 1;
     -fx-text-fill: -wl-status-warning-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
 .page-tray-barcode-mark {
     -fx-text-fill: -wl-paper-line-strong;
-    -fx-font-size: 18px;
-    -fx-font-weight: 900;
 }
 
 .page-tray-document-split {
@@ -5506,9 +4232,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 15px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -5568,7 +4291,6 @@
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 700;
 }
 
 .scan-finish-button:hover,
@@ -5627,8 +4349,6 @@
 .finish-review-title,
 .submit-confirmation-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .finish-review-summary-card,
@@ -5644,8 +4364,6 @@
 .finish-review-box-id,
 .submit-confirmation-box-id {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .finish-review-summary-muted,
@@ -5653,8 +4371,6 @@
 .submit-confirmation-summary-muted,
 .submit-confirmation-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .finish-review-secondary-button,
@@ -5671,9 +4387,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -5700,7 +4413,6 @@
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 700;
 }
 
 .finish-review-primary-button:hover,
@@ -5741,8 +4453,6 @@
 
 .finish-review-button-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .finish-review-secondary-button:hover .finish-review-button-icon,
@@ -5772,20 +4482,14 @@
 .review-summary-title,
 .qa-review-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .review-summary-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .review-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .review-left-panel {
@@ -5797,8 +4501,6 @@
 
 .review-panel-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .review-document-scroll,
@@ -5842,14 +4544,10 @@
 
 .review-document-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 600;
 }
 
 .review-document-count {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 15px;
-    -fx-font-weight: 500;
 }
 
 .review-document-card-selected .review-document-title,
@@ -5859,8 +4557,6 @@
 
 .review-document-warning {
     -fx-text-fill: -wl-error;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .review-split-row {
@@ -5878,8 +4574,6 @@
 .review-split-label {
     -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 500;
 }
 
 .review-center-panel {
@@ -5894,8 +4588,6 @@
 
 .review-selected-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .review-view-icon {
@@ -5904,8 +4596,6 @@
     -fx-max-width: 0;
     -fx-alignment: center;
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-opacity: 0;
 }
 
@@ -5944,8 +4634,6 @@
 
 .review-preview-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .review-page-tray-shell {
@@ -5960,8 +4648,6 @@
 
 .review-page-tray-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .review-page-tray-scroll,
@@ -6064,8 +4750,6 @@
 
 .review-page-tray-number {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .review-next-step-panel {
@@ -6087,9 +4771,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -6112,9 +4793,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -6127,8 +4805,6 @@
 
 .review-next-step-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-wrap-text: true;
 }
 
@@ -6143,8 +4819,6 @@
 
 .review-current-selection-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
     -fx-padding: 0 0 3 0;
 }
 
@@ -6155,15 +4829,11 @@
 
 .review-current-selection-label {
     -fx-text-fill: #24364F;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-padding: 3 0 0 0;
 }
 
 .review-current-selection-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .review-empty-state {
@@ -6177,14 +4847,10 @@
 
 .review-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .review-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -6442,14 +5108,10 @@
 
 .assigned-qa-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .assigned-qa-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -6475,8 +5137,6 @@
     -fx-padding: 0 12 0 12;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 15px;
-    -fx-font-weight: 400;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
     -fx-effect: none;
@@ -6497,8 +5157,6 @@
 
 .assigned-qa-search-icon {
     -fx-text-fill: #7184a0;
-    -fx-font-size: 15px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-search-field {
@@ -6507,8 +5165,6 @@
     -fx-padding: 0;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: #a3afc2;
-    -fx-font-size: 15px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-filter-combo > .arrow-button {
@@ -6523,7 +5179,6 @@
 
 .assigned-qa-filter-combo .list-cell {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
 }
 
 /* =========================================================
@@ -6558,33 +5213,23 @@
 
 .assigned-qa-card-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 20px;
-    -fx-font-weight: 700;
 }
 
 .assigned-qa-card-profile {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-card-meta,
 .assigned-qa-card-detail {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-card-detail-strong {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 400;
 }
 
 .assigned-qa-card-issues {
     -fx-text-fill: -wl-status-error-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -6600,8 +5245,6 @@
     -fx-background-radius: 999;
     -fx-border-radius: 999;
     -fx-border-width: 1;
-    -fx-font-size: 12px;
-    -fx-font-weight: 600;
     -fx-alignment: center;
 }
 
@@ -6686,9 +5329,6 @@
     -fx-border-radius: 0;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 15px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -6735,14 +5375,10 @@
 
 .assigned-qa-empty-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .assigned-qa-empty-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 /* =========================================================
@@ -6762,18 +5398,13 @@
 .qa-review-meta-strong,
 .qa-review-meta {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .qa-review-meta-strong {
-    -fx-font-weight: 600;
 }
 
 .qa-review-meta-separator {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
 }
 
 .qa-review-left-panel {
@@ -6795,8 +5426,6 @@
 
 .qa-review-panel-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 /* =========================================================
@@ -6814,14 +5443,10 @@
 
 .qa-view-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .qa-zoom-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
@@ -6840,8 +5465,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -6864,8 +5487,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
 }
@@ -6897,8 +5518,6 @@
 
 .qa-tools-section-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 /* =========================================================
@@ -6913,8 +5532,6 @@
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-border-width: 1;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-alignment: center-left;
 }
 
@@ -6947,8 +5564,6 @@
     -fx-background-radius: 999;
     -fx-border-radius: 999;
     -fx-border-width: 1;
-    -fx-font-size: 10px;
-    -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
@@ -6975,8 +5590,6 @@
 
 .qa-checklist-check-box {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 400;
     -fx-padding: 2 0 2 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -7059,9 +5672,6 @@
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -7123,7 +5733,6 @@
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
-    -fx-font-weight: 700;
 }
 
 .qa-complete-button:hover,
@@ -7284,25 +5893,18 @@
 
 .login-page .page-title {
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .login-page .body-text {
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 18px;
 }
 
 .login-page .card-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .login-page .field-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .login-page .text-field,
@@ -7313,7 +5915,6 @@
     -fx-border-radius: 6;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-    -fx-font-size: 18px;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
 }
@@ -7325,7 +5926,6 @@
 
 .login-page .message-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
     -fx-min-height: 30;
 }
 
@@ -7421,8 +6021,6 @@
 .admin-top-nav-label,
 .admin-account-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .admin-brand-subtitle,
@@ -7430,7 +6028,6 @@
 .admin-status-label,
 .admin-breadcrumb {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
 }
 
 .admin-top-nav-button,
@@ -7514,14 +6111,10 @@
 
 .admin-account-menu-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
 }
 
 .admin-account-menu-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
-    -fx-font-weight: 400;
 }
 
 .admin-account-dropdown-divider {
@@ -7541,8 +6134,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -7563,8 +6154,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -7606,8 +6195,6 @@
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-text-fill: -wl-status-danger-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -7651,14 +6238,10 @@
 
 .account-menu-avatar-label {
     -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .account-menu-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 17px;
-    -fx-font-weight: 500;
 }
 
 .account-menu-caret-shell {
@@ -7667,8 +6250,6 @@
 
 .account-theme-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 500;
 }
 
 .account-theme-toggle {
@@ -7727,19 +6308,14 @@
 
 .account-dropdown-avatar-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
 }
 
 .account-dropdown-name {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .account-dropdown-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 15px;
 }
 
 .account-dropdown-button {
@@ -7752,8 +6328,6 @@
     -fx-max-height: 42;
     -fx-padding: 10 12;
     -fx-text-fill: -wl-text;
-    -fx-font-size: 15px;
-    -fx-font-weight: 500;
     -fx-alignment: center-left;
     -fx-graphic-text-gap: 10;
     -fx-cursor: hand;
@@ -7851,8 +6425,6 @@
 
 .user-notification-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
 }
 
 .user-notification-list {
@@ -7934,18 +6506,14 @@
 
 .user-notification-item-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
 }
 
 .user-notification-item-copy {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 11px;
 }
 
 .user-notification-time {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 10px;
 }
 
 .user-notification-link-button,
@@ -7954,12 +6522,10 @@
     -fx-border-color: transparent;
     -fx-padding: 0;
     -fx-cursor: hand;
-    -fx-font-size: 11px;
 }
 
 .user-notification-link-button {
     -fx-text-fill: #2563EB;
-    -fx-font-weight: 700;
 }
 
 .user-notification-footer-button {
@@ -7998,14 +6564,10 @@
 
 .account-dropdown-item-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .account-dropdown-item-arrow {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 21px;
-    -fx-font-weight: 400;
 }
 
 .admin-logout-button {
@@ -8032,8 +6594,6 @@
 
 .admin-logout-label {
     -fx-text-fill: -wl-logout-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
 }
 
 .admin-top-nav-button.active,
@@ -8062,8 +6622,6 @@
     -fx-border-radius: 3;
     -fx-padding: 3 9;
     -fx-text-fill: -wl-status-info-text;
-    -fx-font-size: 10px;
-    -fx-font-weight: 500;
 }
 
 .admin-breadcrumb-bar {
@@ -8105,18 +6663,15 @@
 }
 
 .dashboard-page .dashboard-summary-value {
-    -fx-font-size: 18px;
 }
 
 .dashboard-page .dashboard-summary-title,
 .dashboard-page .dashboard-section-title {
-    -fx-font-size: 18px;
 }
 
 .dashboard-page .dashboard-summary-subtitle,
 .dashboard-page .dashboard-section-subtitle,
 .dashboard-page .admin-action-text {
-    -fx-font-size: 18px;
 }
 
 .dashboard-page .admin-action-tile {
@@ -8130,7 +6685,6 @@
 .dashboard-page .exports-table-cell,
 .dashboard-page .exports-table-cell-primary {
     -fx-padding: 8 10;
-    -fx-font-size: 18px;
 }
 
 .dashboard-page .exports-table-cell-wrap {
@@ -8236,8 +6790,6 @@
 
 .dashboard-summary-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .dashboard-summary-title,
@@ -8249,7 +6801,6 @@
 .portal-section-title,
 .exports-title {
     -fx-text-fill: -wl-text;
-    -fx-font-weight: 700;
 }
 
 .dashboard-summary-title,
@@ -8257,13 +6808,11 @@
 .portal-card-title,
 .settings-section-heading,
 .exports-title {
-    -fx-font-size: 18px;
 }
 
 .dashboard-simple-title,
 .admin-action-title,
 .portal-section-title {
-    -fx-font-size: 15px;
 }
 
 .dashboard-summary-subtitle,
@@ -8275,7 +6824,6 @@
 .exports-subtitle,
 .exports-footer-text {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
 }
 
 .admin-action-tile {
@@ -8345,8 +6893,6 @@
     -fx-border-radius: 6;
     -fx-min-height: 30;
     -fx-pref-height: 30;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -8380,8 +6926,6 @@
 
 .dashboard-view-all-button {
     -fx-padding: 0 14 0 14;
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
 }
 
 .portal-table {
@@ -8407,13 +6951,11 @@
 .exports-table-cell,
 .exports-table-cell-primary {
     -fx-padding: 12;
-    -fx-font-size: 18px;
 }
 
 .portal-table-cell-head,
 .exports-table-header {
     -fx-text-fill: -wl-table-header-text;
-    -fx-font-weight: 600;
 }
 
 .portal-table-cell,
@@ -8423,7 +6965,6 @@
 
 .exports-table-cell-primary {
     -fx-text-fill: -wl-text;
-    -fx-font-weight: 600;
 }
 
 .portal-table-link {
@@ -8431,8 +6972,6 @@
     -fx-border-color: transparent;
     -fx-text-fill: -wl-primary;
     -fx-padding: 12;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-cursor: hand;
 }
 
@@ -8440,8 +6979,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 12;
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
     -fx-text-fill: -wl-text;
     -fx-alignment: center-left;
     -fx-cursor: hand;
@@ -8539,8 +7076,6 @@
     -fx-background-radius: 3;
     -fx-border-radius: 3;
     -fx-padding: 3 9;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .status-completed,
@@ -8575,13 +7110,10 @@
 .exports-metric-label,
 .exports-filter-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
 }
 
 .exports-metric-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 21px;
-    -fx-font-weight: 700;
 }
 
 .exports-filter-panel {
@@ -8612,7 +7144,6 @@
     -fx-pref-height: 39;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 18px;
 }
 
 .exports-filter-input:hover {
@@ -8652,7 +7183,6 @@
     -fx-padding: 0 0 0 12;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
-    -fx-font-size: 18px;
 }
 
 .exports-date-picker:hover {
@@ -8691,7 +7221,6 @@
 }
 
 .date-picker-popup > * > .day-cell {
-    -fx-font-size: 18px;
 }
 
 .exports-table-panel {
@@ -8740,15 +7269,11 @@
 
 .exports-dialog-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 24px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-section-label,
 .exports-dialog-files-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-box-card {
@@ -8763,13 +7288,10 @@
 
 .exports-dialog-box-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-box-detail {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
 }
 
 .exports-dialog-type-row {
@@ -8821,13 +7343,10 @@
 
 .exports-dialog-option-title {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
 }
 
 .exports-dialog-option-subtitle {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
 }
 
 .exports-dialog-option-check-badge {
@@ -8871,7 +7390,6 @@
 .exports-dialog-empty-state,
 .exports-dialog-output-label {
     -fx-text-fill: -wl-text-muted;
-    -fx-font-size: 18px;
 }
 
 .exports-dialog-file-cell-box {
@@ -8953,8 +7471,6 @@
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-text-fill: -wl-secondary-nav-bg;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-cursor: hand;
 }
 
@@ -8987,8 +7503,6 @@
 
 .exports-dialog-output-value {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
     -fx-pref-width: 420;
     -fx-max-width: 420;
 }
@@ -9040,8 +7554,6 @@
 .settings-nav-label,
 .form-label {
     -fx-text-fill: -wl-text;
-    -fx-font-size: 18px;
-    -fx-font-weight: 500;
 }
 
 .settings-nav-row {

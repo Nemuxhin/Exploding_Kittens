@@ -11,7 +11,7 @@ import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
 import easv.dal.QaReviewDAO;
 import easv.dal.UserDAO;
-import easv.util.Strings;
+import easv.gui.controller.util.Strings;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
