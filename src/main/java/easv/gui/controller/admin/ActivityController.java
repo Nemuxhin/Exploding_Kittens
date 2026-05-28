@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -21,8 +22,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.DateCell;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuButton;
@@ -48,7 +47,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
-import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,6 +79,8 @@ public class ActivityController {
         RANGE
     }
 
+    private record ParsedDateRange(LocalDate startDate, LocalDate endDate) {}
+
     private static final String ALL_AREAS = "All areas";
     private static final String ALL_USERS = "All users";
     private static final String ALL_RESULTS = "All statuses";
@@ -88,6 +88,7 @@ public class ActivityController {
     private static final String SORT_OLDEST_FIRST = "Oldest first";
     private static final String SORT_ACTION_ASC = "A to Z (Action)";
     private static final String SORT_ACTION_DESC = "Z to A (Action)";
+    private static final String TIME_ALL = "All times";
     private static final String STATUS_SELECT_ALL = "Select all";
     private static final List<String> STATUS_OPTIONS = List.of("Success", "Failed", "Warning", "Info");
     private static final List<String> AREA_OPTIONS = List.of(
@@ -106,6 +107,34 @@ public class ActivityController {
             SORT_OLDEST_FIRST,
             SORT_ACTION_ASC,
             SORT_ACTION_DESC
+    );
+
+    private static final List<String> TIME_FILTER_OPTIONS = List.of(
+            TIME_ALL,
+            "00:00",
+            "01:00",
+            "02:00",
+            "03:00",
+            "04:00",
+            "05:00",
+            "06:00",
+            "07:00",
+            "08:00",
+            "09:00",
+            "10:00",
+            "11:00",
+            "12:00",
+            "13:00",
+            "14:00",
+            "15:00",
+            "16:00",
+            "17:00",
+            "18:00",
+            "19:00",
+            "20:00",
+            "21:00",
+            "22:00",
+            "23:00"
     );
 
     private static final String UPLOAD_ICON_GLYPH = "\ue934";
@@ -147,13 +176,7 @@ public class ActivityController {
             DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final ObservableList<ActivityLogEntry> activityEntries = FXCollections.observableArrayList();
-    private final List<String> recentSearches = new ArrayList<>(List.of(
-            "User updated",
-            "Inventory",
-            "Order cancelled",
-            "Login failed",
-            "User deleted"
-    ));
+    private final List<String> recentSearches = new ArrayList<>();
     private final Set<String> selectedStatuses = new LinkedHashSet<>();
     private final Set<String> pendingStatuses = new LinkedHashSet<>();
     private final List<String> filterUserOptions = new ArrayList<>(List.of(ALL_USERS));
@@ -165,6 +188,8 @@ public class ActivityController {
     private boolean logKeyNavAttached;
     private boolean detailClosed;
     private ContextMenu searchHistoryMenu;
+    private ContextMenu dateCalendarMenu;
+    private ContextMenu timeOptionsMenu;
     private int visibleLogLimit = INITIAL_VISIBLE_LOG_LIMIT;
     private long activityLoadSequence;
     private boolean activityLoading;
@@ -183,6 +208,8 @@ public class ActivityController {
     private String selectedUser = ALL_USERS;
     private String pendingUser = ALL_USERS;
     private String selectedSort = SORT_NEWEST_FIRST;
+    private LocalTime selectedTimeFilter;
+    private boolean updatingTimeFilter;
 
     @FXML private TextField searchField;
     @FXML private HBox searchBox;
@@ -191,21 +218,17 @@ public class ActivityController {
     @FXML private ComboBox<String> statusFilterComboBox;
     @FXML private ComboBox<String> sortFilterComboBox;
 
-    @FXML private MenuButton dateFilterMenuButton;
+    @FXML private HBox dateFilterBox;
+    @FXML private TextField dateFilterField;
+    @FXML private Button dateFilterMenuButton;
+    @FXML private HBox timeFilterBox;
+    @FXML private TextField timeFilterField;
+    @FXML private Button timeFilterMenuButton;
     @FXML private MenuButton statusMenuButton;
     @FXML private MenuButton filtersMenuButton;
     @FXML private MenuButton sortMenuButton;
-    @FXML private Button specificDateModeButton;
-    @FXML private Button rangeDateModeButton;
-    @FXML private VBox specificDateBox;
-    @FXML private VBox dateRangeBox;
-    @FXML private DatePicker specificDatePicker;
-    @FXML private DatePicker rangeStartDatePicker;
-    @FXML private DatePicker rangeEndDatePicker;
-    @FXML private TextField rangeStartTimeField;
-    @FXML private TextField rangeEndTimeField;
-    @FXML private Label dateCalendarMonthLabel;
-    @FXML private GridPane dateCalendarGrid;
+    private Label dateCalendarMonthLabel;
+    private GridPane dateCalendarGrid;
 
     @FXML private VBox logsPageRoot;
     @FXML private VBox timelineContainer;
@@ -235,7 +258,7 @@ public class ActivityController {
     }
 
     private void configureFilters() {
-        configureDatePickers();
+        configureDateField();
         selectedStatuses.clear();
         selectedStatuses.addAll(STATUS_OPTIONS);
         pendingStatuses.clear();
@@ -245,6 +268,7 @@ public class ActivityController {
         selectedUser = ALL_USERS;
         pendingUser = ALL_USERS;
         selectedSort = SORT_NEWEST_FIRST;
+        selectedTimeFilter = null;
 
         if (typeFilterComboBox != null) {
             typeFilterComboBox.getItems().setAll(AREA_OPTIONS);
@@ -267,6 +291,8 @@ public class ActivityController {
             sortFilterComboBox.setValue(SORT_NEWEST_FIRST);
         }
 
+        configureTimeFilterComboBox();
+
         dateFilterMode = DateFilterMode.ALL;
         updateDateFilterState();
         updateCalendarDisplay();
@@ -282,12 +308,6 @@ public class ActivityController {
         configureFiltersMenu();
         configureSortMenu();
 
-        if (dateFilterMenuButton != null) {
-            dateFilterMenuButton.setText(null);
-            dateFilterMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            dateFilterMenuButton.setOnShowing(event -> prepareDatePopover());
-            setDateFilterButtonDisplay("Date & Time");
-        }
     }
 
     private void configureFilterComboBox(ComboBox<String> comboBox, String heading, String iconPath) {
@@ -348,7 +368,7 @@ public class ActivityController {
         String cleanValue = Strings.displayText(value, "");
 
         if ("Date".equals(cleanHeading)) {
-            return cleanValue.isBlank() || "All dates".equals(cleanValue) ? "Date & Time" : cleanValue;
+            return cleanValue.isBlank() || "All dates".equals(cleanValue) ? "MM/DD/YYYY" : cleanValue;
         }
 
         if ("Sort".equals(cleanHeading)) {
@@ -402,12 +422,21 @@ public class ActivityController {
             return;
         }
 
-        searchHistoryMenu.getItems().setAll(new CustomMenuItem(createSearchHistoryContent(visibleSearches), false));
+        Node anchor = searchBox == null ? searchField : searchBox;
+        VBox content = createSearchHistoryContent(visibleSearches);
+        searchHistoryMenu.getItems().setAll(new CustomMenuItem(content, false));
 
         if (!searchHistoryMenu.isShowing()) {
-            Node anchor = searchBox == null ? searchField : searchBox;
             searchHistoryMenu.show(anchor, Side.BOTTOM, 0, -1);
         }
+
+        Runnable refit = () -> fitSearchPopoverToAnchor(content, anchor);
+        content.setOnMouseEntered(event -> refit.run());
+        content.setOnMouseMoved(event -> refit.run());
+        content.setOnMouseExited(event -> refit.run());
+
+        Platform.runLater(refit);
+        Platform.runLater(() -> Platform.runLater(refit));
     }
 
     private List<String> visibleRecentSearches() {
@@ -422,9 +451,66 @@ public class ActivityController {
                 .toList();
     }
 
+    private double searchAnchorWidth(Node anchor) {
+        if (anchor == null) {
+            return 315;
+        }
+
+        double width = anchor.getBoundsInLocal().getWidth();
+
+        if (width <= 0 && anchor instanceof Region region) {
+            width = region.getPrefWidth();
+        }
+
+        return width > 0 ? width : 315;
+    }
+
+    private void fitSearchPopoverToAnchor(Region content, Node anchor) {
+        if (content == null || anchor == null || searchHistoryMenu == null || anchor.getScene() == null) {
+            return;
+        }
+
+        double targetOuterWidth = searchAnchorWidth(anchor);
+        Window popupWindow = searchHistoryMenu.getScene() == null
+                ? null
+                : searchHistoryMenu.getScene().getWindow();
+
+        double currentContentWidth = content.getWidth() > 0
+                ? content.getWidth()
+                : content.prefWidth(-1);
+        double popupOuterWidth = popupWindow == null ? 0 : popupWindow.getWidth();
+        double popupChromeWidth = popupOuterWidth > 0 && currentContentWidth > 0
+                ? Math.max(0, popupOuterWidth - currentContentWidth)
+                : 0;
+
+        double correctedContentWidth = Math.max(0, targetOuterWidth - popupChromeWidth);
+
+        applySearchPopoverContentWidth(content, correctedContentWidth);
+
+        if (popupWindow != null) {
+            popupWindow.sizeToScene();
+        }
+
+        Bounds anchorBounds = anchor.localToScreen(anchor.getBoundsInLocal());
+        if (anchorBounds != null) {
+            searchHistoryMenu.setX(anchorBounds.getMinX());
+        }
+    }
+
+    private void applySearchPopoverContentWidth(Region content, double width) {
+        content.setMinWidth(width);
+        content.setPrefWidth(width);
+        content.setMaxWidth(width);
+        content.setStyle("-fx-min-width: " + width
+                + "; -fx-pref-width: " + width
+                + "; -fx-max-width: " + width + ";");
+    }
+
     private VBox createSearchHistoryContent(List<String> visibleSearches) {
         VBox content = new VBox(9);
         content.getStyleClass().add("logs-search-popover");
+
+        applySearchPopoverContentWidth(content, 315);
 
         HBox header = new HBox(9);
         header.setAlignment(Pos.CENTER_LEFT);
@@ -508,22 +594,6 @@ public class ActivityController {
         VBox content = new VBox(0);
         content.getStyleClass().add("logs-status-popover");
 
-        HBox header = new HBox(12);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.getStyleClass().add("logs-status-popover-header");
-
-        Label title = new Label("Status");
-        title.getStyleClass().add("logs-status-popover-title");
-
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-
-        Label selectedCountLabel = new Label();
-        selectedCountLabel.getStyleClass().add("logs-status-selected-count");
-        updateStatusSelectedCountLabel(selectedCountLabel);
-
-        header.getChildren().addAll(title, headerSpacer, selectedCountLabel);
-
         CheckBox allStatusesCheckBox = createStatusCheckBox(STATUS_SELECT_ALL, "neutral");
         allStatusesCheckBox.setSelected(pendingStatuses.size() == STATUS_OPTIONS.size());
         List<CheckBox> optionCheckBoxes = new ArrayList<>();
@@ -548,7 +618,6 @@ public class ActivityController {
                 optionCheckBox.setSelected(allStatusesCheckBox.isSelected());
             }
             updatingStatusChecks[0] = false;
-            updateStatusSelectedCountLabel(selectedCountLabel);
         });
 
         optionsBox.getChildren().add(allStatusesCheckBox);
@@ -571,27 +640,12 @@ public class ActivityController {
                 updatingStatusChecks[0] = true;
                 allStatusesCheckBox.setSelected(pendingStatuses.size() == STATUS_OPTIONS.size());
                 updatingStatusChecks[0] = false;
-                updateStatusSelectedCountLabel(selectedCountLabel);
             });
             optionCheckBoxes.add(checkBox);
             optionsBox.getChildren().add(checkBox);
         }
 
-        Label helperText = new Label("Filter audit log entries by status.");
-        helperText.getStyleClass().add("logs-status-helper-text");
-
         HBox footer = createPopoverFooter(
-                () -> {
-                    pendingStatuses.clear();
-                    pendingStatuses.addAll(STATUS_OPTIONS);
-                    updatingStatusChecks[0] = true;
-                    allStatusesCheckBox.setSelected(true);
-                    for (CheckBox optionCheckBox : optionCheckBoxes) {
-                        optionCheckBox.setSelected(true);
-                    }
-                    updatingStatusChecks[0] = false;
-                    updateStatusSelectedCountLabel(selectedCountLabel);
-                },
                 () -> {
                     selectedStatuses.clear();
                     selectedStatuses.addAll(pendingStatuses);
@@ -604,7 +658,7 @@ public class ActivityController {
                 }
         );
 
-        content.getChildren().addAll(header, optionsBox, createStatusDivider(), helperText, footer);
+        content.getChildren().addAll(optionsBox, footer);
         return content;
     }
 
@@ -640,15 +694,6 @@ public class ActivityController {
         divider.getStyleClass().add("logs-status-divider");
         divider.setPrefHeight(1);
         return divider;
-    }
-
-    private void updateStatusSelectedCountLabel(Label label) {
-        if (label == null) {
-            return;
-        }
-
-        int selectedCount = pendingStatuses.size();
-        label.setText(selectedCount + " selected");
     }
 
     private String statusButtonText() {
@@ -700,12 +745,6 @@ public class ActivityController {
                 createPopoverField("User", userComboBox),
                 createPopoverFooter(
                         () -> {
-                            pendingArea = ALL_AREAS;
-                            pendingUser = ALL_USERS;
-                            areaComboBox.setValue(ALL_AREAS);
-                            userComboBox.setValue(ALL_USERS);
-                        },
-                        () -> {
                             selectedArea = Strings.displayText(pendingArea, ALL_AREAS);
                             selectedUser = Strings.displayText(pendingUser, ALL_USERS);
                             setMenuButtonDisplay(filtersMenuButton, FILTER_ICON_GLYPH, "Filters", filtersButtonText());
@@ -739,6 +778,223 @@ public class ActivityController {
         }
 
         return activeCount == 0 ? "Filters" : activeCount + " filters";
+    }
+
+    private void configureTimeFilterComboBox() {
+        configureTimeFilterTextField();
+        configureTimeFilterMenu();
+        updateTimeFilterDisplay();
+    }
+
+    private void configureTimeFilterTextField() {
+        if (timeFilterField == null) {
+            return;
+        }
+
+        updatingTimeFilter = true;
+        timeFilterField.setPromptText("HH:00");
+        timeFilterField.setText("");
+        updatingTimeFilter = false;
+
+        timeFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (updatingTimeFilter) {
+                return;
+            }
+
+            applyTypedTimeLive(newValue);
+        });
+
+        timeFilterField.setOnAction(event ->
+                applyTypedTimeAndNormalize(timeFilterField.getText())
+        );
+
+        timeFilterField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
+            if (!isFocused) {
+                applyTypedTimeAndNormalize(timeFilterField.getText());
+            }
+        });
+
+        if (timeFilterBox != null) {
+            timeFilterBox.setOnMouseClicked(event -> {
+                Object target = event.getTarget();
+
+                if (target == timeFilterMenuButton) {
+                    return;
+                }
+
+                timeFilterField.requestFocus();
+                timeFilterField.positionCaret(timeFilterField.getText().length());
+            });
+        }
+    }
+
+    private void configureTimeFilterMenu() {
+        if (timeFilterMenuButton == null) {
+            return;
+        }
+
+        timeOptionsMenu = new ContextMenu();
+        timeOptionsMenu.getStyleClass().add("logs-time-popover-menu");
+
+        timeFilterMenuButton.setText("▾");
+        timeFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
+        timeFilterMenuButton.setOnAction(event -> showTimeOptionsMenu());
+    }
+
+    private void showTimeOptionsMenu() {
+        if (timeOptionsMenu == null) {
+            timeOptionsMenu = new ContextMenu();
+            timeOptionsMenu.getStyleClass().add("logs-time-popover-menu");
+        }
+
+        Node anchor = timeFilterBox == null ? timeFilterMenuButton : timeFilterBox;
+
+        if (anchor == null || anchor.getScene() == null) {
+            return;
+        }
+
+        ScrollPane scroller = new ScrollPane(createTimeOptionsList());
+        scroller.getStyleClass().add("logs-time-popover-scroll");
+        scroller.setFitToWidth(true);
+        scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroller.setPrefViewportWidth(135);
+        scroller.setPrefViewportHeight(210);
+        scroller.setMaxHeight(210);
+
+        timeOptionsMenu.getItems().setAll(new CustomMenuItem(scroller, false));
+        timeOptionsMenu.show(anchor, Side.BOTTOM, 0, 3);
+    }
+
+    private VBox createTimeOptionsList() {
+        VBox content = new VBox(0);
+        content.getStyleClass().add("logs-time-popover-list");
+
+        for (String option : TIME_FILTER_OPTIONS) {
+            Button row = new Button();
+            row.getStyleClass().add("logs-time-option");
+            row.setFocusTraversable(false);
+            row.setMaxWidth(Double.MAX_VALUE);
+
+            HBox graphic = new HBox(9);
+            graphic.setAlignment(Pos.CENTER_LEFT);
+
+            Label label = new Label(TIME_ALL.equals(option) ? "All times" : option);
+            label.getStyleClass().add("logs-time-option-text");
+            label.setMinWidth(0);
+            label.setTextOverrun(OverrunStyle.ELLIPSIS);
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            graphic.getChildren().addAll(label, spacer);
+
+            LocalTime optionTime = parseTimeFilterValue(option);
+            boolean selected = selectedTimeFilter == null
+                    ? TIME_ALL.equals(option)
+                    : selectedTimeFilter.equals(optionTime);
+
+            if (selected) {
+                row.getStyleClass().add("logs-time-option-selected");
+                graphic.getChildren().add(createPrimeIcon(CHECK_ICON_GLYPH, "logs-time-option-check"));
+            }
+
+            row.setGraphic(graphic);
+            row.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            row.setOnAction(event -> {
+                selectedTimeFilter = TIME_ALL.equals(option) ? null : optionTime;
+                updateTimeFilterDisplay();
+
+                if (timeOptionsMenu != null) {
+                    timeOptionsMenu.hide();
+                }
+
+                refreshFilteredTimeline();
+            });
+
+            content.getChildren().add(row);
+        }
+
+        return content;
+    }
+
+    private void applyTypedTimeLive(String value) {
+        String cleanedValue = Strings.clean(value);
+
+        if (cleanedValue.isBlank() || TIME_ALL.equalsIgnoreCase(cleanedValue)) {
+            if (selectedTimeFilter != null) {
+                selectedTimeFilter = null;
+                refreshFilteredTimeline();
+            }
+            return;
+        }
+
+        LocalTime parsedTime = parseTimeFilterValue(cleanedValue);
+
+        if (parsedTime == null || parsedTime.equals(selectedTimeFilter)) {
+            return;
+        }
+
+        selectedTimeFilter = parsedTime;
+        refreshFilteredTimeline();
+    }
+
+    private void applyTypedTimeAndNormalize(String value) {
+        if (updatingTimeFilter) {
+            return;
+        }
+
+        LocalTime parsedTime = parseTimeFilterValue(value);
+
+        if (parsedTime == null && !isBlankOrAllTimes(value)) {
+            updateTimeFilterDisplay();
+            return;
+        }
+
+        selectedTimeFilter = parsedTime;
+        updateTimeFilterDisplay();
+        refreshFilteredTimeline();
+    }
+
+    private boolean isBlankOrAllTimes(String value) {
+        String cleanedValue = Strings.clean(value);
+        return cleanedValue.isBlank() || TIME_ALL.equalsIgnoreCase(cleanedValue);
+    }
+
+    private LocalTime parseTimeFilterValue(String value) {
+        String cleanedValue = Strings.clean(value);
+
+        if (cleanedValue.isBlank() || TIME_ALL.equalsIgnoreCase(cleanedValue)) {
+            return null;
+        }
+
+        try {
+            if (cleanedValue.matches("\\d{1,2}")) {
+                int hour = Integer.parseInt(cleanedValue);
+                return hour >= 0 && hour <= 23 ? LocalTime.of(hour, 0) : null;
+            }
+
+            LocalTime parsedTime = parseTime(cleanedValue);
+            return parsedTime == null ? null : parsedTime.withSecond(0).withNano(0);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private void updateTimeFilterDisplay() {
+        if (timeFilterField == null) {
+            return;
+        }
+
+        updatingTimeFilter = true;
+        timeFilterField.setPromptText("HH:00");
+        timeFilterField.setText(selectedTimeFilter == null ? "" : formatTimeFilter(selectedTimeFilter));
+        updatingTimeFilter = false;
+
+    }
+
+    private String formatTimeFilter(LocalTime time) {
+        return time == null ? "" : time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
     private void configureSortMenu() {
@@ -797,19 +1053,14 @@ public class ActivityController {
         return content;
     }
 
-    private HBox createPopoverFooter(Runnable clearAction, Runnable applyAction) {
-        Button clearButton = new Button("Clear");
-        clearButton.getStyleClass().add("logs-date-clear-button");
-        clearButton.setFocusTraversable(false);
-        clearButton.setOnAction(event -> clearAction.run());
-
+    private HBox createPopoverFooter(Runnable applyAction) {
         Button applyButton = new Button("Apply");
         applyButton.getStyleClass().add("logs-date-apply-button");
         applyButton.setFocusTraversable(false);
         applyButton.setOnAction(event -> applyAction.run());
 
-        HBox footer = new HBox(9, clearButton, applyButton);
-        footer.setAlignment(Pos.CENTER_RIGHT);
+        HBox footer = new HBox(applyButton);
+        footer.setAlignment(Pos.CENTER);
         footer.getStyleClass().add("logs-popover-footer");
         return footer;
     }
@@ -850,25 +1101,6 @@ public class ActivityController {
             sortFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
         }
 
-        if (specificDatePicker != null) {
-            specificDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> handleDateInputChange());
-        }
-
-        if (rangeStartDatePicker != null) {
-            rangeStartDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> handleDateInputChange());
-        }
-
-        if (rangeEndDatePicker != null) {
-            rangeEndDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> handleDateInputChange());
-        }
-
-        if (rangeStartTimeField != null) {
-            rangeStartTimeField.textProperty().addListener((observable, oldValue, newValue) -> handleDateInputChange());
-        }
-
-        if (rangeEndTimeField != null) {
-            rangeEndTimeField.textProperty().addListener((observable, oldValue, newValue) -> handleDateInputChange());
-        }
     }
 
     private void renderTimeline() {
@@ -1153,7 +1385,6 @@ public class ActivityController {
 
         return row;
     }
-
 
     private VBox createPayloadCard(ActivityLogEntry entry) {
         VBox card = new VBox(0);
@@ -3985,7 +4216,8 @@ public class ActivityController {
         return matchesArea(entry)
                 && matchesUser(entry)
                 && matchesStatus(entry)
-                && matchesDateFilter(entry);
+                && matchesDateFilter(entry)
+                && matchesTimeFilter(entry);
     }
 
     private boolean matchesArea(ActivityLogEntry entry) {
@@ -4011,6 +4243,22 @@ public class ActivityController {
         }
 
         return selectedStatuses.contains(displayStatus(entry.status()));
+    }
+
+    private boolean matchesTimeFilter(ActivityLogEntry entry) {
+        if (selectedTimeFilter == null) {
+            return true;
+        }
+
+        LocalDateTime activityTime = parseActivityTimestamp(entry);
+
+        if (activityTime == null) {
+            return false;
+        }
+
+        LocalTime entryTime = activityTime.toLocalTime();
+        return entryTime.getHour() == selectedTimeFilter.getHour()
+                && entryTime.getMinute() == selectedTimeFilter.getMinute();
     }
 
     private String comboValue(ComboBox<String> comboBox) {
@@ -4096,6 +4344,8 @@ public class ActivityController {
         selectedUser = ALL_USERS;
         pendingUser = ALL_USERS;
         selectedSort = SORT_NEWEST_FIRST;
+        selectedTimeFilter = null;
+        updateTimeFilterDisplay();
         selectedStatuses.clear();
         selectedStatuses.addAll(STATUS_OPTIONS);
         pendingStatuses.clear();
@@ -4112,26 +4362,6 @@ public class ActivityController {
         rangeEndTime = null;
         awaitingRangeEnd = false;
 
-        if (specificDatePicker != null) {
-            specificDatePicker.setValue(null);
-        }
-
-        if (rangeStartDatePicker != null) {
-            rangeStartDatePicker.setValue(null);
-        }
-
-        if (rangeEndDatePicker != null) {
-            rangeEndDatePicker.setValue(null);
-        }
-
-        if (rangeStartTimeField != null) {
-            rangeStartTimeField.clear();
-        }
-
-        if (rangeEndTimeField != null) {
-            rangeEndTimeField.clear();
-        }
-
         updatingDateControls = false;
 
         updateDateFilterState();
@@ -4144,6 +4374,7 @@ public class ActivityController {
     private void updateToolbarMenuDisplays() {
         setMenuButtonDisplay(statusMenuButton, RESULT_FILTER_ICON_GLYPH, "Status", statusButtonText());
         setMenuButtonDisplay(filtersMenuButton, FILTER_ICON_GLYPH, "Filters", filtersButtonText());
+        updateTimeFilterDisplay();
         setMenuButtonDisplay(sortMenuButton, SORT_FILTER_ICON_GLYPH, "Sort", selectedSort);
     }
 
@@ -4215,10 +4446,9 @@ public class ActivityController {
     @FXML
     private void showSpecificDateMode() {
         dateFilterMode = DateFilterMode.SPECIFIC;
-
-        if (specificDatePicker != null && specificDatePicker.getValue() == null) {
-            specificDatePicker.setValue(LocalDate.now());
-        }
+        specificDate = LocalDate.now();
+        rangeStartDate = specificDate;
+        rangeEndDate = specificDate;
 
         syncDateValuesFromControls();
         updateDateFilterState();
@@ -4227,73 +4457,16 @@ public class ActivityController {
     @FXML
     private void showRangeDateMode() {
         dateFilterMode = DateFilterMode.RANGE;
-
-        if (rangeStartDatePicker != null && rangeStartDatePicker.getValue() == null) {
-            rangeStartDatePicker.setValue(LocalDate.now().minusDays(7));
+        if (rangeStartDate == null) {
+            rangeStartDate = LocalDate.now().minusDays(7);
         }
 
-        if (rangeEndDatePicker != null && rangeEndDatePicker.getValue() == null) {
-            rangeEndDatePicker.setValue(LocalDate.now());
+        if (rangeEndDate == null) {
+            rangeEndDate = LocalDate.now();
         }
 
         syncDateValuesFromControls();
         updateDateFilterState();
-    }
-
-    @FXML
-    private void applyDateFilter() {
-        syncDateValuesFromControls();
-        normalizeDateRange();
-        awaitingRangeEnd = false;
-        dateFilterMode = rangeStartDate == null && rangeEndDate == null
-                ? DateFilterMode.ALL
-                : DateFilterMode.RANGE;
-        updateDateFilterButtonText();
-
-        if (dateFilterMenuButton != null) {
-            dateFilterMenuButton.hide();
-        }
-
-        refreshFilteredTimeline();
-    }
-
-    @FXML
-    private void clearDateFilter() {
-        updatingDateControls = true;
-
-        dateFilterMode = DateFilterMode.ALL;
-        specificDate = null;
-        rangeStartDate = null;
-        rangeEndDate = null;
-        rangeStartTime = null;
-        rangeEndTime = null;
-        awaitingRangeEnd = false;
-
-        if (specificDatePicker != null) {
-            specificDatePicker.setValue(null);
-        }
-
-        if (rangeStartDatePicker != null) {
-            rangeStartDatePicker.setValue(null);
-        }
-
-        if (rangeEndDatePicker != null) {
-            rangeEndDatePicker.setValue(null);
-        }
-
-        if (rangeStartTimeField != null) {
-            rangeStartTimeField.clear();
-        }
-
-        if (rangeEndTimeField != null) {
-            rangeEndTimeField.clear();
-        }
-
-        updatingDateControls = false;
-
-        updateDateFilterState();
-        updateCalendarDisplay();
-        refreshFilteredTimeline();
     }
 
     private void normalizeDateRange() {
@@ -4304,14 +4477,6 @@ public class ActivityController {
         LocalDate previousStartDate = rangeStartDate;
         rangeStartDate = rangeEndDate;
         rangeEndDate = previousStartDate;
-
-        if (rangeStartDatePicker != null) {
-            rangeStartDatePicker.setValue(rangeStartDate);
-        }
-
-        if (rangeEndDatePicker != null) {
-            rangeEndDatePicker.setValue(rangeEndDate);
-        }
     }
 
     private void refreshFilteredTimeline() {
@@ -4335,11 +4500,12 @@ public class ActivityController {
     }
 
     private void syncDateValuesFromControls() {
-        specificDate = specificDatePicker == null ? null : specificDatePicker.getValue();
-        rangeStartDate = rangeStartDatePicker == null ? null : rangeStartDatePicker.getValue();
-        rangeEndDate = rangeEndDatePicker == null ? null : rangeEndDatePicker.getValue();
-        rangeStartTime = parseTime(rangeStartTimeField == null ? "" : rangeStartTimeField.getText());
-        rangeEndTime = parseTime(rangeEndTimeField == null ? "" : rangeEndTimeField.getText());
+        specificDate = rangeStartDate != null && rangeStartDate.equals(rangeEndDate)
+                ? rangeStartDate
+                : null;
+        rangeStartTime = null;
+        rangeEndTime = null;
+        updateDateFieldDisplay();
     }
 
     private LocalTime parseTime(String value) {
@@ -4360,48 +4526,283 @@ public class ActivityController {
         }
     }
 
-    private void configureDatePickers() {
-        configureDatePicker(specificDatePicker);
-        configureDatePicker(rangeStartDatePicker);
-        configureDatePicker(rangeEndDatePicker);
+    private void configureDateField() {
+        if (dateFilterField != null) {
+            dateFilterField.setPromptText("MM/DD/YYYY");
+
+            dateFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (updatingDateControls) {
+                    return;
+                }
+
+                applyTypedDateLive(newValue);
+            });
+
+            dateFilterField.setOnAction(event ->
+                    applyTypedDateAndNormalize(dateFilterField.getText())
+            );
+
+            dateFilterField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
+                if (!isFocused) {
+                    applyTypedDateAndNormalize(dateFilterField.getText());
+                }
+            });
+        }
+
+        if (dateFilterBox != null && dateFilterField != null) {
+            dateFilterBox.setOnMouseClicked(event -> {
+                Object target = event.getTarget();
+
+                if (target == dateFilterMenuButton) {
+                    return;
+                }
+
+                dateFilterField.requestFocus();
+                dateFilterField.positionCaret(dateFilterField.getText().length());
+            });
+        }
+
+        if (dateFilterMenuButton != null) {
+            dateFilterMenuButton.setText("▾");
+            dateFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
+            dateFilterMenuButton.setOnAction(event -> showDateCalendarMenu());
+        }
+
+        updateDateFieldDisplay();
     }
 
     private void updateDateFilterState() {
-        boolean specificMode = dateFilterMode == DateFilterMode.SPECIFIC;
-        boolean rangeMode = dateFilterMode == DateFilterMode.RANGE;
-
-        if (specificDateBox != null) {
-            specificDateBox.setVisible(specificMode);
-            specificDateBox.setManaged(specificMode);
-        }
-
-        if (dateRangeBox != null) {
-            dateRangeBox.setVisible(rangeMode);
-            dateRangeBox.setManaged(rangeMode);
-        }
-
-        if (specificDateModeButton != null) {
-            specificDateModeButton.getStyleClass().remove("logs-date-mode-button-active");
-
-            if (specificMode && !specificDateModeButton.getStyleClass().contains("logs-date-mode-button-active")) {
-                specificDateModeButton.getStyleClass().add("logs-date-mode-button-active");
-            }
-        }
-
-        if (rangeDateModeButton != null) {
-            rangeDateModeButton.getStyleClass().remove("logs-date-mode-button-active");
-
-            if (rangeMode && !rangeDateModeButton.getStyleClass().contains("logs-date-mode-button-active")) {
-                rangeDateModeButton.getStyleClass().add("logs-date-mode-button-active");
-            }
-        }
-
-        updateDateFilterButtonText();
+        updateDateFieldDisplay();
     }
 
     private void prepareDatePopover() {
         updateCalendarMonthFromSelectedDates();
         updateCalendarDisplay();
+    }
+
+    private void showDateCalendarMenu() {
+        if (dateCalendarMenu == null) {
+            dateCalendarMenu = new ContextMenu();
+            dateCalendarMenu.getStyleClass().add("logs-date-popover-menu");
+        }
+
+        Node anchor = dateFilterBox == null ? dateFilterMenuButton : dateFilterBox;
+
+        if (anchor == null || anchor.getScene() == null) {
+            return;
+        }
+
+        dateCalendarMenu.getItems().setAll(new CustomMenuItem(createDateCalendarPopover(), false));
+        prepareDatePopover();
+        dateCalendarMenu.show(anchor, Side.BOTTOM, 0, 3);
+    }
+
+    private VBox createDateCalendarPopover() {
+        VBox popover = new VBox(0);
+        popover.getStyleClass().add("logs-date-popover");
+
+        VBox panel = new VBox(0);
+        panel.getStyleClass().add("logs-calendar-panel");
+
+        HBox header = new HBox();
+        header.getStyleClass().add("logs-calendar-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(Double.MAX_VALUE);
+
+        Button previousButton = new Button("<");
+        previousButton.setFocusTraversable(false);
+        previousButton.getStyleClass().add("logs-calendar-nav-button");
+        previousButton.setOnAction(event -> showPreviousCalendarMonth());
+
+        Button nextButton = new Button(">");
+        nextButton.setFocusTraversable(false);
+        nextButton.getStyleClass().add("logs-calendar-nav-button");
+        nextButton.setOnAction(event -> showNextCalendarMonth());
+
+        dateCalendarMonthLabel = new Label("July 2025");
+        dateCalendarMonthLabel.getStyleClass().add("logs-calendar-month-label");
+
+        Region leftSpacer = new Region();
+        Region rightSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+
+        header.getChildren().addAll(previousButton, leftSpacer, dateCalendarMonthLabel, rightSpacer, nextButton);
+
+        dateCalendarGrid = new GridPane();
+        dateCalendarGrid.setHgap(3);
+        dateCalendarGrid.setVgap(6);
+        dateCalendarGrid.setMaxWidth(Double.MAX_VALUE);
+        dateCalendarGrid.getStyleClass().add("logs-calendar-grid");
+
+        panel.getChildren().addAll(header, dateCalendarGrid);
+        popover.getChildren().add(panel);
+
+        updateCalendarDisplay();
+        return popover;
+    }
+
+    private void applyTypedDateLive(String value) {
+        String cleanedValue = Strings.clean(value);
+
+        if (isBlankOrPlaceholderDate(cleanedValue)) {
+            if (rangeStartDate != null || rangeEndDate != null || specificDate != null || dateFilterMode != DateFilterMode.ALL) {
+                clearDateFilterValues(false);
+                refreshFilteredTimeline();
+            }
+            return;
+        }
+
+        ParsedDateRange parsedRange = parseDateFilterValue(cleanedValue);
+
+        if (parsedRange == null || isSameDateRange(parsedRange)) {
+            return;
+        }
+
+        applyParsedDateRange(parsedRange);
+        updateCalendarMonthFromSelectedDates();
+        updateCalendarDisplay();
+        refreshFilteredTimeline();
+    }
+
+    private void applyTypedDateAndNormalize(String value) {
+        if (updatingDateControls) {
+            return;
+        }
+
+        String cleanedValue = Strings.clean(value);
+
+        if (isBlankOrPlaceholderDate(cleanedValue)) {
+            clearDateFilterValues(false);
+            updateDateFilterState();
+            updateCalendarDisplay();
+            refreshFilteredTimeline();
+            return;
+        }
+
+        ParsedDateRange parsedRange = parseDateFilterValue(cleanedValue);
+
+        if (parsedRange == null) {
+            updateDateFieldDisplay();
+            return;
+        }
+
+        applyParsedDateRange(parsedRange);
+        updateDateFilterState();
+        updateCalendarMonthFromSelectedDates();
+        updateCalendarDisplay();
+        refreshFilteredTimeline();
+    }
+
+    private boolean isBlankOrPlaceholderDate(String value) {
+        String cleanedValue = Strings.clean(value);
+        return cleanedValue.isBlank() || "MM/DD/YYYY".equalsIgnoreCase(cleanedValue);
+    }
+
+    private ParsedDateRange parseDateFilterValue(String value) {
+        String cleanedValue = Strings.clean(value)
+                .replace('–', '-')
+                .replace('—', '-');
+
+        if (isBlankOrPlaceholderDate(cleanedValue)) {
+            return null;
+        }
+
+        String[] parts = cleanedValue.split("\\s+-\\s+", 2);
+
+        if (parts.length == 1 && cleanedValue.contains("-")) {
+            parts = cleanedValue.split("-", 2);
+        }
+
+        LocalDate startDate = parseDateFilterPart(parts[0]);
+        if (startDate == null) {
+            return null;
+        }
+
+        LocalDate endDate = parts.length > 1 ? parseDateFilterPart(parts[1]) : startDate;
+        if (endDate == null) {
+            return null;
+        }
+
+        return new ParsedDateRange(startDate, endDate);
+    }
+
+    private LocalDate parseDateFilterPart(String value) {
+        String cleanedValue = Strings.clean(value);
+
+        if (cleanedValue.isBlank()) {
+            return null;
+        }
+
+        List<DateTimeFormatter> formatters = List.of(
+                DATE_RANGE_FORMATTER,
+                DateTimeFormatter.ofPattern("M/d/yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH)
+        );
+
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                return LocalDate.parse(cleanedValue, formatter);
+            } catch (DateTimeParseException ignored) {
+                // Try the next supported date format.
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isSameDateRange(ParsedDateRange parsedRange) {
+        if (parsedRange == null) {
+            return dateFilterMode == DateFilterMode.ALL
+                    && rangeStartDate == null
+                    && rangeEndDate == null
+                    && specificDate == null;
+        }
+
+        return parsedRange.startDate().equals(rangeStartDate)
+                && parsedRange.endDate().equals(rangeEndDate);
+    }
+
+    private void applyParsedDateRange(ParsedDateRange parsedRange) {
+        if (parsedRange == null) {
+            clearDateFilterValues(false);
+            return;
+        }
+
+        updatingDateControls = true;
+
+        dateFilterMode = DateFilterMode.RANGE;
+        rangeStartDate = parsedRange.startDate();
+        rangeEndDate = parsedRange.endDate();
+        normalizeDateRange();
+        specificDate = rangeStartDate != null && rangeStartDate.equals(rangeEndDate)
+                ? rangeStartDate
+                : null;
+        rangeStartTime = null;
+        rangeEndTime = null;
+        awaitingRangeEnd = false;
+
+        updatingDateControls = false;
+
+        updateDateFieldDisplay();
+    }
+
+    private void clearDateFilterValues(boolean updateDisplay) {
+        updatingDateControls = true;
+
+        dateFilterMode = DateFilterMode.ALL;
+        specificDate = null;
+        rangeStartDate = null;
+        rangeEndDate = null;
+        rangeStartTime = null;
+        rangeEndTime = null;
+        awaitingRangeEnd = false;
+
+        updatingDateControls = false;
+
+        if (updateDisplay) {
+            updateDateFilterState();
+        }
     }
 
     @FXML
@@ -4460,15 +4861,21 @@ public class ActivityController {
         Button dayButton = new Button(String.valueOf(date.getDayOfMonth()));
         dayButton.getStyleClass().add("logs-calendar-day-button");
         dayButton.setFocusTraversable(false);
-        dayButton.setMinSize(30, 27);
-        dayButton.setPrefSize(30, 27);
-        dayButton.setMaxSize(30, 27);
+        dayButton.setMinSize(30, 30);
+        dayButton.setPrefSize(30, 30);
+        dayButton.setMaxSize(30, 30);
+
+        boolean selectedBoundary = date.equals(rangeStartDate) || date.equals(rangeEndDate);
 
         if (!YearMonth.from(date).equals(displayedCalendarMonth)) {
             dayButton.getStyleClass().add("logs-calendar-day-outside");
         }
 
-        if (date.equals(rangeStartDate) || date.equals(rangeEndDate)) {
+        if (date.equals(LocalDate.now()) && !selectedBoundary) {
+            dayButton.getStyleClass().add("logs-calendar-day-today");
+        }
+
+        if (selectedBoundary) {
             dayButton.getStyleClass().add("logs-calendar-day-selected");
         } else if (isDateInsideSelectedRange(date)) {
             dayButton.getStyleClass().add("logs-calendar-day-in-range");
@@ -4487,6 +4894,7 @@ public class ActivityController {
 
     private void selectCalendarDate(LocalDate date) {
         updatingDateControls = true;
+        dateFilterMode = DateFilterMode.RANGE;
 
         if (rangeStartDate == null || !awaitingRangeEnd) {
             rangeStartDate = date;
@@ -4501,94 +4909,59 @@ public class ActivityController {
             awaitingRangeEnd = false;
         }
 
-        if (rangeStartDatePicker != null) {
-            rangeStartDatePicker.setValue(rangeStartDate);
-        }
-
-        if (rangeEndDatePicker != null) {
-            rangeEndDatePicker.setValue(rangeEndDate);
-        }
+        specificDate = rangeStartDate != null && rangeStartDate.equals(rangeEndDate)
+                ? rangeStartDate
+                : null;
+        rangeStartTime = null;
+        rangeEndTime = null;
 
         updatingDateControls = false;
         displayedCalendarMonth = YearMonth.from(date);
+        updateDateFilterState();
         updateCalendarDisplay();
+
+        if (!awaitingRangeEnd) {
+            normalizeDateRange();
+            updateDateFilterState();
+            updateCalendarDisplay();
+            if (dateCalendarMenu != null) {
+                dateCalendarMenu.hide();
+            }
+            refreshFilteredTimeline();
+        }
     }
 
     private void updateDateFilterButtonText() {
-        String displayValue;
+        updateDateFieldDisplay();
+    }
 
-        if (dateFilterMode == DateFilterMode.SPECIFIC && specificDate != null) {
-            displayValue = GROUP_DATE_FORMATTER.format(specificDate);
-        } else if (dateFilterMode == DateFilterMode.RANGE
-                && rangeStartDate != null
-                && rangeStartDate.equals(rangeEndDate)) {
-            displayValue = DATE_RANGE_FORMATTER.format(rangeStartDate);
-        } else if (dateFilterMode == DateFilterMode.RANGE && rangeStartDate != null && rangeEndDate != null) {
-            displayValue = DATE_RANGE_FORMATTER.format(rangeStartDate) + " - " + DATE_RANGE_FORMATTER.format(rangeEndDate);
-        } else if (dateFilterMode == DateFilterMode.RANGE && rangeStartDate != null) {
-            displayValue = "From " + DATE_RANGE_FORMATTER.format(rangeStartDate);
-        } else if (dateFilterMode == DateFilterMode.RANGE && rangeEndDate != null) {
-            displayValue = "Until " + DATE_RANGE_FORMATTER.format(rangeEndDate);
+    private void updateDateFieldDisplay() {
+        if (dateFilterField == null) {
+            return;
+        }
+
+        String value;
+
+        if (rangeStartDate != null && rangeEndDate != null && !rangeStartDate.equals(rangeEndDate)) {
+            value = DATE_RANGE_FORMATTER.format(rangeStartDate) + " - " + DATE_RANGE_FORMATTER.format(rangeEndDate);
+        } else if (rangeStartDate != null) {
+            value = DATE_RANGE_FORMATTER.format(rangeStartDate);
         } else {
-            displayValue = "Date & Time";
+            value = "";
         }
 
-        setDateFilterButtonDisplay(displayValue);
-    }
+        updatingDateControls = true;
+        dateFilterField.setPromptText("MM/DD/YYYY");
+        dateFilterField.setText(value);
+        updatingDateControls = false;
 
-    private void setDateFilterButtonDisplay(String value) {
-        if (dateFilterMenuButton == null) {
-            return;
+        if (dateFilterBox != null) {
+            dateFilterBox.getStyleClass().removeAll("logs-date-filter-has-value");
+
+            if (rangeStartDate != null || rangeEndDate != null) {
+                dateFilterBox.getStyleClass().add("logs-date-filter-has-value");
+            }
         }
-
-        dateFilterMenuButton.setText(null);
-        dateFilterMenuButton.setGraphic(createFilterGraphic(DATE_FILTER_ICON_GLYPH, "Date", value));
-        dateFilterMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        dateFilterMenuButton.setAccessibleText("Date " + value);
-    }
-
-    private void configureDatePicker(DatePicker picker) {
-        if (picker == null) {
-            return;
-        }
-
-        picker.setPromptText("MM/DD/YYYY");
-        picker.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(LocalDate value) {
-                return value == null ? "" : DATE_RANGE_FORMATTER.format(value);
-            }
-
-            @Override
-            public LocalDate fromString(String value) {
-                if (value == null || value.isBlank()) {
-                    return null;
-                }
-
-                try {
-                    return LocalDate.parse(value.trim(), DATE_RANGE_FORMATTER);
-                } catch (DateTimeParseException exception) {
-                    try {
-                        return LocalDate.parse(value.trim(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                    } catch (DateTimeParseException ignored) {
-                        return null;
-                    }
-                }
-            }
-        });
-
-        picker.setDayCellFactory(datePicker -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate date, boolean empty) {
-                super.updateItem(date, empty);
-                getStyleClass().removeAll("activity-log-date-disabled");
-
-                if (!empty && date != null && date.isAfter(LocalDate.now())) {
-                    setDisable(true);
-                    getStyleClass().add("activity-log-date-disabled");
-                }
-            }
-        });
     }
 
     private List<ActivityLogEntry> filteredActivityEntries() {
