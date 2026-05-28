@@ -23,10 +23,12 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -50,6 +52,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.StringConverter;
 import javafx.embed.swing.SwingFXUtils;
 
@@ -71,6 +74,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -158,6 +162,7 @@ public class ReviewController {
     @FXML private Label reviewFilesInfoLabel;
     @FXML private Label reviewDocumentsInfoLabel;
     @FXML private Label reviewZoomLabel;
+    @FXML private Label reviewStatusBadge;
     @FXML private Label reviewBoxValueLabel;
     @FXML private Label reviewProfileValueLabel;
     @FXML private Label reviewDocumentsValueLabel;
@@ -165,6 +170,8 @@ public class ReviewController {
     @FXML private VBox reviewDocumentListContainer;
     @FXML private StackPane reviewPreviewHost;
     @FXML private HBox reviewPageTrayContainer;
+    @FXML private TextArea qaCommentTextArea;
+    @FXML private ComboBox<String> qaActionScopeComboBox;
     @FXML private Label reviewSelectionProfileValueLabel;
     @FXML private Label reviewSelectionBoxValueLabel;
     @FXML private Label reviewSelectionDocumentValueLabel;
@@ -214,12 +221,14 @@ public class ReviewController {
     private double currentReviewPreviewBaseWidth = 1.0;
     private double currentReviewPreviewBaseHeight = 1.0;
     private boolean reviewDocumentListView = true;
+    private boolean syncingWorkspaceQaControls;
     private final Set<Integer> collapsedReviewDocuments = new HashSet<>();
 
     @FXML
     private void initialize() {
         configureFilters();
         configureWorkspaceControls();
+        configureWorkspaceQaControls();
         configureRowsPerPageSelector();
         loadRecords();
         configureListeners();
@@ -1410,7 +1419,8 @@ public class ReviewController {
                         assignmentPage.sourceReference(),
                         assignmentPage.displayContent(),
                         assignmentPage.rotationDegrees(),
-                        assignmentPage.reviewStatus()
+                        assignmentPage.reviewStatus(),
+                        assignmentPage.comment()
                 ));
             }
             if (!pages.isEmpty()) {
@@ -1426,6 +1436,23 @@ public class ReviewController {
         renderWorkspaceQaTree();
         renderWorkspaceQaPreview();
         renderWorkspaceQaThumbnails();
+        renderWorkspaceQaTools();
+    }
+
+    private void configureWorkspaceQaControls() {
+        if (qaActionScopeComboBox != null) {
+            qaActionScopeComboBox.getItems().setAll("Selected Page", "This Document");
+            qaActionScopeComboBox.getSelectionModel().selectFirst();
+        }
+
+        if (qaCommentTextArea != null) {
+            qaCommentTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (syncingWorkspaceQaControls) {
+                    return;
+                }
+                updateWorkspaceQaComment(newValue == null ? "" : newValue);
+            });
+        }
     }
 
     private void updateWorkspaceSummaryChips() {
@@ -1587,7 +1614,6 @@ public class ReviewController {
         if (reviewReferenceInfoLabel != null) {
             reviewReferenceInfoLabel.setText("Ref: " + page.sourceReference());
         }
-        updateSelectionSummary(page);
 
         Image image = decodeWorkspaceQaImage(page.imageContent());
         if (image == null) {
@@ -1810,6 +1836,70 @@ public class ReviewController {
     }
 
     @FXML
+    private void onApprovePage() {
+        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.APPROVED);
+    }
+
+    @FXML
+    private void onMarkNeedsFix() {
+        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.NEEDS_FIX);
+    }
+
+    @FXML
+    private void onClearReviewStatus() {
+        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.NOT_REVIEWED);
+    }
+
+    @FXML
+    private void onNextUnreviewed() {
+        for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
+            List<WorkspaceQaPage> pages = activeQaDocuments.get(documentIndex).pages();
+            for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
+                if (pages.get(pageIndex).status() == QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    selectedQaDocumentIndex = documentIndex;
+                    selectedQaPageIndex = pageIndex;
+                    resetWorkspacePreviewTransform();
+                    renderWorkspaceQaView();
+                    return;
+                }
+            }
+        }
+    }
+
+    @FXML
+    private void onCompleteQa() {
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        int totalPages = getWorkspaceQaPageCount();
+        int reviewedPages = getWorkspaceReviewedPageCount();
+        if (reviewedPages < totalPages) {
+            showExportAlert(null, Alert.AlertType.WARNING, "QA incomplete",
+                    "Review every page before completing QA.");
+            return;
+        }
+
+        boolean approved = getWorkspaceQaIssueCount() == 0;
+        ReviewRow updatedRecord = approved
+                ? activeReviewRecord.withReviewState("Approved", "QA Approved", false)
+                : activeReviewRecord.withReviewState(activeReviewRecord.documentDetailsStatus(), "QA Rejected", true);
+        replaceActiveRecord(updatedRecord);
+
+        if (approved) {
+            String boxId = activeReviewRecord.identity() == null || activeReviewRecord.identity().isBlank()
+                    ? "This QA review"
+                    : activeReviewRecord.identity();
+            String message = boxId + " completed with " + activeQaDocuments.size() + " documents.";
+            showQaCompletedDialog(message, this::onBackToScanningFromReview);
+            return;
+        }
+
+        showExportAlert(null, Alert.AlertType.INFORMATION, "QA rejected",
+                "QA was rejected and marked as needing fixes.");
+    }
+
+    @FXML
     private void onReviewZoomIn() {
         updateWorkspacePreviewZoom(PREVIEW_ZOOM_STEP);
     }
@@ -1890,6 +1980,107 @@ public class ReviewController {
         stage.showAndWait();
     }
 
+    private void showQaCompletedDialog(String message, Runnable onOk) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Completed QA");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            dialog.initOwner(reviewWorkspaceView.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(reviewWorkspaceView.getScene().getStylesheets());
+
+            if (reviewWorkspaceView.getScene().getRoot() != null
+                    && reviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(520);
+        dialog.getDialogPane().setMaxWidth(520);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(createQaCompletedDialogContent(dialog, message));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.orElse(ButtonType.CLOSE) == ButtonType.OK && onOk != null) {
+            onOk.run();
+        }
+    }
+
+    private VBox createQaCompletedDialogContent(Dialog<ButtonType> dialog, String message) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+        root.getChildren().addAll(
+                createQaCompletedDialogHeader(dialog),
+                createQaCompletedDialogBody(dialog, message)
+        );
+        return root;
+    }
+
+    private HBox createQaCompletedDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label("Completed QA");
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("\u00D7");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
+    private VBox createQaCompletedDialogBody(Dialog<ButtonType> dialog, String message) {
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.getStyleClass().addAll("profile-created-dialog-ok-button", "profile-open-button");
+        okButton.setFocusTraversable(false);
+        okButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, okButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+        return body;
+    }
+
     @FXML
     private void onShowReviewDocumentGridView() {
         reviewDocumentListView = true;
@@ -1959,6 +2150,87 @@ public class ReviewController {
             return null;
         }
         return pages.get(selectedQaPageIndex);
+    }
+
+    private List<PagePointer> getWorkspaceQaPagesForAction() {
+        if (selectedQaDocumentIndex < 0 || selectedQaDocumentIndex >= activeQaDocuments.size()) {
+            return List.of();
+        }
+
+        if (qaActionScopeComboBox != null && "This Document".equals(qaActionScopeComboBox.getValue())) {
+            List<PagePointer> pointers = new ArrayList<>();
+            List<WorkspaceQaPage> documentPages = activeQaDocuments.get(selectedQaDocumentIndex).pages();
+            for (int pageIndex = 0; pageIndex < documentPages.size(); pageIndex++) {
+                pointers.add(new PagePointer(selectedQaDocumentIndex, pageIndex));
+            }
+            return pointers;
+        }
+
+        WorkspaceQaPage selectedPage = getSelectedWorkspaceQaPage();
+        if (selectedPage == null) {
+            return List.of();
+        }
+        return List.of(new PagePointer(selectedQaDocumentIndex, selectedQaPageIndex));
+    }
+
+    private void updateWorkspaceQaComment(String comment) {
+        WorkspaceQaPage selectedPage = getSelectedWorkspaceQaPage();
+        if (selectedPage == null) {
+            return;
+        }
+        replaceWorkspaceQaPage(
+                new PagePointer(selectedQaDocumentIndex, selectedQaPageIndex),
+                selectedPage.withComment(comment)
+        );
+        renderWorkspaceQaView();
+    }
+
+    private void applyWorkspaceQaStatus(QAService.QaPageReviewStatus status) {
+        List<PagePointer> targets = getWorkspaceQaPagesForAction();
+        if (targets.isEmpty()) {
+            return;
+        }
+
+        for (PagePointer pointer : targets) {
+            WorkspaceQaPage page = getWorkspaceQaPage(pointer);
+            if (page == null) {
+                continue;
+            }
+            replaceWorkspaceQaPage(pointer, page.withStatus(status));
+        }
+        renderWorkspaceQaView();
+    }
+
+    private WorkspaceQaPage getWorkspaceQaPage(PagePointer pointer) {
+        if (pointer == null
+                || pointer.documentIndex() < 0
+                || pointer.documentIndex() >= activeQaDocuments.size()) {
+            return null;
+        }
+        List<WorkspaceQaPage> pages = activeQaDocuments.get(pointer.documentIndex()).pages();
+        if (pointer.pageIndex() < 0 || pointer.pageIndex() >= pages.size()) {
+            return null;
+        }
+        return pages.get(pointer.pageIndex());
+    }
+
+    private void replaceWorkspaceQaPage(PagePointer pointer, WorkspaceQaPage replacement) {
+        if (pointer == null || replacement == null) {
+            return;
+        }
+
+        List<WorkspaceQaDocument> updatedDocuments = new ArrayList<>(activeQaDocuments.size());
+        for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
+            WorkspaceQaDocument document = activeQaDocuments.get(documentIndex);
+            List<WorkspaceQaPage> updatedPages = new ArrayList<>(document.pages());
+            if (documentIndex == pointer.documentIndex()
+                    && pointer.pageIndex() >= 0
+                    && pointer.pageIndex() < updatedPages.size()) {
+                updatedPages.set(pointer.pageIndex(), replacement);
+            }
+            updatedDocuments.add(new WorkspaceQaDocument(document.name(), List.copyOf(updatedPages)));
+        }
+        activeQaDocuments = List.copyOf(updatedDocuments);
     }
 
     private int getWorkspaceQaPageCount() {
@@ -2087,25 +2359,98 @@ public class ReviewController {
         return reviewWorkspaceViewerPageLabel;
     }
 
-    private void updateSelectionSummary(WorkspaceQaPage page) {
-        if (reviewSelectionProfileValueLabel != null && activeReviewRecord != null) {
-            reviewSelectionProfileValueLabel.setText(activeReviewRecord.profile());
+    private void renderWorkspaceQaTools() {
+        WorkspaceQaPage page = getSelectedWorkspaceQaPage();
+
+        syncingWorkspaceQaControls = true;
+
+        if (qaCommentTextArea != null) {
+            qaCommentTextArea.setDisable(page == null);
+            qaCommentTextArea.setText(page == null ? "" : page.comment());
         }
-        if (reviewSelectionBoxValueLabel != null && activeReviewRecord != null) {
-            reviewSelectionBoxValueLabel.setText(activeReviewRecord.identity());
+        if (qaActionScopeComboBox != null) {
+            qaActionScopeComboBox.setDisable(page == null);
         }
-        if (reviewSelectionDocumentValueLabel != null) {
-            reviewSelectionDocumentValueLabel.setText(selectedQaDocumentIndex >= 0 ? "Document " + (selectedQaDocumentIndex + 1) : "-");
+
+        syncingWorkspaceQaControls = false;
+        updateWorkspaceQaStatusBadge();
+    }
+
+    private void updateWorkspaceQaStatusBadge() {
+        if (reviewStatusBadge == null) {
+            return;
         }
-        if (reviewSelectionFileValueLabel != null) {
-            reviewSelectionFileValueLabel.setText(page == null ? "-" : "File " + page.pageNumber());
+
+        reviewStatusBadge.getStyleClass().removeAll(
+                "qa-review-status-waiting",
+                "qa-review-status-review",
+                "qa-review-status-issues",
+                "qa-review-status-complete"
+        );
+
+        String normalizedStatus = activeReviewRecord == null || activeReviewRecord.qaStatus() == null
+                ? ""
+                : activeReviewRecord.qaStatus().trim().toLowerCase(Locale.ROOT);
+
+        if (normalizedStatus.contains("approved")) {
+            reviewStatusBadge.setText("QA Completed");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-complete");
+        } else if (normalizedStatus.contains("rejected") || hasWorkspaceQaIssues()) {
+            reviewStatusBadge.setText("Needs Fix");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-issues");
+        } else if (hasWorkspaceReviewedPages()) {
+            reviewStatusBadge.setText("In Review");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-review");
+        } else {
+            reviewStatusBadge.setText("Waiting for QA");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-waiting");
         }
-        if (reviewSelectionReferenceValueLabel != null) {
-            reviewSelectionReferenceValueLabel.setText(page == null ? "-" : page.sourceReference());
+    }
+
+    private boolean hasWorkspaceReviewedPages() {
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    return true;
+                }
+            }
         }
-        if (reviewSelectionFileIdValueLabel != null) {
-            reviewSelectionFileIdValueLabel.setText(page == null ? "-" : String.valueOf(page.globalPageNumber()));
+        return false;
+    }
+
+    private int getWorkspaceReviewedPageCount() {
+        int count = 0;
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    count++;
+                }
+            }
         }
+        return count;
+    }
+
+    private int getWorkspaceQaIssueCount() {
+        int count = 0;
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private boolean hasWorkspaceQaIssues() {
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Image decodeWorkspaceQaImage(String value) {
@@ -3101,11 +3446,37 @@ public class ReviewController {
             String sourceReference,
             String imageContent,
             int rotationDegrees,
-            QAService.QaPageReviewStatus status
+            QAService.QaPageReviewStatus status,
+            String comment
     ) {
         private WorkspaceQaPage {
             sourceReference = sourceReference == null ? "" : sourceReference;
             imageContent = imageContent == null ? "" : imageContent;
+            comment = comment == null ? "" : comment;
+        }
+
+        private WorkspaceQaPage withStatus(QAService.QaPageReviewStatus updatedStatus) {
+            return new WorkspaceQaPage(
+                    pageNumber,
+                    globalPageNumber,
+                    sourceReference,
+                    imageContent,
+                    rotationDegrees,
+                    updatedStatus == null ? QAService.QaPageReviewStatus.NOT_REVIEWED : updatedStatus,
+                    comment
+            );
+        }
+
+        private WorkspaceQaPage withComment(String updatedComment) {
+            return new WorkspaceQaPage(
+                    pageNumber,
+                    globalPageNumber,
+                    sourceReference,
+                    imageContent,
+                    rotationDegrees,
+                    status,
+                    updatedComment
+            );
         }
     }
 

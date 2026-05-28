@@ -367,7 +367,7 @@
                             maxWidth="Infinity"
                             maxHeight="Infinity"
                             VBox.vgrow="ALWAYS"
-                            styleClass="scan-review-workspace">
+                            styleClass="qa-review-workspace">
 
                     <top>
                         <VBox spacing="3"
@@ -377,7 +377,7 @@
                               prefHeight="72"
                               maxHeight="72"
                               maxWidth="Infinity"
-                              styleClass="review-summary-bar">
+                              styleClass="qa-review-header">
                             <padding>
                                 <Insets top="6" right="18" bottom="6" left="18"/>
                             </padding>
@@ -385,7 +385,7 @@
                             <Label text="Review QA"
                                    translateY="10"
                                    mouseTransparent="true"
-                                   styleClass="review-summary-title"/>
+                                   styleClass="qa-review-title"/>
 
                             <Button text="Back"
                                     onAction="#onBackToScanningFromReview"
@@ -431,13 +431,13 @@
                               maxWidth="320"
                               minHeight="0"
                               maxHeight="Infinity"
-                              styleClass="review-left-panel">
+                              styleClass="qa-review-left-panel">
 
                             <HBox alignment="CENTER_LEFT"
                                   spacing="9"
                                   maxWidth="Infinity">
                                 <Label text="Box Structure"
-                                       styleClass="review-panel-title"/>
+                                       styleClass="qa-review-panel-title"/>
 
                                 <Region HBox.hgrow="ALWAYS"/>
                             </HBox>
@@ -573,70 +573,101 @@
                     </center>
 
                     <right>
-                        <ScrollPane fitToWidth="true"
-                                    hbarPolicy="NEVER"
-                                    vbarPolicy="AS_NEEDED"
-                                    minWidth="320"
-                                    prefWidth="320"
-                                    maxWidth="320"
-                                    styleClass="scan-side-scroll">
-                            <content>
+                        <VBox spacing="12"
+                              prefWidth="240"
+                              minWidth="240"
+                              maxWidth="240"
+                              minHeight="0"
+                              maxHeight="Infinity"
+                              styleClass="qa-tools-panel">
+
+                            <VBox spacing="9"
+                                  VBox.vgrow="ALWAYS"
+                                  minWidth="0"
+                                  minHeight="0"
+                                  maxWidth="Infinity"
+                                  maxHeight="Infinity"
+                                  fillWidth="true"
+                                  styleClass="qa-tools-content">
+
+                                <Label fx:id="reviewStatusBadge"
+                                       text="QA Completed"
+                                       styleClass="qa-review-status-badge qa-review-status-complete"/>
+
+                                <VBox spacing="4"
+                                      maxWidth="Infinity"
+                                      styleClass="qa-tools-section-box">
+
+                                    <Label text="Comment"
+                                           styleClass="qa-tools-section-title"/>
+
+                                    <TextArea fx:id="qaCommentTextArea"
+                                              promptText="Add QA note for this page..."
+                                              wrapText="true"
+                                              prefRowCount="6"
+                                              VBox.vgrow="ALWAYS"
+                                              maxWidth="Infinity"
+                                              styleClass="qa-comment-textarea"/>
+                                </VBox>
+
+                                <Region styleClass="scan-panel-divider"/>
+
                                 <VBox spacing="9"
-                                      minWidth="320"
-                                      prefWidth="320"
-                                      maxWidth="320"
-                                      minHeight="0"
-                                      maxHeight="Infinity"
-                                      styleClass="review-next-step-panel">
+                                      maxWidth="Infinity">
 
-
-                                    <Label fx:id="workspaceWarningLabel"
-                                           text=""
-                                           wrapText="true"
-                                           visible="false"
-                                           managed="false"
-                                           styleClass="review-next-step-copy"/>
-
-                                    <VBox spacing="5"
+                                    <VBox spacing="9"
                                           maxWidth="Infinity"
-                                          styleClass="review-current-selection-card">
-                                        <Label text="Current Selection"
-                                               styleClass="review-current-selection-title"/>
+                                          styleClass="qa-tools-section-box">
+                                        <Label text="Apply To"
+                                               styleClass="qa-tools-section-title"/>
 
-                                        <Region minHeight="1"
-                                                prefHeight="1"
-                                                maxHeight="1"
-                                                maxWidth="Infinity"
-                                                styleClass="review-current-selection-divider"/>
-
-                                        <Label text="Profile" styleClass="review-current-selection-label"/>
-                                        <Label fx:id="reviewSelectionProfileValueLabel" text="-" styleClass="review-current-selection-value"/>
-
-                                        <Label text="Box" styleClass="review-current-selection-label"/>
-                                        <Label fx:id="reviewSelectionBoxValueLabel" text="-" styleClass="review-current-selection-value"/>
-
-                                        <Label text="Document" styleClass="review-current-selection-label"/>
-                                        <Label fx:id="reviewSelectionDocumentValueLabel" text="-" styleClass="review-current-selection-value"/>
-
-                                        <Label text="File" styleClass="review-current-selection-label"/>
-                                        <Label fx:id="reviewSelectionFileValueLabel" text="-" styleClass="review-current-selection-value"/>
-
-                                        <Label text="File Reference ID" styleClass="review-current-selection-label"/>
-                                        <Label fx:id="reviewSelectionReferenceValueLabel" text="-" styleClass="review-current-selection-value"/>
-
-                                        <Label text="File ID" styleClass="review-current-selection-label"/>
-                                        <Label fx:id="reviewSelectionFileIdValueLabel" text="-" styleClass="review-current-selection-value"/>
+                                        <ComboBox fx:id="qaActionScopeComboBox"
+                                                  maxWidth="Infinity"
+                                                  styleClass="scan-tool-button"/>
                                     </VBox>
 
-                                    <Button text="Export Type"
-                                            onAction="#onOpenExportTypeDialog"
+                                    <Button text="Approve Page"
+                                            onAction="#onApprovePage"
                                             maxWidth="Infinity"
-                                            styleClass="review-export-type-button"/>
+                                            focusTraversable="false"
+                                            styleClass="qa-approve-button"/>
 
-                                    <Region VBox.vgrow="ALWAYS"/>
+                                    <Button text="Mark Needs Fix"
+                                            onAction="#onMarkNeedsFix"
+                                            maxWidth="Infinity"
+                                            focusTraversable="false"
+                                            styleClass="qa-fix-button"/>
+
+                                    <Button text="Clear Review Status"
+                                            onAction="#onClearReviewStatus"
+                                            maxWidth="Infinity"
+                                            focusTraversable="false"
+                                            styleClass="qa-neutral-button"/>
                                 </VBox>
-                            </content>
-                        </ScrollPane>
+
+                                <Region styleClass="scan-panel-divider"/>
+
+                                <Button text="Next Unreviewed"
+                                        onAction="#onNextUnreviewed"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-neutral-button"/>
+
+                                <Region styleClass="scan-panel-divider"/>
+
+                                <Button text="Complete QA"
+                                        onAction="#onCompleteQa"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-complete-button"/>
+
+                                <Button text="Export Type"
+                                        onAction="#onOpenExportTypeDialog"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-export-type-button"/>
+                            </VBox>
+                        </VBox>
                     </right>
                 </BorderPane>
             </VBox>
