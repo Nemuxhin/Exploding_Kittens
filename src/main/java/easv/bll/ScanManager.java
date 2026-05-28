@@ -266,7 +266,8 @@ public class ScanManager {
         List<PageImage> scannedPages = new ArrayList<>();
         List<PageImage> currentPages = new ArrayList<>();
         int documentIndex = 1;
-        boolean stopOnBarcode = barcodeBehavior != null && barcodeBehavior.toLowerCase().contains("stop");
+        String normalizedBarcodeBehavior = normalizeBarcodeBehavior(barcodeBehavior);
+        boolean stopOnBarcode = "End current document".equalsIgnoreCase(normalizedBarcodeBehavior);
 
         for (TiffFetchService.FetchedPage page : pages) {
             BarcodeSplitService.DetectionResult detectionResult = barcodeSplittingEnabled
@@ -368,7 +369,7 @@ public class ScanManager {
     private ProfileScanSettings toProfileScanSettings(ScanProfile profile) {
         String barcodeBehavior = profile.getBarcodeDetectedBehavior().isBlank()
                 ? defaultProfileScanSettings().barcodeBehavior()
-                : profile.getBarcodeDetectedBehavior();
+                : normalizeBarcodeBehavior(profile.getBarcodeDetectedBehavior());
         String barcodePageBehavior = profile.getBarcodePageBehavior().isBlank()
                 ? defaultProfileScanSettings().barcodePageBehavior()
                 : profile.getBarcodePageBehavior();
@@ -381,10 +382,31 @@ public class ScanManager {
 
     private static ProfileScanSettings defaultProfileScanSettings() {
         return new ProfileScanSettings(
-                "Continue scanning when barcode is found",
+                "Start new document",
                 "Keep barcode page in final document",
                 true
         );
+    }
+
+    private String normalizeBarcodeBehavior(String barcodeBehavior) {
+        if (barcodeBehavior == null || barcodeBehavior.isBlank()) {
+            return defaultProfileScanSettings().barcodeBehavior();
+        }
+
+        if (barcodeBehavior.equalsIgnoreCase("Stop scanning and ask user")) {
+            return "End current document";
+        }
+
+        if (barcodeBehavior.equalsIgnoreCase("Continue scanning and split automatically")
+                || barcodeBehavior.equalsIgnoreCase("Continue scanning when barcode is found")) {
+            return "Start new document";
+        }
+
+        if (barcodeBehavior.equalsIgnoreCase("End current document")) {
+            return "End current document";
+        }
+
+        return "Start new document";
     }
 
     private boolean isGeneratedItemId(String itemId) {

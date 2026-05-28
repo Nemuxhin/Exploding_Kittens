@@ -159,9 +159,7 @@ public class ProfilesController {
 
         barcodeDetectedComboBox.getItems().setAll(
                 "Start new document",
-                "End current document",
-                "Stop scanning and ask user",
-                "Continue scanning and split automatically"
+                "End current document"
         );
 
         barcodePageBehaviorComboBox.getItems().setAll(
@@ -572,7 +570,7 @@ public class ProfilesController {
         profileStatusComboBox.setValue(displayStatus(profile));
 
         barcodeSplitToggle.setSelected(profile.isBarcodeSplitting());
-        barcodeDetectedComboBox.setValue(profile.getBarcodeDetectedBehavior());
+        barcodeDetectedComboBox.setValue(normalizeBarcodeDetectedBehavior(profile.getBarcodeDetectedBehavior()));
         barcodePageBehaviorComboBox.setValue(profile.getBarcodePageBehavior());
 
         defaultRotationComboBox.setValue(profile.getDefaultRotation());
@@ -882,9 +880,7 @@ public class ProfilesController {
         fields.barcodeDetectedComboBox = createProfileDialogComboBox(
                 "Start new document",
                 "Start new document",
-                "End current document",
-                "Stop scanning and ask user",
-                "Continue scanning and split automatically"
+                "End current document"
         );
         fields.barcodePageBehaviorComboBox = createProfileDialogComboBox(
                 "Remove barcode page from final document",
@@ -1689,6 +1685,25 @@ public class ProfilesController {
                 safeValue(exportFormatComboBox),
                 qaRequiredToggle.isSelected()
         );
+    }
+
+    private String normalizeBarcodeDetectedBehavior(String value) {
+        String cleanedValue = value == null ? "" : value.trim();
+
+        if (cleanedValue.equalsIgnoreCase("Stop scanning and ask user")) {
+            return "End current document";
+        }
+
+        if (cleanedValue.equalsIgnoreCase("Continue scanning and split automatically")
+                || cleanedValue.equalsIgnoreCase("Continue scanning when barcode is found")) {
+            return "Start new document";
+        }
+
+        if (cleanedValue.equalsIgnoreCase("End current document")) {
+            return "End current document";
+        }
+
+        return "Start new document";
     }
 
     @FXML

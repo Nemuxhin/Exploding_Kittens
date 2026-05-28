@@ -22,8 +22,8 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -34,6 +34,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -42,6 +43,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.util.StringConverter;
 import javafx.embed.swing.SwingFXUtils;
@@ -62,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -83,6 +86,14 @@ public class ReviewController {
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
     private static final DateTimeFormatter DATE_RANGE_FORMATTER = AppDates.FORMATTER;
+    private static final double PREVIEW_PAGE_WIDTH = 500;
+    private static final double PREVIEW_PAGE_HEIGHT = 560;
+    private static final double MIN_PREVIEW_ZOOM = 0.50;
+    private static final double MAX_PREVIEW_ZOOM = 2.50;
+    private static final double PREVIEW_ZOOM_STEP = 0.10;
+    private static final double PREVIEW_NUDGE_AMOUNT = 36;
+    private static final double PREVIEW_SAFE_HORIZONTAL_PADDING = 132;
+    private static final double PREVIEW_SAFE_VERTICAL_PADDING = 72;
 
     private final ObservableList<ReviewRow> records = FXCollections.observableArrayList();
     private final Set<String> selectedRecordIds = new HashSet<>();
@@ -103,6 +114,7 @@ public class ReviewController {
 
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
+    @FXML private ScrollPane reviewRootScrollPane;
 
     @FXML private TextField searchField;
 
@@ -135,6 +147,27 @@ public class ReviewController {
     @FXML private Label workspaceTitleLabel;
     @FXML private Label workspaceSubtitleLabel;
     @FXML private Label workspaceWarningLabel;
+    @FXML private BorderPane reviewWorkspaceView;
+    @FXML private Label reviewReferenceInfoLabel;
+    @FXML private Label reviewFilesInfoLabel;
+    @FXML private Label reviewDocumentsInfoLabel;
+    @FXML private Label reviewZoomLabel;
+    @FXML private Label reviewBoxValueLabel;
+    @FXML private Label reviewProfileValueLabel;
+    @FXML private Label reviewDocumentsValueLabel;
+    @FXML private Label reviewSidebarSubtitleLabel;
+    @FXML private VBox reviewDocumentListContainer;
+    @FXML private StackPane reviewPreviewHost;
+    @FXML private HBox reviewPageTrayContainer;
+    @FXML private Label reviewSelectionProfileValueLabel;
+    @FXML private Label reviewSelectionBoxValueLabel;
+    @FXML private Label reviewSelectionDocumentValueLabel;
+    @FXML private Label reviewSelectionFileValueLabel;
+    @FXML private Label reviewSelectionReferenceValueLabel;
+    @FXML private Label reviewSelectionFileIdValueLabel;
+    @FXML private Label reviewSelectedTitleLabel;
+    @FXML private Button reviewDocumentGridViewButton;
+    @FXML private Button reviewDocumentListViewButton;
     @FXML private TextField reviewWorkspaceSearchField;
     @FXML private VBox reviewWorkspaceTreeContainer;
     @FXML private Label reviewWorkspaceViewerPageLabel;
@@ -174,6 +207,8 @@ public class ReviewController {
     private StackPane currentReviewPreviewWrapper;
     private double currentReviewPreviewBaseWidth = 1.0;
     private double currentReviewPreviewBaseHeight = 1.0;
+    private boolean reviewDocumentListView = true;
+    private final Set<Integer> collapsedReviewDocuments = new HashSet<>();
 
     @FXML
     private void initialize() {
@@ -271,6 +306,14 @@ public class ReviewController {
     }
 
     private void configureWorkspaceControls() {
+        configureReviewToolbarButtons();
+
+        if (documentTypeComboBox == null || departmentComboBox == null
+                || caseNumberField == null || registrationDateField == null
+                || buildingAddressField == null || notesTextArea == null) {
+            return;
+        }
+
         documentTypeComboBox.getItems().setAll(
                 "Building Permit",
                 "Inspection Report",
@@ -346,16 +389,58 @@ public class ReviewController {
     }
 
     private void configureWorkspacePreviewInteractions() {
-        if (reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        if (previewHost == null) {
             return;
         }
 
-        reviewWorkspacePreviewHost.setFocusTraversable(true);
-        reviewWorkspacePreviewHost.addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleWorkspacePreviewMousePressed);
-        reviewWorkspacePreviewHost.addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleWorkspacePreviewMouseDragged);
-        reviewWorkspacePreviewHost.addEventFilter(ScrollEvent.SCROLL, this::handleWorkspacePreviewScroll);
-        reviewWorkspacePreviewHost.widthProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
-        reviewWorkspacePreviewHost.heightProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(previewHost.widthProperty());
+        clip.heightProperty().bind(previewHost.heightProperty());
+        previewHost.setClip(clip);
+
+        previewHost.setFocusTraversable(true);
+        previewHost.addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleWorkspacePreviewMousePressed);
+        previewHost.addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleWorkspacePreviewMouseDragged);
+        previewHost.addEventFilter(ScrollEvent.SCROLL, this::handleWorkspacePreviewScroll);
+        previewHost.widthProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
+        previewHost.heightProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
+    }
+
+    private void configureReviewToolbarButtons() {
+        if (reviewZoomOutButton != null) {
+            Label minusLabel = new Label("-");
+            minusLabel.setStyle("-fx-text-fill: -wl-text; -fx-font-size: 20px; -fx-font-weight: 600;");
+            reviewZoomOutButton.setText("");
+            reviewZoomOutButton.setGraphic(minusLabel);
+            reviewZoomOutButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        }
+        if (reviewZoomInButton != null) {
+            applyToolbarGlyph(reviewZoomInButton, "M5 0 H7 V5 H12 V7 H7 V12 H5 V7 H0 V5 H5 Z", 12, 12);
+        }
+        if (reviewFitButton != null) {
+            applyToolbarGlyph(reviewFitButton, "M6 0 L11 5 H8 V12 H4 V5 H1 Z", 12, 12);
+        }
+        if (reviewPrevPageButton != null) {
+            applyToolbarGlyph(reviewPrevPageButton, "M0 6 L5 1 V4 H12 V8 H5 V11 Z", 12, 12);
+        }
+        if (reviewNextPageButton != null) {
+            applyToolbarGlyph(reviewNextPageButton, "M12 6 L7 1 V4 H0 V8 H7 V11 Z", 12, 12);
+        }
+        if (reviewBarcodeButton != null) {
+            applyToolbarGlyph(reviewBarcodeButton, "M1 6 H4 V1 H8 V6 H11 L6 12 Z", 12, 12);
+        }
+    }
+
+    private void applyToolbarGlyph(Button button, String shape, double width, double height) {
+        Region glyph = new Region();
+        glyph.setMinSize(width, height);
+        glyph.setPrefSize(width, height);
+        glyph.setMaxSize(width, height);
+        glyph.setStyle("-fx-background-color: -wl-text; -fx-shape: \"" + shape + "\";");
+        button.setText("");
+        button.setGraphic(glyph);
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
     private void applyFilters() {
@@ -443,22 +528,14 @@ public class ReviewController {
         }
 
         row.getColumnConstraints().setAll(createTableColumns());
-
-        CheckBox selectCheckBox = new CheckBox();
-        selectCheckBox.getStyleClass().add("review-checkbox");
-        selectCheckBox.setSelected(selectedRecordIds.contains(record.id()));
-        selectCheckBox.selectedProperty().addListener((observable, oldValue, selected) ->
-                updateSelection(record.id(), selected)
-        );
-
-        addCell(row, selectCheckBox, 0, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 1, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 2, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 3, HPos.LEFT);
-        addCell(row, createStatusBadge(record.qaStatus()), 4, HPos.LEFT);
-        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 5, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 6, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 7, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 0, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 1, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 2, HPos.LEFT);
+        addCell(row, createStatusBadge(record.qaStatus()), 3, HPos.CENTER);
+        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 4, HPos.CENTER);
+        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 5, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 6, HPos.CENTER);
+        addCell(row, createAssignQaButton(record), 7, HPos.LEFT);
         addCell(row, createReviewButton(record), 8, HPos.LEFT);
 
         return row;
@@ -466,14 +543,14 @@ public class ReviewController {
 
     private List<ColumnConstraints> createTableColumns() {
         return List.of(
-                createPercentColumn(4),
-                createPercentColumn(20),
-                createPercentColumn(14),
-                createPercentColumn(14),
+                createPercentColumn(17),
+                createPercentColumn(13),
+                createPercentColumn(13),
                 createPercentColumn(12),
-                createPercentColumn(6),
-                createPercentColumn(12),
-                createPercentColumn(10),
+                createPercentColumn(5),
+                createPercentColumn(11),
+                createPercentColumn(13),
+                createPercentColumn(8),
                 createPercentColumn(8)
         );
     }
@@ -493,12 +570,24 @@ public class ReviewController {
             region.setMaxWidth(Double.MAX_VALUE);
         }
 
-        GridPane.setHgrow(content, Priority.ALWAYS);
-        GridPane.setFillWidth(content, true);
-        GridPane.setHalignment(content, alignment);
-        GridPane.setValignment(content, VPos.CENTER);
+        StackPane wrapper = new StackPane(content);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
+        wrapper.setAlignment(toPos(alignment));
 
-        row.add(content, columnIndex, 0);
+        GridPane.setHgrow(wrapper, Priority.ALWAYS);
+        GridPane.setFillWidth(wrapper, true);
+        GridPane.setHalignment(wrapper, alignment);
+        GridPane.setValignment(wrapper, VPos.CENTER);
+
+        row.add(wrapper, columnIndex, 0);
+    }
+
+    private Pos toPos(HPos alignment) {
+        return switch (alignment) {
+            case CENTER -> Pos.CENTER;
+            case RIGHT -> Pos.CENTER_RIGHT;
+            default -> Pos.CENTER_LEFT;
+        };
     }
 
     private Label createWrappedLabel(String text, String styleClass) {
@@ -528,8 +617,52 @@ public class ReviewController {
         button.setFocusTraversable(false);
         button.setMinWidth(0);
         button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
         button.setOnAction(event -> openReviewWorkspace(record));
         return button;
+    }
+
+    private Button createAssignQaButton(ReviewRow record) {
+        Button button = new Button("Assign QA");
+        button.getStyleClass().add("review-action-button");
+        button.setFocusTraversable(false);
+        button.setMinWidth(0);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setOnAction(event -> assignQaFromOverview(record));
+        return button;
+    }
+
+    private void assignQaFromOverview(ReviewRow record) {
+        if (record == null || adminManager == null) {
+            return;
+        }
+
+        if (isQaReviewRow(record)) {
+            chooseQaAssignee(record.id(), selectedAssignee -> {
+                if (selectedAssignee == null) {
+                    return;
+                }
+
+                ReviewRecord updatedRecord = adminManager.assignReviewRecordToQa(
+                        record.id(),
+                        selectedAssignee.userId()
+                );
+
+                if (updatedRecord == null) {
+                    return;
+                }
+
+                replaceRecord(toReviewRow(updatedRecord));
+                renderRows();
+            });
+            return;
+        }
+
+        ReviewRow updated = record.withAssignedTo("QA Team");
+        adminManager.saveReviewRecord(toReviewRecord(updated));
+        replaceRecord(updated);
+        renderRows();
     }
 
     private void updateSelection(String recordId, boolean selected) {
@@ -1185,30 +1318,57 @@ public class ReviewController {
         activeQaDocuments = List.of();
         selectedQaDocumentIndex = 0;
         selectedQaPageIndex = 0;
+        collapsedReviewDocuments.clear();
         if (reviewWorkspaceSearchField != null) {
             reviewWorkspaceSearchField.clear();
         }
 
-        workspaceTitleLabel.setText(record.identity());
-        workspaceSubtitleLabel.setText(
-                record.profile()
-                        + " - "
-                        + record.client()
-                        + " - "
-                        + record.pages()
-                        + " pages - "
-                        + record.documentDetailsStatus()
-        );
+        if (workspaceTitleLabel != null) {
+            workspaceTitleLabel.setText(record.identity());
+        }
+        if (workspaceSubtitleLabel != null) {
+            workspaceSubtitleLabel.setText(
+                    record.profile()
+                            + " - "
+                            + record.client()
+                            + " - "
+                            + record.pages()
+                            + " pages - "
+                            + record.documentDetailsStatus()
+            );
+        }
 
         boolean isBlocked = record.documentDetailsStatus().equalsIgnoreCase("Missing Required Fields")
                 || record.documentDetailsStatus().equalsIgnoreCase("Invalid")
                 || record.documentDetailsStatus().equalsIgnoreCase("Incomplete");
 
-        workspaceWarningLabel.setText(
-                isBlocked
-                        ? "Export blocked: required document fields are missing."
-                        : "Document details are complete. Ready for QA assignment or approval."
-        );
+        if (workspaceWarningLabel != null) {
+            workspaceWarningLabel.setText("");
+            workspaceWarningLabel.setVisible(false);
+            workspaceWarningLabel.setManaged(false);
+        }
+        if (reviewBoxValueLabel != null) {
+            reviewBoxValueLabel.setText(record.identity());
+        }
+        if (reviewProfileValueLabel != null) {
+            reviewProfileValueLabel.setText(record.profile());
+        }
+        if (reviewDocumentsValueLabel != null) {
+            reviewDocumentsValueLabel.setText("1 · " + record.pages() + " pages");
+        }
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText("Ref: -");
+        }
+        if (reviewFilesInfoLabel != null) {
+            reviewFilesInfoLabel.setText("Scanned Files: " + record.pages());
+        }
+        if (reviewDocumentsInfoLabel != null) {
+            reviewDocumentsInfoLabel.setText("Documents: 1");
+        }
+        if (reviewSidebarSubtitleLabel != null) {
+            reviewSidebarSubtitleLabel.setText(record.profile() + " · " + record.identity());
+        }
+        updateReviewZoomLabel();
 
         configureWorkspaceControls();
         loadWorkspaceQaData(record);
@@ -1217,17 +1377,25 @@ public class ReviewController {
     }
 
     private void loadWorkspaceQaData(ReviewRow record) {
-        if (adminManager == null || !isQaReviewRow(record)) {
+        if (adminManager == null || record == null) {
             return;
         }
 
-        activeQaAssignment = adminManager.getQaAssignmentForReviewRecord(record.id());
-        if (activeQaAssignment == null) {
-            return;
+        List<QAService.QaDocumentSnapshot> sourceDocuments;
+        if (isQaReviewRow(record)) {
+            activeQaAssignment = adminManager.getQaAssignmentForReviewRecord(record.id());
+            if (activeQaAssignment == null) {
+                activeQaDocuments = List.of();
+                return;
+            }
+            sourceDocuments = activeQaAssignment.documents();
+        } else {
+            activeQaAssignment = null;
+            sourceDocuments = adminManager.getSavedProgressDocumentsForReviewRecord(record.identity(), record.profile());
         }
 
         List<WorkspaceQaDocument> documents = new ArrayList<>();
-        for (QAService.QaDocumentSnapshot assignmentDocument : activeQaAssignment.documents()) {
+        for (QAService.QaDocumentSnapshot assignmentDocument : sourceDocuments) {
             List<WorkspaceQaPage> pages = new ArrayList<>();
             for (QAService.QaPageSnapshot assignmentPage : assignmentDocument.pages()) {
                 pages.add(new WorkspaceQaPage(
@@ -1248,27 +1416,53 @@ public class ReviewController {
     }
 
     private void renderWorkspaceQaView() {
+        updateWorkspaceSummaryChips();
         renderWorkspaceQaTree();
         renderWorkspaceQaPreview();
         renderWorkspaceQaThumbnails();
     }
 
+    private void updateWorkspaceSummaryChips() {
+        if (reviewFilesInfoLabel != null) {
+            reviewFilesInfoLabel.setText("Scanned Files: " + getWorkspaceQaPageCount());
+        }
+        if (reviewDocumentsInfoLabel != null) {
+            reviewDocumentsInfoLabel.setText("Documents: " + activeQaDocuments.size());
+        }
+        if (reviewDocumentsValueLabel != null) {
+            reviewDocumentsValueLabel.setText(activeQaDocuments.size() + " · " + getWorkspaceQaPageCount() + " pages");
+        }
+        WorkspaceQaPage selectedPage = getSelectedWorkspaceQaPage();
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText(selectedPage == null ? "Ref: -" : "Ref: " + selectedPage.sourceReference());
+        }
+    }
+
     private void renderWorkspaceQaTree() {
-        if (reviewWorkspaceTreeContainer == null) {
+        VBox treeContainer = activeWorkspaceTreeContainer();
+        if (treeContainer == null) {
             return;
         }
-        reviewWorkspaceTreeContainer.getChildren().clear();
+        treeContainer.getChildren().clear();
+        updateReviewDocumentViewButtons();
 
-        if (activeQaAssignment == null || activeQaDocuments.isEmpty()) {
-            Label root = new Label(activeReviewRecord == null ? "No document selected" : activeReviewRecord.identity());
-            root.getStyleClass().add("review-workspace-tree-root");
-            reviewWorkspaceTreeContainer.getChildren().add(root);
+        if (activeQaDocuments.isEmpty()) {
+            VBox emptyState = new VBox(6);
+            emptyState.getStyleClass().add("document-tree-empty-state");
+
+            Label title = new Label("No documents available");
+            title.getStyleClass().add("document-tree-empty-title");
+
+            Label copy = new Label(activeReviewRecord == null
+                    ? "Select a review item to see its pages."
+                    : "This review item does not have any pages ready to display.");
+            copy.setWrapText(true);
+            copy.getStyleClass().add("document-tree-empty-copy");
+
+            emptyState.getChildren().addAll(title, copy);
+            treeContainer.getChildren().add(emptyState);
             return;
         }
-
-        Label root = new Label(activeQaAssignment.boxId());
-        root.getStyleClass().add("review-workspace-tree-root");
-        reviewWorkspaceTreeContainer.getChildren().add(root);
 
         String query = reviewWorkspaceSearchField == null ? "" : Strings.normalize(reviewWorkspaceSearchField.getText());
 
@@ -1289,100 +1483,160 @@ public class ReviewController {
                 continue;
             }
 
-            VBox block = new VBox(6);
-
-            Label title = new Label(document.name());
-            title.getStyleClass().add("review-workspace-tree-case");
-            block.getChildren().add(title);
-
-            for (PagePointer pointer : matchingPages) {
-                WorkspaceQaPage page = activeQaDocuments.get(pointer.documentIndex()).pages().get(pointer.pageIndex());
-                HBox row = new HBox();
-                row.setAlignment(Pos.CENTER_LEFT);
-                row.getStyleClass().add(pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex
-                        ? "review-workspace-tree-row-active"
-                        : "review-workspace-tree-row");
-
-                Label statusIcon = new Label(statusIconText(page.status()));
-                statusIcon.getStyleClass().add(statusIconStyle(page.status()));
-
-                Label pageTitle = new Label("Page " + page.pageNumber());
-                pageTitle.getStyleClass().add(pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex
-                        ? "review-workspace-tree-title-active"
-                        : "review-workspace-tree-title");
-
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                Label pageStatus = new Label(statusText(page.status()));
-                pageStatus.getStyleClass().add("review-workspace-tree-status-text");
-
-                row.getChildren().addAll(statusIcon, pageTitle, spacer, pageStatus);
-                row.setOnMouseClicked(event -> {
-                    selectedQaDocumentIndex = pointer.documentIndex();
-                    selectedQaPageIndex = pointer.pageIndex();
-                    resetWorkspacePreviewTransform();
-                    renderWorkspaceQaView();
-                });
-                block.getChildren().add(row);
+            VBox documentBlock = new VBox(12);
+            documentBlock.setAlignment(Pos.TOP_LEFT);
+            documentBlock.getStyleClass().add("document-tree-document-block");
+            if (reviewDocumentListView) {
+                documentBlock.getStyleClass().add("document-tree-list-block");
             }
 
-            reviewWorkspaceTreeContainer.getChildren().add(block);
+            HBox documentHeader = new HBox(9);
+            documentHeader.setAlignment(Pos.CENTER_LEFT);
+            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
+            if (reviewDocumentListView) {
+                documentHeader.getStyleClass().add("document-tree-list-header");
+            }
+
+            Region chevron = new Region();
+            chevron.getStyleClass().add("document-tree-chevron-icon");
+            chevron.setRotate(collapsedReviewDocuments.contains(documentIndex) ? 0 : 90);
+
+            Label title = new Label(workspaceDocumentTitle(document, documentIndex));
+            title.getStyleClass().add("document-tree-document-title");
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Label warning = new Label(document.pages().stream().anyMatch(page -> page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) ? "!" : "");
+            warning.getStyleClass().add("document-tree-warning");
+
+            Label count = new Label(document.pages().size() + " pages");
+            count.getStyleClass().add("document-tree-count");
+
+            documentHeader.getChildren().addAll(chevron, title, spacer, warning, count);
+            final int selectedDocumentIndex = documentIndex;
+            documentHeader.setOnMouseClicked(event -> {
+                if (collapsedReviewDocuments.contains(selectedDocumentIndex)) {
+                    collapsedReviewDocuments.remove(selectedDocumentIndex);
+                } else {
+                    collapsedReviewDocuments.add(selectedDocumentIndex);
+                }
+                if (!document.pages().isEmpty()) {
+                    selectedQaDocumentIndex = selectedDocumentIndex;
+                    selectedQaPageIndex = 0;
+                }
+                resetWorkspacePreviewTransform();
+                renderWorkspaceQaView();
+            });
+            documentBlock.getChildren().add(documentHeader);
+
+            if (!collapsedReviewDocuments.contains(documentIndex)) {
+                VBox pageStack = new VBox(reviewDocumentListView ? 0 : 18);
+                pageStack.setAlignment(reviewDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
+                pageStack.getStyleClass().add("document-tree-page-stack");
+                if (reviewDocumentListView) {
+                    pageStack.getStyleClass().add("document-tree-list-page-stack");
+                }
+
+                for (PagePointer pointer : matchingPages) {
+                    WorkspaceQaPage page = activeQaDocuments.get(pointer.documentIndex()).pages().get(pointer.pageIndex());
+                    Node pageNode = reviewDocumentListView
+                            ? createWorkspacePageRow(pointer, page)
+                            : createWorkspaceEmbeddedPageCard(pointer, page);
+                    pageStack.getChildren().add(pageNode);
+                }
+                documentBlock.getChildren().add(pageStack);
+            }
+
+            treeContainer.getChildren().add(documentBlock);
         }
     }
 
     private void renderWorkspaceQaPreview() {
-        if (reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        Label pageLabel = activeWorkspaceViewerPageLabel();
+        if (previewHost == null) {
             return;
         }
-        reviewWorkspacePreviewHost.getChildren().clear();
+        previewHost.getChildren().clear();
         currentReviewPreviewWrapper = null;
         currentReviewPreviewBaseWidth = 1.0;
         currentReviewPreviewBaseHeight = 1.0;
 
         WorkspaceQaPage page = getSelectedWorkspaceQaPage();
         if (page == null) {
-            reviewWorkspacePreviewHost.getChildren().add(createWorkspacePreviewPlaceholder("No page selected"));
-            if (reviewWorkspaceViewerPageLabel != null) {
-                reviewWorkspaceViewerPageLabel.setText("No page selected");
+            previewHost.getChildren().add(createWorkspacePreviewPlaceholder("No page selected"));
+            if (pageLabel != null) {
+                pageLabel.setText("No page selected");
             }
             return;
         }
 
-        if (reviewWorkspaceViewerPageLabel != null) {
-            reviewWorkspaceViewerPageLabel.setText("Page " + page.pageNumber() + " of " + getWorkspaceQaPageCount());
+        if (pageLabel != null) {
+            pageLabel.setText("Page " + page.pageNumber() + " of " + getWorkspaceQaPageCount());
         }
+        if (reviewSelectedTitleLabel != null) {
+            reviewSelectedTitleLabel.setText("Page " + page.pageNumber());
+        }
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText("Ref: " + page.sourceReference());
+        }
+        updateSelectionSummary(page);
 
         Image image = decodeWorkspaceQaImage(page.imageContent());
         if (image == null) {
-            reviewWorkspacePreviewHost.getChildren().add(createWorkspacePreviewPlaceholder("Preview unavailable"));
+            previewHost.getChildren().add(createWorkspacePreviewPlaceholder("Preview unavailable"));
             return;
         }
-
-        StackPane paper = new StackPane();
-        paper.getStyleClass().add("review-workspace-paper-preview");
-        paper.setPickOnBounds(true);
 
         ImageView imageView = new ImageView(image);
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
-        currentReviewPreviewBaseWidth = Math.max(1, image.getWidth());
-        currentReviewPreviewBaseHeight = Math.max(1, image.getHeight());
-        imageView.setFitWidth(currentReviewPreviewBaseWidth);
-        imageView.setFitHeight(currentReviewPreviewBaseHeight);
-        imageView.setRotate(page.rotationDegrees());
+        imageView.setFitWidth(PREVIEW_PAGE_WIDTH);
+        imageView.setFitHeight(PREVIEW_PAGE_HEIGHT);
 
-        paper.getChildren().add(imageView);
-        currentReviewPreviewWrapper = paper;
-        reviewWorkspacePreviewHost.getChildren().add(paper);
+        StackPane imageSurface = new StackPane(imageView);
+        imageSurface.setAlignment(Pos.CENTER);
+        imageSurface.getStyleClass().add("mock-document-page");
+        imageSurface.setMinWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setRotate(page.rotationDegrees());
+
+        StackPane previewFrame = new StackPane(imageSurface);
+        previewFrame.setAlignment(Pos.CENTER);
+        previewFrame.setMinWidth(PREVIEW_PAGE_WIDTH);
+        previewFrame.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        previewFrame.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        previewFrame.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        previewFrame.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        previewFrame.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        StackPane wrapper = new StackPane(previewFrame);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setMinWidth(PREVIEW_PAGE_WIDTH);
+        wrapper.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        wrapper.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        wrapper.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        wrapper.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        wrapper.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        currentReviewPreviewBaseWidth = PREVIEW_PAGE_WIDTH;
+        currentReviewPreviewBaseHeight = PREVIEW_PAGE_HEIGHT;
+        currentReviewPreviewWrapper = wrapper;
+        previewHost.getChildren().add(wrapper);
         applyWorkspacePreviewTransform();
     }
 
     private void renderWorkspaceQaThumbnails() {
-        if (reviewWorkspaceThumbnailStrip == null) {
+        HBox thumbnailStrip = activeWorkspaceThumbnailStrip();
+        if (thumbnailStrip == null) {
             return;
         }
-        reviewWorkspaceThumbnailStrip.getChildren().clear();
+        thumbnailStrip.getChildren().clear();
 
         for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
             WorkspaceQaDocument document = activeQaDocuments.get(documentIndex);
@@ -1419,7 +1673,7 @@ public class ReviewController {
                     resetWorkspacePreviewTransform();
                     renderWorkspaceQaView();
                 });
-                reviewWorkspaceThumbnailStrip.getChildren().add(thumbnail);
+                thumbnailStrip.getChildren().add(thumbnail);
             }
         }
     }
@@ -1456,8 +1710,13 @@ public class ReviewController {
     }
 
     private void updateWorkspacePreviewZoom(double delta) {
-        reviewPreviewZoomMultiplier = clamp(reviewPreviewZoomMultiplier + delta, 1.0, 5.0);
+        setWorkspacePreviewZoom(reviewPreviewZoomMultiplier + delta);
+    }
+
+    private void setWorkspacePreviewZoom(double zoom) {
+        reviewPreviewZoomMultiplier = clamp(zoom, MIN_PREVIEW_ZOOM, MAX_PREVIEW_ZOOM);
         applyWorkspacePreviewTransform();
+        updateReviewZoomLabel();
     }
 
     private void resetWorkspacePreviewTransform() {
@@ -1467,12 +1726,15 @@ public class ReviewController {
     }
 
     private void applyWorkspacePreviewTransform() {
-        if (currentReviewPreviewWrapper == null || reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        if (currentReviewPreviewWrapper == null || previewHost == null) {
             return;
         }
 
-        double availableWidth = Math.max(1, reviewWorkspacePreviewHost.getWidth() - 40);
-        double availableHeight = Math.max(1, reviewWorkspacePreviewHost.getHeight() - 40);
+        double availableWidth = Math.max(1, previewHost.getWidth() - 40);
+        double availableHeight = Math.max(1, previewHost.getHeight() - 40);
+        availableWidth = Math.max(1, previewHost.getWidth() - PREVIEW_SAFE_HORIZONTAL_PADDING);
+        availableHeight = Math.max(1, previewHost.getHeight() - PREVIEW_SAFE_VERTICAL_PADDING);
         double autoScale = Math.min(
                 availableWidth / Math.max(1.0, currentReviewPreviewBaseWidth),
                 availableHeight / Math.max(1.0, currentReviewPreviewBaseHeight)
@@ -1486,17 +1748,18 @@ public class ReviewController {
     }
 
     private void clampWorkspacePreviewTranslation() {
-        if (currentReviewPreviewWrapper == null || reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        if (currentReviewPreviewWrapper == null || previewHost == null) {
             return;
         }
 
         double scale = currentReviewPreviewWrapper.getScaleX();
         double scaledWidth = currentReviewPreviewBaseWidth * scale;
         double scaledHeight = currentReviewPreviewBaseHeight * scale;
-        double hostWidth = Math.max(1, reviewWorkspacePreviewHost.getWidth());
-        double hostHeight = Math.max(1, reviewWorkspacePreviewHost.getHeight());
-        double maxX = Math.max(0, (scaledWidth - hostWidth) / 2);
-        double maxY = Math.max(0, (scaledHeight - hostHeight) / 2);
+        double hostWidth = Math.max(1, previewHost.getWidth());
+        double hostHeight = Math.max(1, previewHost.getHeight());
+        double maxX = Math.abs(hostWidth - scaledWidth) / 2;
+        double maxY = Math.abs(hostHeight - scaledHeight) / 2;
 
         reviewPreviewTranslateX = clamp(reviewPreviewTranslateX, -maxX, maxX);
         reviewPreviewTranslateY = clamp(reviewPreviewTranslateY, -maxY, maxY);
@@ -1533,6 +1796,89 @@ public class ReviewController {
         }
         updateWorkspacePreviewZoom(event.getDeltaY() > 0 ? 0.15 : -0.15);
         event.consume();
+    }
+
+    @FXML
+    private void onBackToScanningFromReview() {
+        showOverview();
+    }
+
+    @FXML
+    private void onReviewZoomIn() {
+        updateWorkspacePreviewZoom(PREVIEW_ZOOM_STEP);
+    }
+
+    @FXML
+    private void onReviewZoomOut() {
+        updateWorkspacePreviewZoom(-PREVIEW_ZOOM_STEP);
+    }
+
+    @FXML
+    private void onResetReviewPreviewView() {
+        fitWorkspacePreview();
+        updateReviewZoomLabel();
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewUp() {
+        nudgeWorkspacePreview(0, -PREVIEW_NUDGE_AMOUNT);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewDown() {
+        nudgeWorkspacePreview(0, PREVIEW_NUDGE_AMOUNT);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewLeft() {
+        nudgeWorkspacePreview(-PREVIEW_NUDGE_AMOUNT, 0);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewRight() {
+        nudgeWorkspacePreview(PREVIEW_NUDGE_AMOUNT, 0);
+    }
+
+    private void nudgeWorkspacePreview(double deltaX, double deltaY) {
+        if (currentReviewPreviewWrapper == null) {
+            return;
+        }
+
+        reviewPreviewTranslateX += deltaX;
+        reviewPreviewTranslateY += deltaY;
+        clampWorkspacePreviewTranslation();
+    }
+
+    @FXML
+    private void onSubmitForQaFromReview() {
+        sendToQa();
+    }
+
+    @FXML
+    private void onOpenExportTypeDialog() {
+        exportReport();
+    }
+
+    @FXML
+    private void onShowReviewDocumentGridView() {
+        reviewDocumentListView = true;
+        renderWorkspaceQaTree();
+    }
+
+    @FXML
+    private void onShowReviewDocumentListView() {
+        reviewDocumentListView = true;
+        renderWorkspaceQaTree();
+    }
+
+    @FXML
+    private void onPreviousReviewPage() {
+        showPreviousWorkspacePage();
+    }
+
+    @FXML
+    private void onNextReviewPage() {
+        showNextWorkspacePage();
     }
 
     private void moveWorkspaceSelection(int step) {
@@ -1590,6 +1936,145 @@ public class ReviewController {
             count += document.pages().size();
         }
         return count;
+    }
+
+    private void updateReviewZoomLabel() {
+        if (reviewZoomLabel != null) {
+            reviewZoomLabel.setText(Math.round(reviewPreviewZoomMultiplier * 100) + "%");
+        }
+    }
+
+    private void updateReviewDocumentViewButtons() {
+        if (reviewDocumentListViewButton != null) {
+            reviewDocumentListViewButton.getStyleClass().remove("document-tree-view-toggle-button-active");
+            reviewDocumentListViewButton.getStyleClass().add("document-tree-view-toggle-button-active");
+        }
+    }
+
+    private String workspaceDocumentTitle(WorkspaceQaDocument document, int documentIndex) {
+        String normalizedName = document.name() == null ? "" : document.name().trim();
+        if (normalizedName.isBlank()) {
+            return "Document " + (documentIndex + 1);
+        }
+        if (normalizedName.toLowerCase(Locale.ROOT).endsWith(".tiff")
+                || normalizedName.toLowerCase(Locale.ROOT).endsWith(".tif")) {
+            return "Document " + (documentIndex + 1);
+        }
+        if (Strings.normalize(normalizedName).startsWith("document")) {
+            return normalizedName;
+        }
+        return "Document " + (documentIndex + 1);
+    }
+
+    private Node createWorkspacePageRow(PagePointer pointer, WorkspaceQaPage page) {
+        HBox row = new HBox(9);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().addAll("document-tree-page-row", "document-tree-list-page-row");
+        if (pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex) {
+            row.getStyleClass().add("document-tree-page-selected");
+        }
+
+        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber(), false);
+        row.getChildren().add(labelRow);
+        row.setOnMouseClicked(event -> selectWorkspacePage(pointer));
+        return row;
+    }
+
+    private Node createWorkspaceEmbeddedPageCard(PagePointer pointer, WorkspaceQaPage page) {
+        VBox card = new VBox(3);
+        card.setAlignment(Pos.CENTER);
+        card.getStyleClass().addAll("review-page-tray-item", "review-embedded-page-card");
+        if (pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex) {
+            card.getStyleClass().add("review-page-tray-item-selected");
+        }
+
+        StackPane thumbnail = new StackPane();
+        thumbnail.getStyleClass().add("review-page-tray-thumbnail");
+
+        Image image = decodeWorkspaceQaImage(page.imageContent());
+        if (image != null) {
+            ImageView imageView = new ImageView(image);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            imageView.setFitWidth(148);
+            imageView.setFitHeight(214);
+            imageView.setRotate(page.rotationDegrees());
+            thumbnail.getChildren().add(imageView);
+        } else {
+            Label placeholder = new Label("No preview");
+            placeholder.getStyleClass().add("review-preview-empty-copy");
+            thumbnail.getChildren().add(placeholder);
+        }
+
+        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber(), true);
+        card.getChildren().addAll(thumbnail, labelRow);
+        card.setOnMouseClicked(event -> selectWorkspacePage(pointer));
+        return card;
+    }
+
+    private HBox createWorkspacePageLabelRow(WorkspaceQaPage page, String baseLabel, boolean centered) {
+        HBox labelRow = new HBox(6);
+        labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+
+        Label pageLabel = new Label(baseLabel);
+        pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
+        labelRow.getChildren().add(pageLabel);
+
+        if (page.status() == QAService.QaPageReviewStatus.APPROVED) {
+            Label statusLabel = new Label("Approved");
+            statusLabel.getStyleClass().add("qa-page-status-text-approved");
+            labelRow.getChildren().add(statusLabel);
+        } else if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+            Label statusLabel = new Label("Needs Fix");
+            statusLabel.getStyleClass().add("qa-page-status-text-fix");
+            labelRow.getChildren().add(statusLabel);
+        }
+
+        return labelRow;
+    }
+
+    private void selectWorkspacePage(PagePointer pointer) {
+        selectedQaDocumentIndex = pointer.documentIndex();
+        selectedQaPageIndex = pointer.pageIndex();
+        resetWorkspacePreviewTransform();
+        renderWorkspaceQaView();
+    }
+
+    private VBox activeWorkspaceTreeContainer() {
+        return reviewDocumentListContainer != null ? reviewDocumentListContainer : reviewWorkspaceTreeContainer;
+    }
+
+    private StackPane activeWorkspacePreviewHost() {
+        return reviewPreviewHost != null ? reviewPreviewHost : reviewWorkspacePreviewHost;
+    }
+
+    private HBox activeWorkspaceThumbnailStrip() {
+        return reviewPageTrayContainer != null ? reviewPageTrayContainer : reviewWorkspaceThumbnailStrip;
+    }
+
+    private Label activeWorkspaceViewerPageLabel() {
+        return reviewWorkspaceViewerPageLabel;
+    }
+
+    private void updateSelectionSummary(WorkspaceQaPage page) {
+        if (reviewSelectionProfileValueLabel != null && activeReviewRecord != null) {
+            reviewSelectionProfileValueLabel.setText(activeReviewRecord.profile());
+        }
+        if (reviewSelectionBoxValueLabel != null && activeReviewRecord != null) {
+            reviewSelectionBoxValueLabel.setText(activeReviewRecord.identity());
+        }
+        if (reviewSelectionDocumentValueLabel != null) {
+            reviewSelectionDocumentValueLabel.setText(selectedQaDocumentIndex >= 0 ? "Document " + (selectedQaDocumentIndex + 1) : "-");
+        }
+        if (reviewSelectionFileValueLabel != null) {
+            reviewSelectionFileValueLabel.setText(page == null ? "-" : "File " + page.pageNumber());
+        }
+        if (reviewSelectionReferenceValueLabel != null) {
+            reviewSelectionReferenceValueLabel.setText(page == null ? "-" : page.sourceReference());
+        }
+        if (reviewSelectionFileIdValueLabel != null) {
+            reviewSelectionFileIdValueLabel.setText(page == null ? "-" : String.valueOf(page.globalPageNumber()));
+        }
     }
 
     private Image decodeWorkspaceQaImage(String value) {
@@ -1697,6 +2182,13 @@ public class ReviewController {
 
         workspacePane.setVisible(false);
         workspacePane.setManaged(false);
+
+        if (reviewRootScrollPane != null) {
+            reviewRootScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            reviewRootScrollPane.setFitToHeight(true);
+        }
+
+        resetRootScrollPosition();
     }
 
     @FXML
@@ -1706,6 +2198,23 @@ public class ReviewController {
 
         workspacePane.setVisible(true);
         workspacePane.setManaged(true);
+
+        if (reviewRootScrollPane != null) {
+            reviewRootScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            reviewRootScrollPane.setFitToHeight(true);
+        }
+
+        resetRootScrollPosition();
+    }
+
+    private void resetRootScrollPosition() {
+        if (reviewRootScrollPane == null) {
+            return;
+        }
+        Platform.runLater(() -> {
+            reviewRootScrollPane.setVvalue(0);
+            reviewRootScrollPane.setHvalue(0);
+        });
     }
 
     @FXML
@@ -1808,7 +2317,19 @@ public class ReviewController {
     }
 
     private void setActiveWorkspaceTab(Button activeButton) {
-        List<Button> tabButtons = List.of(boxTabButton, caseTabButton, documentTabButton, pageTabButton);
+        List<Button> tabButtons = new ArrayList<>();
+        if (boxTabButton != null) {
+            tabButtons.add(boxTabButton);
+        }
+        if (caseTabButton != null) {
+            tabButtons.add(caseTabButton);
+        }
+        if (documentTabButton != null) {
+            tabButtons.add(documentTabButton);
+        }
+        if (pageTabButton != null) {
+            tabButtons.add(pageTabButton);
+        }
 
         for (Button tabButton : tabButtons) {
             tabButton.getStyleClass().removeAll("review-workspace-tab-active", "review-workspace-tab-button");

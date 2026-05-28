@@ -8,7 +8,6 @@ import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
-import easv.gui.AlertHelper;
 import easv.gui.BackgroundExecutor;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
@@ -1249,7 +1248,6 @@ public class ScanController {
 
         if (result.getStatus() == ScanImportResult.Status.STOPPED_ON_BARCODE && !result.getMessage().isBlank()) {
             selectedFileRefLabel.setText(result.getMessage());
-            AlertHelper.showInformation("Barcode Detected", result.getMessage());
         }
     }
 

@@ -859,7 +859,9 @@ public class AssignedQaController {
 
         int selectedGlobalPage = 1;
         for (QAService.QaDocumentSnapshot submittedDocument : assignment.submittedDocuments) {
-            QaDocument document = new QaDocument(submittedDocument.name());
+            QaDocument document = new QaDocument(
+                    normalizeQaDocumentName(submittedDocument.name(), reviewDocuments.size() + 1)
+            );
 
             for (QAService.QaPageSnapshot submittedPage : submittedDocument.pages()) {
                 QaPage page = new QaPage(submittedPage.pageNumber(), submittedPage.globalPageNumber());
@@ -885,6 +887,18 @@ public class AssignedQaController {
             selectedGlobalPage = Math.min(assignment.reviewedPages, Math.max(1, getTotalReviewPageCount()));
         }
         selectPageByGlobalNumber(selectedGlobalPage);
+    }
+
+    private String normalizeQaDocumentName(String name, int documentIndex) {
+        String normalized = name == null ? "" : name.trim();
+        if (normalized.isBlank()) {
+            return "Document " + documentIndex;
+        }
+        String lowered = normalized.toLowerCase(Locale.ROOT);
+        if (lowered.endsWith(".tiff") || lowered.endsWith(".tif")) {
+            return "Document " + documentIndex;
+        }
+        return normalized;
     }
 
     private QaPageStatus toQaPageStatus(QAService.QaPageReviewStatus status) {
