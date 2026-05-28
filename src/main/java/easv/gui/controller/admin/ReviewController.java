@@ -20,6 +20,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -30,6 +31,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -45,6 +48,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.embed.swing.SwingFXUtils;
 
@@ -53,6 +58,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1856,7 +1862,32 @@ public class ReviewController {
 
     @FXML
     private void onOpenExportTypeDialog() {
-        exportReport();
+        if (activeReviewRecord == null || adminManager == null) {
+            return;
+        }
+
+        Stage stage = new Stage();
+        stage.setTitle("TIFF Export");
+        stage.initModality(Modality.WINDOW_MODAL);
+        stage.setResizable(false);
+
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            stage.initOwner(reviewWorkspaceView.getScene().getWindow());
+        }
+
+        VBox content = buildWorkspaceExportDialogContent(stage);
+        StackPane root = new StackPane(content);
+        root.getStyleClass().addAll("app-shell", "exports-dialog-stage");
+
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
+        Scene scene = new Scene(root);
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
+
+        stage.setScene(scene);
+        stage.sizeToScene();
+        stage.showAndWait();
     }
 
     @FXML
@@ -2605,6 +2636,347 @@ public class ReviewController {
         return row;
     }
 
+    private VBox buildWorkspaceExportDialogContent(Stage stage) {
+        List<Document> exportDocuments = adminManager == null || activeReviewRecord == null
+                ? List.of()
+                : adminManager.getExportableDocumentsForRecord(activeReviewRecord.id());
+        List<String> boxFiles = buildExportFiles(exportDocuments);
+        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(TiffExportType.MULTI_PAGE);
+
+        Label title = new Label("TIFF Export");
+        title.getStyleClass().add("exports-dialog-title");
+
+        VBox header = new VBox(9, title);
+        header.getStyleClass().add("exports-dialog-header");
+
+        Label boxValue = new Label(activeReviewRecord == null ? "-" : activeReviewRecord.identity());
+        boxValue.getStyleClass().add("exports-dialog-box-value");
+
+        Label boxDetail = new Label("Only approved QA documents from this box can be exported in this dialog.");
+        boxDetail.getStyleClass().add("exports-dialog-box-detail");
+
+        VBox boxCard = new VBox(6, boxValue, boxDetail);
+        boxCard.getStyleClass().add("exports-dialog-box-card");
+
+        Button singlePageCard = buildExportTypeCard(
+                "Single-page TIFF",
+                "Separate TIFF files",
+                TiffExportType.SINGLE_PAGE,
+                selectedType
+        );
+        Button multiPageCard = buildExportTypeCard(
+                "Multi-page TIFF",
+                "One TIFF per document",
+                TiffExportType.MULTI_PAGE,
+                selectedType
+        );
+        HBox.setHgrow(singlePageCard, Priority.ALWAYS);
+        HBox.setHgrow(multiPageCard, Priority.ALWAYS);
+
+        HBox typeRow = new HBox(18, singlePageCard, multiPageCard);
+        typeRow.getStyleClass().add("exports-dialog-type-row");
+
+        Label selectedFilesTitle = new Label("Documents in box");
+        selectedFilesTitle.getStyleClass().add("exports-dialog-files-title");
+
+        Label selectedFilesCount = new Label(formatSelectedDocumentCount(boxFiles.size()));
+        selectedFilesCount.getStyleClass().add("exports-dialog-files-count");
+
+        Region filesSpacer = new Region();
+        HBox.setHgrow(filesSpacer, Priority.ALWAYS);
+
+        HBox filesHeader = new HBox(18, selectedFilesTitle, filesSpacer, selectedFilesCount);
+        filesHeader.setAlignment(Pos.CENTER_LEFT);
+
+        GridPane fileGrid = new GridPane();
+        fileGrid.getStyleClass().add("exports-dialog-file-grid");
+
+        ScrollPane fileListScroll = new ScrollPane(fileGrid);
+        fileListScroll.getStyleClass().add("exports-dialog-file-scroll");
+        fileListScroll.setFitToWidth(true);
+        fileListScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        fileListScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        fileListScroll.setPrefViewportHeight(156);
+        renderSelectedFiles(fileGrid, boxFiles);
+
+        VBox filesCard = new VBox(18, filesHeader, fileListScroll);
+        filesCard.getStyleClass().add("exports-dialog-files-card");
+
+        Region divider = new Region();
+        divider.getStyleClass().add("portal-divider");
+        divider.setMaxWidth(Double.MAX_VALUE);
+
+        Label outputLabel = new Label("Output:");
+        outputLabel.getStyleClass().add("exports-dialog-output-label");
+
+        Label outputValue = new Label(buildOutputText(selectedType.get(), exportDocuments));
+        outputValue.getStyleClass().add("exports-dialog-output-value");
+        outputValue.setWrapText(false);
+        outputValue.setMinHeight(Region.USE_PREF_SIZE);
+        outputValue.setPrefWidth(420);
+        outputValue.setMaxWidth(420);
+
+        selectedType.addListener((observable, oldValue, newValue) ->
+                outputValue.setText(buildOutputText(newValue, exportDocuments))
+        );
+
+        HBox outputBox = new HBox(9, outputLabel, outputValue);
+        outputBox.getStyleClass().add("exports-dialog-output-box");
+        outputBox.setAlignment(Pos.CENTER_LEFT);
+        outputBox.setMinHeight(36);
+        outputBox.setPrefHeight(36);
+        outputBox.setMaxHeight(36);
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().addAll("portal-secondary-button", "exports-dialog-cancel-button");
+        cancelButton.setCancelButton(true);
+        cancelButton.setOnAction(event -> stage.close());
+
+        Button exportButton = new Button("Export");
+        exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
+        exportButton.setDefaultButton(true);
+        exportButton.setOnAction(event -> handleWorkspaceExport(stage, selectedType.get(), exportDocuments));
+
+        HBox footerActions = new HBox(9, cancelButton, exportButton);
+        footerActions.getStyleClass().add("exports-dialog-footer-actions");
+        footerActions.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox footer = new VBox(9, outputBox, footerActions);
+        footer.getStyleClass().add("exports-dialog-footer");
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.setFillWidth(true);
+
+        VBox content = new VBox(18,
+                header,
+                boxCard,
+                typeRow,
+                filesCard,
+                divider,
+                footer
+        );
+        content.getStyleClass().add("exports-dialog-content");
+        content.setFillWidth(true);
+        return content;
+    }
+
+    private Button buildExportTypeCard(
+            String title,
+            String subtitle,
+            TiffExportType type,
+            ObjectProperty<TiffExportType> selectedType
+    ) {
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("exports-dialog-option-title");
+
+        Label subtitleLabel = new Label(subtitle);
+        subtitleLabel.getStyleClass().add("exports-dialog-option-subtitle");
+
+        VBox textBox = new VBox(9, titleLabel, subtitleLabel);
+        textBox.getStyleClass().add("exports-dialog-option-copy");
+
+        Label checkIcon = new Label("✓");
+        checkIcon.getStyleClass().add("exports-dialog-option-check-icon");
+        StackPane checkBadge = new StackPane(checkIcon);
+        checkBadge.getStyleClass().add("exports-dialog-option-check-badge");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox content = new HBox(12, textBox, spacer, checkBadge);
+        content.getStyleClass().add("exports-dialog-option-content");
+        content.setAlignment(Pos.TOP_LEFT);
+
+        Button button = new Button();
+        button.setGraphic(content);
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        button.getStyleClass().add("exports-dialog-option-button");
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setFocusTraversable(false);
+        button.setOnAction(event -> selectedType.set(type));
+
+        Runnable refreshState = () -> updateExportTypeCard(button, checkBadge, selectedType.get() == type);
+        selectedType.addListener((observable, oldValue, newValue) -> refreshState.run());
+        refreshState.run();
+
+        return button;
+    }
+
+    private void updateExportTypeCard(Button button, StackPane checkBadge, boolean selected) {
+        button.getStyleClass().removeAll(
+                "exports-dialog-option-button-selected",
+                "exports-dialog-option-button-unselected"
+        );
+        button.getStyleClass().add(selected
+                ? "exports-dialog-option-button-selected"
+                : "exports-dialog-option-button-unselected");
+        checkBadge.setVisible(selected);
+        checkBadge.setManaged(true);
+    }
+
+    private void renderSelectedFiles(GridPane fileGrid, List<String> selectedFiles) {
+        fileGrid.getChildren().clear();
+        fileGrid.getColumnConstraints().setAll(
+                percentColumn(33.333),
+                percentColumn(33.333),
+                percentColumn(33.333)
+        );
+
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            Label empty = new Label("No approved documents available for this export.");
+            empty.getStyleClass().add("exports-dialog-empty-state");
+            fileGrid.add(empty, 0, 0, 3, 1);
+            return;
+        }
+
+        for (int index = 0; index < selectedFiles.size(); index++) {
+            int column = index % 3;
+            int row = index / 3;
+            fileGrid.add(createSelectedFileCell(selectedFiles.get(index), column < 2), column, row);
+        }
+    }
+
+    private HBox createSelectedFileCell(String fileName, boolean withRightBorder) {
+        Label fileLabel = new Label(fileName);
+        fileLabel.getStyleClass().add("exports-dialog-file-name");
+
+        HBox cell = new HBox(6, fileLabel);
+        cell.getStyleClass().add("exports-dialog-file-cell-box");
+        if (withRightBorder) {
+            cell.getStyleClass().add("exports-dialog-file-cell-box-bordered");
+        }
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        return cell;
+    }
+
+    private List<String> buildExportFiles(List<Document> exportDocuments) {
+        List<String> files = new ArrayList<>();
+        if (exportDocuments == null) {
+            return files;
+        }
+
+        for (Document document : exportDocuments) {
+            files.add(document.getSourceItemId() + ".tiff");
+        }
+        return files;
+    }
+
+    private String formatSelectedDocumentCount(int count) {
+        return count + " " + pluralize(count, "document");
+    }
+
+    private String buildOutputText(TiffExportType type, List<Document> exportDocuments) {
+        int documentCount = exportDocuments == null ? 0 : exportDocuments.size();
+        if (documentCount == 0) {
+            return "No approved documents are available for export";
+        }
+
+        return switch (type) {
+            case SINGLE_PAGE -> countExportPages(exportDocuments) + " separate .tiff "
+                    + pluralize(countExportPages(exportDocuments), "file") + " will be generated";
+            case MULTI_PAGE -> documentCount + " multi-page .tiff " + pluralize(documentCount, "file")
+                    + " will be generated, one per document";
+        };
+    }
+
+    private int countExportPages(List<Document> exportDocuments) {
+        if (exportDocuments == null) {
+            return 0;
+        }
+
+        int pageCount = 0;
+        for (Document document : exportDocuments) {
+            pageCount += document.getPages().size();
+        }
+        return pageCount;
+    }
+
+    private void handleWorkspaceExport(Stage stage, TiffExportType exportType, List<Document> exportDocuments) {
+        if (exportDocuments == null || exportDocuments.isEmpty()) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "No documents to export",
+                    "There are no approved documents ready for TIFF export.");
+            return;
+        }
+
+        String profileName = activeReviewRecord == null ? "" : activeReviewRecord.profile();
+        String boxId = activeReviewRecord == null ? "" : activeReviewRecord.identity();
+        ScanProfile profile = adminManager == null ? null : adminManager.findProfileByName(profileName);
+        String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING);
+
+        try {
+            Path outputDirectory = Path.of(
+                    System.getProperty("user.home"),
+                    "Downloads",
+                    "WebLager Exports",
+                    safeFolderSegment(profileName, boxId)
+            );
+
+            TiffExportManager tiffExportManager = new TiffExportManager();
+            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+                    exportType == TiffExportType.SINGLE_PAGE
+                            ? tiffExportManager.createSinglePagePlan(
+                            profileName,
+                            profileCode,
+                            exportNaming,
+                            boxId,
+                            flattenExportPages(exportDocuments)
+                    )
+                            : tiffExportManager.createMultiPagePlan(
+                            profileName,
+                            profileCode,
+                            exportNaming,
+                            boxId,
+                            exportDocuments
+                    ),
+                    outputDirectory
+            );
+
+            showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
+                    result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
+                            + " written to " + result.outputDirectory());
+            stage.close();
+        } catch (IOException | RuntimeException exception) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "Export failed", exception.getMessage());
+        }
+    }
+
+    private List<easv.be.PageImage> flattenExportPages(List<Document> exportDocuments) {
+        List<easv.be.PageImage> pages = new ArrayList<>();
+        if (exportDocuments == null) {
+            return pages;
+        }
+
+        for (Document document : exportDocuments) {
+            pages.addAll(document.getPages());
+        }
+        return pages;
+    }
+
+    private void showExportAlert(Stage owner, Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message == null || message.isBlank() ? "The export could not be completed." : message);
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        alert.showAndWait();
+    }
+
+    private String pluralize(int count, String singular) {
+        return count == 1 ? singular : singular + "s";
+    }
+
+    private ColumnConstraints percentColumn(double percentWidth) {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setPercentWidth(percentWidth);
+        column.setFillWidth(true);
+        column.setHgrow(Priority.ALWAYS);
+        return column;
+    }
+
     private void refreshFilterOptions() {
         setComboOptions(clientFilterComboBox, ALL_CLIENTS, records.stream().map(ReviewRow::client).toList());
         setComboOptions(archiveFilterComboBox, ALL_ARCHIVES, records.stream().map(ReviewRow::archive).toList());
@@ -2745,5 +3117,10 @@ public class ReviewController {
         public String toString() {
             return displayName;
         }
+    }
+
+    private enum TiffExportType {
+        SINGLE_PAGE,
+        MULTI_PAGE
     }
 }
