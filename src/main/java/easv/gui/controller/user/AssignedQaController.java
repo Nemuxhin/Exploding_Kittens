@@ -1868,8 +1868,8 @@ public class AssignedQaController {
             }
         }
 
-        dialog.getDialogPane().setPrefWidth(860);
-        dialog.getDialogPane().setMaxWidth(860);
+        dialog.getDialogPane().setPrefWidth(520);
+        dialog.getDialogPane().setMaxWidth(520);
         dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
         dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
