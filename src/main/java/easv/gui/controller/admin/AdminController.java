@@ -4,6 +4,7 @@ import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.AuthManager;
 import easv.bll.UserSession;
+import easv.gui.BackgroundExecutor;
 import easv.gui.MainApp;
 import easv.gui.PrimeIcons;
 import easv.util.Strings;
@@ -55,7 +56,6 @@ public class AdminController implements AdminNavigator {
     private static final String LEGACY_USER_PREFERENCES_NODE = "easv.gui.portal";
     private static final String LEGACY_USER_DARK_MODE_KEY = "userPortal.darkMode";
     private static final String ACCOUNT_SECTION = "Edit Profile";
-    private static final String PRIVACY_SECTION = "Settings and Privacy";
     private static final String MOON_ICON = "\ue9c7";
     private static final String SUN_ICON = "\ue9c8";
     private static final double SHORTCUTS_DIALOG_WIDTH = 880;
@@ -88,11 +88,12 @@ public class AdminController implements AdminNavigator {
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private Label darkModeToggleIcon;
 
-    private final AdminManager adminManager = new AdminManager();
     private final AuthManager authManager = new AuthManager();
     private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
+    private AdminManager adminManager;
     private AdminPage currentPage = AdminPage.DASHBOARD;
+    private Object activePageController;
     private Scene shortcutScene;
     private boolean sceneListenerRegistered;
     private boolean userEditingTextInput;
@@ -110,6 +111,7 @@ public class AdminController implements AdminNavigator {
         configureThemeToggle();
         configureNavigation();
         showPage(AdminPage.DASHBOARD);
+        loadAdminManagerAsync();
     }
 
     private void configureBrandLogo() {
@@ -162,7 +164,8 @@ public class AdminController implements AdminNavigator {
         }
 
         if (settingsPrivacyMenuButton != null) {
-            settingsPrivacyMenuButton.setOnAction(event -> showAccountSettingsPage(PRIVACY_SECTION));
+            settingsPrivacyMenuButton.setVisible(false);
+            settingsPrivacyMenuButton.setManaged(false);
         }
 
         if (logoutMenuButton != null) {
@@ -439,6 +442,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private void loadPage(AdminPage page) {
+        activePageController = null;
         URL pageUrl = getClass().getResource(page.fxmlPath());
 
         if (pageUrl == null) {
@@ -450,7 +454,8 @@ public class AdminController implements AdminNavigator {
             FXMLLoader loader = new FXMLLoader(pageUrl);
             Parent loadedPage = loader.load();
 
-            configureLoadedController(loader.getController());
+            activePageController = loader.getController();
+            configureLoadedController(activePageController);
             configureLoadedPageSize(loadedPage);
             PrimeIcons.applyFont(loadedPage);
             contentHost.getChildren().setAll(loadedPage);
@@ -462,19 +467,43 @@ public class AdminController implements AdminNavigator {
     private void configureLoadedController(Object controller) {
         if (controller instanceof DashboardController dashboardController) {
             dashboardController.setNavigator(this);
-            dashboardController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                dashboardController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ManageUsersController manageUsersController) {
-            manageUsersController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                manageUsersController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ProfilesController profilesController) {
             profilesController.setNavigator(this);
-            profilesController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                profilesController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof AssignmentsController assignmentsController) {
-            assignmentsController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                assignmentsController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ReviewController reviewController) {
-            reviewController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                reviewController.setAdminManager(adminManager);
+            }
         } else if (controller instanceof ActivityController activityController) {
-            activityController.setAdminManager(adminManager);
+            if (adminManager != null) {
+                activityController.setAdminManager(adminManager);
+            }
         }
+    }
+
+    private void loadAdminManagerAsync() {
+        BackgroundExecutor.io().execute(() -> {
+            AdminManager loadedAdminManager = new AdminManager();
+            Platform.runLater(() -> {
+                adminManager = loadedAdminManager;
+                if (activePageController != null) {
+                    configureLoadedController(activePageController);
+                }
+            });
+        });
     }
 
     private void configureLoadedPageSize(Parent page) {
@@ -609,7 +638,6 @@ public class AdminController implements AdminNavigator {
     private String accountPageSubtitle(String section) {
         return switch (section) {
             case ACCOUNT_SECTION -> "Manage your account information and password.";
-            case PRIVACY_SECTION -> "Settings and privacy options.";
             default -> "";
         };
     }
@@ -619,7 +647,7 @@ public class AdminController implements AdminNavigator {
         nav.getStyleClass().add("settings-nav");
         nav.setMaxHeight(Region.USE_PREF_SIZE);
 
-        for (String section : List.of(ACCOUNT_SECTION, PRIVACY_SECTION)) {
+        for (String section : List.of(ACCOUNT_SECTION)) {
             Button button = new Button(section);
             button.setMaxWidth(Double.MAX_VALUE);
             button.setAlignment(Pos.CENTER_LEFT);
@@ -644,7 +672,6 @@ public class AdminController implements AdminNavigator {
         detailsPanel.getChildren().setAll(
                 switch (selectedSection) {
                     case ACCOUNT_SECTION -> buildAccountProfileSection();
-                    case PRIVACY_SECTION -> buildEmptyAccountSection(PRIVACY_SECTION);
                     default -> buildEmptyAccountSection(selectedSection);
                 }
         );

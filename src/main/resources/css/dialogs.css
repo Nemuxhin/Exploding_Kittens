@@ -350,6 +350,15 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.34), 42, 0.24, 0, 12);
 }
 
+.weblager-shortcuts-dialog-pane.dark > .content,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-root,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-header,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-scroll,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-scroll > .viewport,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-body {
+    -fx-background-color: -wl-surface;
+}
+
 .weblager-shortcuts-dialog-pane > .content {
     -fx-padding: 0;
     -fx-background-color: -wl-surface;
@@ -411,6 +420,13 @@
     -fx-text-fill: #20d3ac;
 }
 
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-title-icon-shell,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-header-icon-shell {
+    -fx-background-color: #29384a;
+    -fx-border-color: #46576d;
+    -fx-effect: none;
+}
+
 .weblager-shortcuts-title {
     -fx-text-fill: -wl-text;
     -fx-font-size: 21px;
@@ -418,19 +434,13 @@
 }
 
 .weblager-shortcuts-subtitle {
-    -fx-text-fill: #526174;
+    -fx-text-fill: -wl-text-muted;
     -fx-font-size: 15px;
     -fx-font-weight: 500;
 }
 
 .weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-subtitle {
     -fx-text-fill: #c7d2e2;
-}
-
-.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-title-icon-shell {
-    -fx-background-color: #29384a;
-    -fx-border-color: #46576d;
-    -fx-effect: none;
 }
 
 .weblager-shortcuts-x-button {
@@ -460,6 +470,21 @@
 .weblager-shortcuts-x-button:focused {
     -fx-background-color: #f6f9fd;
     -fx-border-color: #cfdbea;
+    -fx-text-fill: -wl-text;
+}
+
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-x-button {
+    -fx-background-color: #415060;
+    -fx-border-color: #526173;
+    -fx-text-fill: -wl-text-muted;
+    -fx-effect: none;
+}
+
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-x-button:hover,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-x-button:pressed,
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-x-button:focused {
+    -fx-background-color: #4b5b6d;
+    -fx-border-color: #607185;
     -fx-text-fill: -wl-text;
 }
 
@@ -514,6 +539,12 @@
     -fx-effect: dropshadow(gaussian, rgba(26, 47, 79, 0.08), 10, 0.14, 0, 2);
 }
 
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-card {
+    -fx-background-color: linear-gradient(to bottom, #415060, #384859);
+    -fx-border-color: #526173;
+    -fx-effect: none;
+}
+
 .weblager-shortcuts-card-icon-frame {
     -fx-min-width: 50;
     -fx-pref-width: 50;
@@ -529,6 +560,12 @@
     -fx-effect: dropshadow(gaussian, rgba(37, 67, 105, 0.12), 8, 0.14, 0, 2);
 }
 
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-card-icon-frame {
+    -fx-background-color: #2d3d4f;
+    -fx-border-color: #526173;
+    -fx-effect: none;
+}
+
 .weblager-shortcuts-key-pill {
     -fx-min-width: 78;
     -fx-min-height: 28;
@@ -541,6 +578,11 @@
     -fx-font-family: "Consolas";
     -fx-font-weight: 700;
     -fx-alignment: center;
+}
+
+.weblager-shortcuts-dialog-pane.dark .weblager-shortcuts-key-pill {
+    -fx-background-color: #008ff7;
+    -fx-text-fill: white;
 }
 
 .weblager-shortcuts-card-title {
@@ -900,9 +942,9 @@
 
 .profile-delete-dialog-root {
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18;
+    -fx-background-radius: 16;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 18;
+    -fx-border-radius: 16;
     -fx-border-width: 1;
     -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
 }
@@ -912,53 +954,53 @@
 }
 
 .profile-delete-dialog-header {
-    -fx-min-height: 64;
-    -fx-pref-height: 64;
-    -fx-padding: 0 18 0 18;
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-padding: 0 12 0 12;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18 18 0 0;
+    -fx-background-radius: 16 16 0 0;
     -fx-border-color: transparent transparent -wl-border transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .profile-delete-dialog-brand-shell {
-    -fx-min-width: 40;
-    -fx-pref-width: 40;
-    -fx-max-width: 40;
-    -fx-min-height: 40;
-    -fx-pref-height: 40;
-    -fx-max-height: 40;
-    -fx-background-color: -wl-primary;
-    -fx-background-radius: 7;
-    -fx-alignment: center;
-}
-
-.profile-delete-dialog-brand-label {
-    -fx-text-fill: -wl-on-primary;
-    -fx-font-size: 17px;
-    -fx-font-weight: 700;
-}
-
-.profile-delete-dialog-title {
-    -fx-text-fill: -wl-text;
-    -fx-font-size: 16px;
-    -fx-font-weight: 700;
-}
-
-.profile-delete-dialog-close-button {
     -fx-min-width: 30;
     -fx-pref-width: 30;
     -fx-max-width: 30;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.profile-delete-dialog-brand-label {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.profile-delete-dialog-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.profile-delete-dialog-close-button {
+    -fx-min-width: 26;
+    -fx-pref-width: 26;
+    -fx-max-width: 26;
+    -fx-min-height: 26;
+    -fx-pref-height: 26;
+    -fx-max-height: 26;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-background-radius: 999;
     -fx-border-radius: 999;
     -fx-text-fill: -wl-secondary;
-    -fx-font-size: 18px;
+    -fx-font-size: 16px;
     -fx-font-weight: 300;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -975,30 +1017,59 @@
 }
 
 .profile-delete-dialog-body {
-    -fx-padding: 24 28 24 28;
+    -fx-padding: 14 16 14 16;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0 0 18 18;
+    -fx-background-radius: 0 0 16 16;
 }
 
 .profile-delete-dialog-message {
     -fx-text-fill: -wl-primary;
-    -fx-font-size: 18px;
+    -fx-font-size: 14px;
     -fx-font-weight: 400;
     -fx-line-spacing: 2px;
 }
 
+.profile-delete-dialog-pane.dark .profile-delete-dialog-message {
+    -fx-text-fill: -wl-text;
+}
+
 .profile-delete-dialog-actions {
     -fx-alignment: center-right;
+    -fx-spacing: 8;
 }
 
 .profile-delete-dialog-confirm-button,
 .profile-delete-dialog-cancel-button {
-    -fx-min-width: 92;
-    -fx-pref-width: 92;
-    -fx-max-width: 92;
+    -fx-min-width: 86;
+    -fx-pref-width: 86;
+    -fx-max-width: 86;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+}
+
+.profile-delete-dialog-cancel-button {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-delete-dialog-cancel-button:hover,
+.profile-delete-dialog-cancel-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.profile-delete-dialog-pane.dark .profile-delete-dialog-cancel-button {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-delete-dialog-pane.dark .profile-delete-dialog-cancel-button:hover,
+.profile-delete-dialog-pane.dark .profile-delete-dialog-cancel-button:pressed {
+    -fx-background-color: -wl-tertiary-hover;
+    -fx-border-color: -wl-secondary;
 }
 
 /* =========================================================
@@ -1124,6 +1195,186 @@
     -fx-line-spacing: 2px;
 }
 
+/* =========================================================
+   BARCODE ALERT DIALOG
+   ========================================================= */
+
+.barcode-alert-dialog-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-family: "Montserrat";
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.barcode-alert-dialog-pane > .header-panel {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.barcode-alert-dialog-pane > .button-bar > .container {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.barcode-alert-dialog-pane > .content {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.barcode-alert-dialog-root {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #0000001A, 16, 0, 0, 3);
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-root {
+    -fx-background-color: #243242;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-effect: none;
+}
+
+.barcode-alert-dialog-header {
+    -fx-min-height: 58;
+    -fx-pref-height: 58;
+    -fx-padding: 0 16 0 16;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18 18 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-header {
+    -fx-background-color: #243242;
+    -fx-border-color: transparent transparent rgba(255, 255, 255, 0.08) transparent;
+}
+
+.barcode-alert-dialog-brand-shell {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 7;
+    -fx-alignment: center;
+}
+
+.barcode-alert-dialog-brand-label {
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.barcode-alert-dialog-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-title {
+    -fx-text-fill: white;
+}
+
+.barcode-alert-dialog-close-button {
+    -fx-min-width: 28;
+    -fx-pref-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-secondary;
+    -fx-font-size: 18px;
+    -fx-font-weight: 300;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.barcode-alert-dialog-close-button:hover,
+.barcode-alert-dialog-close-button:pressed,
+.barcode-alert-dialog-close-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button {
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button:hover,
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button:pressed,
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-close-button:focused {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: white;
+}
+
+.barcode-alert-dialog-body {
+    -fx-padding: 18 22 18 22;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 0 0 18 18;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-body {
+    -fx-background-color: #243242;
+}
+
+.barcode-alert-dialog-message {
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 16px;
+    -fx-font-weight: 400;
+    -fx-line-spacing: 2px;
+}
+
+.barcode-alert-dialog-pane.dark .barcode-alert-dialog-message {
+    -fx-text-fill: white;
+}
+
+.barcode-alert-dialog-actions {
+    -fx-padding: 0;
+}
+
+.barcode-alert-dialog-ok-button {
+    -fx-min-width: 96;
+    -fx-pref-width: 96;
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: transparent;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+}
+
+.barcode-alert-dialog-ok-button:hover,
+.barcode-alert-dialog-ok-button:pressed,
+.barcode-alert-dialog-ok-button:focused {
+    -fx-background-color: derive(-wl-primary, 8%);
+    -fx-text-fill: -wl-on-primary;
+    -fx-border-color: transparent;
+}
+
 .profile-created-dialog-actions {
     -fx-alignment: center-right;
 }
@@ -1133,6 +1384,196 @@
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+}
+
+.first-login-password-dialog-pane {
+    -fx-background-color: transparent;
+}
+
+.first-login-password-dialog-pane > .header-panel,
+.first-login-password-dialog-pane > .graphic-container {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-opacity: 0;
+    -fx-max-height: 0;
+}
+
+.first-login-password-dialog-pane > .content {
+    -fx-padding: 18;
+    -fx-background-color: transparent;
+}
+
+.first-login-password-dialog-pane > .button-bar > .container {
+    -fx-padding: 0 0 8 0;
+    -fx-background-color: transparent;
+    -fx-alignment: center-right;
+}
+
+.first-login-password-dialog-root {
+    -fx-padding: 34 38 34 38;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18;
+    -fx-border-color: #d9e1ec;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(8, 21, 38, 0.22), 26, 0.18, 0, 8);
+    -fx-max-width: 620;
+    -fx-pref-width: 620;
+}
+
+.first-login-password-header {
+    -fx-padding: 0 0 4 0;
+    -fx-max-width: 500;
+    -fx-pref-width: 500;
+}
+
+.first-login-password-title {
+    -fx-text-fill: #24364F;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+}
+
+.first-login-password-copy {
+    -fx-text-fill: #62748a;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-max-width: 500;
+}
+
+.first-login-password-label {
+    -fx-text-fill: #24364F;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.first-login-password-input-row {
+    -fx-alignment: center-left;
+    -fx-max-width: 360;
+    -fx-pref-width: 360;
+}
+
+.first-login-password-field {
+    -fx-padding: 2 0 0 0;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+    -fx-alignment: center-left;
+}
+
+.first-login-password-hint {
+    -fx-text-fill: #62748a;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-padding: -4 0 0 0;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+}
+
+.first-login-password-actions {
+    -fx-alignment: center;
+    -fx-padding: 10 0 0 0;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+}
+
+.first-login-password-field-stack {
+    -fx-max-width: 310;
+    -fx-pref-width: 310;
+}
+
+.first-login-password-short-field {
+    -fx-max-width: 360;
+    -fx-pref-width: 360;
+}
+
+.first-login-password-toggle-button {
+    -fx-min-width: 42;
+    -fx-pref-width: 42;
+    -fx-max-width: 42;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-max-height: 42;
+    -fx-padding: 0;
+    -fx-background-color: #f4f7fb;
+    -fx-border-color: #d9e1ec;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.first-login-password-toggle-button:hover,
+.first-login-password-toggle-button:pressed,
+.first-login-password-toggle-button:focused {
+    -fx-background-color: #eaf0f7;
+    -fx-border-color: #9cb0c9;
+}
+
+.first-login-password-toggle-icon {
+    -fx-fill: #24364F;
+}
+
+.first-login-password-readonly-field {
+    -fx-opacity: 1;
+}
+
+.first-login-password-validation {
+    -fx-text-fill: #c34747;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-wrap-text: true;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+    -fx-min-height: 22;
+    -fx-pref-height: 22;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-dialog-root {
+    -fx-background-color: #2d3d4f;
+    -fx-border-color: #465160;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-title,
+.first-login-password-dialog-pane.dark .first-login-password-label {
+    -fx-text-fill: #f7f9fd;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-copy {
+    -fx-text-fill: #d9e3ed;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-hint {
+    -fx-text-fill: #d9e3ed;
+}
+
+.first-login-password-dialog-pane.dark .portal-text-field,
+.first-login-password-dialog-pane.dark .portal-text-field:hover,
+.first-login-password-dialog-pane.dark .portal-text-field:focused,
+.first-login-password-dialog-pane.dark .portal-text-field:pressed,
+.first-login-password-dialog-pane.dark .portal-text-field:armed {
+    -fx-background-color: #465160;
+    -fx-border-color: #465160;
+    -fx-text-fill: #f7f9fd;
+    -fx-prompt-text-fill: #b8c4d0;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button {
+    -fx-background-color: #354556;
+    -fx-border-color: #465160;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button:hover,
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button:pressed,
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button:focused {
+    -fx-background-color: #465160;
+    -fx-border-color: #6f7d8d;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-toggle-icon {
+    -fx-fill: #f7f9fd;
 }
 
 /* Keep PrimeIcons from being overwritten by later/global text rules. */

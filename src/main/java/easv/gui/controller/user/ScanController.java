@@ -106,7 +106,6 @@ public class ScanController {
     @FXML private Label profileInfoSplittingLabel;
 
     @FXML private Button startScanningButton;
-    @FXML private Button viewMyScansButton;
     @FXML private Button undoLastActionButton;
     @FXML private Button rotateLeftButton;
     @FXML private Button rotateRightButton;
@@ -201,8 +200,8 @@ public class ScanController {
     private StackPane currentReviewPreviewWrapper;
 
     private ScannedPage selectedPage;
-    private boolean documentTreeListView = false;
-    private boolean reviewDocumentListView = false;
+    private boolean documentTreeListView = true;
+    private boolean reviewDocumentListView = true;
 
     private UserNavigator navigator = UserNavigator.none();
     private UserPortalModel portalModel = new UserPortalModel();
@@ -280,14 +279,6 @@ public class ScanController {
             });
         }
 
-        if (rotateLeftButton != null) {
-            rotateLeftButton.setVisible(false);
-            rotateLeftButton.setManaged(false);
-        }
-        if (rotateRightButton != null) {
-            rotateRightButton.setVisible(false);
-            rotateRightButton.setManaged(false);
-        }
     }
 
     private void configureDocumentTreeScroll() {
@@ -306,8 +297,21 @@ public class ScanController {
     }
 
     private void configureDocumentTreeViewToggle() {
+        hideDocumentTreeViewToggleButton(documentTreeGridViewButton);
+        hideDocumentTreeViewToggleButton(documentTreeListViewButton);
+        hideDocumentTreeViewToggleButton(reviewDocumentGridViewButton);
+        hideDocumentTreeViewToggleButton(reviewDocumentListViewButton);
         updateDocumentTreeViewToggleButtons();
         updateReviewDocumentViewToggleButtons();
+    }
+
+    private void hideDocumentTreeViewToggleButton(Button button) {
+        if (button == null) {
+            return;
+        }
+
+        button.setVisible(false);
+        button.setManaged(false);
     }
 
     private void configureWorkspacePanelClipping() {
@@ -643,6 +647,19 @@ public class ScanController {
         }
 
         pageRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
+    }
+
+    @FXML
+    private void onApplyPageRotation() {
+        ScannedPage page = resolveActiveNormalPage();
+        if (page == null) {
+            syncPageRotationComboBox();
+            return;
+        }
+
+        saveUndoState();
+        page.rotationDegrees = normalizeRotation(page.rotationDegrees + ROTATION_STEP_DEGREES);
+        refreshVisibleWorkspace();
     }
 
     private void applyBoxRotationSelection(String oldValue, String newValue) {
@@ -1532,11 +1549,19 @@ public class ScanController {
     }
 
     private double getPreviewContentWidth() {
-        return rotatedBoundsWidth(PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT, selectedPage == null ? 0 : selectedPage.rotationDegrees);
+        return PREVIEW_PAGE_WIDTH;
     }
 
     private double getPreviewContentHeight() {
-        return rotatedBoundsHeight(PREVIEW_PAGE_WIDTH, PREVIEW_PAGE_HEIGHT, selectedPage == null ? 0 : selectedPage.rotationDegrees);
+        return PREVIEW_PAGE_HEIGHT;
+    }
+
+    private double getPreviewContentWidth(int rotationDegrees) {
+        return PREVIEW_PAGE_WIDTH;
+    }
+
+    private double getPreviewContentHeight(int rotationDegrees) {
+        return PREVIEW_PAGE_HEIGHT;
     }
 
     private double rotatedBoundsWidth(double width, double height, int rotationDegrees) {
@@ -1658,8 +1683,8 @@ public class ScanController {
             scale = 1;
         }
 
-        double scaledWidth = PREVIEW_PAGE_WIDTH * scale;
-        double scaledHeight = PREVIEW_PAGE_HEIGHT * scale;
+        double scaledWidth = getPreviewContentWidth() * scale;
+        double scaledHeight = getPreviewContentHeight() * scale;
 
         double hostWidth = Math.max(1, reviewPreviewHost.getWidth());
         double hostHeight = Math.max(1, reviewPreviewHost.getHeight());
@@ -2095,11 +2120,6 @@ public class ScanController {
     }
 
     @FXML
-    private void onViewMyScans() {
-        navigator.showMyScans();
-    }
-
-    @FXML
     private void onBackToScanSetup() {
         showSetupView();
     }
@@ -2160,8 +2180,8 @@ public class ScanController {
             return;
         }
 
-        rotateLeftButton.setText("Rotate Left (1\u00B0)");
-        rotateRightButton.setText("Rotate Right (1\u00B0)");
+        rotateLeftButton.setText("\u21BA");
+        rotateRightButton.setText("\u21BB");
     }
 
     private void syncBoxRotationComboBox() {
@@ -2407,38 +2427,7 @@ public class ScanController {
             }
 
             documentTreeContainer.getChildren().add(pendingBlock);
-        } else if (shouldShowNextPendingDocumentPlaceholder()) {
-            int pendingDocumentNumber = documents.size() + 1;
-            VBox pendingBlock = new VBox(12);
-            pendingBlock.setAlignment(Pos.TOP_LEFT);
-            pendingBlock.getStyleClass().add("document-tree-document-block");
-            if (documentTreeListView) {
-                pendingBlock.getStyleClass().add("document-tree-list-block");
-            }
-
-            HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, List.of());
-            pendingHeader.getStyleClass().add("document-tree-document-header-framed");
-            if (documentTreeListView) {
-                pendingHeader.getStyleClass().add("document-tree-list-header");
-            }
-            pendingBlock.getChildren().add(pendingHeader);
-
-            if (!collapsedDocuments.contains(pendingDocumentNumber)) {
-                Label waitingLabel = new Label("Waiting for the next scanned page");
-                waitingLabel.getStyleClass().add("document-tree-empty-copy");
-                waitingLabel.setWrapText(true);
-                waitingLabel.setMaxWidth(180);
-                pendingBlock.getChildren().add(waitingLabel);
-            }
-
-            documentTreeContainer.getChildren().add(pendingBlock);
         }
-    }
-
-    private boolean shouldShowNextPendingDocumentPlaceholder() {
-        return pendingPages.isEmpty()
-                && !allPages.isEmpty()
-                && allPages.get(allPages.size() - 1).barcode;
     }
 
     private HBox createDocumentHeader(DocumentGroup document) {
@@ -2678,8 +2667,8 @@ public class ScanController {
             double availableWidth = Math.max(1, previewHost.getWidth() - PREVIEW_SAFE_HORIZONTAL_PADDING);
             double availableHeight = Math.max(1, previewHost.getHeight() - PREVIEW_SAFE_VERTICAL_PADDING);
 
-            double widthScale = availableWidth / PREVIEW_PAGE_WIDTH;
-            double heightScale = availableHeight / PREVIEW_PAGE_HEIGHT;
+            double widthScale = availableWidth / previewWidth;
+            double heightScale = availableHeight / previewHeight;
             double autoScale = Math.min(1.0, Math.min(widthScale, heightScale));
 
             return autoScale * previewZoomMultiplier.get();
@@ -2867,15 +2856,20 @@ public class ScanController {
         barcode.getChildren().addAll(bars, barcodeLine);
         bottomRow.getChildren().addAll(bottomSpacer, barcode);
 
+        documentPage.getChildren().addAll(topSection, textLines, formArea, bottomText, bottomRow);
+
+        StackPane previewFrame = new StackPane(documentPage);
+        previewFrame.setAlignment(Pos.CENTER);
+        applyPreviewFrameSize(previewFrame, page.rotationDegrees);
+
         if (page.needsRescan) {
             Label warning = new Label("Marked for rescan");
             warning.getStyleClass().add("preview-warning-banner");
-            documentPage.getChildren().add(warning);
+            StackPane.setAlignment(warning, Pos.TOP_CENTER);
+            previewFrame.getChildren().add(warning);
         }
 
-        documentPage.getChildren().addAll(topSection, textLines, formArea, bottomText, bottomRow);
-
-        return documentPage;
+        return previewFrame;
     }
 
     private Node createActualDocumentPreview(ScannedPage page) {
@@ -2898,18 +2892,22 @@ public class ScanController {
         imageView.setPreserveRatio(true);
         imageView.setFitWidth(PREVIEW_PAGE_WIDTH);
         imageView.setFitHeight(PREVIEW_PAGE_HEIGHT);
-        imageView.setRotate(page.rotationDegrees);
         imageView.setSmooth(true);
 
-        StackPane preview = new StackPane(imageView);
+        StackPane imageSurface = new StackPane(imageView);
+        imageSurface.setAlignment(Pos.CENTER);
+        imageSurface.getStyleClass().add("mock-document-page");
+        imageSurface.setMinWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setRotate(page.rotationDegrees);
+
+        StackPane preview = new StackPane(imageSurface);
         preview.setAlignment(Pos.CENTER);
-        preview.getStyleClass().add("mock-document-page");
-        preview.setMinWidth(PREVIEW_PAGE_WIDTH);
-        preview.setPrefWidth(PREVIEW_PAGE_WIDTH);
-        preview.setMaxWidth(PREVIEW_PAGE_WIDTH);
-        preview.setMinHeight(PREVIEW_PAGE_HEIGHT);
-        preview.setPrefHeight(PREVIEW_PAGE_HEIGHT);
-        preview.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+        applyPreviewFrameSize(preview, page.rotationDegrees);
 
         if (page.needsRescan) {
             Label warning = new Label("Marked for rescan");
@@ -4388,18 +4386,35 @@ public class ScanController {
         return card;
     }
 
+    private void applyPreviewFrameSize(Region previewFrame, int rotationDegrees) {
+        double previewWidth = getPreviewContentWidth(rotationDegrees);
+        double previewHeight = getPreviewContentHeight(rotationDegrees);
+        previewFrame.setMinWidth(previewWidth);
+        previewFrame.setPrefWidth(previewWidth);
+        previewFrame.setMaxWidth(previewWidth);
+        previewFrame.setMinHeight(previewHeight);
+        previewFrame.setPrefHeight(previewHeight);
+        previewFrame.setMaxHeight(previewHeight);
+    }
+
     private Node wrapReviewPreviewWithAutoScale(Node previewNode) {
         StackPane wrapper = new StackPane(previewNode);
         wrapper.setAlignment(Pos.CENTER);
-        wrapper.setMaxWidth(PREVIEW_PAGE_WIDTH);
-        wrapper.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+        double previewWidth = getPreviewContentWidth();
+        double previewHeight = getPreviewContentHeight();
+        wrapper.setMinWidth(previewWidth);
+        wrapper.setPrefWidth(previewWidth);
+        wrapper.setMaxWidth(previewWidth);
+        wrapper.setMinHeight(previewHeight);
+        wrapper.setPrefHeight(previewHeight);
+        wrapper.setMaxHeight(previewHeight);
 
         DoubleBinding scaleBinding = Bindings.createDoubleBinding(() -> {
             double availableWidth = Math.max(1, reviewPreviewHost.getWidth() - PREVIEW_SAFE_HORIZONTAL_PADDING);
             double availableHeight = Math.max(1, reviewPreviewHost.getHeight() - PREVIEW_SAFE_VERTICAL_PADDING);
 
-            double widthScale = availableWidth / PREVIEW_PAGE_WIDTH;
-            double heightScale = availableHeight / PREVIEW_PAGE_HEIGHT;
+            double widthScale = availableWidth / previewWidth;
+            double heightScale = availableHeight / previewHeight;
 
             double autoScale = Math.min(1.0, Math.min(widthScale, heightScale));
             return autoScale * reviewZoomMultiplier.get();

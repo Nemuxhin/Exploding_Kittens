@@ -234,7 +234,12 @@ public class TiffExportManager {
     }
 
     private BufferedImage resolvePageImage(PageImage page) {
-        BufferedImage image = decodeDataUri(page.getDisplayContent());
+        BufferedImage image = decodeSourceBytes(page);
+        if (image != null) {
+            return applyRotation(image, page == null ? 0 : page.getRotationDegrees());
+        }
+
+        image = decodeDataUri(page.getDisplayContent());
         if (image != null) {
             return applyRotation(image, page.getRotationDegrees());
         }
@@ -245,6 +250,19 @@ public class TiffExportManager {
         }
 
         return applyRotation(createPlaceholderPage(page), page == null ? 0 : page.getRotationDegrees());
+    }
+
+    private BufferedImage decodeSourceBytes(PageImage page) {
+        if (page == null) {
+            return null;
+        }
+
+        byte[] sourceBytes = page.getPreviewSourceBytes();
+        if (sourceBytes.length == 0) {
+            return null;
+        }
+
+        return TiffImageSupport.readFirstFrame(sourceBytes, 0, 0);
     }
 
     private BufferedImage decodeDataUri(String value) {

@@ -25,7 +25,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -65,12 +64,12 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javafx.util.Duration;
 
 public class AssignedQaController {
-    private static final List<String> QA_ROTATION_OPTIONS = List.of("0\u00B0", "90\u00B0", "180\u00B0", "270\u00B0");
 
     private static final double QA_PREVIEW_PAGE_WIDTH = 500;
     private static final double QA_PREVIEW_PAGE_HEIGHT = 560;
@@ -87,8 +86,6 @@ public class AssignedQaController {
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusFilterComboBox;
-    @FXML private DatePicker fromDatePicker;
-    @FXML private DatePicker toDatePicker;
     @FXML private HBox assignedQaFilterPanel;
     @FXML private TilePane qaCardListContainer;
 
@@ -99,8 +96,6 @@ public class AssignedQaController {
     @FXML private Label qaSidebarSubtitleLabel;
 
     @FXML private VBox qaDocumentTreeContainer;
-    @FXML private Button qaDocumentGridViewButton;
-    @FXML private Button qaDocumentListViewButton;
     @FXML private Label selectedQaPageTitleLabel;
     @FXML private Label selectedQaPageSubtitleLabel;
     @FXML private StackPane qaPreviewHost;
@@ -115,9 +110,6 @@ public class AssignedQaController {
     @FXML private CheckBox pageCountCorrectCheckBox;
     @FXML private TextArea qaCommentTextArea;
     @FXML private ComboBox<String> qaActionScopeComboBox;
-    @FXML private ComboBox<String> qaRotationComboBox;
-    @FXML private Button qaRotateLeftButton;
-    @FXML private Button qaRotateRightButton;
 
     private final List<QaAssignment> allAssignments = new ArrayList<>();
     private final List<QaDocument> reviewDocuments = new ArrayList<>();
@@ -139,8 +131,6 @@ public class AssignedQaController {
     private StackPane currentQaPreviewWrapper;
 
     private boolean syncingQaControls = false;
-    private boolean syncingQaRotationComboBox = false;
-    private boolean qaDocumentListView = false;
     private UserPortalModel portalModel;
     private final PauseTransition qaAutoSaveDelay = new PauseTransition(Duration.millis(400));
 
@@ -154,7 +144,6 @@ public class AssignedQaController {
     private void initialize() {
         configureFilters();
         configureAssignedQaListLayout();
-        configureQaRotation();
         configureQaControls();
         configureQaPreviewInteractions();
         loadAssignments();
@@ -178,47 +167,12 @@ public class AssignedQaController {
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        UserPortalUi.configureDateFilterPicker(fromDatePicker);
-        UserPortalUi.configureDateFilterPicker(toDatePicker);
-        fromDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        toDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
     }
 
     private void configureAssignedQaListLayout() {
         if (assignedQaFilterPanel != null && qaCardListContainer != null) {
             qaCardListContainer.prefWidthProperty().bind(assignedQaFilterPanel.widthProperty());
             qaCardListContainer.maxWidthProperty().bind(assignedQaFilterPanel.widthProperty());
-        }
-        updateQaDocumentViewToggleButtons();
-    }
-
-    @FXML
-    private void onShowQaDocumentGridView() {
-        qaDocumentListView = false;
-        updateQaDocumentViewToggleButtons();
-        renderQaDocumentTree();
-    }
-
-    @FXML
-    private void onShowQaDocumentListView() {
-        qaDocumentListView = true;
-        updateQaDocumentViewToggleButtons();
-        renderQaDocumentTree();
-    }
-
-    private void updateQaDocumentViewToggleButtons() {
-        setDocumentViewButtonActive(qaDocumentGridViewButton, !qaDocumentListView);
-        setDocumentViewButtonActive(qaDocumentListViewButton, qaDocumentListView);
-    }
-
-    private void setDocumentViewButtonActive(Button button, boolean active) {
-        if (button == null) {
-            return;
-        }
-
-        button.getStyleClass().remove("document-tree-view-toggle-button-active");
-        if (active) {
-            button.getStyleClass().add("document-tree-view-toggle-button-active");
         }
     }
 
@@ -301,70 +255,6 @@ public class AssignedQaController {
         });
 
         qaAutoSaveDelay.setOnFinished(event -> persistQaProgressAsync());
-    }
-
-    private void configureQaRotation() {
-        if (qaRotationComboBox == null) {
-            return;
-        }
-
-        qaRotationComboBox.getItems().setAll(QA_ROTATION_OPTIONS);
-        qaRotationComboBox.setEditable(true);
-        qaRotationComboBox.setPromptText("Enter rotation in degrees");
-        syncQaRotationComboBox();
-        qaRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null || newValue.isBlank()) {
-                return;
-            }
-
-            applyQaRotationSelection(newValue);
-        });
-
-        if (qaRotationComboBox.getEditor() != null) {
-            qaRotationComboBox.getEditor().setOnAction(event -> commitCustomQaRotation());
-            qaRotationComboBox.getEditor().focusedProperty().addListener((observable, oldValue, focused) -> {
-                if (!focused) {
-                    commitCustomQaRotation();
-                }
-            });
-        }
-    }
-
-    private void commitCustomQaRotation() {
-        if (qaRotationComboBox == null || qaRotationComboBox.getEditor() == null) {
-            return;
-        }
-
-        String editorValue = qaRotationComboBox.getEditor().getText();
-        if (editorValue == null || editorValue.isBlank()) {
-            syncQaRotationComboBox();
-            return;
-        }
-
-        qaRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
-    }
-
-    private void applyQaRotationSelection(String newValue) {
-        if (syncingQaRotationComboBox) {
-            return;
-        }
-
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            syncQaRotationComboBox();
-            return;
-        }
-
-        int newRotationDegrees = parseRotationDegrees(newValue);
-        if (page.rotationDegrees == newRotationDegrees) {
-            syncQaRotationComboBox();
-            return;
-        }
-
-        page.rotationDegrees = newRotationDegrees;
-        renderQaPreview();
-        updateQaRotationButtons();
-        scheduleQaProgressSave();
     }
 
     // =========================================================
@@ -701,16 +591,6 @@ public class AssignedQaController {
         return assignment.status.displayName.equals(selectedStatus);
     }
 
-    private boolean matchesFromDate(QaAssignment assignment) {
-        LocalDate fromDate = fromDatePicker.getValue();
-        return fromDate == null || !assignment.assignedDate.isBefore(fromDate);
-    }
-
-    private boolean matchesToDate(QaAssignment assignment) {
-        LocalDate toDate = toDatePicker.getValue();
-        return toDate == null || !assignment.assignedDate.isAfter(toDate);
-    }
-
     // =========================================================
     // ASSIGNED QA LIST RENDERING
     // =========================================================
@@ -721,8 +601,6 @@ public class AssignedQaController {
         List<QaAssignment> filteredAssignments = allAssignments.stream()
                 .filter(this::matchesSearch)
                 .filter(this::matchesStatus)
-                .filter(this::matchesFromDate)
-                .filter(this::matchesToDate)
                 .collect(Collectors.toList());
 
         if (filteredAssignments.isEmpty()) {
@@ -981,7 +859,9 @@ public class AssignedQaController {
 
         int selectedGlobalPage = 1;
         for (QAService.QaDocumentSnapshot submittedDocument : assignment.submittedDocuments) {
-            QaDocument document = new QaDocument(submittedDocument.name());
+            QaDocument document = new QaDocument(
+                    normalizeQaDocumentName(submittedDocument.name(), reviewDocuments.size() + 1)
+            );
 
             for (QAService.QaPageSnapshot submittedPage : submittedDocument.pages()) {
                 QaPage page = new QaPage(submittedPage.pageNumber(), submittedPage.globalPageNumber());
@@ -1009,6 +889,18 @@ public class AssignedQaController {
         selectPageByGlobalNumber(selectedGlobalPage);
     }
 
+    private String normalizeQaDocumentName(String name, int documentIndex) {
+        String normalized = name == null ? "" : name.trim();
+        if (normalized.isBlank()) {
+            return "Document " + documentIndex;
+        }
+        String lowered = normalized.toLowerCase(Locale.ROOT);
+        if (lowered.endsWith(".tiff") || lowered.endsWith(".tif")) {
+            return "Document " + documentIndex;
+        }
+        return normalized;
+    }
+
     private QaPageStatus toQaPageStatus(QAService.QaPageReviewStatus status) {
         if (status == null) {
             return QaPageStatus.NOT_REVIEWED;
@@ -1031,7 +923,6 @@ public class AssignedQaController {
         renderQaDocumentTree();
         renderQaPreview();
         renderQaTools();
-        updateQaRotationButtons();
     }
 
     private void updateSelectedAssignmentFromReview() {
@@ -1080,6 +971,15 @@ public class AssignedQaController {
                         + selectedAssignment.totalPages
                         + " pages reviewed"
         );
+        qaProgressLabel.getStyleClass().removeAll(
+                "qa-progress-chip-issues",
+                "qa-progress-chip-complete"
+        );
+        if (selectedAssignment.status == QaStatus.ISSUES_FOUND) {
+            qaProgressLabel.getStyleClass().add("qa-progress-chip-issues");
+        } else if (selectedAssignment.status == QaStatus.QA_COMPLETED) {
+            qaProgressLabel.getStyleClass().add("qa-progress-chip-complete");
+        }
 
         reviewStatusBadge.setText(selectedAssignment.status.displayName);
         reviewStatusBadge.getStyleClass().removeAll(
@@ -1104,26 +1004,6 @@ public class AssignedQaController {
         updateQaZoomLabel();
     }
 
-    private void updateQaRotationButtons() {
-        if (qaRotateLeftButton == null || qaRotateRightButton == null) {
-            return;
-        }
-
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            qaRotateLeftButton.setText("Rotate Left (90°)");
-            qaRotateRightButton.setText("Rotate Right (90°)");
-            return;
-        }
-
-        int currentRotation = normalizeRotation(page.rotationDegrees);
-        int leftTarget = normalizeRotation(currentRotation - 90);
-        int rightTarget = normalizeRotation(currentRotation + 90);
-
-        qaRotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
-        qaRotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
-    }
-
     private String getReviewStatusStyleClass(QaStatus status) {
         return switch (status) {
             case WAITING_FOR_QA -> "qa-review-status-waiting";
@@ -1145,17 +1025,15 @@ public class AssignedQaController {
 
             VBox documentBlock = new VBox(12);
             documentBlock.setAlignment(Pos.TOP_LEFT);
-            documentBlock.getStyleClass().add("document-tree-document-block");
-            if (qaDocumentListView) {
-                documentBlock.getStyleClass().add("document-tree-list-block");
-            }
+            documentBlock.getStyleClass().addAll("document-tree-document-block", "document-tree-list-block");
 
             HBox documentHeader = new HBox(9);
             documentHeader.setAlignment(Pos.CENTER_LEFT);
-            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
-            if (qaDocumentListView) {
-                documentHeader.getStyleClass().add("document-tree-list-header");
-            }
+            documentHeader.getStyleClass().addAll(
+                    "document-tree-document-header",
+                    "document-tree-document-header-framed",
+                    "document-tree-list-header"
+            );
 
             Region chevron = new Region();
             chevron.getStyleClass().add("document-tree-chevron-icon");
@@ -1181,19 +1059,14 @@ public class AssignedQaController {
             documentBlock.getChildren().add(documentHeader);
 
             if (document.expanded) {
-                VBox pageStack = new VBox(qaDocumentListView ? 0 : 18);
-                pageStack.setAlignment(qaDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
-                pageStack.getStyleClass().add("document-tree-page-stack");
-                if (qaDocumentListView) {
-                    pageStack.getStyleClass().add("document-tree-list-page-stack");
-                }
+                VBox pageStack = new VBox(0);
+                pageStack.setAlignment(Pos.TOP_LEFT);
+                pageStack.getStyleClass().addAll("document-tree-page-stack", "document-tree-list-page-stack");
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     QaPage page = document.pages.get(pageIndex);
                     final int rowDocumentIndex = documentIndex;
                     final int rowPageIndex = pageIndex;
-                    Node pageNode = qaDocumentListView
-                            ? createQaPageRow(page, rowDocumentIndex, rowPageIndex)
-                            : createQaEmbeddedPageCard(page, rowDocumentIndex, rowPageIndex);
+                    Node pageNode = createQaPageRow(page, rowDocumentIndex, rowPageIndex);
                     pageStack.getChildren().add(pageNode);
                 }
                 documentBlock.getChildren().add(pageStack);
@@ -1282,39 +1155,6 @@ public class AssignedQaController {
         }
 
         qaSidebarSubtitleLabel.setText(selectedAssignment.profile + " \u00B7 " + selectedAssignment.boxId);
-    }
-
-    private VBox createQaEmbeddedPageCard(QaPage page, int documentIndex, int pageIndex) {
-        VBox card = new VBox(3);
-        card.setAlignment(Pos.CENTER);
-        card.getStyleClass().addAll("page-tray-item", "qa-embedded-page-card");
-
-        if (pageIndex == selectedPageIndex && documentIndex == selectedDocumentIndex) {
-            card.getStyleClass().add("page-tray-item-selected");
-        }
-
-        StackPane thumbnail = new StackPane();
-        thumbnail.getStyleClass().add("page-tray-thumbnail");
-
-        Image pageImage = decodeDataUriImage(page.imageContent());
-        if (pageImage == null) {
-            Region pageBlock = new Region();
-            pageBlock.getStyleClass().add("qa-tray-page-block");
-            thumbnail.getChildren().add(pageBlock);
-        } else {
-            ImageView imageView = new ImageView(pageImage);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-            imageView.setFitWidth(104);
-            imageView.setFitHeight(126);
-            imageView.setRotate(page.rotationDegrees);
-            thumbnail.getChildren().add(imageView);
-        }
-
-        HBox labelRow = createQaPageLabelRow(page, true);
-        card.getChildren().addAll(thumbnail, labelRow);
-        card.setOnMouseClicked(event -> selectQaPage(documentIndex, pageIndex));
-        return card;
     }
 
     private HBox createQaPageRow(QaPage page, int documentIndex, int pageIndex) {
@@ -1465,7 +1305,6 @@ public class AssignedQaController {
             pageCountCorrectCheckBox.setSelected(page.pageCountCorrect);
         }
         qaCommentTextArea.setText(page.comment == null ? "" : page.comment);
-        syncQaRotationComboBox();
 
         syncingQaControls = false;
     }
@@ -1809,84 +1648,6 @@ public class AssignedQaController {
         renderQaPreview();
     }
 
-    @FXML
-    private void onRotateLeft() {
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            return;
-        }
-
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
-        renderQaPreview();
-        updateQaRotationButtons();
-        syncQaRotationComboBox();
-        scheduleQaProgressSave();
-    }
-
-    @FXML
-    private void onRotateRight() {
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            return;
-        }
-
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
-        renderQaPreview();
-        updateQaRotationButtons();
-        syncQaRotationComboBox();
-        scheduleQaProgressSave();
-    }
-
-    private int normalizeRotation(int rotationDegrees) {
-        int normalized = rotationDegrees % 360;
-
-        if (normalized < 0) {
-            normalized += 360;
-        }
-
-        return normalized;
-    }
-
-    private void syncQaRotationComboBox() {
-        if (qaRotationComboBox == null) {
-            return;
-        }
-
-        syncingQaRotationComboBox = true;
-        QaPage page = getSelectedQaPage();
-        String rotationValue = formatRotationDegrees(page == null ? 0 : page.rotationDegrees);
-        qaRotationComboBox.setValue(rotationValue);
-        if (qaRotationComboBox.getEditor() != null) {
-            qaRotationComboBox.getEditor().setText(rotationValue);
-        }
-        syncingQaRotationComboBox = false;
-    }
-
-    private String formatRotationDegrees(int rotationDegrees) {
-        return normalizeRotation(rotationDegrees) + "\u00B0";
-    }
-
-    private int parseRotationDegrees(String value) {
-        if (value == null || value.isBlank()) {
-            return 0;
-        }
-
-        String normalizedValue = value.trim().replace("\u00B0", "");
-        try {
-            return normalizeRotation(Integer.parseInt(normalizedValue));
-        } catch (NumberFormatException ignored) {
-            String digitsOnly = normalizedValue.replaceAll("[^0-9-]", "");
-            if (digitsOnly.isBlank() || "-".equals(digitsOnly)) {
-                return 0;
-            }
-            try {
-                return normalizeRotation(Integer.parseInt(digitsOnly));
-            } catch (NumberFormatException ignoredAgain) {
-                return 0;
-            }
-        }
-    }
-
     // =========================================================
     // FXML ACTIONS: QA WORK
     // =========================================================
@@ -1983,8 +1744,11 @@ public class AssignedQaController {
             refreshQaReviewWorkspace();
             loadAssignments();
             renderAssignments();
-            showExportAlert(null, Alert.AlertType.INFORMATION, "QA approved",
-                    "QA is complete. Export is now available for this review.");
+            String boxId = selectedAssignment.boxId == null || selectedAssignment.boxId.isBlank()
+                    ? "This QA review"
+                    : selectedAssignment.boxId;
+            String message = boxId + " completed with " + reviewDocuments.size() + " documents.";
+            showQaCompletedDialog(message, this::onBackToAssignedQaList);
             return;
         }
 
@@ -2055,7 +1819,7 @@ public class AssignedQaController {
         int approvedPages = getApprovedPageCount();
         int remainingPages = Math.max(0, totalPages - approvedPages);
 
-        String message = "You can export only after all QA documents are approved. "
+        String message = "You can export only after all QA documents are approved.\n"
                 + remainingPages + " pages still need approval.";
 
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -2091,6 +1855,114 @@ public class AssignedQaController {
         dialog.getDialogPane().setContent(createExportBlockedDialogContent(dialog, message));
 
         dialog.showAndWait();
+    }
+
+    private void showQaCompletedDialog(String message, Runnable onOk) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Completed QA");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (qaReviewWorkspaceView != null && qaReviewWorkspaceView.getScene() != null) {
+            dialog.initOwner(qaReviewWorkspaceView.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(qaReviewWorkspaceView.getScene().getStylesheets());
+
+            if (qaReviewWorkspaceView.getScene().getRoot() != null
+                    && qaReviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(520);
+        dialog.getDialogPane().setMaxWidth(520);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(createQaCompletedDialogContent(dialog, message));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.orElse(ButtonType.CLOSE) == ButtonType.OK && onOk != null) {
+            onOk.run();
+        }
+    }
+
+    private VBox createQaCompletedDialogContent(Dialog<ButtonType> dialog, String message) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+
+        HBox header = createQaCompletedDialogHeader(dialog);
+        makeDialogDraggable(dialog, header);
+
+        root.getChildren().addAll(
+                header,
+                createQaCompletedDialogBody(dialog, message)
+        );
+
+        return root;
+    }
+
+    private HBox createQaCompletedDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label("Completed QA");
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("\u00D7");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        return header;
+    }
+
+    private VBox createQaCompletedDialogBody(Dialog<ButtonType> dialog, String message) {
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.getStyleClass().addAll("profile-created-dialog-ok-button", "profile-open-button");
+        okButton.setFocusTraversable(false);
+        okButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, okButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+
+        return body;
     }
 
     private VBox createExportBlockedDialogContent(Dialog<ButtonType> dialog, String message) {
@@ -2735,3 +2607,5 @@ public class AssignedQaController {
         MULTI_PAGE
     }
 }
+
+

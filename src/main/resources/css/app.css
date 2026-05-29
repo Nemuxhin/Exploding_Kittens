@@ -4484,6 +4484,16 @@
     -fx-alignment: center;
 }
 
+.qa-progress-chip-issues {
+    -fx-text-fill: #FF3D32;
+    -fx-border-color: #FF3D32;
+}
+
+.qa-progress-chip-complete {
+    -fx-text-fill: #4CD07D;
+    -fx-border-color: #4CD07D;
+}
+
 .scan-center-panel {
     -fx-background-color: -wl-background;
 }
@@ -4627,7 +4637,7 @@
 
 .document-tree-document-block {
     -fx-padding: 0;
-    -fx-background-color: #ffffff;
+    -fx-background-color: -wl-surface;
     -fx-background-radius: 14;
     -fx-border-color: transparent;
     -fx-border-radius: 14;
@@ -5480,6 +5490,17 @@
     -fx-border-width: 0 0 0 1;
 }
 
+.scan-side-scroll,
+.scan-side-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.scan-side-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
 .scan-workflow-box {
     -fx-padding: 9 0 0 0;
     -fx-background-color: -wl-surface;
@@ -5532,6 +5553,31 @@
     -fx-background-color: -wl-tertiary;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
+}
+
+.scan-tool-button.combo-box-base {
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.scan-tool-button.combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scan-tool-button.combo-box-base > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.scan-tool-button.combo-box-base > .list-cell,
+.scan-tool-button.combo-box-base .text-field,
+.scan-tool-button.combo-box-base .text-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-highlight-fill: -wl-primary-selected;
+    -fx-highlight-text-fill: -wl-on-primary;
 }
 
 .scan-tool-button:hover,
@@ -6223,6 +6269,8 @@
 .app-shell.dark .scan-left-panel,
 .app-shell.dark .review-left-panel,
 .app-shell.dark .qa-review-left-panel,
+.app-shell.dark .scan-side-scroll,
+.app-shell.dark .scan-side-scroll > .viewport,
 .app-shell.dark .document-tree-scroll,
 .app-shell.dark .document-tree-scroll > .viewport,
 .app-shell.dark .document-tree-container,
@@ -6252,6 +6300,10 @@
 .app-shell.dark .document-tree-count,
 .app-shell.dark .review-document-count {
     -fx-text-fill: #aab3c5;
+}
+
+.app-shell.dark .review-current-selection-label {
+    -fx-text-fill: #d6deeb;
 }
 
 .app-shell.dark .document-tree-scroll .scroll-bar:vertical .track {
@@ -6298,6 +6350,31 @@
 .app-shell.dark .scan-progress-indicator-copy,
 .app-shell.dark .scan-preview-loading-title {
     -fx-text-fill: #f7f9fd;
+}
+
+.app-shell.dark .document-tree-page-title {
+    -fx-text-fill: #f7f9fd;
+}
+
+.app-shell.dark .document-tree-document-block,
+.app-shell.dark .document-tree-page-stack,
+.app-shell.dark .document-tree-list-page-stack {
+    -fx-background-color: #252c3b;
+}
+
+.app-shell.dark .document-tree-page-row {
+    -fx-background-color: #252c3b;
+}
+
+.app-shell.dark .document-tree-page-row:hover,
+.app-shell.dark .document-tree-list-page-row:hover {
+    -fx-background-color: #2b3140;
+}
+
+.app-shell.dark .document-embedded-page-card .page-tray-thumbnail,
+.app-shell.dark .review-embedded-page-card .review-page-tray-thumbnail {
+    -fx-background-color: #252c3b;
+    -fx-border-color: #49546a;
 }
 
 .app-shell.dark .scan-preview-loading-copy {
@@ -6542,9 +6619,9 @@
     -fx-padding: 10;
     -fx-spacing: 8;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 0;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 0;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
 }
 
@@ -6666,11 +6743,11 @@
 }
 
 .assigned-qa-progress-issues {
-    -fx-background-color: -wl-progress-issues;
+    -fx-background-color: #FF3D32;
 }
 
 .assigned-qa-progress-complete {
-    -fx-background-color: -wl-progress-complete;
+    -fx-background-color: #4CD07D;
 }
 
 /* =========================================================
@@ -7188,6 +7265,86 @@
 .app-shell.dark .qa-tools-scroll > .viewport,
 .app-shell.dark .qa-tools-content {
     -fx-background-color: -wl-surface;
+}
+
+.app-shell.dark .scan-session-header,
+.app-shell.dark .scan-current-file-header,
+.app-shell.dark .review-current-file-header,
+.app-shell.dark .qa-review-current-file-header,
+.app-shell.dark .scan-view-toolbar,
+.app-shell.dark .review-summary-bar,
+.app-shell.dark .qa-review-header {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .review-next-step-panel,
+.app-shell.dark .qa-tools-panel,
+.app-shell.dark .page-tray-shell,
+.app-shell.dark .review-page-tray-shell,
+.app-shell.dark .scan-side-scroll,
+.app-shell.dark .scan-side-scroll > .viewport,
+.app-shell.dark .document-tree-scroll,
+.app-shell.dark .document-tree-scroll > .viewport,
+.app-shell.dark .document-tree-container,
+.app-shell.dark .review-document-scroll,
+.app-shell.dark .review-document-scroll > .viewport,
+.app-shell.dark .review-document-list,
+.app-shell.dark .qa-tools-scroll,
+.app-shell.dark .qa-tools-scroll > .viewport,
+.app-shell.dark .qa-tools-content {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .review-next-step-panel,
+.app-shell.dark .qa-tools-panel {
+    -fx-border-color: transparent #465160 transparent transparent;
+}
+
+.app-shell.dark .qa-tools-panel {
+    -fx-border-color: transparent transparent transparent #465160;
+}
+
+.app-shell.dark .document-tree-document-block,
+.app-shell.dark .document-tree-page-stack,
+.app-shell.dark .document-tree-list-page-stack,
+.app-shell.dark .review-document-list {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .document-tree-document-header,
+.app-shell.dark .document-tree-document-header-framed,
+.app-shell.dark .document-tree-list-header,
+.app-shell.dark .review-document-card {
+    -fx-background-color: #354556;
+    -fx-border-color: #465160;
+}
+
+.app-shell.dark .document-tree-document-header:hover,
+.app-shell.dark .review-document-card:hover {
+    -fx-background-color: #465160;
+}
+
+.app-shell.dark .document-tree-page-row,
+.app-shell.dark .document-tree-list-page-row {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .document-tree-page-row:hover,
+.app-shell.dark .document-tree-list-page-row:hover {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .document-tree-page-row.document-tree-page-selected,
+.app-shell.dark .document-tree-page-row.document-tree-page-selected:hover {
+    -fx-background-color: #354556;
 }
 
 .app-shell.dark .qa-review-center-panel {
@@ -8311,6 +8468,11 @@
     -fx-border-color: -wl-primary;
 }
 
+.admin-action-tile-primary:hover {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
 .admin-action-tile-primary .admin-action-title,
 .admin-action-tile-primary .admin-action-text {
     -fx-text-fill: -wl-on-primary;
@@ -8549,6 +8711,12 @@
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
+}
+
+.status-submitted-for-qa {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
 }
 
 .status-processing {

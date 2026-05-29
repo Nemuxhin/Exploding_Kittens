@@ -9,6 +9,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -19,8 +20,9 @@
 <ScrollPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="easv.gui.controller.admin.ReviewController"
+            fx:id="reviewRootScrollPane"
             fitToWidth="true"
-            fitToHeight="false"
+            fitToHeight="true"
             hbarPolicy="NEVER"
             vbarPolicy="AS_NEEDED"
             minWidth="0"
@@ -254,26 +256,25 @@
                               styleClass="review-table-header">
 
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="4" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="20" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="14" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="14" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="17" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="13" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="13" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                             <ColumnConstraints percentWidth="12" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="6" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="12" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
-                            <ColumnConstraints percentWidth="10" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="5" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="11" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="13" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
+                            <ColumnConstraints percentWidth="8" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                             <ColumnConstraints percentWidth="8" minWidth="0" hgrow="ALWAYS" fillWidth="true"/>
                         </columnConstraints>
 
-                        <Region GridPane.columnIndex="0"/>
-
-                        <Label text="Box" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="1"/>
-                        <Label text="Client" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="2"/>
-                        <Label text="Profile" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="3"/>
-                        <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="4"/>
-                        <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="5"/>
-                        <Label text="Waiting" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6"/>
-                        <Label text="QA Assignee" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="7"/>
+                        <Label text="Box" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="0"/>
+                        <Label text="Client" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="1"/>
+                        <Label text="Profile" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="2"/>
+                        <Label text="QA Status" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="3" GridPane.halignment="CENTER"/>
+                        <Label text="Pages" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="4" GridPane.halignment="CENTER"/>
+                        <Label text="Waiting" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="5"/>
+                        <Label text="QA Assignee" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="6" GridPane.halignment="CENTER"/>
+                        <Label text="Assign QA" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="7"/>
                         <Label text="Review" wrapText="true" maxWidth="Infinity" styleClass="review-header-label" GridPane.columnIndex="8"/>
                     </GridPane>
 
@@ -352,323 +353,318 @@
                     <String fx:value="admin-page"/>
                     <String fx:value="main-content"/>
                     <String fx:value="review-workspace-page"/>
+                    <String fx:value="scan-review-workspace"/>
                 </styleClass>
 
-                <padding>
-                    <Insets top="24" right="24" bottom="24" left="24"/>
-                </padding>
+                <BorderPane fx:id="reviewWorkspaceView"
+                            minWidth="0"
+                            minHeight="0"
+                            maxWidth="Infinity"
+                            maxHeight="Infinity"
+                            VBox.vgrow="ALWAYS"
+                            styleClass="qa-review-workspace">
 
-                <VBox spacing="15" maxWidth="Infinity">
-                    <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
-                        <Button text="Back"
-                                onAction="#showOverview"
-                                focusTraversable="false"
-                                styleClass="back-button"/>
-                    </HBox>
-
-                    <HBox alignment="CENTER_LEFT"
-                          maxWidth="Infinity"
-                          styleClass="review-workspace-header">
-
+                    <top>
                         <VBox spacing="3"
+                              alignment="CENTER_LEFT"
                               minWidth="0"
+                              minHeight="72"
+                              prefHeight="72"
+                              maxHeight="72"
                               maxWidth="Infinity"
-                              HBox.hgrow="ALWAYS">
+                              styleClass="qa-review-header">
+                            <padding>
+                                <Insets top="6" right="18" bottom="6" left="18"/>
+                            </padding>
 
-                            <styleClass>
-                                <String fx:value="page-heading-copy"/>
-                                <String fx:value="review-workspace-title-area"/>
-                            </styleClass>
+                            <Label text="Review QA"
+                                   translateY="10"
+                                   mouseTransparent="true"
+                                   styleClass="qa-review-title"/>
 
-                            <Label fx:id="workspaceTitleLabel"
-                                   text="BOX-2026-004 / Case 2026-042 / Document 3"
-                                   minWidth="0"
-                                   maxWidth="Infinity"
-                                   textOverrun="ELLIPSIS"
-                                   styleClass="page-title"/>
+                            <Button text="Back"
+                                    onAction="#onBackToScanningFromReview"
+                                    translateY="10"
+                                    styleClass="scan-back-button"/>
 
-                            <Label fx:id="workspaceSubtitleLabel"
-                                   text="Building Archive - Aalborg Municipality - 12 pages - Missing Required Fields"
-                                   minWidth="0"
-                                   maxWidth="Infinity"
-                                   textOverrun="ELLIPSIS"
-                                   styleClass="page-subtitle"/>
+                            <HBox spacing="9"
+                                  alignment="CENTER"
+                                  translateY="-24"
+                                  mouseTransparent="true"
+                                  maxWidth="Infinity">
+                                <Label fx:id="reviewReferenceInfoLabel"
+                                       text="Ref: -"
+                                       styleClass="scan-session-info-chip"/>
+
+                                <Label fx:id="reviewFilesInfoLabel"
+                                       text="Scanned Files: 0"
+                                       styleClass="scan-session-info-chip"/>
+
+                                <Label fx:id="reviewDocumentsInfoLabel"
+                                       text="Documents: 0"
+                                       styleClass="scan-session-info-chip"/>
+                            </HBox>
+
+                            <HBox spacing="18"
+                                  alignment="CENTER_LEFT"
+                                  visible="false"
+                                  managed="false">
+                                <Label text="Box" styleClass="review-summary-label"/>
+                                <Label fx:id="reviewBoxValueLabel" text="-" styleClass="review-summary-value"/>
+                                <Label text="Profile" styleClass="review-summary-label"/>
+                                <Label fx:id="reviewProfileValueLabel" text="-" styleClass="review-summary-value"/>
+                                <Label text="Documents" styleClass="review-summary-label"/>
+                                <Label fx:id="reviewDocumentsValueLabel" text="-" styleClass="review-summary-value"/>
+                            </HBox>
                         </VBox>
+                    </top>
 
-                        <HBox alignment="CENTER_RIGHT"
-                              spacing="12"
-                              styleClass="header-actions">
+                    <left>
+                        <VBox spacing="15"
+                              minWidth="320"
+                              prefWidth="320"
+                              maxWidth="320"
+                              minHeight="0"
+                              maxHeight="Infinity"
+                              styleClass="qa-review-left-panel">
 
-                            <Button text="Save Review"
-                                    onAction="#saveReviewDetails"
-                                    focusTraversable="false">
-                                <styleClass>
-                                    <String fx:value="header-secondary-button"/>
-                                    <String fx:value="admin-save-button"/>
-                                </styleClass>
-                            </Button>
+                            <HBox alignment="CENTER_LEFT"
+                                  spacing="9"
+                                  maxWidth="Infinity">
+                                <Label text="Box Structure"
+                                       styleClass="qa-review-panel-title"/>
 
-                            <Button text="Mark Details Complete"
-                                    onAction="#markComplete"
-                                    focusTraversable="false">
-                                <styleClass>
-                                    <String fx:value="header-secondary-button"/>
-                                    <String fx:value="admin-complete-button"/>
-                                </styleClass>
-                            </Button>
+                                <Region HBox.hgrow="ALWAYS"/>
+                            </HBox>
 
-                            <Button text="Assign QA"
-                                    onAction="#sendToQa"
-                                    focusTraversable="false">
-                                <styleClass>
-                                    <String fx:value="header-primary-button"/>
-                                    <String fx:value="admin-send-review-button"/>
-                                </styleClass>
-                            </Button>
+                            <Label fx:id="reviewSidebarSubtitleLabel"
+                                   text="Profile - Box"
+                                   styleClass="document-tree-subtitle"/>
 
-                            <Button text="Approve QA"
-                                    onAction="#approveReview"
-                                    focusTraversable="false">
-                                <styleClass>
-                                    <String fx:value="header-primary-button"/>
-                                    <String fx:value="admin-approve-button"/>
-                                </styleClass>
-                            </Button>
+                            <ScrollPane fitToWidth="true"
+                                        fitToHeight="false"
+                                        hbarPolicy="NEVER"
+                                        vbarPolicy="AS_NEEDED"
+                                        pannable="true"
+                                        minHeight="0"
+                                        maxHeight="Infinity"
+                                        VBox.vgrow="ALWAYS"
+                                        styleClass="document-tree-scroll">
 
-                            <Button text="Reject QA"
-                                    onAction="#rejectReview"
-                                    focusTraversable="false">
-                                <styleClass>
-                                    <String fx:value="header-destructive-button"/>
-                                    <String fx:value="admin-reject-button"/>
-                                </styleClass>
-                            </Button>
-                        </HBox>
-                    </HBox>
-                </VBox>
-
-                <HBox spacing="12"
-                      alignment="CENTER_LEFT"
-                      maxWidth="Infinity"
-                      styleClass="review-workspace-warning-banner">
-
-                    <Label text="&#xe922;" styleClass="prime-icon review-workspace-warning-icon"/>
-
-                    <Label fx:id="workspaceWarningLabel"
-                           text="Export blocked: 2 required document fields are missing."
-                           styleClass="review-workspace-warning-text"/>
-                </HBox>
-
-                <HBox spacing="0"
-                      alignment="TOP_LEFT"
-                      maxWidth="Infinity"
-                      styleClass="review-workspace-shell">
-
-                    <VBox spacing="15"
-                          prefWidth="300"
-                          minWidth="270"
-                          maxWidth="330"
-                          styleClass="review-workspace-left-panel">
-
-                        <VBox spacing="3">
-                            <Label text="Scan Structure" styleClass="review-workspace-panel-title"/>
-                            <Label text="Box, case, and document hierarchy"
-                                   styleClass="review-workspace-panel-subtitle"/>
-                        </VBox>
-
-                        <HBox styleClass="search-field-shell"
-                              maxWidth="Infinity">
-
-                            <StackPane styleClass="field-icon-shell">
-                                <Label text="&#xe908;" styleClass="prime-icon field-icon-path"/>
-                            </StackPane>
-
-                            <TextField fx:id="reviewWorkspaceSearchField"
-                                       promptText="Search documents..."
-                                       styleClass="search-field-input"
-                                       maxWidth="Infinity"
-                                       HBox.hgrow="ALWAYS"/>
-                        </HBox>
-
-                        <VBox fx:id="reviewWorkspaceTreeContainer"
-                              spacing="12"
-                              maxWidth="Infinity"
-                              styleClass="review-workspace-tree"/>
-                    </VBox>
-
-                    <VBox spacing="0"
-                          minWidth="0"
-                          maxWidth="Infinity"
-                          HBox.hgrow="ALWAYS"
-                          styleClass="review-workspace-viewer-panel">
-
-                        <HBox alignment="CENTER_LEFT"
-                              styleClass="review-workspace-viewer-toolbar">
-
-                            <Label text="Page Viewer" styleClass="review-workspace-panel-title"/>
-
-                            <Region HBox.hgrow="ALWAYS"/>
-
-                            <Label fx:id="reviewWorkspaceViewerPageLabel"
-                                   text="Page 3 of 12"
-                                   styleClass="review-workspace-viewer-page-label"/>
-
-                            <Button fx:id="reviewZoomOutButton" text="-" onAction="#zoomOutWorkspacePreview" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button fx:id="reviewZoomInButton" text="+" onAction="#zoomInWorkspacePreview" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button fx:id="reviewFitButton" text="Fit" onAction="#fitWorkspacePreview" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button fx:id="reviewPrevPageButton" text="&lt;" onAction="#showPreviousWorkspacePage" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button fx:id="reviewNextPageButton" text="&gt;" onAction="#showNextWorkspacePage" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                            <Button fx:id="reviewBarcodeButton" text="Barcode" onAction="#focusWorkspaceBarcodePage" focusTraversable="false" styleClass="review-workspace-tool-button"/>
-                        </HBox>
-
-                        <StackPane fx:id="reviewWorkspacePreviewHost"
-                                   minHeight="540"
-                                   maxWidth="Infinity"
-                                   styleClass="review-workspace-viewer-area"/>
-
-                        <ScrollPane fitToHeight="true"
-                                    fitToWidth="false"
-                                    hbarPolicy="AS_NEEDED"
-                                    vbarPolicy="NEVER"
-                                    styleClass="review-workspace-thumbnail-scroll">
-
-                            <content>
-                                <HBox fx:id="reviewWorkspaceThumbnailStrip"
+                                <VBox fx:id="reviewDocumentListContainer"
                                       spacing="9"
-                                      styleClass="review-workspace-thumbnail-strip"/>
-                            </content>
-                        </ScrollPane>
-                    </VBox>
-
-                    <VBox spacing="15"
-                          prefWidth="330"
-                          minWidth="318"
-                          maxWidth="360"
-                          styleClass="review-workspace-right-panel">
-
-                        <VBox spacing="3">
-                            <Label text="Review Details" styleClass="review-workspace-panel-title"/>
-                            <Label text="Complete document details and QA checks"
-                                   styleClass="review-workspace-panel-subtitle"/>
+                                      minWidth="0"
+                                      maxWidth="Infinity"
+                                      styleClass="document-tree-container"/>
+                            </ScrollPane>
                         </VBox>
+                    </left>
 
-                        <HBox spacing="6" styleClass="review-workspace-tabs">
-                            <Button fx:id="boxTabButton" text="Box" onAction="#showBoxTab" focusTraversable="false" styleClass="review-workspace-tab-button"/>
-                            <Button fx:id="caseTabButton" text="Case" onAction="#showCaseTab" focusTraversable="false" styleClass="review-workspace-tab-button"/>
-                            <Button fx:id="documentTabButton" text="Document" onAction="#showDocumentTab" focusTraversable="false" styleClass="review-workspace-tab-active"/>
-                            <Button fx:id="pageTabButton" text="Page" onAction="#showPageTab" focusTraversable="false" styleClass="review-workspace-tab-button"/>
-                        </HBox>
-
-                        <VBox spacing="3" styleClass="review-workspace-validation-summary">
-                            <Label text="Document Details" styleClass="review-workspace-validation-title"/>
-                            <Label text="2 required fields missing" styleClass="review-workspace-validation-copy"/>
-                        </VBox>
-
-                        <VBox spacing="12" styleClass="review-workspace-form">
-
-                            <VBox spacing="6">
-                                <Label text="Document Type *" styleClass="review-workspace-field-label"/>
-                                <ComboBox fx:id="documentTypeComboBox"
-                                          maxWidth="Infinity"
-                                          promptText="Select document type"
-                                          styleClass="review-workspace-input-error"/>
-                                <Label text="Document Type is required."
-                                       styleClass="review-workspace-field-error"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Case Number *" styleClass="review-workspace-field-label"/>
-                                <TextField fx:id="caseNumberField"
-                                           text="2026-042"
-                                           styleClass="review-workspace-input"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Registration Date" styleClass="review-workspace-field-label"/>
-                                <TextField fx:id="registrationDateField"
-                                           text="Invalid date"
-                                           styleClass="review-workspace-input-error"/>
-                                <Label text="Enter a valid date."
-                                       styleClass="review-workspace-field-error"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Building Address *" styleClass="review-workspace-field-label"/>
-                                <TextField fx:id="buildingAddressField"
-                                           text="Skagerrakvej 16"
-                                           styleClass="review-workspace-input"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Department" styleClass="review-workspace-field-label"/>
-                                <ComboBox fx:id="departmentComboBox"
-                                          maxWidth="Infinity"
-                                          styleClass="review-workspace-input"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Notes" styleClass="review-workspace-field-label"/>
-                                <TextArea fx:id="notesTextArea"
-                                          promptText="Optional notes..."
-                                          prefRowCount="3"
-                                          wrapText="true"
-                                          styleClass="review-workspace-textarea"/>
-                            </VBox>
-
-                            <VBox spacing="6">
-                                <Label text="Tags" styleClass="review-workspace-field-label"/>
-
-                                <HBox spacing="6">
-                                    <Label text="Archive" styleClass="review-workspace-tag"/>
-                                    <Label text="Building Permit" styleClass="review-workspace-tag"/>
-                                    <Label text="Needs Review" styleClass="review-workspace-tag-warning"/>
-                                </HBox>
-                            </VBox>
-
-                            <Region styleClass="review-workspace-divider"/>
-
-                            <VBox spacing="6">
-                                <Label text="Completion Status" styleClass="review-workspace-field-label"/>
-
-                                <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="OK" styleClass="review-workspace-check-complete"/>
-                                    <Label text="Box details: Complete" styleClass="review-workspace-check-text"/>
-                                </HBox>
-
-                                <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="OK" styleClass="review-workspace-check-complete"/>
-                                    <Label text="Case details: Complete" styleClass="review-workspace-check-text"/>
-                                </HBox>
-
-                                <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="!" styleClass="review-workspace-check-warning"/>
-                                    <Label text="Document details: Missing 2 required fields" styleClass="review-workspace-check-text"/>
-                                </HBox>
-
-                                <HBox spacing="6" alignment="CENTER_LEFT">
-                                    <Label text="-" styleClass="review-workspace-check-neutral"/>
-                                    <Label text="Page details: Optional" styleClass="review-workspace-check-text"/>
-                                </HBox>
-                            </VBox>
-                        </VBox>
-
-                        <Region VBox.vgrow="ALWAYS"/>
-
-                        <VBox spacing="9" styleClass="review-workspace-side-actions">
-                            <Button text="Save Review"
-                                    onAction="#saveReviewDetails"
-                                    focusTraversable="false"
+                    <center>
+                        <BorderPane minWidth="0"
+                                    minHeight="0"
                                     maxWidth="Infinity"
-                                    styleClass="header-secondary-button"/>
+                                    maxHeight="Infinity"
+                                    styleClass="review-center-panel">
 
-                            <Button text="Mark Details Complete"
-                                    onAction="#markComplete"
-                                    focusTraversable="false"
-                                    maxWidth="Infinity"
-                                    styleClass="create-user-button"/>
+                            <top>
+                                <HBox spacing="12"
+                                      alignment="CENTER_LEFT"
+                                      minHeight="51"
+                                      prefHeight="51"
+                                      maxHeight="51"
+                                      styleClass="scan-view-toolbar">
+                                    <padding>
+                                        <Insets top="0" right="18" bottom="0" left="18"/>
+                                    </padding>
+
+                                    <Label text="View" styleClass="view-toolbar-label"/>
+                                    <Button fx:id="reviewZoomOutButton" text="&#8722;" onAction="#onReviewZoomOut" styleClass="view-tool-button"/>
+                                    <Label fx:id="reviewZoomLabel" text="100%" minWidth="54" alignment="CENTER" styleClass="view-zoom-label"/>
+                                    <Button fx:id="reviewZoomInButton" text="+" onAction="#onReviewZoomIn" styleClass="view-tool-button"/>
+                                    <Region styleClass="view-toolbar-divider"/>
+                                    <Button fx:id="reviewFitButton" text="↑" onAction="#onNudgeReviewPreviewUp" styleClass="view-tool-button"/>
+                                    <Button fx:id="reviewPrevPageButton" text="←" onAction="#onNudgeReviewPreviewLeft" styleClass="view-tool-button"/>
+                                    <Label text="Move" styleClass="view-toolbar-muted-label"/>
+                                    <Button fx:id="reviewNextPageButton" text="→" onAction="#onNudgeReviewPreviewRight" styleClass="view-tool-button"/>
+                                    <Button fx:id="reviewBarcodeButton" text="↓" onAction="#onNudgeReviewPreviewDown" styleClass="view-tool-button"/>
+                                    <Label fx:id="reviewSelectedTitleLabel" text="No page selected" visible="false" managed="false" styleClass="review-selected-title"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Label text="." styleClass="review-view-icon"/>
+                                    <Label text="." styleClass="review-view-icon"/>
+                                    <Label text="." styleClass="review-view-icon"/>
+                                    <Button text="Reset View" onAction="#onResetReviewPreviewView" styleClass="view-reset-button"/>
+                                </HBox>
+                            </top>
+
+                            <center>
+                                <StackPane minWidth="0"
+                                           minHeight="0"
+                                           maxWidth="Infinity"
+                                           maxHeight="Infinity"
+                                           styleClass="review-preview-stage">
+
+                                    <HBox spacing="18"
+                                          alignment="CENTER"
+                                          minWidth="0"
+                                          minHeight="0"
+                                          maxWidth="Infinity"
+                                          maxHeight="Infinity">
+
+                                        <Button text="&#8249;"
+                                                onAction="#onPreviousReviewPage"
+                                                styleClass="preview-arrow-button"/>
+
+                                        <StackPane fx:id="reviewPreviewHost"
+                                                   minWidth="0"
+                                                   minHeight="0"
+                                                   maxWidth="Infinity"
+                                                   maxHeight="Infinity"
+                                                   HBox.hgrow="ALWAYS"
+                                                   styleClass="review-preview-host"/>
+
+                                        <Button text="&#8250;"
+                                                onAction="#onNextReviewPage"
+                                                styleClass="preview-arrow-button"/>
+                                    </HBox>
+                                </StackPane>
+                            </center>
+
+                            <bottom>
+                                <VBox spacing="0"
+                                      visible="false"
+                                      managed="false"
+                                      minHeight="0"
+                                      prefHeight="0"
+                                      maxHeight="0"
+                                      opacity="0"
+                                      styleClass="review-page-tray-shell">
+                                    <HBox visible="false"
+                                          managed="false"
+                                          alignment="CENTER_LEFT"
+                                          minHeight="0"
+                                          prefHeight="0"
+                                          maxHeight="0">
+                                        <Label text="Page Tray" styleClass="review-page-tray-title"/>
+                                    </HBox>
+
+                                    <ScrollPane fitToHeight="true"
+                                                fitToWidth="false"
+                                                hbarPolicy="AS_NEEDED"
+                                                vbarPolicy="NEVER"
+                                                minHeight="144"
+                                                prefHeight="144"
+                                                maxHeight="144"
+                                                styleClass="review-page-tray-scroll">
+                                        <HBox fx:id="reviewPageTrayContainer"
+                                              spacing="9"
+                                              minHeight="111"
+                                              maxHeight="111"
+                                              styleClass="review-page-tray-container"/>
+                                    </ScrollPane>
+                                </VBox>
+                            </bottom>
+                        </BorderPane>
+                    </center>
+
+                    <right>
+                        <VBox spacing="12"
+                              prefWidth="240"
+                              minWidth="240"
+                              maxWidth="240"
+                              minHeight="0"
+                              maxHeight="Infinity"
+                              styleClass="qa-tools-panel">
+
+                            <VBox spacing="9"
+                                  VBox.vgrow="ALWAYS"
+                                  minWidth="0"
+                                  minHeight="0"
+                                  maxWidth="Infinity"
+                                  maxHeight="Infinity"
+                                  fillWidth="true"
+                                  styleClass="qa-tools-content">
+
+                                <Label fx:id="reviewStatusBadge"
+                                       text="QA Completed"
+                                       styleClass="qa-review-status-badge qa-review-status-complete"/>
+
+                                <VBox spacing="4"
+                                      maxWidth="Infinity"
+                                      styleClass="qa-tools-section-box">
+
+                                    <Label text="Comment"
+                                           styleClass="qa-tools-section-title"/>
+
+                                    <TextArea fx:id="qaCommentTextArea"
+                                              promptText="Add QA note for this page..."
+                                              wrapText="true"
+                                              prefRowCount="6"
+                                              VBox.vgrow="ALWAYS"
+                                              maxWidth="Infinity"
+                                              styleClass="qa-comment-textarea"/>
+                                </VBox>
+
+                                <Region styleClass="scan-panel-divider"/>
+
+                                <VBox spacing="9"
+                                      maxWidth="Infinity">
+
+                                    <VBox spacing="9"
+                                          maxWidth="Infinity"
+                                          styleClass="qa-tools-section-box">
+                                        <Label text="Apply To"
+                                               styleClass="qa-tools-section-title"/>
+
+                                        <ComboBox fx:id="qaActionScopeComboBox"
+                                                  maxWidth="Infinity"
+                                                  styleClass="scan-tool-button"/>
+                                    </VBox>
+
+                                    <Button text="Approve Page"
+                                            onAction="#onApprovePage"
+                                            maxWidth="Infinity"
+                                            focusTraversable="false"
+                                            styleClass="qa-approve-button"/>
+
+                                    <Button text="Mark Needs Fix"
+                                            onAction="#onMarkNeedsFix"
+                                            maxWidth="Infinity"
+                                            focusTraversable="false"
+                                            styleClass="qa-fix-button"/>
+
+                                    <Button text="Clear Review Status"
+                                            onAction="#onClearReviewStatus"
+                                            maxWidth="Infinity"
+                                            focusTraversable="false"
+                                            styleClass="qa-neutral-button"/>
+                                </VBox>
+
+                                <Region styleClass="scan-panel-divider"/>
+
+                                <Button text="Next Unreviewed"
+                                        onAction="#onNextUnreviewed"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-neutral-button"/>
+
+                                <Region styleClass="scan-panel-divider"/>
+
+                                <Button text="Complete QA"
+                                        onAction="#onCompleteQa"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-complete-button"/>
+
+                                <Button text="Export Type"
+                                        onAction="#onOpenExportTypeDialog"
+                                        maxWidth="Infinity"
+                                        focusTraversable="false"
+                                        styleClass="qa-export-type-button"/>
+                            </VBox>
                         </VBox>
-                    </VBox>
-                </HBox>
+                    </right>
+                </BorderPane>
             </VBox>
         </StackPane>
     </content>

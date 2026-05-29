@@ -72,7 +72,7 @@ public class PageImageDAO {
                 insertStatement.setString(6, pageImage.getSourceReference());
                 insertStatement.setInt(7, pageImage.getReferenceId());
                 insertStatement.setInt(8, pageImage.getRotationDegrees());
-                insertStatement.setString(9, pageImage.getDisplayContent());
+                insertStatement.setString(9, resolvePersistedDisplayContent(pageImage));
                 if (pageImage.getDeletedAt() == null) {
                     insertStatement.setNull(10, java.sql.Types.TIMESTAMP);
                 } else {
@@ -87,6 +87,19 @@ public class PageImageDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Failed to store pages for document " + documentId, e);
         }
+    }
+
+    private String resolvePersistedDisplayContent(PageImage pageImage) {
+        if (pageImage == null) {
+            return "";
+        }
+
+        String displayContent = pageImage.getDisplayContent();
+        if (displayContent != null && !displayContent.isBlank()) {
+            return displayContent;
+        }
+
+        return pageImage.getPreviewContent();
     }
 
     public List<PageImage> findByDocumentId(UUID documentId) {

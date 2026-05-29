@@ -10,6 +10,7 @@ import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
 import easv.dal.QaReviewDAO;
+import easv.dal.SavedScanProgressDAO;
 import easv.dal.UserDAO;
 import easv.util.Strings;
 
@@ -36,6 +37,7 @@ public class AdminManager {
     private final MetadataDAO metadataDAO;
     private final AuditLogDAO auditLogDAO;
     private final QaReviewDAO qaReviewDAO;
+    private final SavedScanProgressDAO savedScanProgressDAO;
     private final QAService qaService;
 
     private final List<User> users = new ArrayList<>();
@@ -62,6 +64,7 @@ public class AdminManager {
         this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
         this.auditLogDAO = auditLogDAO == null ? new AuditLogDAO() : auditLogDAO;
         this.qaReviewDAO = new QaReviewDAO();
+        this.savedScanProgressDAO = new SavedScanProgressDAO();
         this.qaService = new QAService();
         loadAdminData();
     }
@@ -92,7 +95,8 @@ public class AdminManager {
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
-                false
+                false,
+                true
         );
 
         User savedUser = userDAO.saveUser(user, profileIdsForNames(input.getAssignedProfiles()));
@@ -119,6 +123,10 @@ public class AdminManager {
             updatedPasswordHash = PasswordHasher.hash(Strings.clean(input.getPlainPassword()));
         }
 
+        boolean mustChangePassword = input.getMustChangePassword() == null
+                ? user.isMustChangePassword()
+                : input.getMustChangePassword();
+
         User updatedUser = new User(
                 user.getId(),
                 input.getName(),
@@ -128,7 +136,8 @@ public class AdminManager {
                 input.getRole(),
                 input.getStatus(),
                 input.getAssignedProfiles(),
-                user.isCurrentUser()
+                user.isCurrentUser(),
+                mustChangePassword
         );
 
         User savedUser = userDAO.updateUser(updatedUser, profileIdsForNames(input.getAssignedProfiles()));
@@ -140,6 +149,7 @@ public class AdminManager {
         user.setRole(savedUser.getRole());
         user.setStatus(savedUser.getStatus());
         user.setAssignedProfiles(savedUser.getAssignedProfiles());
+        user.setMustChangePassword(savedUser.isMustChangePassword());
 
         syncProfileAssignmentsForUser(user);
 
@@ -189,7 +199,8 @@ public class AdminManager {
                 user.getRole(),
                 "Inactive",
                 user.getAssignedProfiles(),
-                user.isCurrentUser()
+                user.isCurrentUser(),
+                user.isMustChangePassword()
         );
 
         User savedUser = userDAO.updateUser(deactivatedUser, profileIdsForNames(user.getAssignedProfiles()));
@@ -201,10 +212,49 @@ public class AdminManager {
         user.setRole(savedUser.getRole());
         user.setStatus(savedUser.getStatus());
         user.setAssignedProfiles(savedUser.getAssignedProfiles());
+        user.setMustChangePassword(savedUser.isMustChangePassword());
 
         addAuditLog("Users", "Deactivated user", user.getName(), "Success",
                 "A user account was deactivated.",
                 changeList("Status", "Active", user.getStatus()));
+
+        return user;
+    }
+
+    public User reactivateUser(int userId) {
+        User user = findRequiredUser(userId);
+
+        if (user.isActive()) {
+            return user;
+        }
+
+        User reactivatedUser = new User(
+                user.getId(),
+                user.getName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getRole(),
+                "Active",
+                user.getAssignedProfiles(),
+                user.isCurrentUser(),
+                user.isMustChangePassword()
+        );
+
+        User savedUser = userDAO.updateUser(reactivatedUser, profileIdsForNames(user.getAssignedProfiles()));
+
+        user.setName(savedUser.getName());
+        user.setUsername(savedUser.getUsername());
+        user.setEmail(savedUser.getEmail());
+        user.setPasswordHash(savedUser.getPasswordHash());
+        user.setRole(savedUser.getRole());
+        user.setStatus(savedUser.getStatus());
+        user.setAssignedProfiles(savedUser.getAssignedProfiles());
+        user.setMustChangePassword(savedUser.isMustChangePassword());
+
+        addAuditLog("Users", "Reactivated user", user.getName(), "Success",
+                "A user account was reactivated.",
+                changeList("Status", "Inactive", user.getStatus()));
 
         return user;
     }
@@ -485,6 +535,57 @@ public class AdminManager {
         return documents;
     }
 
+    public List<QAService.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
+        SavedScanProgressDAO.StoredProgress progress = savedScanProgressDAO.findLatestByBoxAndProfile(boxId, profileName);
+        if (progress == null || progress.pages().isEmpty()) {
+            return List.of();
+        }
+
+        Map<Integer, List<QAService.QaPageSnapshot>> pagesByDocument = new HashMap<>();
+        for (SavedScanProgressDAO.StoredPage page : progress.pages()) {
+            if (page == null || page.barcode()) {
+                continue;
+            }
+
+            String previewContent = page.previewContent() == null || page.previewContent().isBlank()
+                    ? page.displayContent()
+                    : page.previewContent();
+
+            pagesByDocument.computeIfAbsent(Math.max(1, page.documentNumber()), ignored -> new ArrayList<>())
+                    .add(new QAService.QaPageSnapshot(
+                            Math.max(1, page.referenceId()),
+                            Math.max(1, page.fileId()),
+                            page.sourceReference(),
+                            previewContent,
+                            page.rotationDegrees(),
+                            QAService.QaPageReviewStatus.NOT_REVIEWED,
+                            false,
+                            false,
+                            false,
+                            false,
+                            ""
+                    ));
+        }
+
+        if (pagesByDocument.isEmpty()) {
+            return List.of();
+        }
+
+        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+        pagesByDocument.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    List<QAService.QaPageSnapshot> pages = new ArrayList<>(entry.getValue());
+                    pages.sort(Comparator.comparingInt(QAService.QaPageSnapshot::pageNumber));
+                    documents.add(new QAService.QaDocumentSnapshot(
+                            entry.getKey(),
+                            "Document " + entry.getKey(),
+                            pages
+                    ));
+                });
+        return documents;
+    }
+
     public ScanProfile findProfileByName(String profileName) {
         if (profileName == null || profileName.isBlank()) {
             return null;
@@ -686,6 +787,10 @@ public class AdminManager {
             usersById.put(user.getId(), user);
         }
 
+        String client = findProfileOptionalByName(assignment.profileName())
+                .map(ScanProfile::getClient)
+                .orElse("");
+
         String assignedTo = "";
         if (assignment.assignedToUserId() != null) {
             User assignedUser = usersById.get(assignment.assignedToUserId());
@@ -701,7 +806,7 @@ public class AdminManager {
         return new ReviewRecord(
                 QA_RECORD_PREFIX + assignment.reviewId(),
                 assignment.boxId(),
-                assignment.scannedByName(),
+                client,
                 assignment.boxId(),
                 assignment.profileName(),
                 assignment.profileName(),
@@ -1060,7 +1165,8 @@ public class AdminManager {
                 user.getRole(),
                 user.getStatus(),
                 user.getAssignedProfiles(),
-                user.isCurrentUser()
+                user.isCurrentUser(),
+                user.isMustChangePassword()
         );
     }
 
@@ -1210,14 +1316,21 @@ public class AdminManager {
         private final String role;
         private final String status;
         private final List<String> assignedProfiles;
+        private final Boolean mustChangePassword;
 
         public UserInput(String name, String username, String email,
                          String role, String status, List<String> assignedProfiles) {
-            this(name, username, email, role, status, assignedProfiles, "");
+            this(name, username, email, role, status, assignedProfiles, "", null);
         }
 
         public UserInput(String name, String username, String email,
                          String role, String status, List<String> assignedProfiles, String plainPassword) {
+            this(name, username, email, role, status, assignedProfiles, plainPassword, null);
+        }
+
+        public UserInput(String name, String username, String email,
+                         String role, String status, List<String> assignedProfiles,
+                         String plainPassword, Boolean mustChangePassword) {
             this.name = name;
             this.username = username;
             this.email = email;
@@ -1225,6 +1338,7 @@ public class AdminManager {
             this.role = role;
             this.status = status;
             this.assignedProfiles = assignedProfiles == null ? List.of() : List.copyOf(assignedProfiles);
+            this.mustChangePassword = mustChangePassword;
         }
 
         public String getName() { return name; }
@@ -1234,6 +1348,7 @@ public class AdminManager {
         public String getRole() { return role; }
         public String getStatus() { return status; }
         public List<String> getAssignedProfiles() { return assignedProfiles; }
+        public Boolean getMustChangePassword() { return mustChangePassword; }
     }
 
     public static class ProfileInput {

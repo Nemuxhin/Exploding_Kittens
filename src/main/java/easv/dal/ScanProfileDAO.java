@@ -31,19 +31,19 @@ public class ScanProfileDAO {
     public Optional<ScanProfile> findById(int profileId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, name, code, description, status, metadata_template_name, export_naming,
+                     SELECT id, name, %s code, description, status, metadata_template_name, export_naming,
                             last_updated, archived, barcode_splitting, barcode_detected_behavior,
                             barcode_page_behavior, default_rotation, brightness, contrast, deskew,
                             export_format, metadata_required_before_export
                      FROM %s
                      WHERE id = ?
-                     """.formatted(profileTable(connection)))) {
+                     """.formatted(selectClientColumn(connection), profileTable(connection)))) {
             statement.setInt(1, profileId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
                     return Optional.empty();
                 }
-                return Optional.of(mapProfile(resultSet));
+                return Optional.of(mapProfile(resultSet, hasClientColumn(connection)));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch profile " + profileId, e);
@@ -56,19 +56,19 @@ public class ScanProfileDAO {
         }
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, name, code, description, status, metadata_template_name, export_naming,
+                     SELECT id, name, %s code, description, status, metadata_template_name, export_naming,
                             last_updated, archived, barcode_splitting, barcode_detected_behavior,
                             barcode_page_behavior, default_rotation, brightness, contrast, deskew,
                             export_format, metadata_required_before_export
                      FROM %s
                      WHERE LOWER(name) = LOWER(?)
-                     """.formatted(profileTable(connection)))) {
+                     """.formatted(selectClientColumn(connection), profileTable(connection)))) {
             statement.setString(1, profileName.trim());
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
                     return Optional.empty();
                 }
-                return Optional.of(mapProfile(resultSet));
+                return Optional.of(mapProfile(resultSet, hasClientColumn(connection)));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch profile " + profileName, e);
@@ -83,13 +83,17 @@ public class ScanProfileDAO {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO %s (
-                        name, code, description, status, metadata_template_name, export_naming,
+                        name, %s code, description, status, metadata_template_name, export_naming,
                         last_updated, archived, barcode_splitting, barcode_detected_behavior,
                         barcode_page_behavior, default_rotation, brightness, contrast, deskew,
                         export_format, metadata_required_before_export
-                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                     """.formatted(profileTable(connection)), PreparedStatement.RETURN_GENERATED_KEYS)) {
-            bindProfile(statement, profile);
+                     ) VALUES (%s)
+                     """.formatted(
+                     profileTable(connection),
+                     insertClientColumn(connection),
+                     insertProfilePlaceholders(connection)
+             ), PreparedStatement.RETURN_GENERATED_KEYS)) {
+            bindProfile(statement, profile, hasClientColumn(connection));
             statement.executeUpdate();
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (!generatedKeys.next()) {
@@ -106,15 +110,15 @@ public class ScanProfileDAO {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE %s
-                     SET name = ?, code = ?, description = ?, status = ?, metadata_template_name = ?,
+                     SET name = ?, %s code = ?, description = ?, status = ?, metadata_template_name = ?,
                          export_naming = ?, last_updated = ?, archived = ?, barcode_splitting = ?,
                          barcode_detected_behavior = ?, barcode_page_behavior = ?, default_rotation = ?,
                          brightness = ?, contrast = ?, deskew = ?, export_format = ?,
                          metadata_required_before_export = ?
                      WHERE id = ?
-                     """.formatted(profileTable(connection)))) {
-            bindProfile(statement, profile);
-            statement.setInt(18, profile.getId());
+                     """.formatted(profileTable(connection), updateClientColumn(connection)))) {
+            int nextIndex = bindProfile(statement, profile, hasClientColumn(connection));
+            statement.setInt(nextIndex, profile.getId());
             statement.executeUpdate();
             return findById(profile.getId()).orElseThrow();
         } catch (SQLException e) {
@@ -122,30 +126,36 @@ public class ScanProfileDAO {
         }
     }
 
-    private void bindProfile(PreparedStatement statement, ScanProfile profile) throws SQLException {
-        statement.setString(1, profile.getName());
-        statement.setString(2, profile.getCode());
-        statement.setString(3, profile.getDescription());
-        statement.setString(4, profile.getStatus());
-        statement.setString(5, profile.getMetadataTemplateName());
-        statement.setString(6, profile.getExportNaming());
-        statement.setString(7, profile.getLastUpdated());
-        statement.setBoolean(8, profile.isArchived());
-        statement.setBoolean(9, profile.isBarcodeSplitting());
-        statement.setString(10, profile.getBarcodeDetectedBehavior());
-        statement.setString(11, profile.getBarcodePageBehavior());
-        statement.setString(12, profile.getDefaultRotation());
-        statement.setString(13, profile.getBrightness());
-        statement.setString(14, profile.getContrast());
-        statement.setBoolean(15, profile.isDeskew());
-        statement.setString(16, profile.getExportFormat());
-        statement.setBoolean(17, profile.isMetadataRequiredBeforeExport());
+    private int bindProfile(PreparedStatement statement, ScanProfile profile, boolean includeClient) throws SQLException {
+        int index = 1;
+        statement.setString(index++, profile.getName());
+        if (includeClient) {
+            statement.setString(index++, profile.getClient());
+        }
+        statement.setString(index++, profile.getCode());
+        statement.setString(index++, profile.getDescription());
+        statement.setString(index++, profile.getStatus());
+        statement.setString(index++, profile.getMetadataTemplateName());
+        statement.setString(index++, profile.getExportNaming());
+        statement.setString(index++, profile.getLastUpdated());
+        statement.setBoolean(index++, profile.isArchived());
+        statement.setBoolean(index++, profile.isBarcodeSplitting());
+        statement.setString(index++, profile.getBarcodeDetectedBehavior());
+        statement.setString(index++, profile.getBarcodePageBehavior());
+        statement.setString(index++, profile.getDefaultRotation());
+        statement.setString(index++, profile.getBrightness());
+        statement.setString(index++, profile.getContrast());
+        statement.setBoolean(index++, profile.isDeskew());
+        statement.setString(index++, profile.getExportFormat());
+        statement.setBoolean(index++, profile.isMetadataRequiredBeforeExport());
+        return index;
     }
 
-    private ScanProfile mapProfile(ResultSet resultSet) throws SQLException {
+    private ScanProfile mapProfile(ResultSet resultSet, boolean includeClient) throws SQLException {
         return new ScanProfile(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
+                includeClient ? resultSet.getString("client") : "",
                 resultSet.getString("code"),
                 resultSet.getString("description"),
                 resultSet.getString("status"),
@@ -198,17 +208,18 @@ public class ScanProfileDAO {
     private List<ScanProfile> loadProfiles() {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, name, code, description, status, metadata_template_name, export_naming,
+                     SELECT id, name, %s code, description, status, metadata_template_name, export_naming,
                             last_updated, archived, barcode_splitting, barcode_detected_behavior,
                             barcode_page_behavior, default_rotation, brightness, contrast, deskew,
                             export_format, metadata_required_before_export
                      FROM %s
                      ORDER BY id
-                     """.formatted(profileTable(connection)));
+                     """.formatted(selectClientColumn(connection), profileTable(connection)));
              ResultSet resultSet = statement.executeQuery()) {
             List<ScanProfile> profiles = new ArrayList<>();
+            boolean includeClient = hasClientColumn(connection);
             while (resultSet.next()) {
-                profiles.add(mapProfile(resultSet));
+                profiles.add(mapProfile(resultSet, includeClient));
             }
             return profiles;
         } catch (SQLException e) {
@@ -218,5 +229,27 @@ public class ScanProfileDAO {
 
     private String profileTable(Connection connection) throws SQLException {
         return DatabaseConnection.tableExists(connection, "scan_profiles") ? "scan_profiles" : "profiles";
+    }
+
+    private boolean hasClientColumn(Connection connection) throws SQLException {
+        return DatabaseConnection.columnExists(connection, profileTable(connection), "client");
+    }
+
+    private String selectClientColumn(Connection connection) throws SQLException {
+        return hasClientColumn(connection) ? "client, " : "";
+    }
+
+    private String insertClientColumn(Connection connection) throws SQLException {
+        return hasClientColumn(connection) ? "client, " : "";
+    }
+
+    private String updateClientColumn(Connection connection) throws SQLException {
+        return hasClientColumn(connection) ? "client = ?, " : "";
+    }
+
+    private String insertProfilePlaceholders(Connection connection) throws SQLException {
+        return hasClientColumn(connection)
+                ? "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?"
+                : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
     }
 }

@@ -111,7 +111,8 @@ public class ScanSessionDAO {
                             s.created_by_user_id,
                             b.box_id AS box_id,
                             COUNT(DISTINCT ssd.document_id) AS document_count,
-                            COUNT(dp.id) AS page_count
+                            COUNT(dp.id) AS page_count,
+                            COALESCE(SUM(DATALENGTH(dp.display_content)), 0) AS total_size_bytes
                      FROM scan_sessions s
                      JOIN boxes b ON b.id = s.box_id
                      LEFT JOIN scan_session_documents ssd ON ssd.session_id = s.id
@@ -137,7 +138,8 @@ public class ScanSessionDAO {
                         resultSet.getString("profile_name"),
                         normalizeStatus(resultSet.getString("last_status")),
                         resultSet.getInt("document_count"),
-                        resultSet.getInt("page_count")
+                        resultSet.getInt("page_count"),
+                        resultSet.getLong("total_size_bytes")
                 ));
             }
             return summaries;
@@ -286,7 +288,8 @@ public class ScanSessionDAO {
             String profileName,
             String status,
             int documentCount,
-            int pageCount
+            int pageCount,
+            long totalSizeBytes
     ) {
     }
 

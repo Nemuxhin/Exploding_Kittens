@@ -1198,6 +1198,31 @@
     -fx-text-fill: -wl-text;
 }
 
+.scan-tool-button.combo-box-base {
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.scan-tool-button.combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scan-tool-button.combo-box-base > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.scan-tool-button.combo-box-base > .list-cell,
+.scan-tool-button.combo-box-base .text-field,
+.scan-tool-button.combo-box-base .text-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-highlight-fill: -wl-primary-selected;
+    -fx-highlight-text-fill: -wl-on-primary;
+}
+
 .scan-tool-button:hover,
 .scan-tool-button:pressed {
     -fx-background-color: -wl-tertiary-hover;
@@ -1747,6 +1772,60 @@
 .app-shell.dark .review-page-tray-container,
 .app-shell.dark .review-next-step-panel {
     -fx-background-color: -wl-surface;
+}
+
+.app-shell.dark .scan-session-header,
+.app-shell.dark .scan-current-file-header,
+.app-shell.dark .review-current-file-header,
+.app-shell.dark .scan-view-toolbar,
+.app-shell.dark .review-summary-bar {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .page-tray-shell,
+.app-shell.dark .review-page-tray-shell,
+.app-shell.dark .document-tree-scroll,
+.app-shell.dark .document-tree-scroll > .viewport,
+.app-shell.dark .document-tree-container,
+.app-shell.dark .review-document-scroll,
+.app-shell.dark .review-document-scroll > .viewport,
+.app-shell.dark .review-document-list,
+.app-shell.dark .review-next-step-panel {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .scan-left-panel,
+.app-shell.dark .review-left-panel,
+.app-shell.dark .scan-tools-panel,
+.app-shell.dark .review-next-step-panel {
+    -fx-border-color: transparent #465160 transparent transparent;
+}
+
+.app-shell.dark .document-tree-document-block,
+.app-shell.dark .review-document-list {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .document-tree-document-header,
+.app-shell.dark .review-document-card {
+    -fx-background-color: #354556;
+    -fx-border-color: #465160;
+}
+
+.app-shell.dark .document-tree-document-header:hover,
+.app-shell.dark .review-document-card:hover {
+    -fx-background-color: #465160;
+}
+
+.app-shell.dark .document-tree-page-row {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .document-tree-page-row:hover {
+    -fx-background-color: #354556;
 }
 
 .app-shell.dark .avatar-initials {

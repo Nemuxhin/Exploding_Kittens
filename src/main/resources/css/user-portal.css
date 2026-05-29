@@ -322,6 +322,11 @@
     -fx-border-color: -wl-primary;
 }
 
+.admin-action-tile-primary:hover {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
 .admin-action-tile-primary .admin-action-title,
 .admin-action-tile-primary .admin-action-text {
     -fx-text-fill: -wl-on-primary;
@@ -576,6 +581,12 @@
     -fx-background-color: -wl-status-success-bg;
     -fx-border-color: -wl-status-success-border;
     -fx-text-fill: -wl-status-success-text;
+}
+
+.status-submitted-for-qa {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
 }
 
 .status-processing {

@@ -118,9 +118,9 @@
     -fx-padding: 24;
     -fx-spacing: 15;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 6;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
 }
 
@@ -227,11 +227,21 @@
 }
 
 .assigned-qa-progress-issues {
-    -fx-background-color: -wl-progress-issues;
+    -fx-background-color: #FF3D32;
 }
 
 .assigned-qa-progress-complete {
-    -fx-background-color: -wl-progress-complete;
+    -fx-background-color: #4CD07D;
+}
+
+.qa-progress-chip-issues {
+    -fx-text-fill: #FF3D32;
+    -fx-border-color: #FF3D32;
+}
+
+.qa-progress-chip-complete {
+    -fx-text-fill: #4CD07D;
+    -fx-border-color: #4CD07D;
 }
 
 /* =========================================================
@@ -461,6 +471,27 @@
 
 .qa-tools-content {
     -fx-background-color: -wl-surface;
+}
+
+.app-shell.dark .qa-review-header,
+.app-shell.dark .qa-review-current-file-header {
+    -fx-background-color: #354556;
+}
+
+.app-shell.dark .qa-review-left-panel,
+.app-shell.dark .qa-tools-panel,
+.app-shell.dark .qa-tools-scroll,
+.app-shell.dark .qa-tools-scroll > .viewport,
+.app-shell.dark .qa-tools-content {
+    -fx-background-color: #2d3d4f;
+}
+
+.app-shell.dark .qa-review-left-panel {
+    -fx-border-color: transparent #465160 transparent transparent;
+}
+
+.app-shell.dark .qa-tools-panel {
+    -fx-border-color: transparent transparent transparent #465160;
 }
 
 .qa-tools-section-box {
