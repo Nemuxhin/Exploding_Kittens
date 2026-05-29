@@ -2071,13 +2071,19 @@ public class AssignedQaController {
         VBox header = new VBox(9, title);
         header.getStyleClass().add("exports-dialog-header");
 
-        Label boxValue = new Label(selectedAssignment.boxId);
+        String profileName = selectedAssignment == null ? "" : selectedAssignment.profile;
+        String boxId = selectedAssignment == null ? "" : selectedAssignment.boxId;
+
+        Label boxValue = new Label(boxId);
         boxValue.getStyleClass().add("exports-dialog-box-value");
 
         Label boxDetail = new Label("Only approved QA documents from this box can be exported in this dialog.");
         boxDetail.getStyleClass().add("exports-dialog-box-detail");
 
-        VBox boxCard = new VBox(6, boxValue, boxDetail);
+        Label folderPreview = new Label(buildExportFolderPreview(profileName, boxId));
+        folderPreview.getStyleClass().add("exports-dialog-folder-preview");
+
+        VBox boxCard = new VBox(6, boxValue, boxDetail, folderPreview);
         boxCard.getStyleClass().add("exports-dialog-box-card");
 
         Button singlePageCard = buildExportTypeCard(
@@ -2415,6 +2421,10 @@ public class AssignedQaController {
     private String safeFolderName(String profileName, String boxId) {
         return firstNonBlank(profileName, "profile").replaceAll("[^a-zA-Z0-9._-]", "_")
                 + "_" + firstNonBlank(boxId, "box").replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String buildExportFolderPreview(String profileName, String boxId) {
+        return "Export folder: WebLager Exports/" + safeFolderName(profileName, boxId);
     }
 
     private String firstNonBlank(String preferred, String fallback) {

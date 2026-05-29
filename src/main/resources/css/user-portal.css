@@ -811,6 +811,13 @@
     -fx-font-size: 12px;
 }
 
+.exports-dialog-folder-preview {
+    -fx-text-fill: -wl-text;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-padding: 5 0 0 0;
+}
+
 .exports-dialog-type-row {
     -fx-spacing: 9;
 }
