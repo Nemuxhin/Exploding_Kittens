@@ -48,9 +48,19 @@
             </padding>
 
             <VBox spacing="3" styleClass="page-heading-copy">
-                <Label text="Logs" styleClass="logs-title"/>
-                <Label text="TIFF activity, QA, users, imports, exports, and system events"
-                       styleClass="logs-subtitle"/>
+                <Label text="Logs">
+                    <styleClass>
+                        <String fx:value="page-title"/>
+                        <String fx:value="logs-title"/>
+                    </styleClass>
+                </Label>
+
+                <Label text="TIFF activity, QA, users, imports, exports, and system events">
+                    <styleClass>
+                        <String fx:value="page-subtitle"/>
+                        <String fx:value="logs-subtitle"/>
+                    </styleClass>
+                </Label>
             </VBox>
 
             <HBox spacing="12"
@@ -107,11 +117,11 @@
                         <Label text="&#xe940;" styleClass="prime-icon logs-time-filter-icon"/>
                     </StackPane>
 
-                    <TextField fx:id="timeFilterField"
-                               promptText="HH:00"
-                               maxWidth="Infinity"
-                               HBox.hgrow="ALWAYS"
-                               styleClass="logs-time-filter-input"/>
+                    <Label fx:id="timeFilterValueLabel"
+                           text="All times"
+                           maxWidth="Infinity"
+                           HBox.hgrow="ALWAYS"
+                           styleClass="logs-time-filter-value"/>
 
                     <Button fx:id="timeFilterMenuButton"
                             text="▾"

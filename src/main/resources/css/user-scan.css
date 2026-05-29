@@ -152,13 +152,13 @@
     -fx-pref-height: 33;
     -fx-max-height: 33;
     -fx-padding: 0 15 0 15;
-    -fx-background-color: -wl-logout-bg;
-    -fx-border-color: -wl-logout-bg;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-text-fill: -wl-logout-text;
+    -fx-text-fill: -wl-text;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -168,9 +168,9 @@
 .review-back-button:hover,
 .review-back-button:pressed,
 .review-back-button:focused {
-    -fx-background-color: -wl-logout-hover-bg;
-    -fx-border-color: -wl-logout-hover-bg;
-    -fx-text-fill: -wl-logout-text;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
 }
 
 .scan-back-button {
@@ -181,13 +181,13 @@
     -fx-pref-height: 33;
     -fx-max-height: 33;
     -fx-padding: 0 15 0 15;
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-text-fill: -wl-on-primary;
+    -fx-text-fill: -wl-text;
     -fx-effect: none;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
@@ -198,9 +198,9 @@
 .scan-back-button:pressed,
 .scan-back-button:focused:hover,
 .scan-back-button:focused:pressed {
-    -fx-background-color: -wl-primary-hover;
-    -fx-border-color: -wl-primary-hover;
-    -fx-text-fill: -wl-on-primary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
 }
 
 .profile-info-panel {
@@ -243,12 +243,12 @@
 
 .scan-setup-view .weblager-text-field:hover,
 .scan-setup-view .weblager-combo-box:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .scan-setup-view .weblager-text-field:focused,
 .scan-setup-view .weblager-combo-box:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 .scan-setup-view .weblager-combo-box > .arrow-button {
@@ -299,27 +299,27 @@
 }
 
 .scan-setup-primary-card .secondary-button {
-    -fx-background-color: -wl-secondary;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
     -fx-text-fill: -wl-on-primary;
 }
 
 .scan-setup-primary-card .secondary-button:hover,
 .scan-setup-primary-card .secondary-button:pressed {
-    -fx-background-color: -wl-secondary-hover;
-    -fx-border-color: -wl-secondary-hover;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
 }
 
 .scan-setup-primary-card .tertiary-button {
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 
 .scan-setup-primary-card .tertiary-button:hover,
 .scan-setup-primary-card .tertiary-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 /* =========================================================
@@ -403,6 +403,53 @@
 .scan-panel-subtitle,
 .scan-tools-section-label {
     -fx-text-fill: -wl-text-muted;
+}
+
+
+.document-tree-view-toggle-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.document-tree-view-toggle-button:hover,
+.document-tree-view-toggle-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.document-tree-view-toggle-button-active,
+.document-tree-view-toggle-button-active:hover,
+.document-tree-view-toggle-button-active:pressed {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.document-tree-view-toggle-button .text {
+    -fx-fill: -wl-text;
+}
+
+.document-tree-view-toggle-button-active .text {
+    -fx-fill: -wl-on-primary;
 }
 
 .document-tree-scroll,
@@ -597,7 +644,7 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0;
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -610,8 +657,8 @@
 
 .view-tool-button:hover,
 .view-tool-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 .view-reset-button {
@@ -619,7 +666,7 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0 15 0 15;
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -632,8 +679,8 @@
 
 .view-reset-button:hover,
 .view-reset-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 .view-toolbar-divider {
@@ -672,7 +719,7 @@
     -fx-pref-height: 45;
     -fx-max-height: 45;
     -fx-padding: 0;
-    -fx-background-color: -wl-surface;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -685,8 +732,8 @@
 
 .preview-arrow-button:hover,
 .preview-arrow-button:pressed {
-    -fx-background-color: -wl-surface-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 .scan-preview-empty {
@@ -1077,28 +1124,84 @@
 }
 
 .scan-tool-button {
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 
 .scan-tool-button:hover,
 .scan-tool-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+
+.combo-box-base.scan-tool-button,
+.combo-box-base.scan-tool-button:hover,
+.combo-box-base.scan-tool-button:focused,
+.combo-box-base.scan-tool-button:showing {
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+}
+
+.combo-box-base.scan-tool-button > .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
+}
+
+.combo-box-base.scan-tool-button:editable > .text-field {
+    -fx-min-height: 31;
+    -fx-pref-height: 31;
+    -fx-max-height: 31;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-alignment: center;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
 }
 
 .scan-danger-button {
-    -fx-background-color: -wl-surface;
+    -fx-background-color: -wl-destructive;
     -fx-border-color: -wl-destructive;
-    -fx-text-fill: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .scan-danger-button:hover,
 .scan-danger-button:pressed {
-    -fx-background-color: -wl-status-error-bg;
-    -fx-border-color: -wl-destructive-hover;
-    -fx-text-fill: -wl-destructive-hover;
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .scan-warning-button {
@@ -1221,17 +1324,17 @@
 
 .finish-review-secondary-button,
 .submit-confirmation-secondary-button {
-    -fx-background-color: -wl-surface;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .finish-review-secondary-button:hover,
 .finish-review-secondary-button:pressed,
 .submit-confirmation-secondary-button:hover,
 .submit-confirmation-secondary-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
 }
 
 .finish-review-primary-button,
@@ -1273,22 +1376,22 @@
     -fx-min-height: 12;
     -fx-pref-height: 12;
     -fx-max-height: 12;
-    -fx-background-color: -wl-text;
+    -fx-background-color: -wl-on-primary;
     -fx-shape: "M14 2 L20 8 L20 22 L4 22 L4 2 Z M13 4 L6 4 L6 20 L18 20 L18 9 L13 9 Z M14 4.8 L14 7 L16.2 7 Z M8 12 L16 12 L16 13.5 L8 13.5 Z M8 15 L16 15 L16 16.5 L8 16.5 Z";
 }
 
 .finish-review-button-label {
-    -fx-text-fill: -wl-text;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .finish-review-secondary-button:hover .finish-review-button-icon,
 .finish-review-secondary-button:pressed .finish-review-button-icon {
-    -fx-background-color: -wl-text;
+    -fx-background-color: -wl-on-primary;
 }
 
 .finish-review-secondary-button:hover .finish-review-button-label,
 .finish-review-secondary-button:pressed .finish-review-button-label {
-    -fx-text-fill: -wl-text;
+    -fx-text-fill: -wl-on-primary;
 }
 
 /* =========================================================
@@ -1498,6 +1601,33 @@
 .review-submit-button:pressed {
     -fx-background-color: -wl-primary-hover;
     -fx-border-color: -wl-primary-hover;
+}
+
+
+.review-export-type-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-export-type-button:hover,
+.review-export-type-button:pressed,
+.review-export-type-button:focused {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
 }
 
 .review-next-step-copy {

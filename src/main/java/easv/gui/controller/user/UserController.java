@@ -421,11 +421,14 @@ public class UserController implements UserNavigator {
 
         if (!page.hasFxml()) {
             Node content = createProgrammaticPage(page);
+            PrimeIcons.applyFont(content);
+
             if (shouldWrapScrollable(page)) {
                 content = wrapScrollable(content);
             } else if (content instanceof Region region) {
                 configureRegionPageSize(region);
             }
+
             StackPane.setAlignment(content, Pos.TOP_CENTER);
             contentHost.getChildren().setAll(content);
             return;
@@ -443,6 +446,7 @@ public class UserController implements UserNavigator {
             Parent loadedPage = loader.load();
 
             configureLoadedController(loader.getController());
+            PrimeIcons.applyFont(loadedPage);
             configureLoadedPageSize(loadedPage);
             StackPane.setAlignment(loadedPage, Pos.TOP_CENTER);
 

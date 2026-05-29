@@ -292,16 +292,16 @@
                     <HBox spacing="9"
                           alignment="CENTER"
                           BorderPane.alignment="CENTER">
-                    <Label fx:id="headerReferenceInfoLabel"
-                           text="Ref: -"
-                           styleClass="scan-session-info-chip"/>
-                    <Label fx:id="headerFilesInfoLabel"
-                           text="Scanned Files: 0"
-                           styleClass="scan-session-info-chip"/>
-                    <Label fx:id="headerDocumentsInfoLabel"
-                           text="Documents: 0"
-                           styleClass="scan-session-info-chip"/>
-                </HBox>
+                        <Label fx:id="headerReferenceInfoLabel"
+                               text="Ref: -"
+                               styleClass="scan-session-info-chip"/>
+                        <Label fx:id="headerFilesInfoLabel"
+                               text="Scanned Files: 0"
+                               styleClass="scan-session-info-chip"/>
+                        <Label fx:id="headerDocumentsInfoLabel"
+                               text="Documents: 0"
+                               styleClass="scan-session-info-chip"/>
+                    </HBox>
                 </center>
                 <right>
                     <VBox alignment="TOP_LEFT"
@@ -514,8 +514,8 @@
                               prefHeight="0"
                               maxHeight="0">
                             <Label fx:id="pageTrayTitleLabel"
-                                    text="Scanned Files"
-                                    styleClass="page-tray-title"/>
+                                   text="Scanned Files"
+                                   styleClass="page-tray-title"/>
 
                             <Region HBox.hgrow="ALWAYS"/>
 

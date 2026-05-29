@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
@@ -64,16 +63,16 @@
                       styleClass="assigned-qa-header-row">
 
                     <VBox spacing="6"
-                      alignment="TOP_LEFT"
-                      HBox.hgrow="ALWAYS"
-                      maxWidth="Infinity"
-                      styleClass="assigned-qa-header">
+                          alignment="TOP_LEFT"
+                          HBox.hgrow="ALWAYS"
+                          maxWidth="Infinity"
+                          styleClass="assigned-qa-header">
 
-                    <Label text="QA Review"
-                           styleClass="assigned-qa-title"/>
+                        <Label text="QA Review"
+                               styleClass="assigned-qa-title"/>
 
-                    <Label text="Review scan sessions assigned to you."
-                           styleClass="assigned-qa-subtitle"/>
+                        <Label text="Review scan sessions assigned to you."
+                               styleClass="assigned-qa-subtitle"/>
                     </VBox>
                 </HBox>
 
@@ -110,21 +109,34 @@
                     </VBox>
 
                     <VBox spacing="6"
-                          HBox.hgrow="ALWAYS"
+                          minWidth="240"
+                          prefWidth="240"
+                          maxWidth="240"
                           styleClass="exports-filter-wrap">
-                        <Label text="From Date"
+                        <Label text="Period"
                                styleClass="exports-filter-label"/>
-                        <DatePicker fx:id="fromDatePicker"
-                                    maxWidth="Infinity"/>
-                    </VBox>
 
-                    <VBox spacing="6"
-                          HBox.hgrow="ALWAYS"
-                          styleClass="exports-filter-wrap">
-                        <Label text="To Date"
-                               styleClass="exports-filter-label"/>
-                        <DatePicker fx:id="toDatePicker"
-                                    maxWidth="Infinity"/>
+                        <HBox fx:id="dateRangeBox"
+                              minWidth="240"
+                              prefWidth="240"
+                              maxWidth="240"
+                              alignment="CENTER_LEFT"
+                              styleClass="assigned-qa-date-filter-box">
+
+                            <StackPane styleClass="assigned-qa-date-filter-icon-shell">
+                                <Label text="&#xe927;" styleClass="prime-icon assigned-qa-date-filter-icon"/>
+                            </StackPane>
+
+                            <TextField fx:id="dateRangeField"
+                                       promptText="MM/DD/YYYY"
+                                       maxWidth="Infinity"
+                                       HBox.hgrow="ALWAYS"
+                                       styleClass="assigned-qa-date-filter-input"/>
+
+                            <Button fx:id="dateRangeMenuButton"
+                                    focusTraversable="false"
+                                    styleClass="assigned-qa-date-filter-menu"/>
+                        </HBox>
                     </VBox>
                 </HBox>
 

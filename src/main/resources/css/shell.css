@@ -254,14 +254,14 @@
    ========================================================= */
 
 .account-utility-button {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
@@ -278,8 +278,8 @@
 .account-utility-button:hover,
 .account-utility-button:pressed,
 .account-utility-button:focused {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 .account-utility-button > .graphic-container {
@@ -347,12 +347,12 @@
 }
 
 .admin-avatar-shell {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-background-color: -wl-avatar-bg;
     -fx-background-radius: 999;
     -fx-border-color: transparent;
@@ -493,22 +493,22 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0 12 0 12;
-    -fx-background-color: -wl-status-danger-bg;
-    -fx-border-color: -wl-status-danger-border;
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
-    -fx-text-fill: -wl-status-danger-text;
+    -fx-text-fill: -wl-on-primary;
     -fx-cursor: hand;
 }
 
 .admin-account-logout-button:hover,
 .admin-account-logout-button:pressed,
 .admin-account-logout-button:focused {
-    -fx-background-color: -wl-status-danger-bg;
-    -fx-border-color: -wl-status-danger-text;
-    -fx-text-fill: -wl-status-danger-text;
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
 }
 
 /* =========================================================
@@ -657,7 +657,7 @@
 .user-notification-button:pressed,
 .user-toolbar-button:pressed {
     -fx-background-color: -wl-surface-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-border;
 }
 
 .top-nav-item,

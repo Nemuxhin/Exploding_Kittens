@@ -116,7 +116,7 @@
 .profile-editor-link-button,
 .profile-secondary-button,
 .profile-icon-button {
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
@@ -137,8 +137,8 @@
 .profile-secondary-button:pressed,
 .profile-icon-button:hover,
 .profile-icon-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 .header-destructive-button,
@@ -192,28 +192,28 @@
 }
 
 .secondary-action-button {
-    -fx-background-color: -wl-secondary;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
     -fx-text-fill: -wl-on-primary;
 }
 
 .secondary-action-button:hover,
 .secondary-action-button:pressed {
-    -fx-background-color: -wl-secondary-hover;
-    -fx-border-color: -wl-secondary-hover;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
 }
 
 .profile-danger-button {
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-destructive;
     -fx-text-fill: -wl-destructive;
 }
 
 .profile-danger-button:hover,
 .profile-danger-button:pressed {
-    -fx-background-color: -wl-status-danger-bg;
-    -fx-border-color: -wl-destructive-hover;
-    -fx-text-fill: -wl-destructive-hover;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
 }
 
 /* Inline text/icon actions. */
@@ -332,14 +332,14 @@
 .rows-per-page-filter:hover,
 .profile-editor-input:hover,
 .profile-editor-textarea:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .role-filter:focused,
 .rows-per-page-filter:focused,
 .profile-editor-input:focused,
 .profile-editor-textarea:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 /* =========================================================
@@ -463,12 +463,12 @@
 }
 
 .assignment-avatar {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-background-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
 }
@@ -669,8 +669,9 @@
 }
 
 .profile-editor-tab-button {
-    -fx-min-height: 42;
-    -fx-pref-height: 42;
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
     -fx-padding: 0 18 0 18;
     -fx-background-color: transparent;
     -fx-background-radius: 0;
@@ -708,12 +709,12 @@
     -fx-min-width: 60;
     -fx-pref-width: 60;
     -fx-max-width: 60;
-    -fx-min-height: 30;
-    -fx-pref-height: 30;
-    -fx-max-height: 30;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
     -fx-padding: 0;
     -fx-background-color: -wl-switch-off-track, -wl-switch-thumb;
-    -fx-background-insets: 0, 3 30 3 3;
+    -fx-background-insets: 0, 3 39 3 3;
     -fx-background-radius: 999, 999;
     -fx-border-color: transparent;
     -fx-border-radius: 999;
@@ -727,7 +728,7 @@
 
 .profile-editor-switch:selected {
     -fx-background-color: -wl-switch-track, -wl-switch-thumb;
-    -fx-background-insets: 0, 3 3 3 30;
+    -fx-background-insets: 0, 3 3 3 39;
     -fx-background-radius: 999, 999;
 }
 
@@ -800,9 +801,9 @@
     -fx-min-width: 108;
     -fx-pref-width: 108;
     -fx-max-width: 108;
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
-    -fx-max-height: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 15 0 15;
     -fx-background-color: transparent;
     -fx-background-radius: 6;
@@ -885,12 +886,12 @@
 .assignment-checkbox > .box,
 .assignment-checkbox-row > .box,
 .create-user-profile-row > .box {
-    -fx-min-width: 18;
-    -fx-pref-width: 18;
-    -fx-max-width: 18;
-    -fx-min-height: 18;
-    -fx-pref-height: 18;
-    -fx-max-height: 18;
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
     -fx-border-radius: 3;

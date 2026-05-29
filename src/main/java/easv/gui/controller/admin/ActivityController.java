@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -147,6 +148,7 @@ public class ActivityController {
     private static final String DOCUMENT_ICON_GLYPH = "\ue958";
     private static final String PAGES_ICON_GLYPH = "\ue95c";
     private static final String CLOCK_ICON_GLYPH = "\ue940";
+    private static final String SEARCH_ICON_GLYPH = "\ue908";
     private static final String BOX_ICON_GLYPH = "\ue941";
     private static final String COPY_ICON_GLYPH = "\ue92c";
     private static final String TRASH_ICON_GLYPH = "\ue93d";
@@ -190,6 +192,7 @@ public class ActivityController {
     private ContextMenu searchHistoryMenu;
     private ContextMenu dateCalendarMenu;
     private ContextMenu timeOptionsMenu;
+    private ContextMenu activeLogsDropdownMenu;
     private int visibleLogLimit = INITIAL_VISIBLE_LOG_LIMIT;
     private long activityLoadSequence;
     private boolean activityLoading;
@@ -222,7 +225,7 @@ public class ActivityController {
     @FXML private TextField dateFilterField;
     @FXML private Button dateFilterMenuButton;
     @FXML private HBox timeFilterBox;
-    @FXML private TextField timeFilterField;
+    @FXML private Label timeFilterValueLabel;
     @FXML private Button timeFilterMenuButton;
     @FXML private MenuButton statusMenuButton;
     @FXML private MenuButton filtersMenuButton;
@@ -583,10 +586,12 @@ public class ActivityController {
 
         setMenuButtonDisplay(statusMenuButton, RESULT_FILTER_ICON_GLYPH, "Status", statusButtonText());
         statusMenuButton.setOnShowing(event -> {
+            hideActiveLogsDropdownMenu(null);
             pendingStatuses.clear();
             pendingStatuses.addAll(selectedStatuses);
             statusMenuButton.getItems().setAll(new CustomMenuItem(createStatusPopover(), false));
         });
+        statusMenuButton.setOnHidden(event -> hideActiveLogsDropdownMenu(null));
         statusMenuButton.getItems().setAll(new CustomMenuItem(createStatusPopover(), false));
     }
 
@@ -715,10 +720,12 @@ public class ActivityController {
 
         setMenuButtonDisplay(filtersMenuButton, FILTER_ICON_GLYPH, "Filters", filtersButtonText());
         filtersMenuButton.setOnShowing(event -> {
+            hideActiveLogsDropdownMenu(null);
             pendingArea = selectedArea;
             pendingUser = selectedUser;
             filtersMenuButton.getItems().setAll(new CustomMenuItem(createFiltersPopover(), false));
         });
+        filtersMenuButton.setOnHidden(event -> hideActiveLogsDropdownMenu(null));
         filtersMenuButton.getItems().setAll(new CustomMenuItem(createFiltersPopover(), false));
     }
 
@@ -726,23 +733,23 @@ public class ActivityController {
         VBox content = new VBox(12);
         content.getStyleClass().add("logs-filters-popover");
 
-        ComboBox<String> areaComboBox = new ComboBox<>();
-        areaComboBox.getItems().setAll(AREA_OPTIONS);
-        areaComboBox.setValue(pendingArea);
-        areaComboBox.getStyleClass().add("logs-popover-combo");
-        areaComboBox.setMaxWidth(Double.MAX_VALUE);
-        areaComboBox.valueProperty().addListener((observable, oldValue, newValue) -> pendingArea = newValue);
+        Node areaPicker = createSearchableFilterPicker(
+                AREA_OPTIONS,
+                pendingArea,
+                ALL_AREAS,
+                selectedValue -> pendingArea = selectedValue
+        );
 
-        ComboBox<String> userComboBox = new ComboBox<>();
-        userComboBox.getItems().setAll(filterUserOptions);
-        userComboBox.setValue(filterUserOptions.contains(pendingUser) ? pendingUser : ALL_USERS);
-        userComboBox.getStyleClass().add("logs-popover-combo");
-        userComboBox.setMaxWidth(Double.MAX_VALUE);
-        userComboBox.valueProperty().addListener((observable, oldValue, newValue) -> pendingUser = newValue);
+        Node userPicker = createSearchableFilterPicker(
+                filterUserOptions,
+                filterUserOptions.contains(pendingUser) ? pendingUser : ALL_USERS,
+                ALL_USERS,
+                selectedValue -> pendingUser = selectedValue
+        );
 
         content.getChildren().addAll(
-                createPopoverField("Area", areaComboBox),
-                createPopoverField("User", userComboBox),
+                createPopoverField("Area", areaPicker),
+                createPopoverField("User", userPicker),
                 createPopoverFooter(
                         () -> {
                             selectedArea = Strings.displayText(pendingArea, ALL_AREAS);
@@ -766,6 +773,133 @@ public class ActivityController {
         return field;
     }
 
+    private Node createSearchableFilterPicker(
+            List<String> options,
+            String selectedValue,
+            String fallbackValue,
+            Consumer<String> onSelected
+    ) {
+        String initialValue = options.contains(selectedValue) ? selectedValue : fallbackValue;
+
+        HBox field = new HBox(9);
+        field.getStyleClass().add("logs-searchable-select");
+        field.setAlignment(Pos.CENTER_LEFT);
+        field.setMaxWidth(Double.MAX_VALUE);
+
+        Label valueLabel = new Label(initialValue);
+        valueLabel.getStyleClass().add("logs-searchable-select-text");
+        valueLabel.setMinWidth(0);
+        valueLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label arrow = new Label("▾");
+        arrow.getStyleClass().add("logs-searchable-select-arrow");
+
+        field.getChildren().addAll(valueLabel, spacer, arrow);
+
+        ContextMenu optionsMenu = new ContextMenu();
+        optionsMenu.getStyleClass().add("logs-select-popover-menu");
+
+        field.setOnMouseClicked(event -> {
+            if (hideDropdownIfShowing(optionsMenu)) {
+                return;
+            }
+
+            VBox popover = createSearchableFilterOptionsPopover(
+                    options,
+                    valueLabel.getText(),
+                    value -> {
+                        valueLabel.setText(value);
+                        onSelected.accept(value);
+                        optionsMenu.hide();
+                    }
+            );
+
+            showLogsDropdownMenu(optionsMenu, field, popover, 0, 3);
+        });
+
+        return field;
+    }
+
+    private VBox createSearchableFilterOptionsPopover(
+            List<String> options,
+            String selectedValue,
+            Consumer<String> onSelected
+    ) {
+        VBox content = new VBox(9);
+        content.getStyleClass().add("logs-select-popover");
+
+        VBox optionsList = new VBox(0);
+        optionsList.getStyleClass().add("logs-select-options-list");
+
+        ScrollPane scroller = new ScrollPane(optionsList);
+        scroller.getStyleClass().add("logs-select-popover-scroll");
+        scroller.setFitToWidth(true);
+        scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroller.setPrefViewportWidth(132);
+        scroller.setPrefViewportHeight(150);
+        scroller.setMaxHeight(150);
+
+        if (options.size() >= 5) {
+            TextField searchField = new TextField();
+            searchField.setPromptText("Search");
+            searchField.getStyleClass().add("logs-dropdown-search-input");
+
+            HBox searchShell = createDropdownSearchShell(searchField);
+            content.getChildren().add(searchShell);
+
+            Runnable render = () -> renderSearchableFilterOptions(optionsList, options, selectedValue, searchField.getText(), onSelected);
+            searchField.textProperty().addListener((observable, oldValue, newValue) -> render.run());
+            render.run();
+
+            Platform.runLater(() -> {
+                searchField.requestFocus();
+                searchField.positionCaret(searchField.getText().length());
+            });
+        } else {
+            renderSearchableFilterOptions(optionsList, options, selectedValue, "", onSelected);
+        }
+
+        content.getChildren().add(scroller);
+        return content;
+    }
+
+    private void renderSearchableFilterOptions(
+            VBox optionsList,
+            List<String> options,
+            String selectedValue,
+            String query,
+            Consumer<String> onSelected
+    ) {
+        optionsList.getChildren().clear();
+
+        List<String> visibleOptions = filterOptions(options, query);
+
+        if (visibleOptions.isEmpty()) {
+            Label empty = new Label("No options found");
+            empty.getStyleClass().add("logs-dropdown-empty-text");
+            optionsList.getChildren().add(empty);
+            return;
+        }
+
+        for (String option : visibleOptions) {
+            Button row = createDropdownOptionButton(
+                    option,
+                    option.equals(selectedValue),
+                    "logs-select-option",
+                    "logs-select-option-text",
+                    "logs-select-option-selected",
+                    "logs-select-option-check",
+                    onSelected
+            );
+
+            optionsList.getChildren().add(row);
+        }
+    }
+
     private String filtersButtonText() {
         int activeCount = 0;
 
@@ -781,49 +915,23 @@ public class ActivityController {
     }
 
     private void configureTimeFilterComboBox() {
-        configureTimeFilterTextField();
+        configureTimeFilterDisplayField();
         configureTimeFilterMenu();
         updateTimeFilterDisplay();
     }
 
-    private void configureTimeFilterTextField() {
-        if (timeFilterField == null) {
-            return;
+    private void configureTimeFilterDisplayField() {
+        if (timeFilterValueLabel != null) {
+            timeFilterValueLabel.setText(TIME_ALL);
         }
-
-        updatingTimeFilter = true;
-        timeFilterField.setPromptText("HH:00");
-        timeFilterField.setText("");
-        updatingTimeFilter = false;
-
-        timeFilterField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (updatingTimeFilter) {
-                return;
-            }
-
-            applyTypedTimeLive(newValue);
-        });
-
-        timeFilterField.setOnAction(event ->
-                applyTypedTimeAndNormalize(timeFilterField.getText())
-        );
-
-        timeFilterField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
-            if (!isFocused) {
-                applyTypedTimeAndNormalize(timeFilterField.getText());
-            }
-        });
 
         if (timeFilterBox != null) {
             timeFilterBox.setOnMouseClicked(event -> {
-                Object target = event.getTarget();
-
-                if (target == timeFilterMenuButton) {
+                if (isEventTargetInsideNode(event.getTarget(), timeFilterMenuButton)) {
                     return;
                 }
 
-                timeFilterField.requestFocus();
-                timeFilterField.positionCaret(timeFilterField.getText().length());
+                showTimeOptionsMenu();
             });
         }
     }
@@ -838,7 +946,10 @@ public class ActivityController {
 
         timeFilterMenuButton.setText("▾");
         timeFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
-        timeFilterMenuButton.setOnAction(event -> showTimeOptionsMenu());
+        timeFilterMenuButton.setOnAction(event -> {
+            event.consume();
+            showTimeOptionsMenu();
+        });
     }
 
     private void showTimeOptionsMenu() {
@@ -853,112 +964,227 @@ public class ActivityController {
             return;
         }
 
-        ScrollPane scroller = new ScrollPane(createTimeOptionsList());
+        if (hideDropdownIfShowing(timeOptionsMenu)) {
+            return;
+        }
+
+        VBox popover = createTimeOptionsPopover();
+        showLogsDropdownMenu(timeOptionsMenu, anchor, popover, 0, 3);
+    }
+
+    private boolean hideDropdownIfShowing(ContextMenu menu) {
+        if (menu == null || !menu.isShowing()) {
+            return false;
+        }
+
+        menu.hide();
+
+        if (activeLogsDropdownMenu == menu) {
+            activeLogsDropdownMenu = null;
+        }
+
+        return true;
+    }
+
+    private void hideActiveLogsDropdownMenu(ContextMenu exceptMenu) {
+        if (activeLogsDropdownMenu == null || activeLogsDropdownMenu == exceptMenu || !activeLogsDropdownMenu.isShowing()) {
+            return;
+        }
+
+        activeLogsDropdownMenu.hide();
+        activeLogsDropdownMenu = null;
+    }
+
+    private void showLogsDropdownMenu(ContextMenu menu, Node anchor, Node content, double xOffset, double yOffset) {
+        if (menu == null || anchor == null || anchor.getScene() == null || content == null) {
+            return;
+        }
+
+        hideActiveLogsDropdownMenu(menu);
+        menu.getItems().setAll(new CustomMenuItem(content, false));
+        menu.setOnHidden(event -> {
+            if (activeLogsDropdownMenu == menu) {
+                activeLogsDropdownMenu = null;
+            }
+        });
+        activeLogsDropdownMenu = menu;
+        menu.show(anchor, Side.BOTTOM, xOffset, yOffset);
+    }
+
+    private boolean isEventTargetInsideNode(Object target, Node parent) {
+        if (!(target instanceof Node) || parent == null) {
+            return false;
+        }
+
+        Node current = (Node) target;
+
+        while (current != null) {
+            if (current == parent) {
+                return true;
+            }
+
+            current = current.getParent();
+        }
+
+        return false;
+    }
+
+    private VBox createTimeOptionsPopover() {
+        VBox content = new VBox(9);
+        content.getStyleClass().add("logs-time-popover");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search time");
+        searchField.getStyleClass().add("logs-dropdown-search-input");
+
+        HBox searchShell = createDropdownSearchShell(searchField);
+
+        VBox optionsList = new VBox(0);
+        optionsList.getStyleClass().add("logs-time-popover-list");
+
+        ScrollPane scroller = new ScrollPane(optionsList);
         scroller.getStyleClass().add("logs-time-popover-scroll");
         scroller.setFitToWidth(true);
         scroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scroller.setPrefViewportWidth(135);
-        scroller.setPrefViewportHeight(210);
-        scroller.setMaxHeight(210);
+        scroller.setPrefViewportHeight(180);
+        scroller.setMaxHeight(180);
 
-        timeOptionsMenu.getItems().setAll(new CustomMenuItem(scroller, false));
-        timeOptionsMenu.show(anchor, Side.BOTTOM, 0, 3);
-    }
+        Runnable render = () -> renderTimeOptions(optionsList, searchField.getText());
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> render.run());
+        render.run();
 
-    private VBox createTimeOptionsList() {
-        VBox content = new VBox(0);
-        content.getStyleClass().add("logs-time-popover-list");
+        content.getChildren().addAll(searchShell, scroller);
 
-        for (String option : TIME_FILTER_OPTIONS) {
-            Button row = new Button();
-            row.getStyleClass().add("logs-time-option");
-            row.setFocusTraversable(false);
-            row.setMaxWidth(Double.MAX_VALUE);
-
-            HBox graphic = new HBox(9);
-            graphic.setAlignment(Pos.CENTER_LEFT);
-
-            Label label = new Label(TIME_ALL.equals(option) ? "All times" : option);
-            label.getStyleClass().add("logs-time-option-text");
-            label.setMinWidth(0);
-            label.setTextOverrun(OverrunStyle.ELLIPSIS);
-
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-
-            graphic.getChildren().addAll(label, spacer);
-
-            LocalTime optionTime = parseTimeFilterValue(option);
-            boolean selected = selectedTimeFilter == null
-                    ? TIME_ALL.equals(option)
-                    : selectedTimeFilter.equals(optionTime);
-
-            if (selected) {
-                row.getStyleClass().add("logs-time-option-selected");
-                graphic.getChildren().add(createPrimeIcon(CHECK_ICON_GLYPH, "logs-time-option-check"));
-            }
-
-            row.setGraphic(graphic);
-            row.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            row.setOnAction(event -> {
-                selectedTimeFilter = TIME_ALL.equals(option) ? null : optionTime;
-                updateTimeFilterDisplay();
-
-                if (timeOptionsMenu != null) {
-                    timeOptionsMenu.hide();
-                }
-
-                refreshFilteredTimeline();
-            });
-
-            content.getChildren().add(row);
-        }
+        Platform.runLater(() -> {
+            searchField.requestFocus();
+            searchField.positionCaret(searchField.getText().length());
+        });
 
         return content;
     }
 
-    private void applyTypedTimeLive(String value) {
-        String cleanedValue = Strings.clean(value);
+    private HBox createDropdownSearchShell(TextField searchField) {
+        HBox shell = new HBox(9);
+        shell.getStyleClass().add("logs-dropdown-search-shell");
+        shell.setAlignment(Pos.CENTER_LEFT);
 
-        if (cleanedValue.isBlank() || TIME_ALL.equalsIgnoreCase(cleanedValue)) {
-            if (selectedTimeFilter != null) {
-                selectedTimeFilter = null;
-                refreshFilteredTimeline();
+        StackPane iconShell = new StackPane(createPrimeIcon(SEARCH_ICON_GLYPH, "logs-dropdown-search-icon"));
+        iconShell.getStyleClass().add("logs-dropdown-search-icon-shell");
+
+        searchField.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+        searchField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
+            shell.getStyleClass().remove("logs-dropdown-search-shell-focused");
+
+            if (isFocused) {
+                shell.getStyleClass().add("logs-dropdown-search-shell-focused");
             }
-            return;
-        }
+        });
 
-        LocalTime parsedTime = parseTimeFilterValue(cleanedValue);
-
-        if (parsedTime == null || parsedTime.equals(selectedTimeFilter)) {
-            return;
-        }
-
-        selectedTimeFilter = parsedTime;
-        refreshFilteredTimeline();
+        shell.getChildren().addAll(iconShell, searchField);
+        return shell;
     }
 
-    private void applyTypedTimeAndNormalize(String value) {
-        if (updatingTimeFilter) {
+    private void renderTimeOptions(VBox optionsList, String query) {
+        optionsList.getChildren().clear();
+
+        List<String> visibleOptions = filterOptions(TIME_FILTER_OPTIONS, query);
+
+        if (visibleOptions.isEmpty()) {
+            Label empty = new Label("No times found");
+            empty.getStyleClass().add("logs-dropdown-empty-text");
+            optionsList.getChildren().add(empty);
             return;
         }
 
-        LocalTime parsedTime = parseTimeFilterValue(value);
+        for (String option : visibleOptions) {
+            Button row = createDropdownOptionButton(
+                    TIME_ALL.equals(option) ? TIME_ALL : option,
+                    isSelectedTimeOption(option),
+                    "logs-time-option",
+                    "logs-time-option-text",
+                    "logs-time-option-selected",
+                    "logs-time-option-check",
+                    selectedValue -> {
+                        LocalTime optionTime = parseTimeFilterValue(option);
+                        selectedTimeFilter = TIME_ALL.equals(option) ? null : optionTime;
+                        updateTimeFilterDisplay();
 
-        if (parsedTime == null && !isBlankOrAllTimes(value)) {
-            updateTimeFilterDisplay();
-            return;
+                        if (timeOptionsMenu != null) {
+                            timeOptionsMenu.hide();
+                        }
+
+                        refreshFilteredTimeline();
+                    }
+            );
+
+            optionsList.getChildren().add(row);
         }
-
-        selectedTimeFilter = parsedTime;
-        updateTimeFilterDisplay();
-        refreshFilteredTimeline();
     }
 
-    private boolean isBlankOrAllTimes(String value) {
-        String cleanedValue = Strings.clean(value);
-        return cleanedValue.isBlank() || TIME_ALL.equalsIgnoreCase(cleanedValue);
+    private boolean isSelectedTimeOption(String option) {
+        LocalTime optionTime = parseTimeFilterValue(option);
+        return selectedTimeFilter == null
+                ? TIME_ALL.equals(option)
+                : selectedTimeFilter.equals(optionTime);
+    }
+
+    private List<String> filterOptions(List<String> options, String query) {
+        String cleanedQuery = Strings.normalize(query);
+
+        if (cleanedQuery.isBlank()) {
+            return new ArrayList<>(options);
+        }
+
+        List<String> filtered = new ArrayList<>();
+
+        for (String option : options) {
+            if (Strings.normalize(option).contains(cleanedQuery)) {
+                filtered.add(option);
+            }
+        }
+
+        return filtered;
+    }
+
+    private Button createDropdownOptionButton(
+            String text,
+            boolean selected,
+            String rowStyleClass,
+            String textStyleClass,
+            String selectedStyleClass,
+            String checkStyleClass,
+            Consumer<String> onSelected
+    ) {
+        Button row = new Button();
+        row.getStyleClass().add(rowStyleClass);
+        row.setFocusTraversable(false);
+        row.setMaxWidth(Double.MAX_VALUE);
+
+        HBox graphic = new HBox(9);
+        graphic.setAlignment(Pos.CENTER_LEFT);
+
+        Label label = new Label(text);
+        label.getStyleClass().add(textStyleClass);
+        label.setMinWidth(0);
+        label.setTextOverrun(OverrunStyle.ELLIPSIS);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        graphic.getChildren().addAll(label, spacer);
+
+        if (selected) {
+            row.getStyleClass().add(selectedStyleClass);
+            graphic.getChildren().add(createPrimeIcon(CHECK_ICON_GLYPH, checkStyleClass));
+        }
+
+        row.setGraphic(graphic);
+        row.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        row.setOnAction(event -> onSelected.accept(text));
+        return row;
     }
 
     private LocalTime parseTimeFilterValue(String value) {
@@ -982,15 +1208,11 @@ public class ActivityController {
     }
 
     private void updateTimeFilterDisplay() {
-        if (timeFilterField == null) {
+        if (timeFilterValueLabel == null) {
             return;
         }
 
-        updatingTimeFilter = true;
-        timeFilterField.setPromptText("HH:00");
-        timeFilterField.setText(selectedTimeFilter == null ? "" : formatTimeFilter(selectedTimeFilter));
-        updatingTimeFilter = false;
-
+        timeFilterValueLabel.setText(selectedTimeFilter == null ? TIME_ALL : formatTimeFilter(selectedTimeFilter));
     }
 
     private String formatTimeFilter(LocalTime time) {
@@ -1003,9 +1225,11 @@ public class ActivityController {
         }
 
         setMenuButtonDisplay(sortMenuButton, SORT_FILTER_ICON_GLYPH, "Sort", selectedSort);
-        sortMenuButton.setOnShowing(event ->
-                sortMenuButton.getItems().setAll(new CustomMenuItem(createSortPopover(), false))
-        );
+        sortMenuButton.setOnShowing(event -> {
+            hideActiveLogsDropdownMenu(null);
+            sortMenuButton.getItems().setAll(new CustomMenuItem(createSortPopover(), false));
+        });
+        sortMenuButton.setOnHidden(event -> hideActiveLogsDropdownMenu(null));
         sortMenuButton.getItems().setAll(new CustomMenuItem(createSortPopover(), false));
     }
 
@@ -1079,6 +1303,8 @@ public class ActivityController {
             });
             searchField.setOnAction(event -> rememberSearch(searchField.getText()));
             searchField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
+                updateSearchBoxFocusState(isFocused);
+
                 if (!isFocused) {
                     rememberSearch(searchField.getText());
                 }
@@ -1101,6 +1327,18 @@ public class ActivityController {
             sortFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFilteredTimeline());
         }
 
+    }
+
+    private void updateSearchBoxFocusState(boolean focused) {
+        if (searchBox == null) {
+            return;
+        }
+
+        searchBox.getStyleClass().remove("logs-search-focused");
+
+        if (focused) {
+            searchBox.getStyleClass().add("logs-search-focused");
+        }
     }
 
     private void renderTimeline() {
@@ -4553,7 +4791,7 @@ public class ActivityController {
             dateFilterBox.setOnMouseClicked(event -> {
                 Object target = event.getTarget();
 
-                if (target == dateFilterMenuButton) {
+                if (isEventTargetInsideNode(target, dateFilterMenuButton)) {
                     return;
                 }
 
@@ -4565,7 +4803,10 @@ public class ActivityController {
         if (dateFilterMenuButton != null) {
             dateFilterMenuButton.setText("▾");
             dateFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
-            dateFilterMenuButton.setOnAction(event -> showDateCalendarMenu());
+            dateFilterMenuButton.setOnAction(event -> {
+                event.consume();
+                showDateCalendarMenu();
+            });
         }
 
         updateDateFieldDisplay();
@@ -4592,9 +4833,13 @@ public class ActivityController {
             return;
         }
 
-        dateCalendarMenu.getItems().setAll(new CustomMenuItem(createDateCalendarPopover(), false));
+        if (hideDropdownIfShowing(dateCalendarMenu)) {
+            return;
+        }
+
         prepareDatePopover();
-        dateCalendarMenu.show(anchor, Side.BOTTOM, 0, 3);
+        VBox popover = createDateCalendarPopover();
+        showLogsDropdownMenu(dateCalendarMenu, anchor, popover, 0, 3);
     }
 
     private VBox createDateCalendarPopover() {

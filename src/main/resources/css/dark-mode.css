@@ -37,7 +37,6 @@
     -wl-tertiary: #4B5563;
     -wl-tertiary-button: #4B5563;
     -wl-tertiary-hover: #2B3B4C;
-
     -wl-border: #2B3B4C;
     -wl-placeholder: #697489;
     -wl-surface-hover: #2B3B4C;
@@ -229,3 +228,4 @@
 .app-shell.dark .barcode-preview-copy {
     -fx-text-fill: -wl-secondary;
 }
+

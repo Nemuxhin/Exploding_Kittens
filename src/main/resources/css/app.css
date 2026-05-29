@@ -43,6 +43,9 @@
 
     /* Borders / interaction */
     -wl-border: #E2E4E8;
+    -wl-input-border: #E2E4E8;
+    -wl-input-hover-border: #2B3B4C;
+    -wl-input-focus-border: #2B3B4C;
     -wl-placeholder: #BFBFBF;
     -wl-surface-hover: #F1F5F9;
     -wl-shadow-color: rgba(0, 0, 0, 0.10);
@@ -270,9 +273,7 @@
     -fx-faint-focus-color: transparent;
 }
 
-.button:disabled,
-.text-field:disabled,
-.combo-box-base:disabled {
+.button:disabled {
     -fx-opacity: 0.6;
 }
 
@@ -305,11 +306,27 @@
     -fx-border-color: -wl-primary-hover;
 }
 
-.secondary-button,
+.secondary-button {
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.secondary-button:hover,
+.secondary-button:pressed {
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
+}
+
 .secondary-outline-button,
 .tertiary-button,
 .back-button {
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -318,16 +335,14 @@
     -fx-border-insets: 0;
 }
 
-.secondary-button:hover,
-.secondary-button:pressed,
 .secondary-outline-button:hover,
 .secondary-outline-button:pressed,
 .tertiary-button:hover,
 .tertiary-button:pressed,
 .back-button:hover,
 .back-button:focused {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 
@@ -379,17 +394,130 @@
 
 .text-input,
 .text-field,
+.password-field,
 .text-area,
 .combo-box-base {
-    -fx-highlight-fill: -wl-primary-selected;
-    -fx-highlight-text-fill: -wl-on-primary;
+    -fx-highlight-fill: -wl-surface-hover;
+    -fx-highlight-text-fill: -wl-text;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 
+/* Text fields follow the WebLager input-state guide:
+   border/hover/focus: #2B3B4C
+   error:              #FF3D32
+   success:            #4CD07D
+   disabled:           60% opacity
+*/
 .text-field,
 .password-field,
-.text-area,
+.text-area {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-input-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.text-field,
+.password-field {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+}
+
+/* Explicit styleguide input heights.
+   Default text inputs are 30px. Header/large inputs may opt into 33px. */
+.text-field.input-height-30,
+.password-field.input-height-30,
+.combo-box-base.input-height-30,
+.date-picker.input-height-30,
+.search-field-shell.input-height-30 {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.text-field.input-height-33,
+.password-field.input-height-33,
+.combo-box-base.input-height-33,
+.date-picker.input-height-33,
+.search-field-shell.input-height-33 {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+}
+
+.search-field-shell.input-height-33 .search-field-input {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+}
+
+.text-area {
+    -fx-padding: 0;
+}
+
+.text-area .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-padding: 9;
+}
+
+.text-field:hover,
+.password-field:hover,
+.text-area:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.text-field:focused,
+.password-field:focused,
+.text-area:focused {
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+}
+
+.text-field.input-error,
+.password-field.input-error,
+.text-area.input-error,
+.text-field.text-field-error,
+.password-field.text-field-error,
+.text-area.text-field-error,
+.text-field.field-error,
+.password-field.field-error,
+.text-area.field-error,
+.text-field.error,
+.password-field.error,
+.text-area.error {
+    -fx-border-color: -wl-error;
+    -fx-border-width: 2;
+}
+
+.text-field.input-success,
+.password-field.input-success,
+.text-area.input-success,
+.text-field.text-field-success,
+.password-field.text-field-success,
+.text-area.text-field-success,
+.text-field.field-success,
+.password-field.field-success,
+.text-area.field-success,
+.text-field.success,
+.password-field.success,
+.text-area.success {
+    -fx-border-color: -wl-success;
+    -fx-border-width: 2;
+}
+
+/* ComboBox / DatePicker keep WebLager control structure here.
+   Screen-specific searchable ComboBox cleanup stays in page CSS where needed. */
 .combo-box-base,
 .date-picker {
     -fx-background-color: -wl-input-bg;
@@ -400,44 +528,35 @@
     -fx-border-width: 1;
     -fx-border-insets: 0;
     -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 
-.text-field,
-.password-field,
 .combo-box-base,
 .date-picker {
-    -fx-min-height: 39;
-    -fx-pref-height: 39;
-    -fx-max-height: 39;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 12 0 12;
 }
 
-.text-area {
-    -fx-padding: 9;
-}
-
-.text-area .content {
-    -fx-background-color: -wl-input-bg;
-    -fx-background-radius: 6;
-}
-
-.text-field:hover,
-.password-field:hover,
-.text-area:hover,
 .combo-box-base:hover,
 .date-picker:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
-.text-field:focused,
-.password-field:focused,
-.text-area:focused,
 .combo-box-base:focused,
 .date-picker:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
+}
+
+.button:disabled,
+.text-field:disabled,
+.password-field:disabled,
+.text-area:disabled,
+.combo-box-base:disabled,
+.date-picker:disabled {
+    -fx-opacity: 0.6;
 }
 
 .search-field-shell {
@@ -447,7 +566,7 @@
     -fx-background-color: -wl-input-bg;
     -fx-background-radius: 6;
     -fx-background-insets: 0;
-    -fx-border-color: -wl-border;
+    -fx-border-color: -wl-input-border;
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-border-insets: 0;
@@ -458,12 +577,13 @@
 
 .search-field-shell:hover {
     -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .search-field-shell-focused {
     -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
 }
 
 .search-field-input,
@@ -531,7 +651,7 @@
     -fx-border-color: -wl-border;
     -fx-background-radius: 6;
     -fx-border-radius: 6;
-    -fx-cell-size: 39;
+    -fx-cell-size: 30;
 }
 
 .combo-box-popup .list-cell {
@@ -692,7 +812,7 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0;
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -701,8 +821,8 @@
 
 .pagination-button:hover,
 .pagination-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 

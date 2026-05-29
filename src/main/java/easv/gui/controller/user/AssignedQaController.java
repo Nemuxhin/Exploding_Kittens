@@ -17,6 +17,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -25,7 +26,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.DatePicker;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -58,19 +60,28 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.TextStyle;
 import java.util.stream.Collectors;
 import javafx.util.Duration;
 
 public class AssignedQaController {
+    private record ParsedDateRange(LocalDate startDate, LocalDate endDate) {}
+
     private static final List<String> QA_ROTATION_OPTIONS = List.of("0\u00B0", "90\u00B0", "180\u00B0", "270\u00B0");
+    private static final DateTimeFormatter QA_DATE_RANGE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH);
+
 
     private static final double QA_PREVIEW_PAGE_WIDTH = 500;
     private static final double QA_PREVIEW_PAGE_HEIGHT = 560;
@@ -87,8 +98,9 @@ public class AssignedQaController {
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> statusFilterComboBox;
-    @FXML private DatePicker fromDatePicker;
-    @FXML private DatePicker toDatePicker;
+    @FXML private HBox dateRangeBox;
+    @FXML private TextField dateRangeField;
+    @FXML private Button dateRangeMenuButton;
     @FXML private HBox assignedQaFilterPanel;
     @FXML private TilePane qaCardListContainer;
 
@@ -141,6 +153,14 @@ public class AssignedQaController {
     private boolean syncingQaControls = false;
     private boolean syncingQaRotationComboBox = false;
     private boolean qaDocumentListView = false;
+    private boolean updatingDateControls = false;
+    private LocalDate fromDate;
+    private LocalDate toDate;
+    private LocalDate pendingRangeStart;
+    private ContextMenu dateRangeCalendarMenu;
+    private GridPane dateRangeCalendarGrid;
+    private Label dateRangeCalendarMonthLabel;
+    private YearMonth displayedDateRangeMonth = YearMonth.now();
     private UserPortalModel portalModel;
     private final PauseTransition qaAutoSaveDelay = new PauseTransition(Duration.millis(400));
 
@@ -178,10 +198,449 @@ public class AssignedQaController {
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
         statusFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        UserPortalUi.configureDateFilterPicker(fromDatePicker);
-        UserPortalUi.configureDateFilterPicker(toDatePicker);
-        fromDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
-        toDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> renderAssignments());
+        configureDateRangeField();
+    }
+
+    private void configureDateRangeField() {
+        if (dateRangeField != null) {
+            dateRangeField.setPromptText("MM/DD/YYYY");
+
+            dateRangeField.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (updatingDateControls) {
+                    return;
+                }
+
+                applyTypedDateRangeLive(newValue);
+            });
+
+            dateRangeField.setOnAction(event ->
+                    applyTypedDateRangeAndNormalize(dateRangeField.getText())
+            );
+
+            dateRangeField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
+                if (!isFocused) {
+                    applyTypedDateRangeAndNormalize(dateRangeField.getText());
+                }
+            });
+        }
+
+        if (dateRangeBox != null && dateRangeField != null) {
+            dateRangeBox.setOnMouseClicked(event -> {
+                Object target = event.getTarget();
+
+                if (isEventTargetInsideNode(target, dateRangeMenuButton)) {
+                    return;
+                }
+
+                dateRangeField.requestFocus();
+                dateRangeField.positionCaret(dateRangeField.getText().length());
+            });
+        }
+
+        if (dateRangeMenuButton != null) {
+            Region arrowGraphic = new Region();
+            arrowGraphic.getStyleClass().add("assigned-qa-date-filter-arrow");
+
+            dateRangeMenuButton.setText(null);
+            dateRangeMenuButton.setGraphic(arrowGraphic);
+            dateRangeMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            dateRangeMenuButton.setOnAction(event -> showDateRangeCalendarMenu());
+        }
+
+        updateDateRangeFieldDisplay();
+    }
+
+    private void showDateRangeCalendarMenu() {
+        if (dateRangeCalendarMenu == null) {
+            dateRangeCalendarMenu = new ContextMenu();
+            dateRangeCalendarMenu.getStyleClass().add("assigned-qa-date-popover-menu");
+        }
+
+        Node anchor = dateRangeBox == null ? dateRangeMenuButton : dateRangeBox;
+
+        if (anchor == null || anchor.getScene() == null) {
+            return;
+        }
+
+        if (dateRangeCalendarMenu.isShowing()) {
+            dateRangeCalendarMenu.hide();
+            return;
+        }
+
+        dateRangeCalendarMenu.getItems().setAll(new CustomMenuItem(createDateRangeCalendarPopover(), false));
+        updateDateRangeCalendarMonthFromSelection();
+        updateDateRangeCalendarDisplay();
+        dateRangeCalendarMenu.show(anchor, Side.BOTTOM, 0, 3);
+    }
+
+    private VBox createDateRangeCalendarPopover() {
+        VBox popover = new VBox(0);
+        popover.getStyleClass().add("assigned-qa-date-popover");
+
+        VBox panel = new VBox(0);
+        panel.getStyleClass().add("assigned-qa-calendar-panel");
+
+        HBox header = new HBox();
+        header.getStyleClass().add("assigned-qa-calendar-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(Double.MAX_VALUE);
+
+        Button previousButton = new Button("<");
+        previousButton.setFocusTraversable(false);
+        previousButton.getStyleClass().add("assigned-qa-calendar-nav-button");
+        previousButton.setOnAction(event -> showPreviousDateRangeCalendarMonth());
+
+        Button nextButton = new Button(">");
+        nextButton.setFocusTraversable(false);
+        nextButton.getStyleClass().add("assigned-qa-calendar-nav-button");
+        nextButton.setOnAction(event -> showNextDateRangeCalendarMonth());
+
+        dateRangeCalendarMonthLabel = new Label();
+        dateRangeCalendarMonthLabel.getStyleClass().add("assigned-qa-calendar-month-label");
+
+        Region leftSpacer = new Region();
+        Region rightSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+
+        header.getChildren().addAll(previousButton, leftSpacer, dateRangeCalendarMonthLabel, rightSpacer, nextButton);
+
+        dateRangeCalendarGrid = new GridPane();
+        dateRangeCalendarGrid.setHgap(3);
+        dateRangeCalendarGrid.setVgap(6);
+        dateRangeCalendarGrid.setMaxWidth(Double.MAX_VALUE);
+        dateRangeCalendarGrid.getStyleClass().add("assigned-qa-calendar-grid");
+
+        panel.getChildren().addAll(header, dateRangeCalendarGrid);
+        popover.getChildren().add(panel);
+
+        updateDateRangeCalendarDisplay();
+        return popover;
+    }
+
+    private void showPreviousDateRangeCalendarMonth() {
+        displayedDateRangeMonth = displayedDateRangeMonth.minusMonths(1);
+        updateDateRangeCalendarDisplay();
+    }
+
+    private void showNextDateRangeCalendarMonth() {
+        displayedDateRangeMonth = displayedDateRangeMonth.plusMonths(1);
+        updateDateRangeCalendarDisplay();
+    }
+
+    private void updateDateRangeCalendarMonthFromSelection() {
+        LocalDate calendarDate = fromDate != null
+                ? fromDate
+                : toDate;
+
+        displayedDateRangeMonth = calendarDate == null
+                ? YearMonth.now()
+                : YearMonth.from(calendarDate);
+    }
+
+    private void updateDateRangeCalendarDisplay() {
+        if (dateRangeCalendarGrid == null || dateRangeCalendarMonthLabel == null || displayedDateRangeMonth == null) {
+            return;
+        }
+
+        dateRangeCalendarGrid.getChildren().clear();
+        dateRangeCalendarMonthLabel.setText(displayedDateRangeMonth.getMonth().getDisplayName(
+                TextStyle.FULL,
+                Locale.ENGLISH
+        ) + " " + displayedDateRangeMonth.getYear());
+
+        String[] dayNames = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
+
+        for (int column = 0; column < dayNames.length; column++) {
+            Label label = new Label(dayNames[column]);
+            label.getStyleClass().add("assigned-qa-calendar-day-name");
+            dateRangeCalendarGrid.add(label, column, 0);
+        }
+
+        LocalDate firstOfMonth = displayedDateRangeMonth.atDay(1);
+        int leadingDays = firstOfMonth.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
+        LocalDate firstVisibleDate = firstOfMonth.minusDays(leadingDays);
+
+        for (int index = 0; index < 42; index++) {
+            LocalDate date = firstVisibleDate.plusDays(index);
+            Button dayButton = createDateRangeCalendarDayButton(date);
+            dateRangeCalendarGrid.add(dayButton, index % 7, index / 7 + 1);
+        }
+    }
+
+    private Button createDateRangeCalendarDayButton(LocalDate date) {
+        Button dayButton = new Button(String.valueOf(date.getDayOfMonth()));
+        dayButton.getStyleClass().add("assigned-qa-calendar-day-button");
+        dayButton.setFocusTraversable(false);
+        dayButton.setMinSize(30, 30);
+        dayButton.setPrefSize(30, 30);
+        dayButton.setMaxSize(30, 30);
+
+        boolean selectedBoundary = date.equals(fromDate) || date.equals(toDate);
+
+        if (!YearMonth.from(date).equals(displayedDateRangeMonth)) {
+            dayButton.getStyleClass().add("assigned-qa-calendar-day-outside");
+        }
+
+        if (date.equals(LocalDate.now()) && !selectedBoundary) {
+            dayButton.getStyleClass().add("assigned-qa-calendar-day-today");
+        }
+
+        if (selectedBoundary) {
+            dayButton.getStyleClass().add("assigned-qa-calendar-day-selected");
+        } else if (isBetweenDateRange(date)) {
+            dayButton.getStyleClass().add("assigned-qa-calendar-day-in-range");
+        }
+
+        dayButton.setOnAction(event -> selectDateRangeCalendarDate(date));
+        return dayButton;
+    }
+
+    private void selectDateRangeCalendarDate(LocalDate selectedDate) {
+        if (selectedDate == null) {
+            return;
+        }
+
+        updatingDateControls = true;
+
+        if (pendingRangeStart == null) {
+            pendingRangeStart = selectedDate;
+            fromDate = selectedDate;
+            toDate = selectedDate;
+        } else {
+            if (selectedDate.isBefore(pendingRangeStart)) {
+                fromDate = selectedDate;
+                toDate = pendingRangeStart;
+            } else {
+                fromDate = pendingRangeStart;
+                toDate = selectedDate;
+            }
+
+            pendingRangeStart = null;
+        }
+
+        normalizeDateRange();
+        updatingDateControls = false;
+
+        displayedDateRangeMonth = YearMonth.from(selectedDate);
+        updateDateRangeFieldDisplay();
+        updateDateRangeCalendarDisplay();
+
+        if (pendingRangeStart == null) {
+            if (dateRangeCalendarMenu != null) {
+                dateRangeCalendarMenu.hide();
+            }
+            renderAssignments();
+        }
+    }
+
+    private void applyTypedDateRangeLive(String value) {
+        String cleanedValue = cleanDateInput(value);
+
+        if (isBlankOrPlaceholderDate(cleanedValue)) {
+            if (fromDate != null || toDate != null) {
+                applyParsedDateRange(null, false);
+                renderAssignments();
+            }
+            return;
+        }
+
+        ParsedDateRange parsedRange = parseDateRangeFilterValue(cleanedValue);
+
+        if (parsedRange == null || isSameDateRange(parsedRange)) {
+            return;
+        }
+
+        applyParsedDateRange(parsedRange, false);
+        renderAssignments();
+    }
+
+    private void applyTypedDateRangeAndNormalize(String value) {
+        if (updatingDateControls) {
+            return;
+        }
+
+        String cleanedValue = cleanDateInput(value);
+
+        if (isBlankOrPlaceholderDate(cleanedValue)) {
+            applyParsedDateRange(null, true);
+            renderAssignments();
+            return;
+        }
+
+        ParsedDateRange parsedRange = parseDateRangeFilterValue(cleanedValue);
+
+        if (parsedRange == null) {
+            updateDateRangeFieldDisplay();
+            return;
+        }
+
+        applyParsedDateRange(parsedRange, true);
+        renderAssignments();
+    }
+
+    private void applyParsedDateRange(ParsedDateRange parsedRange, boolean updateDisplay) {
+        updatingDateControls = true;
+
+        if (parsedRange == null) {
+            fromDate = null;
+            toDate = null;
+        } else {
+            fromDate = parsedRange.startDate();
+            toDate = parsedRange.endDate();
+            normalizeDateRange();
+        }
+
+        pendingRangeStart = null;
+
+        if (updateDisplay) {
+            updateDateRangeFieldDisplay();
+        }
+
+        updateDateRangeCalendarMonthFromSelection();
+        updateDateRangeCalendarDisplay();
+
+        updatingDateControls = false;
+    }
+
+    private ParsedDateRange parseDateRangeFilterValue(String value) {
+        String cleanedValue = cleanDateInput(value);
+
+        if (cleanedValue.isBlank()) {
+            return null;
+        }
+
+        String[] rangeParts = cleanedValue
+                .replace("–", "-")
+                .replace("—", "-")
+                .split("\\s+(?:-|to)\\s+", 2);
+
+        if (rangeParts.length == 1) {
+            LocalDate date = parseDateRangePart(rangeParts[0]);
+            return date == null ? null : new ParsedDateRange(date, date);
+        }
+
+        LocalDate startDate = parseDateRangePart(rangeParts[0]);
+        LocalDate endDate = parseDateRangePart(rangeParts[1]);
+
+        if (startDate == null || endDate == null) {
+            return null;
+        }
+
+        return new ParsedDateRange(startDate, endDate);
+    }
+
+    private LocalDate parseDateRangePart(String value) {
+        String cleanedValue = cleanDateInput(value);
+
+        if (cleanedValue.isBlank()) {
+            return null;
+        }
+
+        List<DateTimeFormatter> formatters = List.of(
+                QA_DATE_RANGE_FORMATTER,
+                DateTimeFormatter.ofPattern("M/d/yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ISO_LOCAL_DATE
+        );
+
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                return LocalDate.parse(cleanedValue, formatter);
+            } catch (DateTimeParseException ignored) {
+                // Try the next supported date format.
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isSameDateRange(ParsedDateRange parsedRange) {
+        return parsedRange != null
+                && Objects.equals(fromDate, parsedRange.startDate())
+                && Objects.equals(toDate, parsedRange.endDate());
+    }
+
+    private boolean isBetweenDateRange(LocalDate date) {
+        return fromDate != null
+                && toDate != null
+                && date.isAfter(fromDate)
+                && date.isBefore(toDate);
+    }
+
+    private void normalizeDateRange() {
+        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+            LocalDate swappedDate = fromDate;
+            fromDate = toDate;
+            toDate = swappedDate;
+        }
+    }
+
+    private void updateDateRangeFieldDisplay() {
+        if (dateRangeField == null) {
+            return;
+        }
+
+        updatingDateControls = true;
+        dateRangeField.setPromptText("MM/DD/YYYY");
+        dateRangeField.setText(formatDateRange());
+        updatingDateControls = false;
+
+        if (dateRangeBox != null) {
+            dateRangeBox.getStyleClass().removeAll("assigned-qa-date-filter-has-value");
+
+            if (fromDate != null || toDate != null) {
+                dateRangeBox.getStyleClass().add("assigned-qa-date-filter-has-value");
+            }
+        }
+    }
+
+    private String formatDateRange() {
+        if (fromDate == null && toDate == null) {
+            return "";
+        }
+
+        if (fromDate != null && toDate != null && fromDate.equals(toDate)) {
+            return QA_DATE_RANGE_FORMATTER.format(fromDate);
+        }
+
+        if (fromDate == null) {
+            return QA_DATE_RANGE_FORMATTER.format(toDate);
+        }
+
+        if (toDate == null) {
+            return QA_DATE_RANGE_FORMATTER.format(fromDate);
+        }
+
+        return QA_DATE_RANGE_FORMATTER.format(fromDate) + " - " + QA_DATE_RANGE_FORMATTER.format(toDate);
+    }
+
+    private boolean isBlankOrPlaceholderDate(String value) {
+        String cleanedValue = cleanDateInput(value);
+        return cleanedValue.isBlank()
+                || "MM/DD/YYYY".equalsIgnoreCase(cleanedValue)
+                || "MM/DD/YYYY - MM/DD/YYYY".equalsIgnoreCase(cleanedValue);
+    }
+
+    private String cleanDateInput(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private boolean isEventTargetInsideNode(Object target, Node node) {
+        if (!(target instanceof Node targetNode) || node == null) {
+            return false;
+        }
+
+        Node currentNode = targetNode;
+        while (currentNode != null) {
+            if (currentNode == node) {
+                return true;
+            }
+            currentNode = currentNode.getParent();
+        }
+
+        return false;
     }
 
     private void configureAssignedQaListLayout() {
@@ -702,13 +1161,15 @@ public class AssignedQaController {
     }
 
     private boolean matchesFromDate(QaAssignment assignment) {
-        LocalDate fromDate = fromDatePicker.getValue();
-        return fromDate == null || !assignment.assignedDate.isBefore(fromDate);
+        return fromDate == null
+                || assignment.assignedDate == null
+                || !assignment.assignedDate.isBefore(fromDate);
     }
 
     private boolean matchesToDate(QaAssignment assignment) {
-        LocalDate toDate = toDatePicker.getValue();
-        return toDate == null || !assignment.assignedDate.isAfter(toDate);
+        return toDate == null
+                || assignment.assignedDate == null
+                || !assignment.assignedDate.isAfter(toDate);
     }
 
     // =========================================================

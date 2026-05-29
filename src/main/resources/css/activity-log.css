@@ -29,8 +29,9 @@
 
 .activity-log-page.logs-page .logs-search,
 .activity-log-page.logs-page .logs-filter {
-    -fx-min-height: 46;
-    -fx-pref-height: 46;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-border-color: -wl-border;
@@ -47,10 +48,24 @@
     -fx-alignment: center-left;
 }
 
-.activity-log-page.logs-page .logs-search:hover,
+.activity-log-page.logs-page .logs-search:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.activity-log-page.logs-page .logs-search-focused,
+.activity-log-page.logs-page .logs-search-focused:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
 .activity-log-page.logs-page .logs-filter:hover {
-    -fx-background-color: -wl-surface-hover;
-    -fx-border-color: -wl-border;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .activity-log-page.logs-page .logs-filter:focused,
@@ -90,6 +105,8 @@
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
     -fx-padding: 0;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
@@ -138,8 +155,9 @@
 }
 
 .activity-log-page.logs-page .logs-clear-button {
-    -fx-min-height: 46;
-    -fx-pref-height: 46;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 6 0 6;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -171,8 +189,9 @@
 }
 
 .combo-box-popup .list-cell {
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 12 0 12;
     -fx-background-color: transparent;
     -fx-background-radius: 6;
@@ -267,8 +286,9 @@
 
 .logs-search-recent-row,
 .logs-sort-option {
-    -fx-min-height: 28;
-    -fx-pref-height: 28;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-radius: 6;
@@ -308,8 +328,9 @@
 }
 
 .logs-status-checkbox {
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 6 0 6;
     -fx-background-color: transparent;
     -fx-background-radius: 6;
@@ -321,12 +342,12 @@
 }
 
 .logs-status-checkbox .box {
-    -fx-min-width: 24;
-    -fx-pref-width: 24;
-    -fx-max-width: 24;
-    -fx-min-height: 24;
-    -fx-pref-height: 24;
-    -fx-max-height: 24;
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 3;
     -fx-border-color: -wl-border;
@@ -464,8 +485,9 @@
 }
 
 .logs-sort-option {
-    -fx-min-height: 39;
-    -fx-pref-height: 39;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 9 0 9;
 }
 
@@ -483,8 +505,9 @@
 }
 
 .logs-popover-combo {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-border-color: -wl-border;
@@ -498,14 +521,211 @@
     -fx-max-width: 132;
 }
 
+/* Searchable dropdowns inside log popovers */
+.logs-searchable-select {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-cursor: hand;
+}
+
+.logs-searchable-select:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.logs-searchable-select-text,
+.logs-searchable-select-text .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-searchable-select-arrow,
+.logs-searchable-select-arrow .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-select-popover-menu,
+.logs-select-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-select-popover-menu .custom-menu-item,
+.logs-select-popover-menu .menu-item,
+.logs-select-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-select-popover {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+    -fx-padding: 6;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+}
+
+.logs-select-popover-scroll {
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+    -fx-max-width: 120;
+    -fx-min-height: 150;
+    -fx-pref-height: 150;
+    -fx-max-height: 150;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-select-popover-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.logs-select-options-list {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.logs-select-option {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.logs-select-option:hover,
+.logs-select-option:focused,
+.logs-select-option-selected {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-select-option-text,
+.logs-select-option-text .text,
+.logs-select-option-check,
+.logs-select-option-check .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-select-option-check,
+.logs-select-option-check .text {
+    -fx-text-fill: -wl-primary;
+    -fx-fill: -wl-primary;
+}
+
+.logs-dropdown-search-shell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 9;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-alignment: center-left;
+}
+
+.logs-dropdown-search-shell:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.logs-dropdown-search-shell-focused,
+.logs-dropdown-search-shell-focused:hover {
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+}
+
+.logs-dropdown-search-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.logs-dropdown-search-icon,
+.logs-dropdown-search-icon .text {
+    -fx-text-fill: -wl-placeholder;
+    -fx-fill: -wl-placeholder;
+}
+
+.logs-dropdown-search-input,
+.logs-dropdown-search-input:hover,
+.logs-dropdown-search-input:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.logs-dropdown-empty-text {
+    -fx-padding: 9;
+    -fx-text-fill: -wl-text-muted;
+}
+
 /* Time filter: exact typable time dropdown */
 .activity-log-page.logs-page .logs-time-filter-box {
     -fx-min-width: 135;
     -fx-pref-width: 135;
     -fx-max-width: 135;
-    -fx-min-height: 46;
-    -fx-pref-height: 46;
-    -fx-max-height: 46;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 9 0 12;
     -fx-spacing: 9;
     -fx-background-color: -wl-input-bg;
@@ -520,10 +740,15 @@
     -fx-faint-focus-color: transparent;
 }
 
-.activity-log-page.logs-page .logs-time-filter-box:hover,
+.activity-log-page.logs-page .logs-time-filter-box:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
 .activity-log-page.logs-page .logs-time-filter-box:focused {
     -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-border;
+    -fx-border-color: -wl-input-focus-border;
     -fx-effect: none;
 }
 
@@ -543,22 +768,18 @@
     -fx-fill: -wl-text;
 }
 
-.activity-log-page.logs-page .logs-time-filter-input,
-.activity-log-page.logs-page .logs-time-filter-input:hover,
-.activity-log-page.logs-page .logs-time-filter-input:focused {
-    -fx-min-height: 44;
-    -fx-pref-height: 44;
-    -fx-padding: 0;
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
+.activity-log-page.logs-page .logs-time-filter-value,
+.activity-log-page.logs-page .logs-time-filter-value .text {
     -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
-    -fx-effect: none;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-time-filter-value {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-alignment: center-left;
+    -fx-padding: 0;
 }
 
 .activity-log-page.logs-page .logs-time-filter-menu,
@@ -568,9 +789,9 @@
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
-    -fx-min-height: 44;
-    -fx-pref-height: 44;
-    -fx-max-height: 44;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
@@ -611,13 +832,11 @@
     -fx-effect: none;
 }
 
-.logs-time-popover-scroll {
+.logs-time-popover {
     -fx-min-width: 135;
     -fx-pref-width: 135;
     -fx-max-width: 135;
-    -fx-min-height: 210;
-    -fx-pref-height: 210;
-    -fx-max-height: 210;
+    -fx-padding: 6;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-background-insets: 0;
@@ -625,8 +844,22 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-border-insets: 0;
-    -fx-padding: 6;
     -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+}
+
+.logs-time-popover-scroll {
+    -fx-min-width: 123;
+    -fx-pref-width: 123;
+    -fx-max-width: 123;
+    -fx-min-height: 180;
+    -fx-pref-height: 180;
+    -fx-max-height: 180;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
 }
 
 .logs-time-popover-scroll > .viewport {
@@ -686,9 +919,9 @@
     -fx-min-width: 240;
     -fx-pref-width: 240;
     -fx-max-width: 240;
-    -fx-min-height: 46;
-    -fx-pref-height: 46;
-    -fx-max-height: 46;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0 9 0 12;
     -fx-spacing: 9;
     -fx-background-color: -wl-input-bg;
@@ -703,10 +936,15 @@
     -fx-faint-focus-color: transparent;
 }
 
-.activity-log-page.logs-page .logs-date-filter-box:hover,
+.activity-log-page.logs-page .logs-date-filter-box:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
 .activity-log-page.logs-page .logs-date-filter-box:focused {
     -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-border;
+    -fx-border-color: -wl-input-focus-border;
     -fx-effect: none;
 }
 
@@ -729,8 +967,9 @@
 .activity-log-page.logs-page .logs-date-filter-input,
 .activity-log-page.logs-page .logs-date-filter-input:hover,
 .activity-log-page.logs-page .logs-date-filter-input:focused {
-    -fx-min-height: 44;
-    -fx-pref-height: 44;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
@@ -751,9 +990,9 @@
     -fx-min-width: 18;
     -fx-pref-width: 18;
     -fx-max-width: 18;
-    -fx-min-height: 44;
-    -fx-pref-height: 44;
-    -fx-max-height: 44;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
@@ -1345,8 +1584,9 @@
 }
 
 .activity-log-page.logs-page .logs-load-more-button {
-    -fx-min-height: 39;
-    -fx-pref-height: 39;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-border-color: -wl-border;
@@ -1363,15 +1603,19 @@
     -fx-border-radius: 10;
     -fx-border-width: 1;
     -fx-padding: 24;
-}ctivity-log-page.logs-page .logs-payload-card-title-row {
-     -fx-alignment: top-left;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-card-title-row {
+    -fx-alignment: top-left;
+}
 
 .activity-log-page.logs-page .logs-payload-header-title {
     -fx-padding: 3 0 0 0;
-}.activity-log-page.logs-page .logs-payload-header-title-link {
-     -fx-fill: -wl-primary;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-header-title-link {
+    -fx-fill: -wl-primary;
+}
 
 .activity-log-page.logs-page .logs-payload-header-subtitle {
     -fx-text-fill: -wl-text-muted;
@@ -1651,15 +1895,17 @@
 .activity-log-page.logs-page .logs-payload-hero-snapshot-icon .text {
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
-}.activity-log-page.logs-page .logs-payload-error-icon-shell {
-     -fx-min-width: 20;
-     -fx-pref-width: 20;
-     -fx-max-width: 20;
-     -fx-min-height: 20;
-     -fx-pref-height: 20;
-     -fx-max-height: 20;
-     -fx-alignment: center;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-error-icon-shell {
+    -fx-min-width: 20;
+    -fx-pref-width: 20;
+    -fx-max-width: 20;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-alignment: center;
+}
 
 .activity-log-page.logs-page .logs-payload-error-icon,
 .activity-log-page.logs-page .logs-payload-error-icon .text {
@@ -1673,16 +1919,20 @@
 
 .activity-log-page.logs-page .logs-payload-error-copy {
     -fx-text-fill: -wl-text;
-}ivity-log-page.logs-page .logs-payload-row-divider {
-     -fx-min-height: 1;
-     -fx-pref-height: 1;
-     -fx-max-height: 1;
-     -fx-background-color: -wl-border;
-     -fx-opacity: 0.3;
- }y-log-page.logs-page .logs-payload-changes-last-cell {
-      -fx-border-color: transparent;
-      -fx-border-width: 0;
-  }
+}
+
+.activity-log-page.logs-page .logs-payload-row-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+    -fx-opacity: 0.3;
+}
+
+.activity-log-page.logs-page .logs-payload-changes-last-cell {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
 
 .activity-log-page.logs-page .logs-payload-change-field-label {
     -fx-text-fill: -wl-text-muted;
@@ -1690,10 +1940,12 @@
 
 .activity-log-page.logs-page .logs-payload-change-header-label {
     -fx-text-fill: -wl-text-muted;
-}ge.logs-page .logs-payload-kv-value-link {
-     -fx-text-fill: -wl-primary;
-     -fx-cursor: hand;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-link {
+    -fx-text-fill: -wl-primary;
+    -fx-cursor: hand;
+}
 
 .activity-log-page.logs-page .logs-payload-kv-value-link:hover {
     -fx-underline: true;
@@ -1721,40 +1973,46 @@
 .activity-log-page.logs-page .logs-payload-kv-icon .text {
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
-}ctivity-log-page.logs-page .logs-payload-tile-icon-shell {
-     -fx-min-width: 16;
-     -fx-pref-width: 16;
-     -fx-max-width: 16;
-     -fx-min-height: 16;
-     -fx-pref-height: 16;
-     -fx-max-height: 16;
-     -fx-alignment: center-left;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-tile-icon-shell {
+    -fx-min-width: 16;
+    -fx-pref-width: 16;
+    -fx-max-width: 16;
+    -fx-min-height: 16;
+    -fx-pref-height: 16;
+    -fx-max-height: 16;
+    -fx-alignment: center-left;
+}
 
 .activity-log-page.logs-page .logs-payload-tile-icon,
 .activity-log-page.logs-page .logs-payload-tile-icon .text {
     -fx-fill: -wl-text-muted;
     -fx-text-fill: -wl-text-muted;
-}ctivity-log-page.logs-page .logs-payload-tile-value-line {
-     -fx-spacing: 6;
-     -fx-alignment: center-left;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-tile-value-line {
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
 
 .activity-log-page.logs-page .logs-payload-tile-danger .logs-payload-tile-value {
     -fx-text-fill: -wl-status-error-text;
-}ctivity-log-page.logs-page .logs-payload-copy-button {
-     -fx-min-width: 24;
-     -fx-pref-width: 24;
-     -fx-max-width: 24;
-     -fx-min-height: 24;
-     -fx-pref-height: 24;
-     -fx-max-height: 24;
-     -fx-padding: 0;
-     -fx-background-color: transparent;
-     -fx-background-radius: 6;
-     -fx-border-color: transparent;
-     -fx-cursor: hand;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-copy-button {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
 
 .activity-log-page.logs-page .logs-payload-copy-button:hover {
     -fx-background-color: -wl-surface-hover;
@@ -1959,10 +2217,12 @@
 .activity-log-page.logs-page .logs-payload-change-after {
     -fx-background-color: -wl-status-success-bg;
     -fx-text-fill: -wl-status-success-text;
-}.activity-log-page.logs-page .logs-payload-tile-grid {
-     -fx-hgap: 10;
-     -fx-vgap: 10;
- }
+}
+
+.activity-log-page.logs-page .logs-payload-tile-grid {
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+}
 
 .activity-log-page.logs-page .logs-payload-tile {
     -fx-background-color: -wl-surface;

@@ -73,12 +73,12 @@
 
 .assigned-qa-search-field:hover,
 .assigned-qa-filter-combo:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .assigned-qa-search-field:focused,
 .assigned-qa-filter-combo:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 .assigned-qa-filter-combo > .arrow-button {
@@ -94,6 +94,277 @@
 .assigned-qa-filter-combo .list-cell {
     -fx-text-fill: -wl-text;
 }
+
+
+/* =========================================================
+   03B. ASSIGNED QA CUSTOM DATE RANGE CALENDAR
+   Mirrors the Logs/Review custom calendar; replaces stock DatePicker UI.
+   ========================================================= */
+
+.assigned-qa-date-filter-box {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.assigned-qa-date-filter-box:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-filter-box:focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-filter-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.assigned-qa-date-filter-icon,
+.assigned-qa-date-filter-icon .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.assigned-qa-date-filter-input,
+.assigned-qa-date-filter-input:hover,
+.assigned-qa-date-filter-input:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.assigned-qa-date-filter-menu,
+.assigned-qa-date-filter-menu:hover,
+.assigned-qa-date-filter-menu:focused,
+.assigned-qa-date-filter-menu:pressed {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+    -fx-content-display: graphic-only;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.assigned-qa-date-filter-arrow {
+    -fx-min-width: 8;
+    -fx-pref-width: 8;
+    -fx-max-width: 8;
+    -fx-min-height: 5;
+    -fx-pref-height: 5;
+    -fx-max-height: 5;
+    -fx-background-color: -wl-text;
+    -fx-scale-shape: false;
+    -fx-shape: "M 0 0 L 8 0 L 4 5 Z";
+}
+
+.assigned-qa-date-popover-menu,
+.assigned-qa-date-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-popover-menu .custom-menu-item,
+.assigned-qa-date-popover-menu .menu-item,
+.assigned-qa-date-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-popover {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-effect: none;
+}
+
+.assigned-qa-calendar-panel {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-padding: 6 6 12 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.assigned-qa-calendar-header {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-padding: 0 0 12 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center;
+}
+
+.assigned-qa-calendar-month-label {
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+}
+
+.assigned-qa-calendar-nav-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-text-muted;
+    -fx-cursor: hand;
+}
+
+.assigned-qa-calendar-nav-button:hover,
+.assigned-qa-calendar-nav-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-calendar-grid {
+    -fx-padding: 12 0 0 0;
+    -fx-hgap: 3;
+    -fx-vgap: 6;
+    -fx-alignment: center;
+}
+
+.assigned-qa-calendar-day-name {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.assigned-qa-calendar-day-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-effect: none;
+}
+
+.assigned-qa-calendar-day-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-calendar-day-in-range {
+    -fx-background-color: -wl-date-range-between-bg;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-calendar-day-selected,
+.assigned-qa-calendar-day-selected:hover,
+.assigned-qa-calendar-day-selected:focused {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-calendar-day-today,
+.assigned-qa-calendar-day-today:hover,
+.assigned-qa-calendar-day-today:focused {
+    -fx-background-color: -wl-error;
+    -fx-border-color: -wl-error;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-calendar-day-outside {
+    -fx-text-fill: -wl-placeholder;
+}
+
 
 /* =========================================================
    04. ASSIGNED QA CARD LIST
@@ -247,15 +518,15 @@
 }
 
 .assigned-qa-secondary-button {
-    -fx-background-color: -wl-tertiary;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .assigned-qa-secondary-button:hover,
 .assigned-qa-secondary-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
 }
 
 /* =========================================================
@@ -325,6 +596,53 @@
     -fx-text-fill: -wl-text;
 }
 
+
+.document-tree-view-toggle-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.document-tree-view-toggle-button:hover,
+.document-tree-view-toggle-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.document-tree-view-toggle-button-active,
+.document-tree-view-toggle-button-active:hover,
+.document-tree-view-toggle-button-active:pressed {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.document-tree-view-toggle-button .text {
+    -fx-fill: -wl-text;
+}
+
+.document-tree-view-toggle-button-active .text {
+    -fx-fill: -wl-on-primary;
+}
+
 /* =========================================================
    10. QA REVIEW PREVIEW / VIEW TOOLS
    ========================================================= */
@@ -355,7 +673,7 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0;
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -368,8 +686,8 @@
 
 .qa-view-icon-button:hover,
 .qa-view-icon-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 .qa-view-reset-button {
@@ -377,7 +695,7 @@
     -fx-pref-height: 30;
     -fx-max-height: 30;
     -fx-padding: 0 15 0 15;
-    -fx-background-color: -wl-tertiary;
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
     -fx-background-radius: 6;
@@ -390,8 +708,8 @@
 
 .qa-view-reset-button:hover,
 .qa-view-reset-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
 }
 
 /* =========================================================
@@ -399,6 +717,7 @@
    ========================================================= */
 
 .qa-tools-panel {
+    -fx-padding: 9 15 15 15;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent transparent -wl-border;
     -fx-border-width: 0 0 0 1;
@@ -421,6 +740,108 @@
 
 .qa-tools-section-box {
     -fx-background-color: transparent;
+}
+
+
+.scan-panel-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+
+
+.scan-tool-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.scan-tool-button:hover,
+.scan-tool-button:pressed,
+.scan-tool-button:focused {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.combo-box-base.scan-tool-button,
+.combo-box-base.scan-tool-button:hover,
+.combo-box-base.scan-tool-button:focused,
+.combo-box-base.scan-tool-button:showing {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base.scan-tool-button:hover,
+.combo-box-base.scan-tool-button:focused,
+.combo-box-base.scan-tool-button:showing {
+    -fx-border-color: -wl-border;
+}
+
+.combo-box-base.scan-tool-button > .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
+}
+
+.combo-box-base.scan-tool-button:editable > .text-field {
+    -fx-min-height: 31;
+    -fx-pref-height: 31;
+    -fx-max-height: 31;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-alignment: center;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
 }
 
 .qa-tools-section-title {
@@ -566,17 +987,25 @@
     -fx-effect: none;
 }
 
+.qa-comment-textarea .scroll-pane,
+.qa-comment-textarea .scroll-pane > .viewport,
+.qa-comment-textarea .scroll-pane > .content,
 .qa-comment-textarea .content {
     -fx-background-color: -wl-input-bg;
     -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+.qa-comment-textarea .scroll-pane > .corner {
+    -fx-background-color: transparent;
 }
 
 .qa-comment-textarea:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .qa-comment-textarea:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 /* =========================================================
@@ -586,6 +1015,7 @@
 .qa-approve-button,
 .qa-fix-button,
 .qa-neutral-button,
+.qa-export-type-button,
 .qa-complete-button {
     -fx-min-height: 33;
     -fx-pref-height: 33;
@@ -602,41 +1032,45 @@
 }
 
 .qa-approve-button {
-    -fx-background-color: -wl-status-success-bg;
-    -fx-border-color: -wl-status-success-border;
-    -fx-text-fill: -wl-status-success-text;
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .qa-approve-button:hover,
 .qa-approve-button:pressed {
-    -fx-background-color: -wl-status-success-hover-bg;
-    -fx-border-color: -wl-status-success-text;
-    -fx-text-fill: -wl-status-success-text;
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .qa-fix-button {
-    -fx-background-color: -wl-status-error-bg;
-    -fx-border-color: -wl-error;
-    -fx-text-fill: -wl-status-error-text;
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .qa-fix-button:hover,
 .qa-fix-button:pressed {
-    -fx-background-color: -wl-status-error-hover-bg;
-    -fx-border-color: -wl-status-error-text;
-    -fx-text-fill: -wl-status-error-text;
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
 }
 
-.qa-neutral-button {
-    -fx-background-color: -wl-tertiary;
+.qa-neutral-button,
+.qa-export-type-button {
+    -fx-background-color: -wl-tertiary-button;
     -fx-border-color: -wl-border;
     -fx-text-fill: -wl-text;
 }
 
 .qa-neutral-button:hover,
-.qa-neutral-button:pressed {
-    -fx-background-color: -wl-tertiary-hover;
-    -fx-border-color: -wl-secondary;
+.qa-neutral-button:pressed,
+.qa-export-type-button:hover,
+.qa-export-type-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
 }
 
 .qa-complete-button {

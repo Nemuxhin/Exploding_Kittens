@@ -118,7 +118,6 @@
     -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
-
 .review-filter-card {
     -fx-padding: 9 15 9 15;
 }
@@ -267,43 +266,142 @@
     -fx-prompt-text-fill: -wl-placeholder;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
+    -fx-effect: none;
 }
 
-.review-filter {
+.review-filter,
+.review-filter:hover,
+.review-filter:focused,
+.review-filter:showing,
+.review-filter:armed,
+.review-filter:pressed {
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-filter:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.review-filter:focused,
+.review-filter:showing {
+    -fx-border-color: -wl-input-focus-border;
+}
+
+.review-filter > .text-field,
+.review-filter > .text-field:hover,
+.review-filter > .text-field:focused,
+.review-filter > .text-field:armed,
+.review-filter > .text-field:pressed,
+.review-filter .text-input,
+.review-filter .text-input:hover,
+.review-filter .text-input:focused,
+.review-filter .text-input:armed,
+.review-filter .text-input:pressed {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 0 0 12;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-filter > .list-cell,
+.review-filter:editable > .list-cell,
+.review-workspace-input .list-cell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 0 0 12;
+    -fx-background-color: transparent;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
 }
 
 .review-filter > .arrow-button,
+.review-filter:hover > .arrow-button,
+.review-filter:focused > .arrow-button,
+.review-filter:showing > .arrow-button,
+.review-filter:armed > .arrow-button,
+.review-filter:pressed > .arrow-button,
 .review-workspace-input > .arrow-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-padding: 0 9 0 6;
     -fx-background-color: transparent;
+    -fx-background-radius: 0 6 6 0;
+    -fx-background-insets: 0;
     -fx-border-color: transparent;
-    -fx-padding: 0 12 0 9;
+    -fx-border-width: 0;
+    -fx-effect: none;
 }
 
 .review-filter > .arrow-button > .arrow,
+.review-filter:hover > .arrow-button > .arrow,
+.review-filter:focused > .arrow-button > .arrow,
+.review-filter:showing > .arrow-button > .arrow,
+.review-filter:armed > .arrow-button > .arrow,
+.review-filter:pressed > .arrow-button > .arrow,
 .review-workspace-input > .arrow-button > .arrow {
     -fx-background-color: -wl-text;
 }
 
-.review-filter .list-cell,
-.review-workspace-input .list-cell {
-    -fx-text-fill: -wl-text;
-    -fx-padding: 0 12 0 12;
-    -fx-alignment: center-left;
+.review-filter .text,
+.review-filter:hover .text,
+.review-filter:focused .text,
+.review-filter:showing .text,
+.review-filter:armed .text,
+.review-filter:pressed .text {
+    -fx-fill: -wl-text;
 }
 
-.review-filter:hover,
+
+.review-filter:editable {
+    -fx-padding: 0;
+}
+
+.review-filter:editable > .text-field {
+    -fx-background-radius: 6 0 0 6;
+}
+
+.review-filter:editable > .arrow-button {
+    -fx-background-radius: 0 6 6 0;
+}
+
+.review-filter:editable > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
 .review-workspace-input:hover,
 .review-workspace-textarea:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
-.review-filter:focused,
 .review-workspace-input:focused,
 .review-workspace-textarea:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 .review-workspace-input,
@@ -321,6 +419,48 @@
 .review-workspace-textarea .content {
     -fx-background-color: -wl-input-bg;
     -fx-background-radius: 6;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+}
+
+.combo-box-popup .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell,
+.combo-box-popup .list-view .list-cell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
+}
+
+.combo-box-popup .list-view .list-cell:hover,
+.combo-box-popup .list-view .list-cell:focused,
+.combo-box-popup .list-view .list-cell:selected,
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.combo-box-popup .list-view .list-cell .text,
+.combo-box-popup .list-view .list-cell:hover .text,
+.combo-box-popup .list-view .list-cell:focused .text,
+.combo-box-popup .list-view .list-cell:selected .text,
+.combo-box-popup .list-view .list-cell:filled:selected .text {
+    -fx-fill: -wl-text;
 }
 
 .review-search-shell,
@@ -341,21 +481,21 @@
 }
 
 .review-search-shell {
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
 }
 
 .review-search-shell:hover,
 .qa-picker-search:hover {
     -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .review-search-shell-focused,
 .qa-picker-search:focused {
     -fx-background-color: -wl-input-bg;
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 .review-filter-group {
@@ -415,11 +555,6 @@
 
 .review-table-row:hover {
     -fx-background-color: -wl-surface-hover;
-}
-
-.review-table-row-warning,
-.review-table-row-warning:hover {
-    -fx-background-color: -wl-status-warning-bg;
 }
 
 .review-main-cell,
@@ -930,7 +1065,6 @@
     -fx-effect: dropshadow(gaussian, -wl-shadow-color, 18, 0, 0, 6);
 }
 
-
 .qa-picker-header {
     -fx-padding: 18 18 15 18;
     -fx-background-color: -wl-surface;
@@ -1017,12 +1151,12 @@
 }
 
 .qa-picker-avatar {
-    -fx-min-width: 36;
-    -fx-pref-width: 36;
-    -fx-max-width: 36;
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
-    -fx-max-height: 36;
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
     -fx-background-color: -wl-avatar-bg;
     -fx-background-radius: 999;
     -fx-alignment: center;
@@ -1174,12 +1308,12 @@
 }
 
 .review-checkbox > .box {
-    -fx-min-width: 18;
-    -fx-pref-width: 18;
-    -fx-max-width: 18;
-    -fx-min-height: 18;
-    -fx-pref-height: 18;
-    -fx-max-height: 18;
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 3;
     -fx-border-color: -wl-border;
@@ -1246,11 +1380,11 @@
 }
 
 .rows-per-page-filter:hover {
-    -fx-border-color: -wl-secondary;
+    -fx-border-color: -wl-input-hover-border;
 }
 
 .rows-per-page-filter:focused {
-    -fx-border-color: -wl-primary;
+    -fx-border-color: -wl-input-focus-border;
 }
 
 .rows-per-page-filter > .arrow-button {
@@ -1269,33 +1403,277 @@
     -fx-alignment: center-left;
 }
 
-.activity-log-date-picker.review-filter .text-field {
+/* =========================================================
+   12. REVIEW DATE RANGE CALENDAR
+   Matches the Activity Log custom WebLager calendar.
+   ========================================================= */
+
+.review-date-filter-box {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-date-filter-box:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
+.review-date-filter-box:focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-effect: none;
+}
+
+.review-date-filter-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.review-date-filter-icon,
+.review-date-filter-icon .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.review-date-filter-input,
+.review-date-filter-input:hover,
+.review-date-filter-input:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.review-date-filter-menu,
+.review-date-filter-menu:hover,
+.review-date-filter-menu:focused,
+.review-date-filter-menu:pressed {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-border-color: transparent;
     -fx-border-width: 0;
-    -fx-padding: 0 0 0 9;
+    -fx-text-fill: -wl-text-muted;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.review-date-filter-menu {
+    -fx-shape: "M 0 0 L 8 0 L 4 5 Z";
+    -fx-background-color: -wl-text;
+    -fx-scale-shape: false;
+    -fx-min-width: 8;
+    -fx-pref-width: 8;
+    -fx-max-width: 8;
+    -fx-min-height: 5;
+    -fx-pref-height: 5;
+    -fx-max-height: 5;
+}
+
+.review-date-filter-menu:hover,
+.review-date-filter-menu:focused,
+.review-date-filter-menu:pressed {
+    -fx-background-color: -wl-text;
+}
+
+
+.review-date-popover-menu,
+.review-date-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.review-date-popover-menu .custom-menu-item,
+.review-date-popover-menu .menu-item,
+.review-date-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.review-date-popover {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-effect: none;
+}
+
+.review-calendar-panel {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-padding: 6 6 12 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.review-calendar-header {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-padding: 0 0 12 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center;
+}
+
+.review-calendar-month-label {
     -fx-text-fill: -wl-text;
-    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-alignment: center;
 }
 
-.activity-log-date-range-start,
-.activity-log-date-range-end {
-    -fx-background-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
+.review-calendar-nav-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-text-muted;
+    -fx-cursor: hand;
 }
 
-.activity-log-date-range-between {
+.review-calendar-nav-button:hover,
+.review-calendar-nav-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.review-calendar-grid {
+    -fx-padding: 12 0 0 0;
+    -fx-hgap: 3;
+    -fx-vgap: 6;
+    -fx-alignment: center;
+}
+
+.review-calendar-day-name {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.review-calendar-day-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-effect: none;
+}
+
+.review-calendar-day-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.review-calendar-day-in-range {
     -fx-background-color: -wl-date-range-between-bg;
     -fx-text-fill: -wl-text;
 }
 
-.activity-log-date-range-start:hover,
-.activity-log-date-range-end:hover {
-    -fx-background-color: -wl-primary-hover;
+.review-calendar-day-selected,
+.review-calendar-day-selected:hover,
+.review-calendar-day-selected:focused {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
     -fx-text-fill: -wl-on-primary;
 }
 
-.activity-log-date-disabled {
-    -fx-opacity: 0.6;
+.review-calendar-day-today,
+.review-calendar-day-today:hover,
+.review-calendar-day-today:focused {
+    -fx-background-color: -wl-error;
+    -fx-border-color: -wl-error;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.review-calendar-day-outside {
+    -fx-text-fill: -wl-placeholder;
 }

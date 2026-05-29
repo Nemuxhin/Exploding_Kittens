@@ -4,7 +4,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
@@ -222,12 +221,27 @@
                         <ComboBox fx:id="dateRangeFilterComboBox" styleClass="review-filter"/>
                     </HBox>
 
-                    <DatePicker fx:id="dateRangePicker" editable="false">
-                        <styleClass>
-                            <String fx:value="review-filter"/>
-                            <String fx:value="activity-log-date-picker"/>
-                        </styleClass>
-                    </DatePicker>
+                    <HBox fx:id="dateRangeBox"
+                          prefWidth="240"
+                          minWidth="240"
+                          maxWidth="240"
+                          alignment="CENTER_LEFT"
+                          styleClass="review-date-filter-box">
+
+                        <StackPane styleClass="review-date-filter-icon-shell">
+                            <Label text="&#xe927;" styleClass="prime-icon review-date-filter-icon"/>
+                        </StackPane>
+
+                        <TextField fx:id="dateRangeField"
+                                   promptText="MM/DD/YYYY"
+                                   maxWidth="Infinity"
+                                   HBox.hgrow="ALWAYS"
+                                   styleClass="review-date-filter-input"/>
+
+                        <Button fx:id="dateRangeMenuButton"
+                                focusTraversable="false"
+                                styleClass="review-date-filter-menu"/>
+                    </HBox>
 
                 </HBox>
 
