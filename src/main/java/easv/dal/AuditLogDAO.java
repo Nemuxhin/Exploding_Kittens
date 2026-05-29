@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
 public class AuditLogDAO {
     private static final int MAX_DESCRIPTION_LENGTH = 1000;
@@ -84,6 +85,10 @@ public class AuditLogDAO {
     }
 
     public AuditLog saveAuditLog(AuditLog log) {
+        return saveAuditLog(log, null);
+    }
+
+    public AuditLog saveAuditLog(AuditLog log, UUID exportId) {
         if (inMemoryLogs != null) {
             inMemoryLogs.add(log);
             return log;
@@ -92,8 +97,8 @@ public class AuditLogDAO {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO audit_logs
-                     (timestamp, type, actor, action, target, status, description)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)
+                     (timestamp, type, actor, action, target, status, export_id, description)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                      """, Statement.RETURN_GENERATED_KEYS)) {
             statement.setTimestamp(1, Timestamp.valueOf(log.getTimestamp()));
             statement.setString(2, log.getType());
@@ -101,7 +106,12 @@ public class AuditLogDAO {
             statement.setString(4, log.getAction());
             statement.setString(5, log.getTarget());
             statement.setString(6, log.getStatus());
-            statement.setString(7, serializeDescription(log));
+            if (exportId == null) {
+                statement.setNull(7, java.sql.Types.VARCHAR);
+            } else {
+                statement.setString(7, exportId.toString());
+            }
+            statement.setString(8, serializeDescription(log));
             statement.executeUpdate();
 
             return new AuditLog(

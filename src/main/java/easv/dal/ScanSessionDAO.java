@@ -31,7 +31,20 @@ public class ScanSessionDAO {
                 return;
             }
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO scan_sessions (id, started_at, box_id, profile_name, selected_barcode_behavior, last_status, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                    """
+                    INSERT INTO scan_sessions (
+                        id,
+                        started_at,
+                        box_id,
+                        profile_name,
+                        selected_barcode_behavior,
+                        last_status,
+                        created_by_user_id,
+                        last_failure_message,
+                        last_failure_at,
+                        failure_count
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
                 statement.setString(1, session.getId().toString());
                 statement.setTimestamp(2, Timestamp.from(session.getStartedAt()));
                 statement.setString(3, session.getBox().getId().toString());
@@ -43,6 +56,13 @@ public class ScanSessionDAO {
                 } else {
                     statement.setInt(7, easv.bll.UserSession.getCurrentUser().getId());
                 }
+                statement.setString(8, session.getLastFailureMessage());
+                if (session.getLastFailureAt() == null) {
+                    statement.setNull(9, java.sql.Types.TIMESTAMP);
+                } else {
+                    statement.setTimestamp(9, Timestamp.from(session.getLastFailureAt()));
+                }
+                statement.setInt(10, session.getFailureCount());
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -66,16 +86,10 @@ public class ScanSessionDAO {
         }
     }
 
-    public void recordFailure(ScanSession session, String message) {
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO session_failures (id, session_id, message) VALUES (?, ?, ?)")) {
-            statement.setString(1, UUID.randomUUID().toString());
-            statement.setString(2, session.getId().toString());
-            statement.setString(3, message);
-            statement.executeUpdate();
+    public void recordFailure(ScanSession session) {
+        try {
             updateSessionState(session);
-        } catch (SQLException e) {
+        } catch (DataAccessException e) {
             throw new DataAccessException("Failed to record session failure for " + session.getId(), e);
         }
     }
@@ -84,13 +98,25 @@ public class ScanSessionDAO {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE scan_sessions
-                     SET profile_name = ?, selected_barcode_behavior = ?, last_status = ?
+                     SET profile_name = ?,
+                         selected_barcode_behavior = ?,
+                         last_status = ?,
+                         last_failure_message = ?,
+                         last_failure_at = ?,
+                         failure_count = ?
                      WHERE id = ?
                      """)) {
             statement.setString(1, session.getProfileName());
             statement.setString(2, session.getSelectedBarcodeBehavior());
             statement.setString(3, session.getLastStatus());
-            statement.setString(4, session.getId().toString());
+            statement.setString(4, session.getLastFailureMessage());
+            if (session.getLastFailureAt() == null) {
+                statement.setNull(5, java.sql.Types.TIMESTAMP);
+            } else {
+                statement.setTimestamp(5, Timestamp.from(session.getLastFailureAt()));
+            }
+            statement.setInt(6, session.getFailureCount());
+            statement.setString(7, session.getId().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException("Failed to update scan session state for " + session.getId(), e);
@@ -161,6 +187,9 @@ public class ScanSessionDAO {
                             s.selected_barcode_behavior,
                             s.last_status,
                             s.created_by_user_id,
+                            s.last_failure_message,
+                            s.last_failure_at,
+                            s.failure_count,
                             b.box_id
                      FROM scan_sessions s
                      JOIN boxes b ON b.id = s.box_id
@@ -178,7 +207,10 @@ public class ScanSessionDAO {
                         resultSet.getString("selected_barcode_behavior"),
                         resultSet.getString("last_status"),
                         resultSet.getString("box_id"),
-                        nullableInteger(resultSet, "created_by_user_id")
+                        nullableInteger(resultSet, "created_by_user_id"),
+                        resultSet.getString("last_failure_message"),
+                        nullableInstant(resultSet, "last_failure_at"),
+                        resultSet.getInt("failure_count")
                 ));
             }
         } catch (SQLException e) {
@@ -197,7 +229,10 @@ public class ScanSessionDAO {
                                   s.profile_name,
                                   s.selected_barcode_behavior,
                                   s.last_status,
-                                  s.created_by_user_id
+                                  s.created_by_user_id,
+                                  s.last_failure_message,
+                                  s.last_failure_at,
+                                  s.failure_count
                      FROM scan_sessions s
                      JOIN boxes b ON b.id = s.box_id
                      WHERE b.box_id = ?
@@ -217,7 +252,10 @@ public class ScanSessionDAO {
                         resultSet.getString("selected_barcode_behavior"),
                         resultSet.getString("last_status"),
                         boxId,
-                        nullableInteger(resultSet, "created_by_user_id")
+                        nullableInteger(resultSet, "created_by_user_id"),
+                        resultSet.getString("last_failure_message"),
+                        nullableInstant(resultSet, "last_failure_at"),
+                        resultSet.getInt("failure_count")
                 ));
             }
         } catch (SQLException e) {
@@ -281,6 +319,11 @@ public class ScanSessionDAO {
         return resultSet.wasNull() ? null : value;
     }
 
+    private Instant nullableInstant(ResultSet resultSet, String columnName) throws SQLException {
+        Timestamp value = resultSet.getTimestamp(columnName);
+        return value == null ? null : value.toInstant();
+    }
+
     public record ScanSessionSummary(
             UUID sessionId,
             Instant startedAt,
@@ -300,7 +343,10 @@ public class ScanSessionDAO {
             String selectedBarcodeBehavior,
             String lastStatus,
             String boxId,
-            Integer createdByUserId
+            Integer createdByUserId,
+            String lastFailureMessage,
+            Instant lastFailureAt,
+            int failureCount
     ) {
     }
 }

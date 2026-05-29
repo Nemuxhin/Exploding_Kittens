@@ -1,24 +1,24 @@
 package easv.gui;
 
-import easv.be.CaseFile;
 import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.QAService;
 import easv.bll.UserSession;
-import easv.dal.CaseFileDAO;
+import easv.dal.BoxDAO;
 import easv.dal.DataAccessException;
-import easv.dal.DocumentDAO;
+import easv.dal.ExportDAO;
 import easv.dal.SavedScanProgressDAO;
 import easv.dal.ScanProfileDAO;
 import easv.dal.ScanSessionDAO;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -32,26 +32,22 @@ public class UserPortalModel {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final ScanProfileDAO scanProfileDAO;
-    private final CaseFileDAO caseFileDAO;
+    private final BoxDAO boxDAO;
     private final ScanSessionDAO scanSessionDAO;
-    private final DocumentDAO documentDAO;
+    private final ExportDAO exportDAO;
     private final QAService qaService;
     private final SavedScanProgressDAO savedScanProgressDAO;
     private AccountProfile accountProfile = DEFAULT_ACCOUNT;
 
     public UserPortalModel() {
-        this(new ScanProfileDAO(), new CaseFileDAO(), new ScanSessionDAO(), new DocumentDAO());
+        this(new ScanProfileDAO(), new BoxDAO(), new ScanSessionDAO(), new ExportDAO());
     }
 
-    UserPortalModel(ScanProfileDAO scanProfileDAO, CaseFileDAO caseFileDAO, ScanSessionDAO scanSessionDAO) {
-        this(scanProfileDAO, caseFileDAO, scanSessionDAO, new DocumentDAO());
-    }
-
-    UserPortalModel(ScanProfileDAO scanProfileDAO, CaseFileDAO caseFileDAO, ScanSessionDAO scanSessionDAO, DocumentDAO documentDAO) {
+    UserPortalModel(ScanProfileDAO scanProfileDAO, BoxDAO boxDAO, ScanSessionDAO scanSessionDAO, ExportDAO exportDAO) {
         this.scanProfileDAO = scanProfileDAO;
-        this.caseFileDAO = caseFileDAO;
+        this.boxDAO = boxDAO;
         this.scanSessionDAO = scanSessionDAO;
-        this.documentDAO = documentDAO;
+        this.exportDAO = exportDAO;
         this.qaService = new QAService();
         this.savedScanProgressDAO = new SavedScanProgressDAO();
         syncAccountFromSession();
@@ -237,16 +233,17 @@ public class UserPortalModel {
 
     public List<ExportItem> fetchExports() {
         try {
-            return qaService.getApprovedExportsForCurrentUser().stream()
+            Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
+            return exportDAO.findByExportedByUser(currentUserId).stream()
                     .map(item -> new ExportItem(
                             item.sessionId(),
-                            formatExportName(item.profileName(), item.boxId()) + ".tiff",
+                            item.fileName(),
                             item.boxId(),
                             item.profileName(),
-                            item.documents().size(),
-                            item.completedAt() == null ? formatHistoryTime(item.submittedAt()) : formatHistoryTime(item.completedAt()),
-                            "-",
-                            "QA Approved"
+                            item.documentCount(),
+                            formatHistoryTime(item.exportedAt()),
+                            formatFileSize(item.filePath()),
+                            displayExportStatus(item.exportStatus())
                     ))
                     .toList();
         } catch (RuntimeException exception) {
@@ -569,23 +566,14 @@ public class UserPortalModel {
                 .count());
     }
 
-    private List<CaseFile> fetchAllCaseFiles() {
+    private List<BoxItem> fetchDistinctBoxes() {
         try {
-            return new ArrayList<>(caseFileDAO.findAll());
+            return boxDAO.findAll().stream()
+                    .map(box -> new BoxItem(box.getBoxId(), box.getDescription()))
+                    .toList();
         } catch (DataAccessException exception) {
             return List.of();
         }
-    }
-
-    private List<BoxItem> fetchDistinctBoxes() {
-        Map<String, BoxItem> boxes = new LinkedHashMap<>();
-        for (CaseFile caseFile : fetchAllCaseFiles()) {
-            boxes.putIfAbsent(
-                    caseFile.getBox().getBoxId(),
-                    new BoxItem(caseFile.getBox().getBoxId(), caseFile.getBox().getDescription())
-            );
-        }
-        return new ArrayList<>(boxes.values());
     }
 
     private ScanProfile findProfile(ProfileItem profile) {
@@ -611,6 +599,40 @@ public class UserPortalModel {
 
     private String formatHistoryTime(java.time.Instant instant) {
         return HISTORY_TIME_FORMAT.format(instant.atZone(ZoneId.systemDefault()));
+    }
+
+    private String formatFileSize(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            return "-";
+        }
+
+        try {
+            long sizeBytes = Files.size(Path.of(filePath));
+            if (sizeBytes <= 0) {
+                return "-";
+            }
+
+            double sizeKb = sizeBytes / 1024.0;
+            if (sizeKb < 1024) {
+                return String.format(Locale.US, "%.1f KB", sizeKb);
+            }
+
+            double sizeMb = sizeKb / 1024.0;
+            return String.format(Locale.US, "%.1f MB", sizeMb);
+        } catch (RuntimeException | java.io.IOException ignored) {
+            return "-";
+        }
+    }
+
+    private String displayExportStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "Unknown";
+        }
+        return switch (status.trim().toUpperCase(Locale.ROOT)) {
+            case "SUCCESS" -> "Success";
+            case "FAILED" -> "Failed";
+            default -> status.trim();
+        };
     }
 
     private boolean isCompletedStatus(String status) {
