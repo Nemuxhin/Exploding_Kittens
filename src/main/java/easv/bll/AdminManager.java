@@ -772,6 +772,10 @@ public class AdminManager {
             usersById.put(user.getId(), user);
         }
 
+        String client = findProfileOptionalByName(assignment.profileName())
+                .map(ScanProfile::getClient)
+                .orElse("");
+
         String assignedTo = "";
         if (assignment.assignedToUserId() != null) {
             User assignedUser = usersById.get(assignment.assignedToUserId());
@@ -787,7 +791,7 @@ public class AdminManager {
         return new ReviewRecord(
                 QA_RECORD_PREFIX + assignment.reviewId(),
                 assignment.boxId(),
-                assignment.scannedByName(),
+                client,
                 assignment.boxId(),
                 assignment.profileName(),
                 assignment.profileName(),
