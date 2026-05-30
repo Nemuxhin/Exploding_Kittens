@@ -721,7 +721,7 @@
     -fx-max-height: 30;
     -fx-padding: 0 9 0 12;
     -fx-spacing: 9;
-    -fx-background-color: -wl-input-bg;
+    -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-background-insets: 0;
     -fx-border-color: -wl-border;
@@ -734,13 +734,13 @@
 }
 
 .activity-log-page.logs-page .logs-time-filter-box:hover {
-    -fx-background-color: -wl-input-bg;
+    -fx-background-color: -wl-surface;
     -fx-border-color: -wl-input-hover-border;
     -fx-effect: none;
 }
 
 .activity-log-page.logs-page .logs-time-filter-box:focused {
-    -fx-background-color: -wl-input-bg;
+    -fx-background-color: -wl-surface;
     -fx-border-color: -wl-input-focus-border;
     -fx-effect: none;
 }
@@ -919,7 +919,7 @@
     -fx-max-height: 30;
     -fx-padding: 0 9 0 12;
     -fx-spacing: 9;
-    -fx-background-color: -wl-input-bg;
+    -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-background-insets: 0;
     -fx-border-color: -wl-border;
@@ -932,13 +932,13 @@
 }
 
 .activity-log-page.logs-page .logs-date-filter-box:hover {
-    -fx-background-color: -wl-input-bg;
+    -fx-background-color: -wl-surface;
     -fx-border-color: -wl-input-hover-border;
     -fx-effect: none;
 }
 
 .activity-log-page.logs-page .logs-date-filter-box:focused {
-    -fx-background-color: -wl-input-bg;
+    -fx-background-color: -wl-surface;
     -fx-border-color: -wl-input-focus-border;
     -fx-effect: none;
 }

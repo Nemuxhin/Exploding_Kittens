@@ -32,6 +32,7 @@ import javafx.scene.layout.VBox;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -741,7 +742,9 @@ public class ManageUsersController {
             return;
         }
 
-        masterUsers.setAll(adminManager.getUsers());
+        masterUsers.setAll(adminManager.getUsers().stream()
+                .sorted(Comparator.comparing(User::isActive).reversed())
+                .toList());
     }
 
     private List<ProfileOption> loadProfileOptions() {

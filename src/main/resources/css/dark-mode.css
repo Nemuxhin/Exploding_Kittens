@@ -195,6 +195,16 @@
     -fx-effect: none;
 }
 
+/* Shortcut-dialog icons: the light-mode stroke token (-wl-secondary-nav-bg)
+   collapses to the card colour (#2D3D4F) in dark mode, so the SVG outlines
+   vanish. Force them white in dark mode only. */
+.root.dark .weblager-shortcuts-card-icon,
+.root.dark .weblager-shortcuts-header-icon,
+.app-shell.dark .weblager-shortcuts-card-icon,
+.app-shell.dark .weblager-shortcuts-header-icon {
+    -fx-stroke: -wl-text;
+}
+
 /* =========================================================
    03. INTENTIONAL PAPER/PREVIEW EXCEPTIONS
    Project note: document paper stays white in dark mode because
