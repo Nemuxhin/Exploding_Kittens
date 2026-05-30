@@ -9,6 +9,7 @@ import easv.bll.ScanManager;
 import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.PrimeIcons;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -3834,9 +3835,15 @@ public class ScanController {
         labelRow.getChildren().add(pageLabel);
 
         if (page.needsRescan) {
+            if (!centered) {
+                Region statusSpacer = new Region();
+                HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+                labelRow.getChildren().add(statusSpacer);
+            }
+            Label statusIcon = PrimeIcons.create(Character.toString(0xE922), "qa-page-status-icon-fix");
             Label statusLabel = new Label("Needs Rescan");
             statusLabel.getStyleClass().add("qa-page-status-text-fix");
-            labelRow.getChildren().add(statusLabel);
+            labelRow.getChildren().addAll(statusIcon, statusLabel);
         }
 
         return labelRow;

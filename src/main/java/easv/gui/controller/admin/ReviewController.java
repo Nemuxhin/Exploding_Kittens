@@ -10,6 +10,7 @@ import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.AppDates;
 import easv.gui.controller.util.PaginationHelper;
+import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SearchableComboBoxes;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
@@ -92,7 +93,6 @@ public class ReviewController {
     private static final String RANGE_LAST_30_DAYS = "Last 30 Days";
     private static final String RANGE_TODAY = "Today";
     private static final String RANGE_LAST_7_DAYS = "Last 7 Days";
-    private static final String RANGE_THIS_MONTH = "This Month";
     private static final String RANGE_ALL_TIME = "All Time";
     private static final String RANGE_CUSTOM = "Custom Range";
 
@@ -295,15 +295,13 @@ public class ReviewController {
 
         if (dateRangeFilterComboBox != null) {
             dateRangeFilterComboBox.getItems().setAll(
-                    RANGE_LAST_30_DAYS,
                     RANGE_TODAY,
                     RANGE_LAST_7_DAYS,
-                    RANGE_THIS_MONTH,
-                    RANGE_ALL_TIME,
-                    RANGE_CUSTOM
+                    RANGE_LAST_30_DAYS,
+                    RANGE_ALL_TIME
             );
         }
-        setDateRange(RANGE_LAST_30_DAYS, LocalDate.now().minusDays(30), LocalDate.now());
+        setDateRange(RANGE_TODAY, LocalDate.now(), LocalDate.now());
 
         if (scannedByFilterComboBox != null) {
             scannedByFilterComboBox.getItems().setAll(ALL_USERS);
@@ -1162,11 +1160,11 @@ public class ReviewController {
         switch (selectedRange) {
             case RANGE_TODAY -> setDateRange(RANGE_TODAY, today, today);
             case RANGE_LAST_7_DAYS -> setDateRange(RANGE_LAST_7_DAYS, today.minusDays(7), today);
-            case RANGE_THIS_MONTH -> setDateRange(RANGE_THIS_MONTH, today.withDayOfMonth(1), today);
+            case RANGE_LAST_30_DAYS -> setDateRange(RANGE_LAST_30_DAYS, today.minusDays(30), today);
             case RANGE_ALL_TIME -> setDateRange(RANGE_ALL_TIME, null, null);
             case RANGE_CUSTOM -> {
             }
-            default -> setDateRange(RANGE_LAST_30_DAYS, today.minusDays(30), today);
+            default -> setDateRange(RANGE_TODAY, today, today);
         }
     }
 
@@ -1226,9 +1224,13 @@ public class ReviewController {
         }
 
         if (dateRangeMenuButton != null) {
-            // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
-            dateRangeMenuButton.setText("");
-            dateRangeMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
+            // Canonical dropdown caret: shared Region graphic — identical shape/size/color
+            // across every dropdown in the app (see .dropdown-caret-graphic in app.css).
+            javafx.scene.layout.Region __rangeCaret = new javafx.scene.layout.Region();
+            __rangeCaret.getStyleClass().add("dropdown-caret-graphic");
+            dateRangeMenuButton.setText(null);
+            dateRangeMenuButton.setGraphic(__rangeCaret);
+            dateRangeMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             dateRangeMenuButton.setOnAction(event -> showDateRangeCalendarMenu());
         }
 
@@ -2612,14 +2614,23 @@ public class ReviewController {
         pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
         labelRow.getChildren().add(pageLabel);
 
-        if (page.status() == QAService.QaPageReviewStatus.APPROVED) {
-            Label statusLabel = new Label("Approved");
-            statusLabel.getStyleClass().add("qa-page-status-text-approved");
-            labelRow.getChildren().add(statusLabel);
-        } else if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
-            Label statusLabel = new Label("Needs Fix");
-            statusLabel.getStyleClass().add("qa-page-status-text-fix");
-            labelRow.getChildren().add(statusLabel);
+        if (page.status() == QAService.QaPageReviewStatus.APPROVED
+                || page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+            boolean approved = page.status() == QAService.QaPageReviewStatus.APPROVED;
+            if (!centered) {
+                Region statusSpacer = new Region();
+                HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+                labelRow.getChildren().add(statusSpacer);
+            }
+            Label statusIcon = PrimeIcons.create(
+                    approved ? Character.toString(0xE90A) : Character.toString(0xE922),
+                    approved ? "qa-page-status-icon-approved" : "qa-page-status-icon-fix"
+            );
+            Label statusLabel = new Label(approved ? "Approved" : "Needs Fix");
+            statusLabel.getStyleClass().add(
+                    approved ? "qa-page-status-text-approved" : "qa-page-status-text-fix"
+            );
+            labelRow.getChildren().addAll(statusIcon, statusLabel);
         }
 
         return labelRow;
@@ -3246,8 +3257,9 @@ public class ReviewController {
         Label emailLabel = new Label(option.email());
         emailLabel.getStyleClass().add("qa-picker-email");
 
-        VBox textBox = new VBox(2, nameLabel, emailLabel);
+        VBox textBox = new VBox(3, nameLabel, emailLabel);
         textBox.setMinWidth(0);
+        textBox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
         Label check = new Label("✓");
@@ -3257,6 +3269,7 @@ public class ReviewController {
         HBox content = new HBox(12, avatar, textBox, check);
         content.setAlignment(Pos.CENTER_LEFT);
         content.setMaxWidth(Double.MAX_VALUE);
+        content.setFillHeight(false);
         content.getStyleClass().add("qa-picker-row-content");
 
         row.setGraphic(content);

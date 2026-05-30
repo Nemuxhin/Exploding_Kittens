@@ -7,6 +7,7 @@ import easv.bll.QAService;
 import easv.bll.TiffImageSupport;
 import easv.bll.TiffExportManager;
 import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.PrimeIcons;
 import easv.gui.UserPortalModel;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
@@ -230,10 +231,13 @@ public class AssignedQaController {
         }
 
         if (dateRangeMenuButton != null) {
-            // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
-            dateRangeMenuButton.setText("");
-            dateRangeMenuButton.setGraphic(null);
-            dateRangeMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
+            // Canonical dropdown caret: shared Region graphic — identical shape/size/color
+            // across every dropdown in the app (see .dropdown-caret-graphic in app.css).
+            Region __rangeCaret = new Region();
+            __rangeCaret.getStyleClass().add("dropdown-caret-graphic");
+            dateRangeMenuButton.setText(null);
+            dateRangeMenuButton.setGraphic(__rangeCaret);
+            dateRangeMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             dateRangeMenuButton.setOnAction(event -> showDateRangeCalendarMenu());
         }
 
@@ -1695,13 +1699,21 @@ public class AssignedQaController {
         labelRow.getChildren().add(pageLabel);
 
         if (page.status != QaPageStatus.NOT_REVIEWED) {
-            Label statusLabel = new Label(page.status == QaPageStatus.APPROVED ? "Approved" : "Needs Fix");
-            statusLabel.getStyleClass().add(
-                    page.status == QaPageStatus.APPROVED
-                            ? "qa-page-status-text-approved"
-                            : "qa-page-status-text-fix"
+            boolean approved = page.status == QaPageStatus.APPROVED;
+            if (!centered) {
+                Region statusSpacer = new Region();
+                HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+                labelRow.getChildren().add(statusSpacer);
+            }
+            Label statusIcon = PrimeIcons.create(
+                    approved ? Character.toString(0xE90A) : Character.toString(0xE922),
+                    approved ? "qa-page-status-icon-approved" : "qa-page-status-icon-fix"
             );
-            labelRow.getChildren().add(statusLabel);
+            Label statusLabel = new Label(approved ? "Approved" : "Needs Fix");
+            statusLabel.getStyleClass().add(
+                    approved ? "qa-page-status-text-approved" : "qa-page-status-text-fix"
+            );
+            labelRow.getChildren().addAll(statusIcon, statusLabel);
         }
 
         return labelRow;

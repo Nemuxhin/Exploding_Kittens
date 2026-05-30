@@ -241,9 +241,8 @@
                                    styleClass="review-date-filter-input"/>
 
                         <Button fx:id="dateRangeMenuButton"
-                                text="&#xe930;"
                                 focusTraversable="false"
-                                styleClass="prime-icon review-date-filter-menu"/>
+                                styleClass="review-date-filter-menu"/>
                     </HBox>
 
                 </HBox>

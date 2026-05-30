@@ -134,9 +134,8 @@
                                        styleClass="assigned-qa-date-filter-input"/>
 
                             <Button fx:id="dateRangeMenuButton"
-                                    text="&#xe930;"
                                     focusTraversable="false"
-                                    styleClass="prime-icon assigned-qa-date-filter-menu"/>
+                                    styleClass="assigned-qa-date-filter-menu"/>
                         </HBox>
                     </VBox>
                 </HBox>

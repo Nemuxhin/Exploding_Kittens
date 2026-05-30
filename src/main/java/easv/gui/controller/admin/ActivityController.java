@@ -944,9 +944,13 @@ public class ActivityController {
         timeOptionsMenu = new ContextMenu();
         timeOptionsMenu.getStyleClass().add("logs-time-popover-menu");
 
-        // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
-        timeFilterMenuButton.setText("");
-        timeFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
+        // Canonical dropdown caret: shared Region graphic — identical shape/size/color
+        // across every dropdown in the app (see .dropdown-caret-graphic in app.css).
+        Region __timeCaret = new Region();
+        __timeCaret.getStyleClass().add("dropdown-caret-graphic");
+        timeFilterMenuButton.setText(null);
+        timeFilterMenuButton.setGraphic(__timeCaret);
+        timeFilterMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         timeFilterMenuButton.setOnAction(event -> {
             event.consume();
             showTimeOptionsMenu();
@@ -4802,9 +4806,13 @@ public class ActivityController {
         }
 
         if (dateFilterMenuButton != null) {
-            // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
-            dateFilterMenuButton.setText("");
-            dateFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
+            // Canonical dropdown caret: shared Region graphic — identical shape/size/color
+            // across every dropdown in the app (see .dropdown-caret-graphic in app.css).
+            Region __dateCaret = new Region();
+            __dateCaret.getStyleClass().add("dropdown-caret-graphic");
+            dateFilterMenuButton.setText(null);
+            dateFilterMenuButton.setGraphic(__dateCaret);
+            dateFilterMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             dateFilterMenuButton.setOnAction(event -> {
                 event.consume();
                 showDateCalendarMenu();

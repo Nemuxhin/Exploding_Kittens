@@ -521,6 +521,7 @@ public class AssignmentsController {
         VBox textBox = new VBox(3, titleLabel, subtitleLabel);
         textBox.setMinWidth(0);
         textBox.setMaxWidth(Double.MAX_VALUE);
+        textBox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
         return textBox;
@@ -867,16 +868,18 @@ public class AssignmentsController {
             row.getStyleClass().add("assignment-picker-row-selected");
         }
 
-        VBox textBox = new VBox(2,
+        VBox textBox = new VBox(3,
                 createLabel(user.getName(), "assignment-picker-name"),
                 createLabel(Strings.displayText(user.getEmail(), "No email"), "assignment-picker-subtitle")
         );
         textBox.setMinWidth(0);
+        textBox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
         HBox content = new HBox(10, createAvatar(Strings.initials(user.getName(), "")), textBox, createRoleBadge(user.getRole()));
         content.setAlignment(Pos.CENTER_LEFT);
         content.setMaxWidth(Double.MAX_VALUE);
+        content.setFillHeight(false);
         content.getStyleClass().add("assignment-picker-row-content");
 
         if (isAssigned) {
