@@ -3,6 +3,7 @@ package easv.gui.controller.admin;
 import easv.be.Document;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
+import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.QAService;
 import easv.bll.TiffExportManager;
@@ -16,25 +17,29 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
-import javafx.geometry.Side;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -43,26 +48,33 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.StringConverter;
 import javafx.embed.swing.SwingFXUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -84,11 +96,17 @@ public class ReviewController {
     private static final int DEFAULT_ROWS_PER_PAGE = 10;
     private static final List<Integer> ROWS_PER_PAGE_OPTIONS = List.of(10, 25, 50);
     private static final DateTimeFormatter DATE_RANGE_FORMATTER = AppDates.FORMATTER;
+    private static final double PREVIEW_PAGE_WIDTH = 500;
+    private static final double PREVIEW_PAGE_HEIGHT = 560;
+    private static final double MIN_PREVIEW_ZOOM = 0.50;
+    private static final double MAX_PREVIEW_ZOOM = 2.50;
+    private static final double PREVIEW_ZOOM_STEP = 0.10;
+    private static final double PREVIEW_NUDGE_AMOUNT = 36;
+    private static final double PREVIEW_SAFE_HORIZONTAL_PADDING = 132;
+    private static final double PREVIEW_SAFE_VERTICAL_PADDING = 72;
 
     private final ObservableList<ReviewRow> records = FXCollections.observableArrayList();
     private final Set<String> selectedRecordIds = new HashSet<>();
-
-    private record ParsedDateRange(LocalDate startDate, LocalDate endDate) {}
 
     private List<ReviewRow> filteredRecords = List.of();
     private List<ReviewRow> pageRecords = List.of();
@@ -99,10 +117,6 @@ public class ReviewController {
     private LocalDate fromDate;
     private LocalDate toDate;
     private LocalDate pendingRangeStart;
-    private ContextMenu dateRangeCalendarMenu;
-    private GridPane dateRangeCalendarGrid;
-    private Label dateRangeCalendarMonthLabel;
-    private YearMonth displayedDateRangeMonth = YearMonth.now();
 
     private ReviewRow activeReviewRecord;
     private ReviewQueueFilter activeQueueFilter = ReviewQueueFilter.ALL;
@@ -110,6 +124,7 @@ public class ReviewController {
 
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
+    @FXML private ScrollPane reviewRootScrollPane;
 
     @FXML private TextField searchField;
 
@@ -118,9 +133,7 @@ public class ReviewController {
     @FXML private ComboBox<String> profileFilterComboBox;
     @FXML private ComboBox<String> qaStatusFilterComboBox;
     @FXML private ComboBox<String> dateRangeFilterComboBox;
-    @FXML private HBox dateRangeBox;
-    @FXML private TextField dateRangeField;
-    @FXML private Button dateRangeMenuButton;
+    @FXML private DatePicker dateRangePicker;
     @FXML private ComboBox<String> scannedByFilterComboBox;
 
     @FXML private HBox batchActionBar;
@@ -144,6 +157,30 @@ public class ReviewController {
     @FXML private Label workspaceTitleLabel;
     @FXML private Label workspaceSubtitleLabel;
     @FXML private Label workspaceWarningLabel;
+    @FXML private BorderPane reviewWorkspaceView;
+    @FXML private Label reviewReferenceInfoLabel;
+    @FXML private Label reviewFilesInfoLabel;
+    @FXML private Label reviewDocumentsInfoLabel;
+    @FXML private Label reviewZoomLabel;
+    @FXML private Label reviewStatusBadge;
+    @FXML private Label reviewBoxValueLabel;
+    @FXML private Label reviewProfileValueLabel;
+    @FXML private Label reviewDocumentsValueLabel;
+    @FXML private Label reviewSidebarSubtitleLabel;
+    @FXML private VBox reviewDocumentListContainer;
+    @FXML private StackPane reviewPreviewHost;
+    @FXML private HBox reviewPageTrayContainer;
+    @FXML private TextArea qaCommentTextArea;
+    @FXML private ComboBox<String> qaActionScopeComboBox;
+    @FXML private Label reviewSelectionProfileValueLabel;
+    @FXML private Label reviewSelectionBoxValueLabel;
+    @FXML private Label reviewSelectionDocumentValueLabel;
+    @FXML private Label reviewSelectionFileValueLabel;
+    @FXML private Label reviewSelectionReferenceValueLabel;
+    @FXML private Label reviewSelectionFileIdValueLabel;
+    @FXML private Label reviewSelectedTitleLabel;
+    @FXML private Button reviewDocumentGridViewButton;
+    @FXML private Button reviewDocumentListViewButton;
     @FXML private TextField reviewWorkspaceSearchField;
     @FXML private VBox reviewWorkspaceTreeContainer;
     @FXML private Label reviewWorkspaceViewerPageLabel;
@@ -183,11 +220,15 @@ public class ReviewController {
     private StackPane currentReviewPreviewWrapper;
     private double currentReviewPreviewBaseWidth = 1.0;
     private double currentReviewPreviewBaseHeight = 1.0;
+    private boolean reviewDocumentListView = true;
+    private boolean syncingWorkspaceQaControls;
+    private final Set<Integer> collapsedReviewDocuments = new HashSet<>();
 
     @FXML
     private void initialize() {
         configureFilters();
         configureWorkspaceControls();
+        configureWorkspaceQaControls();
         configureRowsPerPageSelector();
         loadRecords();
         configureListeners();
@@ -208,7 +249,9 @@ public class ReviewController {
     }
 
     private void configureFilters() {
-        configureDateRangeField();
+        if (dateRangePicker != null) {
+            configureDateRangePicker();
+        }
 
         // Client / archive / profile / scannedBy options are data-driven —
         // refreshFilterOptions() rebuilds them from the loaded records.
@@ -278,6 +321,14 @@ public class ReviewController {
     }
 
     private void configureWorkspaceControls() {
+        configureReviewToolbarButtons();
+
+        if (documentTypeComboBox == null || departmentComboBox == null
+                || caseNumberField == null || registrationDateField == null
+                || buildingAddressField == null || notesTextArea == null) {
+            return;
+        }
+
         documentTypeComboBox.getItems().setAll(
                 "Building Permit",
                 "Inspection Report",
@@ -347,19 +398,64 @@ public class ReviewController {
             scannedByFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         }
 
+        if (dateRangePicker != null) {
+            dateRangePicker.setOnAction(event -> handleDateRangeSelection(dateRangePicker.getValue()));
+        }
     }
 
     private void configureWorkspacePreviewInteractions() {
-        if (reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        if (previewHost == null) {
             return;
         }
 
-        reviewWorkspacePreviewHost.setFocusTraversable(true);
-        reviewWorkspacePreviewHost.addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleWorkspacePreviewMousePressed);
-        reviewWorkspacePreviewHost.addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleWorkspacePreviewMouseDragged);
-        reviewWorkspacePreviewHost.addEventFilter(ScrollEvent.SCROLL, this::handleWorkspacePreviewScroll);
-        reviewWorkspacePreviewHost.widthProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
-        reviewWorkspacePreviewHost.heightProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(previewHost.widthProperty());
+        clip.heightProperty().bind(previewHost.heightProperty());
+        previewHost.setClip(clip);
+
+        previewHost.setFocusTraversable(true);
+        previewHost.addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleWorkspacePreviewMousePressed);
+        previewHost.addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleWorkspacePreviewMouseDragged);
+        previewHost.addEventFilter(ScrollEvent.SCROLL, this::handleWorkspacePreviewScroll);
+        previewHost.widthProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
+        previewHost.heightProperty().addListener((observable, oldValue, newValue) -> clampWorkspacePreviewTranslation());
+    }
+
+    private void configureReviewToolbarButtons() {
+        if (reviewZoomOutButton != null) {
+            Label minusLabel = new Label("-");
+            minusLabel.setStyle("-fx-text-fill: -wl-text; -fx-font-size: 20px; -fx-font-weight: 600;");
+            reviewZoomOutButton.setText("");
+            reviewZoomOutButton.setGraphic(minusLabel);
+            reviewZoomOutButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        }
+        if (reviewZoomInButton != null) {
+            applyToolbarGlyph(reviewZoomInButton, "M5 0 H7 V5 H12 V7 H7 V12 H5 V7 H0 V5 H5 Z", 12, 12);
+        }
+        if (reviewFitButton != null) {
+            applyToolbarGlyph(reviewFitButton, "M6 0 L11 5 H8 V12 H4 V5 H1 Z", 12, 12);
+        }
+        if (reviewPrevPageButton != null) {
+            applyToolbarGlyph(reviewPrevPageButton, "M0 6 L5 1 V4 H12 V8 H5 V11 Z", 12, 12);
+        }
+        if (reviewNextPageButton != null) {
+            applyToolbarGlyph(reviewNextPageButton, "M12 6 L7 1 V4 H0 V8 H7 V11 Z", 12, 12);
+        }
+        if (reviewBarcodeButton != null) {
+            applyToolbarGlyph(reviewBarcodeButton, "M1 6 H4 V1 H8 V6 H11 L6 12 Z", 12, 12);
+        }
+    }
+
+    private void applyToolbarGlyph(Button button, String shape, double width, double height) {
+        Region glyph = new Region();
+        glyph.setMinSize(width, height);
+        glyph.setPrefSize(width, height);
+        glyph.setMaxSize(width, height);
+        glyph.setStyle("-fx-background-color: -wl-text; -fx-shape: \"" + shape + "\";");
+        button.setText("");
+        button.setGraphic(glyph);
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
     private void applyFilters() {
@@ -442,23 +538,19 @@ public class ReviewController {
         GridPane row = new GridPane();
         row.getStyleClass().add("review-table-row");
 
+        if (record.warning()) {
+            row.getStyleClass().add("review-table-row-warning");
+        }
+
         row.getColumnConstraints().setAll(createTableColumns());
-
-        CheckBox selectCheckBox = new CheckBox();
-        selectCheckBox.getStyleClass().add("review-checkbox");
-        selectCheckBox.setSelected(selectedRecordIds.contains(record.id()));
-        selectCheckBox.selectedProperty().addListener((observable, oldValue, selected) ->
-                updateSelection(record.id(), selected)
-        );
-
-        addCell(row, selectCheckBox, 0, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 1, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 2, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 3, HPos.LEFT);
-        addCell(row, createStatusBadge(record.qaStatus()), 4, HPos.LEFT);
-        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 5, HPos.CENTER);
-        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 6, HPos.LEFT);
-        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 7, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.identity(), "review-main-cell"), 0, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.client(), "review-cell-text"), 1, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.profile(), "review-cell-text"), 2, HPos.LEFT);
+        addCell(row, createStatusBadge(record.qaStatus()), 3, HPos.CENTER);
+        addCell(row, createWrappedLabel(String.valueOf(record.pages()), "review-cell-text"), 4, HPos.CENTER);
+        addCell(row, createWrappedLabel(record.lastUpdated(), "review-cell-text"), 5, HPos.LEFT);
+        addCell(row, createWrappedLabel(record.assignedTo(), "review-cell-text"), 6, HPos.CENTER);
+        addCell(row, createAssignQaButton(record), 7, HPos.LEFT);
         addCell(row, createReviewButton(record), 8, HPos.LEFT);
 
         return row;
@@ -466,14 +558,14 @@ public class ReviewController {
 
     private List<ColumnConstraints> createTableColumns() {
         return List.of(
-                createPercentColumn(4),
-                createPercentColumn(20),
-                createPercentColumn(14),
-                createPercentColumn(14),
+                createPercentColumn(17),
+                createPercentColumn(13),
+                createPercentColumn(13),
                 createPercentColumn(12),
-                createPercentColumn(6),
-                createPercentColumn(12),
-                createPercentColumn(10),
+                createPercentColumn(5),
+                createPercentColumn(11),
+                createPercentColumn(13),
+                createPercentColumn(8),
                 createPercentColumn(8)
         );
     }
@@ -493,12 +585,24 @@ public class ReviewController {
             region.setMaxWidth(Double.MAX_VALUE);
         }
 
-        GridPane.setHgrow(content, Priority.ALWAYS);
-        GridPane.setFillWidth(content, true);
-        GridPane.setHalignment(content, alignment);
-        GridPane.setValignment(content, VPos.CENTER);
+        StackPane wrapper = new StackPane(content);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
+        wrapper.setAlignment(toPos(alignment));
 
-        row.add(content, columnIndex, 0);
+        GridPane.setHgrow(wrapper, Priority.ALWAYS);
+        GridPane.setFillWidth(wrapper, true);
+        GridPane.setHalignment(wrapper, alignment);
+        GridPane.setValignment(wrapper, VPos.CENTER);
+
+        row.add(wrapper, columnIndex, 0);
+    }
+
+    private Pos toPos(HPos alignment) {
+        return switch (alignment) {
+            case CENTER -> Pos.CENTER;
+            case RIGHT -> Pos.CENTER_RIGHT;
+            default -> Pos.CENTER_LEFT;
+        };
     }
 
     private Label createWrappedLabel(String text, String styleClass) {
@@ -528,8 +632,52 @@ public class ReviewController {
         button.setFocusTraversable(false);
         button.setMinWidth(0);
         button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
         button.setOnAction(event -> openReviewWorkspace(record));
         return button;
+    }
+
+    private Button createAssignQaButton(ReviewRow record) {
+        Button button = new Button("Assign QA");
+        button.getStyleClass().add("review-action-button");
+        button.setFocusTraversable(false);
+        button.setMinWidth(0);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setOnAction(event -> assignQaFromOverview(record));
+        return button;
+    }
+
+    private void assignQaFromOverview(ReviewRow record) {
+        if (record == null || adminManager == null) {
+            return;
+        }
+
+        if (isQaReviewRow(record)) {
+            chooseQaAssignee(record.id(), selectedAssignee -> {
+                if (selectedAssignee == null) {
+                    return;
+                }
+
+                ReviewRecord updatedRecord = adminManager.assignReviewRecordToQa(
+                        record.id(),
+                        selectedAssignee.userId()
+                );
+
+                if (updatedRecord == null) {
+                    return;
+                }
+
+                replaceRecord(toReviewRow(updatedRecord));
+                renderRows();
+            });
+            return;
+        }
+
+        ReviewRow updated = record.withAssignedTo("QA Team");
+        adminManager.saveReviewRecord(toReviewRecord(updated));
+        replaceRecord(updated);
+        renderRows();
     }
 
     private void updateSelection(String recordId, boolean selected) {
@@ -1018,211 +1166,18 @@ public class ReviewController {
 
     private void setDateRange(String selectedRange, LocalDate fromDate, LocalDate toDate) {
         updatingDateControls = true;
-
         this.fromDate = fromDate;
         this.toDate = toDate;
-        normalizeDateRange();
         pendingRangeStart = null;
-
-        if (dateRangeFilterComboBox != null) {
-            dateRangeFilterComboBox.setValue(selectedRange);
-        }
-
-        updateDateRangeFieldDisplay();
-        updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
-
+        dateRangeFilterComboBox.setValue(selectedRange);
+        dateRangePicker.setValue(toDate != null ? toDate : fromDate);
+        dateRangePicker.getEditor().setText(formatDateRange());
+        dateRangePicker.setDayCellFactory(dateRangePicker.getDayCellFactory());
         updatingDateControls = false;
     }
 
-    private void configureDateRangeField() {
-        if (dateRangeField != null) {
-            dateRangeField.setPromptText("MM/DD/YYYY");
-
-            dateRangeField.textProperty().addListener((observable, oldValue, newValue) -> {
-                if (updatingDateControls) {
-                    return;
-                }
-
-                applyTypedDateRangeLive(newValue);
-            });
-
-            dateRangeField.setOnAction(event ->
-                    applyTypedDateRangeAndNormalize(dateRangeField.getText())
-            );
-
-            dateRangeField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
-                if (!isFocused) {
-                    applyTypedDateRangeAndNormalize(dateRangeField.getText());
-                }
-            });
-        }
-
-        if (dateRangeBox != null && dateRangeField != null) {
-            dateRangeBox.setOnMouseClicked(event -> {
-                Object target = event.getTarget();
-
-                if (target == dateRangeMenuButton) {
-                    return;
-                }
-
-                dateRangeField.requestFocus();
-                dateRangeField.positionCaret(dateRangeField.getText().length());
-            });
-        }
-
-        if (dateRangeMenuButton != null) {
-            dateRangeMenuButton.setText(null);
-            dateRangeMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            dateRangeMenuButton.setOnAction(event -> showDateRangeCalendarMenu());
-        }
-
-        updateDateRangeFieldDisplay();
-    }
-
-    private void showDateRangeCalendarMenu() {
-        if (dateRangeCalendarMenu == null) {
-            dateRangeCalendarMenu = new ContextMenu();
-            dateRangeCalendarMenu.getStyleClass().add("review-date-popover-menu");
-        }
-
-        Node anchor = dateRangeBox == null ? dateRangeMenuButton : dateRangeBox;
-
-        if (anchor == null || anchor.getScene() == null) {
-            return;
-        }
-
-        dateRangeCalendarMenu.getItems().setAll(new CustomMenuItem(createDateRangeCalendarPopover(), false));
-        updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
-        dateRangeCalendarMenu.show(anchor, Side.BOTTOM, 0, 3);
-    }
-
-    private VBox createDateRangeCalendarPopover() {
-        VBox popover = new VBox(0);
-        popover.getStyleClass().add("review-date-popover");
-
-        VBox panel = new VBox(0);
-        panel.getStyleClass().add("review-calendar-panel");
-
-        HBox header = new HBox();
-        header.getStyleClass().add("review-calendar-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setMaxWidth(Double.MAX_VALUE);
-
-        Button previousButton = new Button("<");
-        previousButton.setFocusTraversable(false);
-        previousButton.getStyleClass().add("review-calendar-nav-button");
-        previousButton.setOnAction(event -> showPreviousDateRangeCalendarMonth());
-
-        Button nextButton = new Button(">");
-        nextButton.setFocusTraversable(false);
-        nextButton.getStyleClass().add("review-calendar-nav-button");
-        nextButton.setOnAction(event -> showNextDateRangeCalendarMonth());
-
-        dateRangeCalendarMonthLabel = new Label();
-        dateRangeCalendarMonthLabel.getStyleClass().add("review-calendar-month-label");
-
-        Region leftSpacer = new Region();
-        Region rightSpacer = new Region();
-        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
-        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(previousButton, leftSpacer, dateRangeCalendarMonthLabel, rightSpacer, nextButton);
-
-        dateRangeCalendarGrid = new GridPane();
-        dateRangeCalendarGrid.setHgap(3);
-        dateRangeCalendarGrid.setVgap(6);
-        dateRangeCalendarGrid.setMaxWidth(Double.MAX_VALUE);
-        dateRangeCalendarGrid.getStyleClass().add("review-calendar-grid");
-
-        panel.getChildren().addAll(header, dateRangeCalendarGrid);
-        popover.getChildren().add(panel);
-
-        updateDateRangeCalendarDisplay();
-        return popover;
-    }
-
-    private void showPreviousDateRangeCalendarMonth() {
-        displayedDateRangeMonth = displayedDateRangeMonth.minusMonths(1);
-        updateDateRangeCalendarDisplay();
-    }
-
-    private void showNextDateRangeCalendarMonth() {
-        displayedDateRangeMonth = displayedDateRangeMonth.plusMonths(1);
-        updateDateRangeCalendarDisplay();
-    }
-
-    private void updateDateRangeCalendarMonthFromSelection() {
-        LocalDate calendarDate = fromDate != null
-                ? fromDate
-                : toDate;
-
-        displayedDateRangeMonth = calendarDate == null
-                ? YearMonth.now()
-                : YearMonth.from(calendarDate);
-    }
-
-    private void updateDateRangeCalendarDisplay() {
-        if (dateRangeCalendarGrid == null || dateRangeCalendarMonthLabel == null || displayedDateRangeMonth == null) {
-            return;
-        }
-
-        dateRangeCalendarGrid.getChildren().clear();
-        dateRangeCalendarMonthLabel.setText(displayedDateRangeMonth.getMonth().getDisplayName(
-                TextStyle.FULL,
-                Locale.ENGLISH
-        ) + " " + displayedDateRangeMonth.getYear());
-
-        String[] dayNames = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
-
-        for (int column = 0; column < dayNames.length; column++) {
-            Label label = new Label(dayNames[column]);
-            label.getStyleClass().add("review-calendar-day-name");
-            dateRangeCalendarGrid.add(label, column, 0);
-        }
-
-        LocalDate firstOfMonth = displayedDateRangeMonth.atDay(1);
-        int leadingDays = firstOfMonth.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
-        LocalDate firstVisibleDate = firstOfMonth.minusDays(leadingDays);
-
-        for (int index = 0; index < 42; index++) {
-            LocalDate date = firstVisibleDate.plusDays(index);
-            Button dayButton = createDateRangeCalendarDayButton(date);
-            dateRangeCalendarGrid.add(dayButton, index % 7, index / 7 + 1);
-        }
-    }
-
-    private Button createDateRangeCalendarDayButton(LocalDate date) {
-        Button dayButton = new Button(String.valueOf(date.getDayOfMonth()));
-        dayButton.getStyleClass().add("review-calendar-day-button");
-        dayButton.setFocusTraversable(false);
-        dayButton.setMinSize(30, 30);
-        dayButton.setPrefSize(30, 30);
-        dayButton.setMaxSize(30, 30);
-
-        boolean selectedBoundary = date.equals(fromDate) || date.equals(toDate);
-
-        if (!YearMonth.from(date).equals(displayedDateRangeMonth)) {
-            dayButton.getStyleClass().add("review-calendar-day-outside");
-        }
-
-        if (date.equals(LocalDate.now()) && !selectedBoundary) {
-            dayButton.getStyleClass().add("review-calendar-day-today");
-        }
-
-        if (selectedBoundary) {
-            dayButton.getStyleClass().add("review-calendar-day-selected");
-        } else if (isBetweenRange(date)) {
-            dayButton.getStyleClass().add("review-calendar-day-in-range");
-        }
-
-        dayButton.setOnAction(event -> selectDateRangeCalendarDate(date));
-        return dayButton;
-    }
-
-    private void selectDateRangeCalendarDate(LocalDate selectedDate) {
-        if (selectedDate == null) {
+    private void handleDateRangeSelection(LocalDate selectedDate) {
+        if (updatingDateControls || selectedDate == null) {
             return;
         }
 
@@ -1231,7 +1186,7 @@ public class ReviewController {
         if (pendingRangeStart == null) {
             pendingRangeStart = selectedDate;
             fromDate = selectedDate;
-            toDate = selectedDate;
+            toDate = null;
         } else {
             if (selectedDate.isBefore(pendingRangeStart)) {
                 fromDate = selectedDate;
@@ -1244,166 +1199,98 @@ public class ReviewController {
             pendingRangeStart = null;
         }
 
-        normalizeDateRange();
-
-        if (dateRangeFilterComboBox != null) {
-            dateRangeFilterComboBox.setValue(RANGE_CUSTOM);
-        }
-
+        dateRangeFilterComboBox.setValue(RANGE_CUSTOM);
+        dateRangePicker.setValue(toDate != null ? toDate : fromDate);
+        dateRangePicker.getEditor().setText(formatDateRange());
+        dateRangePicker.setDayCellFactory(dateRangePicker.getDayCellFactory());
         updatingDateControls = false;
+        applyFilters();
+    }
 
-        displayedDateRangeMonth = YearMonth.from(selectedDate);
-        updateDateRangeFieldDisplay();
-        updateDateRangeCalendarDisplay();
+    private void configureDateRangePicker() {
+        dateRangePicker.setPromptText("MM/DD/YYYY");
+        dateRangePicker.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate value) {
+                return formatDateRange();
+            }
+
+            @Override
+            public LocalDate fromString(String value) {
+                return null;
+            }
+        });
+
+        dateRangePicker.setDayCellFactory(picker -> new DateCell() {
+            {
+                addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                    LocalDate selectedDate = getItem();
+
+                    if (isSelectableDate(selectedDate)) {
+                        selectDateFromCalendar(selectedDate, event);
+                    }
+                });
+                addEventFilter(MouseEvent.MOUSE_RELEASED, MouseEvent::consume);
+                addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
+            }
+
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                getStyleClass().removeAll(
+                        "activity-log-date-range-start",
+                        "activity-log-date-range-end",
+                        "activity-log-date-range-between",
+                        "activity-log-date-disabled"
+                );
+
+                if (empty || date == null) {
+                    return;
+                }
+
+                if (date.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                    getStyleClass().add("activity-log-date-disabled");
+                    return;
+                }
+
+                if (isRangeStart(date)) {
+                    getStyleClass().add("activity-log-date-range-start");
+                }
+
+                if (isRangeEnd(date)) {
+                    getStyleClass().add("activity-log-date-range-end");
+                }
+
+                if (isBetweenRange(date)) {
+                    getStyleClass().add("activity-log-date-range-between");
+                }
+            }
+        });
+    }
+
+    private void selectDateFromCalendar(LocalDate selectedDate, MouseEvent event) {
+        handleDateRangeSelection(selectedDate);
 
         if (pendingRangeStart == null) {
-            if (dateRangeCalendarMenu != null) {
-                dateRangeCalendarMenu.hide();
-            }
-            applyFilters();
-        }
-    }
-
-    private void applyTypedDateRangeLive(String value) {
-        String cleanedValue = Strings.clean(value);
-
-        if (isBlankOrPlaceholderDate(cleanedValue)) {
-            if (fromDate != null || toDate != null || !RANGE_ALL_TIME.equals(selectedValue(dateRangeFilterComboBox, RANGE_ALL_TIME))) {
-                applyParsedDateRange(null, RANGE_ALL_TIME);
-                applyFilters();
-            }
-            return;
-        }
-
-        ParsedDateRange parsedRange = parseDateRangeFilterValue(cleanedValue);
-
-        if (parsedRange == null || isSameDateRange(parsedRange)) {
-            return;
-        }
-
-        applyParsedDateRange(parsedRange, RANGE_CUSTOM);
-        applyFilters();
-    }
-
-    private void applyTypedDateRangeAndNormalize(String value) {
-        if (updatingDateControls) {
-            return;
-        }
-
-        String cleanedValue = Strings.clean(value);
-
-        if (isBlankOrPlaceholderDate(cleanedValue)) {
-            applyParsedDateRange(null, RANGE_ALL_TIME);
-            applyFilters();
-            return;
-        }
-
-        ParsedDateRange parsedRange = parseDateRangeFilterValue(cleanedValue);
-
-        if (parsedRange == null) {
-            updateDateRangeFieldDisplay();
-            return;
-        }
-
-        applyParsedDateRange(parsedRange, RANGE_CUSTOM);
-        applyFilters();
-    }
-
-    private boolean isBlankOrPlaceholderDate(String value) {
-        String cleanedValue = Strings.clean(value);
-        return cleanedValue.isBlank() || "MM/DD/YYYY".equalsIgnoreCase(cleanedValue);
-    }
-
-    private ParsedDateRange parseDateRangeFilterValue(String value) {
-        String cleanedValue = Strings.clean(value)
-                .replace('–', '-')
-                .replace('—', '-');
-
-        if (isBlankOrPlaceholderDate(cleanedValue)) {
-            return null;
-        }
-
-        String[] parts = cleanedValue.split("\\s+-\\s+", 2);
-
-        LocalDate startDate = parseDateRangePart(parts[0]);
-        if (startDate == null) {
-            return null;
-        }
-
-        LocalDate endDate = parts.length > 1 ? parseDateRangePart(parts[1]) : startDate;
-        if (endDate == null) {
-            return null;
-        }
-
-        return new ParsedDateRange(startDate, endDate);
-    }
-
-    private LocalDate parseDateRangePart(String value) {
-        String cleanedValue = Strings.clean(value);
-
-        if (cleanedValue.isBlank()) {
-            return null;
-        }
-
-        List<DateTimeFormatter> formatters = List.of(
-                DATE_RANGE_FORMATTER,
-                DateTimeFormatter.ofPattern("M/d/yyyy", Locale.ENGLISH),
-                DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH),
-                DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH),
-                DateTimeFormatter.ISO_LOCAL_DATE
-        );
-
-        for (DateTimeFormatter formatter : formatters) {
-            try {
-                return LocalDate.parse(cleanedValue, formatter);
-            } catch (DateTimeParseException ignored) {
-                // Try the next supported date format.
-            }
-        }
-
-        return null;
-    }
-
-    private void applyParsedDateRange(ParsedDateRange parsedRange, String selectedRange) {
-        updatingDateControls = true;
-
-        if (parsedRange == null) {
-            fromDate = null;
-            toDate = null;
+            dateRangePicker.hide();
         } else {
-            fromDate = parsedRange.startDate();
-            toDate = parsedRange.endDate();
-            normalizeDateRange();
+            dateRangePicker.show();
         }
 
-        pendingRangeStart = null;
-
-        if (dateRangeFilterComboBox != null) {
-            dateRangeFilterComboBox.setValue(selectedRange);
-        }
-
-        updatingDateControls = false;
-
-        updateDateRangeFieldDisplay();
-        updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
+        event.consume();
     }
 
-    private boolean isSameDateRange(ParsedDateRange parsedRange) {
-        if (parsedRange == null) {
-            return fromDate == null && toDate == null;
-        }
-
-        return parsedRange.startDate().equals(fromDate)
-                && parsedRange.endDate().equals(toDate);
+    private boolean isSelectableDate(LocalDate date) {
+        return date != null && !date.isAfter(LocalDate.now());
     }
 
-    private void normalizeDateRange() {
-        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
-            LocalDate swappedDate = fromDate;
-            fromDate = toDate;
-            toDate = swappedDate;
-        }
+    private boolean isRangeStart(LocalDate date) {
+        return fromDate != null && date.equals(fromDate);
+    }
+
+    private boolean isRangeEnd(LocalDate date) {
+        return toDate != null && date.equals(toDate);
     }
 
     private boolean isBetweenRange(LocalDate date) {
@@ -1413,39 +1300,12 @@ public class ReviewController {
                 && date.isBefore(toDate);
     }
 
-    private void updateDateRangeFieldDisplay() {
-        if (dateRangeField == null) {
-            return;
-        }
-
-        updatingDateControls = true;
-        dateRangeField.setPromptText("MM/DD/YYYY");
-        dateRangeField.setText(formatDateRange());
-        updatingDateControls = false;
-
-        if (dateRangeBox != null) {
-            dateRangeBox.getStyleClass().removeAll("review-date-filter-has-value");
-
-            if (fromDate != null || toDate != null) {
-                dateRangeBox.getStyleClass().add("review-date-filter-has-value");
-            }
-        }
-    }
-
     private String formatDateRange() {
         if (fromDate == null && toDate == null) {
-            return "";
+            return RANGE_ALL_TIME;
         }
 
         if (fromDate != null && toDate == null) {
-            return DATE_RANGE_FORMATTER.format(fromDate);
-        }
-
-        if (fromDate == null) {
-            return DATE_RANGE_FORMATTER.format(toDate);
-        }
-
-        if (fromDate.equals(toDate)) {
             return DATE_RANGE_FORMATTER.format(fromDate);
         }
 
@@ -1473,30 +1333,57 @@ public class ReviewController {
         activeQaDocuments = List.of();
         selectedQaDocumentIndex = 0;
         selectedQaPageIndex = 0;
+        collapsedReviewDocuments.clear();
         if (reviewWorkspaceSearchField != null) {
             reviewWorkspaceSearchField.clear();
         }
 
-        workspaceTitleLabel.setText(record.identity());
-        workspaceSubtitleLabel.setText(
-                record.profile()
-                        + " - "
-                        + record.client()
-                        + " - "
-                        + record.pages()
-                        + " pages - "
-                        + record.documentDetailsStatus()
-        );
+        if (workspaceTitleLabel != null) {
+            workspaceTitleLabel.setText(record.identity());
+        }
+        if (workspaceSubtitleLabel != null) {
+            workspaceSubtitleLabel.setText(
+                    record.profile()
+                            + " - "
+                            + record.client()
+                            + " - "
+                            + record.pages()
+                            + " pages - "
+                            + record.documentDetailsStatus()
+            );
+        }
 
         boolean isBlocked = record.documentDetailsStatus().equalsIgnoreCase("Missing Required Fields")
                 || record.documentDetailsStatus().equalsIgnoreCase("Invalid")
                 || record.documentDetailsStatus().equalsIgnoreCase("Incomplete");
 
-        workspaceWarningLabel.setText(
-                isBlocked
-                        ? "Export blocked: required document fields are missing."
-                        : "Document details are complete. Ready for QA assignment or approval."
-        );
+        if (workspaceWarningLabel != null) {
+            workspaceWarningLabel.setText("");
+            workspaceWarningLabel.setVisible(false);
+            workspaceWarningLabel.setManaged(false);
+        }
+        if (reviewBoxValueLabel != null) {
+            reviewBoxValueLabel.setText(record.identity());
+        }
+        if (reviewProfileValueLabel != null) {
+            reviewProfileValueLabel.setText(record.profile());
+        }
+        if (reviewDocumentsValueLabel != null) {
+            reviewDocumentsValueLabel.setText("1 · " + record.pages() + " pages");
+        }
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText("Ref: -");
+        }
+        if (reviewFilesInfoLabel != null) {
+            reviewFilesInfoLabel.setText("Scanned Files: " + record.pages());
+        }
+        if (reviewDocumentsInfoLabel != null) {
+            reviewDocumentsInfoLabel.setText("Documents: 1");
+        }
+        if (reviewSidebarSubtitleLabel != null) {
+            reviewSidebarSubtitleLabel.setText(record.profile() + " · " + record.identity());
+        }
+        updateReviewZoomLabel();
 
         configureWorkspaceControls();
         loadWorkspaceQaData(record);
@@ -1505,17 +1392,25 @@ public class ReviewController {
     }
 
     private void loadWorkspaceQaData(ReviewRow record) {
-        if (adminManager == null || !isQaReviewRow(record)) {
+        if (adminManager == null || record == null) {
             return;
         }
 
-        activeQaAssignment = adminManager.getQaAssignmentForReviewRecord(record.id());
-        if (activeQaAssignment == null) {
-            return;
+        List<QAService.QaDocumentSnapshot> sourceDocuments;
+        if (isQaReviewRow(record)) {
+            activeQaAssignment = adminManager.getQaAssignmentForReviewRecord(record.id());
+            if (activeQaAssignment == null) {
+                activeQaDocuments = List.of();
+                return;
+            }
+            sourceDocuments = activeQaAssignment.documents();
+        } else {
+            activeQaAssignment = null;
+            sourceDocuments = adminManager.getSavedProgressDocumentsForReviewRecord(record.identity(), record.profile());
         }
 
         List<WorkspaceQaDocument> documents = new ArrayList<>();
-        for (QAService.QaDocumentSnapshot assignmentDocument : activeQaAssignment.documents()) {
+        for (QAService.QaDocumentSnapshot assignmentDocument : sourceDocuments) {
             List<WorkspaceQaPage> pages = new ArrayList<>();
             for (QAService.QaPageSnapshot assignmentPage : assignmentDocument.pages()) {
                 pages.add(new WorkspaceQaPage(
@@ -1524,7 +1419,8 @@ public class ReviewController {
                         assignmentPage.sourceReference(),
                         assignmentPage.displayContent(),
                         assignmentPage.rotationDegrees(),
-                        assignmentPage.reviewStatus()
+                        assignmentPage.reviewStatus(),
+                        assignmentPage.comment()
                 ));
             }
             if (!pages.isEmpty()) {
@@ -1536,27 +1432,70 @@ public class ReviewController {
     }
 
     private void renderWorkspaceQaView() {
+        updateWorkspaceSummaryChips();
         renderWorkspaceQaTree();
         renderWorkspaceQaPreview();
         renderWorkspaceQaThumbnails();
+        renderWorkspaceQaTools();
+    }
+
+    private void configureWorkspaceQaControls() {
+        if (qaActionScopeComboBox != null) {
+            qaActionScopeComboBox.getItems().setAll("Selected Page", "This Document");
+            qaActionScopeComboBox.getSelectionModel().selectFirst();
+        }
+
+        if (qaCommentTextArea != null) {
+            qaCommentTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (syncingWorkspaceQaControls) {
+                    return;
+                }
+                updateWorkspaceQaComment(newValue == null ? "" : newValue);
+            });
+        }
+    }
+
+    private void updateWorkspaceSummaryChips() {
+        if (reviewFilesInfoLabel != null) {
+            reviewFilesInfoLabel.setText("Scanned Files: " + getWorkspaceQaPageCount());
+        }
+        if (reviewDocumentsInfoLabel != null) {
+            reviewDocumentsInfoLabel.setText("Documents: " + activeQaDocuments.size());
+        }
+        if (reviewDocumentsValueLabel != null) {
+            reviewDocumentsValueLabel.setText(activeQaDocuments.size() + " · " + getWorkspaceQaPageCount() + " pages");
+        }
+        WorkspaceQaPage selectedPage = getSelectedWorkspaceQaPage();
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText(selectedPage == null ? "Ref: -" : "Ref: " + selectedPage.sourceReference());
+        }
     }
 
     private void renderWorkspaceQaTree() {
-        if (reviewWorkspaceTreeContainer == null) {
+        VBox treeContainer = activeWorkspaceTreeContainer();
+        if (treeContainer == null) {
             return;
         }
-        reviewWorkspaceTreeContainer.getChildren().clear();
+        treeContainer.getChildren().clear();
+        updateReviewDocumentViewButtons();
 
-        if (activeQaAssignment == null || activeQaDocuments.isEmpty()) {
-            Label root = new Label(activeReviewRecord == null ? "No document selected" : activeReviewRecord.identity());
-            root.getStyleClass().add("review-workspace-tree-root");
-            reviewWorkspaceTreeContainer.getChildren().add(root);
+        if (activeQaDocuments.isEmpty()) {
+            VBox emptyState = new VBox(6);
+            emptyState.getStyleClass().add("document-tree-empty-state");
+
+            Label title = new Label("No documents available");
+            title.getStyleClass().add("document-tree-empty-title");
+
+            Label copy = new Label(activeReviewRecord == null
+                    ? "Select a review item to see its pages."
+                    : "This review item does not have any pages ready to display.");
+            copy.setWrapText(true);
+            copy.getStyleClass().add("document-tree-empty-copy");
+
+            emptyState.getChildren().addAll(title, copy);
+            treeContainer.getChildren().add(emptyState);
             return;
         }
-
-        Label root = new Label(activeQaAssignment.boxId());
-        root.getStyleClass().add("review-workspace-tree-root");
-        reviewWorkspaceTreeContainer.getChildren().add(root);
 
         String query = reviewWorkspaceSearchField == null ? "" : Strings.normalize(reviewWorkspaceSearchField.getText());
 
@@ -1577,100 +1516,159 @@ public class ReviewController {
                 continue;
             }
 
-            VBox block = new VBox(6);
-
-            Label title = new Label(document.name());
-            title.getStyleClass().add("review-workspace-tree-case");
-            block.getChildren().add(title);
-
-            for (PagePointer pointer : matchingPages) {
-                WorkspaceQaPage page = activeQaDocuments.get(pointer.documentIndex()).pages().get(pointer.pageIndex());
-                HBox row = new HBox();
-                row.setAlignment(Pos.CENTER_LEFT);
-                row.getStyleClass().add(pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex
-                        ? "review-workspace-tree-row-active"
-                        : "review-workspace-tree-row");
-
-                Label statusIcon = new Label(statusIconText(page.status()));
-                statusIcon.getStyleClass().add(statusIconStyle(page.status()));
-
-                Label pageTitle = new Label("Page " + page.pageNumber());
-                pageTitle.getStyleClass().add(pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex
-                        ? "review-workspace-tree-title-active"
-                        : "review-workspace-tree-title");
-
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                Label pageStatus = new Label(statusText(page.status()));
-                pageStatus.getStyleClass().add("review-workspace-tree-status-text");
-
-                row.getChildren().addAll(statusIcon, pageTitle, spacer, pageStatus);
-                row.setOnMouseClicked(event -> {
-                    selectedQaDocumentIndex = pointer.documentIndex();
-                    selectedQaPageIndex = pointer.pageIndex();
-                    resetWorkspacePreviewTransform();
-                    renderWorkspaceQaView();
-                });
-                block.getChildren().add(row);
+            VBox documentBlock = new VBox(12);
+            documentBlock.setAlignment(Pos.TOP_LEFT);
+            documentBlock.getStyleClass().add("document-tree-document-block");
+            if (reviewDocumentListView) {
+                documentBlock.getStyleClass().add("document-tree-list-block");
             }
 
-            reviewWorkspaceTreeContainer.getChildren().add(block);
+            HBox documentHeader = new HBox(9);
+            documentHeader.setAlignment(Pos.CENTER_LEFT);
+            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
+            if (reviewDocumentListView) {
+                documentHeader.getStyleClass().add("document-tree-list-header");
+            }
+
+            Region chevron = new Region();
+            chevron.getStyleClass().add("document-tree-chevron-icon");
+            chevron.setRotate(collapsedReviewDocuments.contains(documentIndex) ? 0 : 90);
+
+            Label title = new Label(workspaceDocumentTitle(document, documentIndex));
+            title.getStyleClass().add("document-tree-document-title");
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Label warning = new Label(document.pages().stream().anyMatch(page -> page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) ? "!" : "");
+            warning.getStyleClass().add("document-tree-warning");
+
+            Label count = new Label(document.pages().size() + " pages");
+            count.getStyleClass().add("document-tree-count");
+
+            documentHeader.getChildren().addAll(chevron, title, spacer, warning, count);
+            final int selectedDocumentIndex = documentIndex;
+            documentHeader.setOnMouseClicked(event -> {
+                if (collapsedReviewDocuments.contains(selectedDocumentIndex)) {
+                    collapsedReviewDocuments.remove(selectedDocumentIndex);
+                } else {
+                    collapsedReviewDocuments.add(selectedDocumentIndex);
+                }
+                if (!document.pages().isEmpty()) {
+                    selectedQaDocumentIndex = selectedDocumentIndex;
+                    selectedQaPageIndex = 0;
+                }
+                resetWorkspacePreviewTransform();
+                renderWorkspaceQaView();
+            });
+            documentBlock.getChildren().add(documentHeader);
+
+            if (!collapsedReviewDocuments.contains(documentIndex)) {
+                VBox pageStack = new VBox(reviewDocumentListView ? 0 : 18);
+                pageStack.setAlignment(reviewDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
+                pageStack.getStyleClass().add("document-tree-page-stack");
+                if (reviewDocumentListView) {
+                    pageStack.getStyleClass().add("document-tree-list-page-stack");
+                }
+
+                for (PagePointer pointer : matchingPages) {
+                    WorkspaceQaPage page = activeQaDocuments.get(pointer.documentIndex()).pages().get(pointer.pageIndex());
+                    Node pageNode = reviewDocumentListView
+                            ? createWorkspacePageRow(pointer, page)
+                            : createWorkspaceEmbeddedPageCard(pointer, page);
+                    pageStack.getChildren().add(pageNode);
+                }
+                documentBlock.getChildren().add(pageStack);
+            }
+
+            treeContainer.getChildren().add(documentBlock);
         }
     }
 
     private void renderWorkspaceQaPreview() {
-        if (reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        Label pageLabel = activeWorkspaceViewerPageLabel();
+        if (previewHost == null) {
             return;
         }
-        reviewWorkspacePreviewHost.getChildren().clear();
+        previewHost.getChildren().clear();
         currentReviewPreviewWrapper = null;
         currentReviewPreviewBaseWidth = 1.0;
         currentReviewPreviewBaseHeight = 1.0;
 
         WorkspaceQaPage page = getSelectedWorkspaceQaPage();
         if (page == null) {
-            reviewWorkspacePreviewHost.getChildren().add(createWorkspacePreviewPlaceholder("No page selected"));
-            if (reviewWorkspaceViewerPageLabel != null) {
-                reviewWorkspaceViewerPageLabel.setText("No page selected");
+            previewHost.getChildren().add(createWorkspacePreviewPlaceholder("No page selected"));
+            if (pageLabel != null) {
+                pageLabel.setText("No page selected");
             }
             return;
         }
 
-        if (reviewWorkspaceViewerPageLabel != null) {
-            reviewWorkspaceViewerPageLabel.setText("Page " + page.pageNumber() + " of " + getWorkspaceQaPageCount());
+        if (pageLabel != null) {
+            pageLabel.setText("Page " + page.pageNumber() + " of " + getWorkspaceQaPageCount());
+        }
+        if (reviewSelectedTitleLabel != null) {
+            reviewSelectedTitleLabel.setText("Page " + page.pageNumber());
+        }
+        if (reviewReferenceInfoLabel != null) {
+            reviewReferenceInfoLabel.setText("Ref: " + page.sourceReference());
         }
 
         Image image = decodeWorkspaceQaImage(page.imageContent());
         if (image == null) {
-            reviewWorkspacePreviewHost.getChildren().add(createWorkspacePreviewPlaceholder("Preview unavailable"));
+            previewHost.getChildren().add(createWorkspacePreviewPlaceholder("Preview unavailable"));
             return;
         }
-
-        StackPane paper = new StackPane();
-        paper.getStyleClass().add("review-workspace-paper-preview");
-        paper.setPickOnBounds(true);
 
         ImageView imageView = new ImageView(image);
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
-        currentReviewPreviewBaseWidth = Math.max(1, image.getWidth());
-        currentReviewPreviewBaseHeight = Math.max(1, image.getHeight());
-        imageView.setFitWidth(currentReviewPreviewBaseWidth);
-        imageView.setFitHeight(currentReviewPreviewBaseHeight);
-        imageView.setRotate(page.rotationDegrees());
+        imageView.setFitWidth(PREVIEW_PAGE_WIDTH);
+        imageView.setFitHeight(PREVIEW_PAGE_HEIGHT);
 
-        paper.getChildren().add(imageView);
-        currentReviewPreviewWrapper = paper;
-        reviewWorkspacePreviewHost.getChildren().add(paper);
+        StackPane imageSurface = new StackPane(imageView);
+        imageSurface.setAlignment(Pos.CENTER);
+        imageSurface.getStyleClass().add("mock-document-page");
+        imageSurface.setMinWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        imageSurface.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+        imageSurface.setRotate(page.rotationDegrees());
+
+        StackPane previewFrame = new StackPane(imageSurface);
+        previewFrame.setAlignment(Pos.CENTER);
+        previewFrame.setMinWidth(PREVIEW_PAGE_WIDTH);
+        previewFrame.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        previewFrame.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        previewFrame.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        previewFrame.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        previewFrame.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        StackPane wrapper = new StackPane(previewFrame);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setMinWidth(PREVIEW_PAGE_WIDTH);
+        wrapper.setPrefWidth(PREVIEW_PAGE_WIDTH);
+        wrapper.setMaxWidth(PREVIEW_PAGE_WIDTH);
+        wrapper.setMinHeight(PREVIEW_PAGE_HEIGHT);
+        wrapper.setPrefHeight(PREVIEW_PAGE_HEIGHT);
+        wrapper.setMaxHeight(PREVIEW_PAGE_HEIGHT);
+
+        currentReviewPreviewBaseWidth = PREVIEW_PAGE_WIDTH;
+        currentReviewPreviewBaseHeight = PREVIEW_PAGE_HEIGHT;
+        currentReviewPreviewWrapper = wrapper;
+        previewHost.getChildren().add(wrapper);
         applyWorkspacePreviewTransform();
     }
 
     private void renderWorkspaceQaThumbnails() {
-        if (reviewWorkspaceThumbnailStrip == null) {
+        HBox thumbnailStrip = activeWorkspaceThumbnailStrip();
+        if (thumbnailStrip == null) {
             return;
         }
-        reviewWorkspaceThumbnailStrip.getChildren().clear();
+        thumbnailStrip.getChildren().clear();
 
         for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
             WorkspaceQaDocument document = activeQaDocuments.get(documentIndex);
@@ -1707,7 +1705,7 @@ public class ReviewController {
                     resetWorkspacePreviewTransform();
                     renderWorkspaceQaView();
                 });
-                reviewWorkspaceThumbnailStrip.getChildren().add(thumbnail);
+                thumbnailStrip.getChildren().add(thumbnail);
             }
         }
     }
@@ -1744,8 +1742,13 @@ public class ReviewController {
     }
 
     private void updateWorkspacePreviewZoom(double delta) {
-        reviewPreviewZoomMultiplier = clamp(reviewPreviewZoomMultiplier + delta, 1.0, 5.0);
+        setWorkspacePreviewZoom(reviewPreviewZoomMultiplier + delta);
+    }
+
+    private void setWorkspacePreviewZoom(double zoom) {
+        reviewPreviewZoomMultiplier = clamp(zoom, MIN_PREVIEW_ZOOM, MAX_PREVIEW_ZOOM);
         applyWorkspacePreviewTransform();
+        updateReviewZoomLabel();
     }
 
     private void resetWorkspacePreviewTransform() {
@@ -1755,12 +1758,15 @@ public class ReviewController {
     }
 
     private void applyWorkspacePreviewTransform() {
-        if (currentReviewPreviewWrapper == null || reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        if (currentReviewPreviewWrapper == null || previewHost == null) {
             return;
         }
 
-        double availableWidth = Math.max(1, reviewWorkspacePreviewHost.getWidth() - 40);
-        double availableHeight = Math.max(1, reviewWorkspacePreviewHost.getHeight() - 40);
+        double availableWidth = Math.max(1, previewHost.getWidth() - 40);
+        double availableHeight = Math.max(1, previewHost.getHeight() - 40);
+        availableWidth = Math.max(1, previewHost.getWidth() - PREVIEW_SAFE_HORIZONTAL_PADDING);
+        availableHeight = Math.max(1, previewHost.getHeight() - PREVIEW_SAFE_VERTICAL_PADDING);
         double autoScale = Math.min(
                 availableWidth / Math.max(1.0, currentReviewPreviewBaseWidth),
                 availableHeight / Math.max(1.0, currentReviewPreviewBaseHeight)
@@ -1774,17 +1780,18 @@ public class ReviewController {
     }
 
     private void clampWorkspacePreviewTranslation() {
-        if (currentReviewPreviewWrapper == null || reviewWorkspacePreviewHost == null) {
+        StackPane previewHost = activeWorkspacePreviewHost();
+        if (currentReviewPreviewWrapper == null || previewHost == null) {
             return;
         }
 
         double scale = currentReviewPreviewWrapper.getScaleX();
         double scaledWidth = currentReviewPreviewBaseWidth * scale;
         double scaledHeight = currentReviewPreviewBaseHeight * scale;
-        double hostWidth = Math.max(1, reviewWorkspacePreviewHost.getWidth());
-        double hostHeight = Math.max(1, reviewWorkspacePreviewHost.getHeight());
-        double maxX = Math.max(0, (scaledWidth - hostWidth) / 2);
-        double maxY = Math.max(0, (scaledHeight - hostHeight) / 2);
+        double hostWidth = Math.max(1, previewHost.getWidth());
+        double hostHeight = Math.max(1, previewHost.getHeight());
+        double maxX = Math.abs(hostWidth - scaledWidth) / 2;
+        double maxY = Math.abs(hostHeight - scaledHeight) / 2;
 
         reviewPreviewTranslateX = clamp(reviewPreviewTranslateX, -maxX, maxX);
         reviewPreviewTranslateY = clamp(reviewPreviewTranslateY, -maxY, maxY);
@@ -1821,6 +1828,279 @@ public class ReviewController {
         }
         updateWorkspacePreviewZoom(event.getDeltaY() > 0 ? 0.15 : -0.15);
         event.consume();
+    }
+
+    @FXML
+    private void onBackToScanningFromReview() {
+        showOverview();
+    }
+
+    @FXML
+    private void onApprovePage() {
+        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.APPROVED);
+    }
+
+    @FXML
+    private void onMarkNeedsFix() {
+        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.NEEDS_FIX);
+    }
+
+    @FXML
+    private void onClearReviewStatus() {
+        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.NOT_REVIEWED);
+    }
+
+    @FXML
+    private void onNextUnreviewed() {
+        for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
+            List<WorkspaceQaPage> pages = activeQaDocuments.get(documentIndex).pages();
+            for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
+                if (pages.get(pageIndex).status() == QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    selectedQaDocumentIndex = documentIndex;
+                    selectedQaPageIndex = pageIndex;
+                    resetWorkspacePreviewTransform();
+                    renderWorkspaceQaView();
+                    return;
+                }
+            }
+        }
+    }
+
+    @FXML
+    private void onCompleteQa() {
+        if (activeReviewRecord == null) {
+            return;
+        }
+
+        int totalPages = getWorkspaceQaPageCount();
+        int reviewedPages = getWorkspaceReviewedPageCount();
+        if (reviewedPages < totalPages) {
+            showExportAlert(null, Alert.AlertType.WARNING, "QA incomplete",
+                    "Review every page before completing QA.");
+            return;
+        }
+
+        boolean approved = getWorkspaceQaIssueCount() == 0;
+        ReviewRow updatedRecord = approved
+                ? activeReviewRecord.withReviewState("Approved", "QA Approved", false)
+                : activeReviewRecord.withReviewState(activeReviewRecord.documentDetailsStatus(), "QA Rejected", true);
+        replaceActiveRecord(updatedRecord);
+
+        if (approved) {
+            String boxId = activeReviewRecord.identity() == null || activeReviewRecord.identity().isBlank()
+                    ? "This QA review"
+                    : activeReviewRecord.identity();
+            String message = boxId + " completed with " + activeQaDocuments.size() + " documents.";
+            showQaCompletedDialog(message, this::onBackToScanningFromReview);
+            return;
+        }
+
+        showExportAlert(null, Alert.AlertType.INFORMATION, "QA rejected",
+                "QA was rejected and marked as needing fixes.");
+    }
+
+    @FXML
+    private void onReviewZoomIn() {
+        updateWorkspacePreviewZoom(PREVIEW_ZOOM_STEP);
+    }
+
+    @FXML
+    private void onReviewZoomOut() {
+        updateWorkspacePreviewZoom(-PREVIEW_ZOOM_STEP);
+    }
+
+    @FXML
+    private void onResetReviewPreviewView() {
+        fitWorkspacePreview();
+        updateReviewZoomLabel();
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewUp() {
+        nudgeWorkspacePreview(0, -PREVIEW_NUDGE_AMOUNT);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewDown() {
+        nudgeWorkspacePreview(0, PREVIEW_NUDGE_AMOUNT);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewLeft() {
+        nudgeWorkspacePreview(-PREVIEW_NUDGE_AMOUNT, 0);
+    }
+
+    @FXML
+    private void onNudgeReviewPreviewRight() {
+        nudgeWorkspacePreview(PREVIEW_NUDGE_AMOUNT, 0);
+    }
+
+    private void nudgeWorkspacePreview(double deltaX, double deltaY) {
+        if (currentReviewPreviewWrapper == null) {
+            return;
+        }
+
+        reviewPreviewTranslateX += deltaX;
+        reviewPreviewTranslateY += deltaY;
+        clampWorkspacePreviewTranslation();
+    }
+
+    @FXML
+    private void onSubmitForQaFromReview() {
+        sendToQa();
+    }
+
+    @FXML
+    private void onOpenExportTypeDialog() {
+        if (activeReviewRecord == null || adminManager == null) {
+            return;
+        }
+
+        Stage stage = new Stage();
+        stage.setTitle("TIFF Export");
+        stage.initModality(Modality.WINDOW_MODAL);
+        stage.setResizable(false);
+
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            stage.initOwner(reviewWorkspaceView.getScene().getWindow());
+        }
+
+        VBox content = buildWorkspaceExportDialogContent(stage);
+        StackPane root = new StackPane(content);
+        root.getStyleClass().addAll("app-shell", "exports-dialog-stage");
+
+        URL stylesheetUrl = getClass().getResource("/css/app.css");
+        Scene scene = new Scene(root);
+        if (stylesheetUrl != null) {
+            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        }
+
+        stage.setScene(scene);
+        stage.sizeToScene();
+        stage.showAndWait();
+    }
+
+    private void showQaCompletedDialog(String message, Runnable onOk) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Completed QA");
+        dialog.setHeaderText(null);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            dialog.initOwner(reviewWorkspaceView.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(reviewWorkspaceView.getScene().getStylesheets());
+
+            if (reviewWorkspaceView.getScene().getRoot() != null
+                    && reviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                dialog.getDialogPane().getStyleClass().add("dark");
+            }
+        }
+
+        dialog.getDialogPane().setPrefWidth(520);
+        dialog.getDialogPane().setMaxWidth(520);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(createQaCompletedDialogContent(dialog, message));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.orElse(ButtonType.CLOSE) == ButtonType.OK && onOk != null) {
+            onOk.run();
+        }
+    }
+
+    private VBox createQaCompletedDialogContent(Dialog<ButtonType> dialog, String message) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+        root.getChildren().addAll(
+                createQaCompletedDialogHeader(dialog),
+                createQaCompletedDialogBody(dialog, message)
+        );
+        return root;
+    }
+
+    private HBox createQaCompletedDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label("Completed QA");
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("\u00D7");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
+    private VBox createQaCompletedDialogBody(Dialog<ButtonType> dialog, String message) {
+        Label messageLabel = new Label(message);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.getStyleClass().addAll("profile-created-dialog-ok-button", "profile-open-button");
+        okButton.setFocusTraversable(false);
+        okButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, okButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+        return body;
+    }
+
+    @FXML
+    private void onShowReviewDocumentGridView() {
+        reviewDocumentListView = true;
+        renderWorkspaceQaTree();
+    }
+
+    @FXML
+    private void onShowReviewDocumentListView() {
+        reviewDocumentListView = true;
+        renderWorkspaceQaTree();
+    }
+
+    @FXML
+    private void onPreviousReviewPage() {
+        showPreviousWorkspacePage();
+    }
+
+    @FXML
+    private void onNextReviewPage() {
+        showNextWorkspacePage();
     }
 
     private void moveWorkspaceSelection(int step) {
@@ -1872,12 +2152,305 @@ public class ReviewController {
         return pages.get(selectedQaPageIndex);
     }
 
+    private List<PagePointer> getWorkspaceQaPagesForAction() {
+        if (selectedQaDocumentIndex < 0 || selectedQaDocumentIndex >= activeQaDocuments.size()) {
+            return List.of();
+        }
+
+        if (qaActionScopeComboBox != null && "This Document".equals(qaActionScopeComboBox.getValue())) {
+            List<PagePointer> pointers = new ArrayList<>();
+            List<WorkspaceQaPage> documentPages = activeQaDocuments.get(selectedQaDocumentIndex).pages();
+            for (int pageIndex = 0; pageIndex < documentPages.size(); pageIndex++) {
+                pointers.add(new PagePointer(selectedQaDocumentIndex, pageIndex));
+            }
+            return pointers;
+        }
+
+        WorkspaceQaPage selectedPage = getSelectedWorkspaceQaPage();
+        if (selectedPage == null) {
+            return List.of();
+        }
+        return List.of(new PagePointer(selectedQaDocumentIndex, selectedQaPageIndex));
+    }
+
+    private void updateWorkspaceQaComment(String comment) {
+        WorkspaceQaPage selectedPage = getSelectedWorkspaceQaPage();
+        if (selectedPage == null) {
+            return;
+        }
+        replaceWorkspaceQaPage(
+                new PagePointer(selectedQaDocumentIndex, selectedQaPageIndex),
+                selectedPage.withComment(comment)
+        );
+        renderWorkspaceQaView();
+    }
+
+    private void applyWorkspaceQaStatus(QAService.QaPageReviewStatus status) {
+        List<PagePointer> targets = getWorkspaceQaPagesForAction();
+        if (targets.isEmpty()) {
+            return;
+        }
+
+        for (PagePointer pointer : targets) {
+            WorkspaceQaPage page = getWorkspaceQaPage(pointer);
+            if (page == null) {
+                continue;
+            }
+            replaceWorkspaceQaPage(pointer, page.withStatus(status));
+        }
+        renderWorkspaceQaView();
+    }
+
+    private WorkspaceQaPage getWorkspaceQaPage(PagePointer pointer) {
+        if (pointer == null
+                || pointer.documentIndex() < 0
+                || pointer.documentIndex() >= activeQaDocuments.size()) {
+            return null;
+        }
+        List<WorkspaceQaPage> pages = activeQaDocuments.get(pointer.documentIndex()).pages();
+        if (pointer.pageIndex() < 0 || pointer.pageIndex() >= pages.size()) {
+            return null;
+        }
+        return pages.get(pointer.pageIndex());
+    }
+
+    private void replaceWorkspaceQaPage(PagePointer pointer, WorkspaceQaPage replacement) {
+        if (pointer == null || replacement == null) {
+            return;
+        }
+
+        List<WorkspaceQaDocument> updatedDocuments = new ArrayList<>(activeQaDocuments.size());
+        for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
+            WorkspaceQaDocument document = activeQaDocuments.get(documentIndex);
+            List<WorkspaceQaPage> updatedPages = new ArrayList<>(document.pages());
+            if (documentIndex == pointer.documentIndex()
+                    && pointer.pageIndex() >= 0
+                    && pointer.pageIndex() < updatedPages.size()) {
+                updatedPages.set(pointer.pageIndex(), replacement);
+            }
+            updatedDocuments.add(new WorkspaceQaDocument(document.name(), List.copyOf(updatedPages)));
+        }
+        activeQaDocuments = List.copyOf(updatedDocuments);
+    }
+
     private int getWorkspaceQaPageCount() {
         int count = 0;
         for (WorkspaceQaDocument document : activeQaDocuments) {
             count += document.pages().size();
         }
         return count;
+    }
+
+    private void updateReviewZoomLabel() {
+        if (reviewZoomLabel != null) {
+            reviewZoomLabel.setText(Math.round(reviewPreviewZoomMultiplier * 100) + "%");
+        }
+    }
+
+    private void updateReviewDocumentViewButtons() {
+        if (reviewDocumentListViewButton != null) {
+            reviewDocumentListViewButton.getStyleClass().remove("document-tree-view-toggle-button-active");
+            reviewDocumentListViewButton.getStyleClass().add("document-tree-view-toggle-button-active");
+        }
+    }
+
+    private String workspaceDocumentTitle(WorkspaceQaDocument document, int documentIndex) {
+        String normalizedName = document.name() == null ? "" : document.name().trim();
+        if (normalizedName.isBlank()) {
+            return "Document " + (documentIndex + 1);
+        }
+        if (normalizedName.toLowerCase(Locale.ROOT).endsWith(".tiff")
+                || normalizedName.toLowerCase(Locale.ROOT).endsWith(".tif")) {
+            return "Document " + (documentIndex + 1);
+        }
+        if (Strings.normalize(normalizedName).startsWith("document")) {
+            return normalizedName;
+        }
+        return "Document " + (documentIndex + 1);
+    }
+
+    private Node createWorkspacePageRow(PagePointer pointer, WorkspaceQaPage page) {
+        HBox row = new HBox(9);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().addAll("document-tree-page-row", "document-tree-list-page-row");
+        if (pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex) {
+            row.getStyleClass().add("document-tree-page-selected");
+        }
+
+        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber(), false);
+        row.getChildren().add(labelRow);
+        row.setOnMouseClicked(event -> selectWorkspacePage(pointer));
+        return row;
+    }
+
+    private Node createWorkspaceEmbeddedPageCard(PagePointer pointer, WorkspaceQaPage page) {
+        VBox card = new VBox(3);
+        card.setAlignment(Pos.CENTER);
+        card.getStyleClass().addAll("review-page-tray-item", "review-embedded-page-card");
+        if (pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex) {
+            card.getStyleClass().add("review-page-tray-item-selected");
+        }
+
+        StackPane thumbnail = new StackPane();
+        thumbnail.getStyleClass().add("review-page-tray-thumbnail");
+
+        Image image = decodeWorkspaceQaImage(page.imageContent());
+        if (image != null) {
+            ImageView imageView = new ImageView(image);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            imageView.setFitWidth(148);
+            imageView.setFitHeight(214);
+            imageView.setRotate(page.rotationDegrees());
+            thumbnail.getChildren().add(imageView);
+        } else {
+            Label placeholder = new Label("No preview");
+            placeholder.getStyleClass().add("review-preview-empty-copy");
+            thumbnail.getChildren().add(placeholder);
+        }
+
+        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber(), true);
+        card.getChildren().addAll(thumbnail, labelRow);
+        card.setOnMouseClicked(event -> selectWorkspacePage(pointer));
+        return card;
+    }
+
+    private HBox createWorkspacePageLabelRow(WorkspaceQaPage page, String baseLabel, boolean centered) {
+        HBox labelRow = new HBox(6);
+        labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+
+        Label pageLabel = new Label(baseLabel);
+        pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
+        labelRow.getChildren().add(pageLabel);
+
+        if (page.status() == QAService.QaPageReviewStatus.APPROVED) {
+            Label statusLabel = new Label("Approved");
+            statusLabel.getStyleClass().add("qa-page-status-text-approved");
+            labelRow.getChildren().add(statusLabel);
+        } else if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+            Label statusLabel = new Label("Needs Fix");
+            statusLabel.getStyleClass().add("qa-page-status-text-fix");
+            labelRow.getChildren().add(statusLabel);
+        }
+
+        return labelRow;
+    }
+
+    private void selectWorkspacePage(PagePointer pointer) {
+        selectedQaDocumentIndex = pointer.documentIndex();
+        selectedQaPageIndex = pointer.pageIndex();
+        resetWorkspacePreviewTransform();
+        renderWorkspaceQaView();
+    }
+
+    private VBox activeWorkspaceTreeContainer() {
+        return reviewDocumentListContainer != null ? reviewDocumentListContainer : reviewWorkspaceTreeContainer;
+    }
+
+    private StackPane activeWorkspacePreviewHost() {
+        return reviewPreviewHost != null ? reviewPreviewHost : reviewWorkspacePreviewHost;
+    }
+
+    private HBox activeWorkspaceThumbnailStrip() {
+        return reviewPageTrayContainer != null ? reviewPageTrayContainer : reviewWorkspaceThumbnailStrip;
+    }
+
+    private Label activeWorkspaceViewerPageLabel() {
+        return reviewWorkspaceViewerPageLabel;
+    }
+
+    private void renderWorkspaceQaTools() {
+        WorkspaceQaPage page = getSelectedWorkspaceQaPage();
+
+        syncingWorkspaceQaControls = true;
+
+        if (qaCommentTextArea != null) {
+            qaCommentTextArea.setDisable(page == null);
+            qaCommentTextArea.setText(page == null ? "" : page.comment());
+        }
+        if (qaActionScopeComboBox != null) {
+            qaActionScopeComboBox.setDisable(page == null);
+        }
+
+        syncingWorkspaceQaControls = false;
+        updateWorkspaceQaStatusBadge();
+    }
+
+    private void updateWorkspaceQaStatusBadge() {
+        if (reviewStatusBadge == null) {
+            return;
+        }
+
+        reviewStatusBadge.getStyleClass().removeAll(
+                "qa-review-status-waiting",
+                "qa-review-status-review",
+                "qa-review-status-issues",
+                "qa-review-status-complete"
+        );
+
+        String normalizedStatus = activeReviewRecord == null || activeReviewRecord.qaStatus() == null
+                ? ""
+                : activeReviewRecord.qaStatus().trim().toLowerCase(Locale.ROOT);
+
+        if (normalizedStatus.contains("approved")) {
+            reviewStatusBadge.setText("QA Completed");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-complete");
+        } else if (normalizedStatus.contains("rejected") || hasWorkspaceQaIssues()) {
+            reviewStatusBadge.setText("Needs Fix");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-issues");
+        } else if (hasWorkspaceReviewedPages()) {
+            reviewStatusBadge.setText("In Review");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-review");
+        } else {
+            reviewStatusBadge.setText("Waiting for QA");
+            reviewStatusBadge.getStyleClass().add("qa-review-status-waiting");
+        }
+    }
+
+    private boolean hasWorkspaceReviewedPages() {
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private int getWorkspaceReviewedPageCount() {
+        int count = 0;
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private int getWorkspaceQaIssueCount() {
+        int count = 0;
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private boolean hasWorkspaceQaIssues() {
+        for (WorkspaceQaDocument document : activeQaDocuments) {
+            for (WorkspaceQaPage page : document.pages()) {
+                if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Image decodeWorkspaceQaImage(String value) {
@@ -1985,6 +2558,13 @@ public class ReviewController {
 
         workspacePane.setVisible(false);
         workspacePane.setManaged(false);
+
+        if (reviewRootScrollPane != null) {
+            reviewRootScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            reviewRootScrollPane.setFitToHeight(true);
+        }
+
+        resetRootScrollPosition();
     }
 
     @FXML
@@ -1994,6 +2574,23 @@ public class ReviewController {
 
         workspacePane.setVisible(true);
         workspacePane.setManaged(true);
+
+        if (reviewRootScrollPane != null) {
+            reviewRootScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            reviewRootScrollPane.setFitToHeight(true);
+        }
+
+        resetRootScrollPosition();
+    }
+
+    private void resetRootScrollPosition() {
+        if (reviewRootScrollPane == null) {
+            return;
+        }
+        Platform.runLater(() -> {
+            reviewRootScrollPane.setVvalue(0);
+            reviewRootScrollPane.setHvalue(0);
+        });
     }
 
     @FXML
@@ -2096,7 +2693,19 @@ public class ReviewController {
     }
 
     private void setActiveWorkspaceTab(Button activeButton) {
-        List<Button> tabButtons = List.of(boxTabButton, caseTabButton, documentTabButton, pageTabButton);
+        List<Button> tabButtons = new ArrayList<>();
+        if (boxTabButton != null) {
+            tabButtons.add(boxTabButton);
+        }
+        if (caseTabButton != null) {
+            tabButtons.add(caseTabButton);
+        }
+        if (documentTabButton != null) {
+            tabButtons.add(documentTabButton);
+        }
+        if (pageTabButton != null) {
+            tabButtons.add(pageTabButton);
+        }
 
         for (Button tabButton : tabButtons) {
             tabButton.getStyleClass().removeAll("review-workspace-tab-active", "review-workspace-tab-button");
@@ -2372,6 +2981,347 @@ public class ReviewController {
         return row;
     }
 
+    private VBox buildWorkspaceExportDialogContent(Stage stage) {
+        List<Document> exportDocuments = adminManager == null || activeReviewRecord == null
+                ? List.of()
+                : adminManager.getExportableDocumentsForRecord(activeReviewRecord.id());
+        List<String> boxFiles = buildExportFiles(exportDocuments);
+        ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(TiffExportType.MULTI_PAGE);
+
+        Label title = new Label("TIFF Export");
+        title.getStyleClass().add("exports-dialog-title");
+
+        VBox header = new VBox(9, title);
+        header.getStyleClass().add("exports-dialog-header");
+
+        Label boxValue = new Label(activeReviewRecord == null ? "-" : activeReviewRecord.identity());
+        boxValue.getStyleClass().add("exports-dialog-box-value");
+
+        Label boxDetail = new Label("Only approved QA documents from this box can be exported in this dialog.");
+        boxDetail.getStyleClass().add("exports-dialog-box-detail");
+
+        VBox boxCard = new VBox(6, boxValue, boxDetail);
+        boxCard.getStyleClass().add("exports-dialog-box-card");
+
+        Button singlePageCard = buildExportTypeCard(
+                "Single-page TIFF",
+                "Separate TIFF files",
+                TiffExportType.SINGLE_PAGE,
+                selectedType
+        );
+        Button multiPageCard = buildExportTypeCard(
+                "Multi-page TIFF",
+                "One TIFF per document",
+                TiffExportType.MULTI_PAGE,
+                selectedType
+        );
+        HBox.setHgrow(singlePageCard, Priority.ALWAYS);
+        HBox.setHgrow(multiPageCard, Priority.ALWAYS);
+
+        HBox typeRow = new HBox(18, singlePageCard, multiPageCard);
+        typeRow.getStyleClass().add("exports-dialog-type-row");
+
+        Label selectedFilesTitle = new Label("Documents in box");
+        selectedFilesTitle.getStyleClass().add("exports-dialog-files-title");
+
+        Label selectedFilesCount = new Label(formatSelectedDocumentCount(boxFiles.size()));
+        selectedFilesCount.getStyleClass().add("exports-dialog-files-count");
+
+        Region filesSpacer = new Region();
+        HBox.setHgrow(filesSpacer, Priority.ALWAYS);
+
+        HBox filesHeader = new HBox(18, selectedFilesTitle, filesSpacer, selectedFilesCount);
+        filesHeader.setAlignment(Pos.CENTER_LEFT);
+
+        GridPane fileGrid = new GridPane();
+        fileGrid.getStyleClass().add("exports-dialog-file-grid");
+
+        ScrollPane fileListScroll = new ScrollPane(fileGrid);
+        fileListScroll.getStyleClass().add("exports-dialog-file-scroll");
+        fileListScroll.setFitToWidth(true);
+        fileListScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        fileListScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        fileListScroll.setPrefViewportHeight(156);
+        renderSelectedFiles(fileGrid, boxFiles);
+
+        VBox filesCard = new VBox(18, filesHeader, fileListScroll);
+        filesCard.getStyleClass().add("exports-dialog-files-card");
+
+        Region divider = new Region();
+        divider.getStyleClass().add("portal-divider");
+        divider.setMaxWidth(Double.MAX_VALUE);
+
+        Label outputLabel = new Label("Output:");
+        outputLabel.getStyleClass().add("exports-dialog-output-label");
+
+        Label outputValue = new Label(buildOutputText(selectedType.get(), exportDocuments));
+        outputValue.getStyleClass().add("exports-dialog-output-value");
+        outputValue.setWrapText(false);
+        outputValue.setMinHeight(Region.USE_PREF_SIZE);
+        outputValue.setPrefWidth(420);
+        outputValue.setMaxWidth(420);
+
+        selectedType.addListener((observable, oldValue, newValue) ->
+                outputValue.setText(buildOutputText(newValue, exportDocuments))
+        );
+
+        HBox outputBox = new HBox(9, outputLabel, outputValue);
+        outputBox.getStyleClass().add("exports-dialog-output-box");
+        outputBox.setAlignment(Pos.CENTER_LEFT);
+        outputBox.setMinHeight(36);
+        outputBox.setPrefHeight(36);
+        outputBox.setMaxHeight(36);
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.getStyleClass().addAll("portal-secondary-button", "exports-dialog-cancel-button");
+        cancelButton.setCancelButton(true);
+        cancelButton.setOnAction(event -> stage.close());
+
+        Button exportButton = new Button("Export");
+        exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
+        exportButton.setDefaultButton(true);
+        exportButton.setOnAction(event -> handleWorkspaceExport(stage, selectedType.get(), exportDocuments));
+
+        HBox footerActions = new HBox(9, cancelButton, exportButton);
+        footerActions.getStyleClass().add("exports-dialog-footer-actions");
+        footerActions.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox footer = new VBox(9, outputBox, footerActions);
+        footer.getStyleClass().add("exports-dialog-footer");
+        footer.setAlignment(Pos.CENTER_LEFT);
+        footer.setFillWidth(true);
+
+        VBox content = new VBox(18,
+                header,
+                boxCard,
+                typeRow,
+                filesCard,
+                divider,
+                footer
+        );
+        content.getStyleClass().add("exports-dialog-content");
+        content.setFillWidth(true);
+        return content;
+    }
+
+    private Button buildExportTypeCard(
+            String title,
+            String subtitle,
+            TiffExportType type,
+            ObjectProperty<TiffExportType> selectedType
+    ) {
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("exports-dialog-option-title");
+
+        Label subtitleLabel = new Label(subtitle);
+        subtitleLabel.getStyleClass().add("exports-dialog-option-subtitle");
+
+        VBox textBox = new VBox(9, titleLabel, subtitleLabel);
+        textBox.getStyleClass().add("exports-dialog-option-copy");
+
+        Label checkIcon = new Label("✓");
+        checkIcon.getStyleClass().add("exports-dialog-option-check-icon");
+        StackPane checkBadge = new StackPane(checkIcon);
+        checkBadge.getStyleClass().add("exports-dialog-option-check-badge");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox content = new HBox(12, textBox, spacer, checkBadge);
+        content.getStyleClass().add("exports-dialog-option-content");
+        content.setAlignment(Pos.TOP_LEFT);
+
+        Button button = new Button();
+        button.setGraphic(content);
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        button.getStyleClass().add("exports-dialog-option-button");
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setFocusTraversable(false);
+        button.setOnAction(event -> selectedType.set(type));
+
+        Runnable refreshState = () -> updateExportTypeCard(button, checkBadge, selectedType.get() == type);
+        selectedType.addListener((observable, oldValue, newValue) -> refreshState.run());
+        refreshState.run();
+
+        return button;
+    }
+
+    private void updateExportTypeCard(Button button, StackPane checkBadge, boolean selected) {
+        button.getStyleClass().removeAll(
+                "exports-dialog-option-button-selected",
+                "exports-dialog-option-button-unselected"
+        );
+        button.getStyleClass().add(selected
+                ? "exports-dialog-option-button-selected"
+                : "exports-dialog-option-button-unselected");
+        checkBadge.setVisible(selected);
+        checkBadge.setManaged(true);
+    }
+
+    private void renderSelectedFiles(GridPane fileGrid, List<String> selectedFiles) {
+        fileGrid.getChildren().clear();
+        fileGrid.getColumnConstraints().setAll(
+                percentColumn(33.333),
+                percentColumn(33.333),
+                percentColumn(33.333)
+        );
+
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            Label empty = new Label("No approved documents available for this export.");
+            empty.getStyleClass().add("exports-dialog-empty-state");
+            fileGrid.add(empty, 0, 0, 3, 1);
+            return;
+        }
+
+        for (int index = 0; index < selectedFiles.size(); index++) {
+            int column = index % 3;
+            int row = index / 3;
+            fileGrid.add(createSelectedFileCell(selectedFiles.get(index), column < 2), column, row);
+        }
+    }
+
+    private HBox createSelectedFileCell(String fileName, boolean withRightBorder) {
+        Label fileLabel = new Label(fileName);
+        fileLabel.getStyleClass().add("exports-dialog-file-name");
+
+        HBox cell = new HBox(6, fileLabel);
+        cell.getStyleClass().add("exports-dialog-file-cell-box");
+        if (withRightBorder) {
+            cell.getStyleClass().add("exports-dialog-file-cell-box-bordered");
+        }
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        return cell;
+    }
+
+    private List<String> buildExportFiles(List<Document> exportDocuments) {
+        List<String> files = new ArrayList<>();
+        if (exportDocuments == null) {
+            return files;
+        }
+
+        for (Document document : exportDocuments) {
+            files.add(document.getSourceItemId() + ".tiff");
+        }
+        return files;
+    }
+
+    private String formatSelectedDocumentCount(int count) {
+        return count + " " + pluralize(count, "document");
+    }
+
+    private String buildOutputText(TiffExportType type, List<Document> exportDocuments) {
+        int documentCount = exportDocuments == null ? 0 : exportDocuments.size();
+        if (documentCount == 0) {
+            return "No approved documents are available for export";
+        }
+
+        return switch (type) {
+            case SINGLE_PAGE -> countExportPages(exportDocuments) + " separate .tiff "
+                    + pluralize(countExportPages(exportDocuments), "file") + " will be generated";
+            case MULTI_PAGE -> documentCount + " multi-page .tiff " + pluralize(documentCount, "file")
+                    + " will be generated, one per document";
+        };
+    }
+
+    private int countExportPages(List<Document> exportDocuments) {
+        if (exportDocuments == null) {
+            return 0;
+        }
+
+        int pageCount = 0;
+        for (Document document : exportDocuments) {
+            pageCount += document.getPages().size();
+        }
+        return pageCount;
+    }
+
+    private void handleWorkspaceExport(Stage stage, TiffExportType exportType, List<Document> exportDocuments) {
+        if (exportDocuments == null || exportDocuments.isEmpty()) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "No documents to export",
+                    "There are no approved documents ready for TIFF export.");
+            return;
+        }
+
+        String profileName = activeReviewRecord == null ? "" : activeReviewRecord.profile();
+        String boxId = activeReviewRecord == null ? "" : activeReviewRecord.identity();
+        ScanProfile profile = adminManager == null ? null : adminManager.findProfileByName(profileName);
+        String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING);
+
+        try {
+            Path outputDirectory = Path.of(
+                    System.getProperty("user.home"),
+                    "Downloads",
+                    "WebLager Exports",
+                    safeFolderSegment(profileName, boxId)
+            );
+
+            TiffExportManager tiffExportManager = new TiffExportManager();
+            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+                    exportType == TiffExportType.SINGLE_PAGE
+                            ? tiffExportManager.createSinglePagePlan(
+                            profileName,
+                            profileCode,
+                            exportNaming,
+                            boxId,
+                            flattenExportPages(exportDocuments)
+                    )
+                            : tiffExportManager.createMultiPagePlan(
+                            profileName,
+                            profileCode,
+                            exportNaming,
+                            boxId,
+                            exportDocuments
+                    ),
+                    outputDirectory
+            );
+
+            showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
+                    result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
+                            + " written to " + result.outputDirectory());
+            stage.close();
+        } catch (IOException | RuntimeException exception) {
+            showExportAlert(stage, Alert.AlertType.ERROR, "Export failed", exception.getMessage());
+        }
+    }
+
+    private List<easv.be.PageImage> flattenExportPages(List<Document> exportDocuments) {
+        List<easv.be.PageImage> pages = new ArrayList<>();
+        if (exportDocuments == null) {
+            return pages;
+        }
+
+        for (Document document : exportDocuments) {
+            pages.addAll(document.getPages());
+        }
+        return pages;
+    }
+
+    private void showExportAlert(Stage owner, Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message == null || message.isBlank() ? "The export could not be completed." : message);
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        alert.showAndWait();
+    }
+
+    private String pluralize(int count, String singular) {
+        return count == 1 ? singular : singular + "s";
+    }
+
+    private ColumnConstraints percentColumn(double percentWidth) {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setPercentWidth(percentWidth);
+        column.setFillWidth(true);
+        column.setHgrow(Priority.ALWAYS);
+        return column;
+    }
+
     private void refreshFilterOptions() {
         setComboOptions(clientFilterComboBox, ALL_CLIENTS, records.stream().map(ReviewRow::client).toList());
         setComboOptions(archiveFilterComboBox, ALL_ARCHIVES, records.stream().map(ReviewRow::archive).toList());
@@ -2496,11 +3446,37 @@ public class ReviewController {
             String sourceReference,
             String imageContent,
             int rotationDegrees,
-            QAService.QaPageReviewStatus status
+            QAService.QaPageReviewStatus status,
+            String comment
     ) {
         private WorkspaceQaPage {
             sourceReference = sourceReference == null ? "" : sourceReference;
             imageContent = imageContent == null ? "" : imageContent;
+            comment = comment == null ? "" : comment;
+        }
+
+        private WorkspaceQaPage withStatus(QAService.QaPageReviewStatus updatedStatus) {
+            return new WorkspaceQaPage(
+                    pageNumber,
+                    globalPageNumber,
+                    sourceReference,
+                    imageContent,
+                    rotationDegrees,
+                    updatedStatus == null ? QAService.QaPageReviewStatus.NOT_REVIEWED : updatedStatus,
+                    comment
+            );
+        }
+
+        private WorkspaceQaPage withComment(String updatedComment) {
+            return new WorkspaceQaPage(
+                    pageNumber,
+                    globalPageNumber,
+                    sourceReference,
+                    imageContent,
+                    rotationDegrees,
+                    status,
+                    updatedComment
+            );
         }
     }
 
@@ -2512,5 +3488,10 @@ public class ReviewController {
         public String toString() {
             return displayName;
         }
+    }
+
+    private enum TiffExportType {
+        SINGLE_PAGE,
+        MULTI_PAGE
     }
 }
