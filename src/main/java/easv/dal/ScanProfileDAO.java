@@ -190,11 +190,11 @@ public class ScanProfileDAO {
         }
 
         save(new ScanProfile(0, "Building Archive", "building-archive", "Used for municipal building archive scans.",
-                "Active", "", "{profileCode}_{boxId}", "Created just now", false, true,
+                "Active", "", "{profileName}_{boxId}", "Created just now", false, true,
                 "Continue scanning and split automatically", "Remove barcode page from final document",
                 "0 deg", "Normal", "Normal", true, "PDF", true));
         save(new ScanProfile(0, "Technical Drawings", "technical-drawings", "Large format technical drawing imports.",
-                "Draft", "", "{profileCode}_{boxId}", "Created just now", false, false,
+                "Draft", "", "{profileName}_{boxId}", "Created just now", false, false,
                 "Start new document", "Keep barcode page in final document",
                 "0 deg", "Normal", "Higher", true, "PDF/A", true));
     }

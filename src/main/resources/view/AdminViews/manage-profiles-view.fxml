@@ -450,6 +450,8 @@
 
                                         <TextField fx:id="exportNamingField"
                                                    text="{profileName}_{boxId}"
+                                                   editable="false"
+                                                   focusTraversable="false"
                                                    maxWidth="Infinity"
                                                    HBox.hgrow="ALWAYS"
                                                    styleClass="profile-editor-input"/>

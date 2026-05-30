@@ -31,7 +31,7 @@ import java.util.Map;
  * It does not depend on JavaFX, so any future screen can reuse it.
  */
 public class TiffExportManager {
-    private static final String DEFAULT_NAMING_PATTERN = "{profileCode}_{boxId}";
+    private static final String DEFAULT_NAMING_PATTERN = "{profileName}_{boxId}";
 
     public TiffExportPlan createSinglePagePlan(String profileName, String boxId, List<PageImage> pages) {
         return createSinglePagePlan(profileName, profileName, DEFAULT_NAMING_PATTERN, boxId, pages);
@@ -70,10 +70,7 @@ public class TiffExportManager {
         List<TiffExportItem> items = new ArrayList<>();
 
         if (!selectedPages.isEmpty()) {
-            String fileName = safeName(profileName) + "_"
-                    + safeName(boxId) + "_"
-                    + safeName("selected-files") + "_"
-                    + safeName("multi-page") + ".tiff";
+            String fileName = safeName(profileName) + "_" + safeName(boxId) + ".tiff";
             items.add(new TiffExportItem("SELECTED_FILES", fileName, selectedPages));
         }
 

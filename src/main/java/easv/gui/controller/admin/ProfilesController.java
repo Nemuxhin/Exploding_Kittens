@@ -4,8 +4,6 @@ import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.AutosaveSettingsStore;
-import easv.gui.controller.util.BackgroundExecutor;
-import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -136,8 +134,6 @@ public class ProfilesController {
 
     private AdminManager adminManager;
     private AdminNavigator navigator = AdminNavigator.none();
-    private boolean profilesLoading;
-    private long profilesLoadSequence;
 
     void setNavigator(AdminNavigator navigator) {
         this.navigator = navigator == null ? AdminNavigator.none() : navigator;
@@ -241,34 +237,11 @@ public class ProfilesController {
 
     private void loadProfiles() {
         if (adminManager == null) {
-            profilesLoading = false;
             masterProfiles.clear();
             return;
         }
 
-        AdminManager managerSnapshot = adminManager;
-        long loadId = ++profilesLoadSequence;
-        profilesLoading = true;
-        renderProfileCards();
-
-        BackgroundExecutor.io().execute(() -> {
-            List<ScanProfile> loadedProfiles;
-            try {
-                loadedProfiles = managerSnapshot.getProfiles();
-            } catch (RuntimeException exception) {
-                loadedProfiles = List.of();
-            }
-
-            List<ScanProfile> finalLoadedProfiles = loadedProfiles;
-            Platform.runLater(() -> {
-                if (loadId != profilesLoadSequence || adminManager != managerSnapshot) {
-                    return;
-                }
-                profilesLoading = false;
-                masterProfiles.setAll(finalLoadedProfiles);
-                applyFilters();
-            });
-        });
+        masterProfiles.setAll(adminManager.getProfiles());
     }
 
     private void applyFilters() {
@@ -307,23 +280,6 @@ public class ProfilesController {
     }
 
     private void renderProfileCards() {
-        SkeletonFactory.stopShimmers(profilesCardsGrid);
-
-        if (profilesLoading) {
-            List<VBox> skeletonCards = new ArrayList<>();
-            for (int cardIndex = 0; cardIndex < 6; cardIndex++) {
-                skeletonCards.add(buildProfileSkeletonCard());
-            }
-            profilesCardsGrid.getChildren().setAll(skeletonCards);
-            profilesCountLabel.setText("");
-            profilesCardsGrid.setVisible(true);
-            profilesCardsGrid.setManaged(true);
-            emptyStateBox.setVisible(false);
-            emptyStateBox.setManaged(false);
-            Platform.runLater(this::layoutProfileGrid);
-            return;
-        }
-
         List<VBox> cards = filteredProfiles.stream()
                 .map(this::buildProfileCard)
                 .toList();
@@ -342,44 +298,6 @@ public class ProfilesController {
         emptyStateBox.setManaged(!hasProfiles);
 
         Platform.runLater(this::layoutProfileGrid);
-    }
-
-    private VBox buildProfileSkeletonCard() {
-        // Matches the reference exactly: two small pills at top, a big
-        // central rectangle, two stacked pills (title + subtitle) below it,
-        // and a wider button pill + small circle at the bottom.
-        VBox card = new VBox(16);
-        card.getStyleClass().add("profile-card");
-        card.setMinWidth(0);
-        card.setMaxWidth(Double.MAX_VALUE);
-
-        Region topLeftPill = SkeletonFactory.line(96, 22);
-        Region topRightPill = SkeletonFactory.line(56, 22);
-        Region topSpacer = new Region();
-        HBox.setHgrow(topSpacer, Priority.ALWAYS);
-        HBox topRow = new HBox(topLeftPill, topSpacer, topRightPill);
-        topRow.setAlignment(Pos.CENTER_LEFT);
-
-        Region preview = SkeletonFactory.line(Double.MAX_VALUE, 150);
-        preview.setMaxWidth(Double.MAX_VALUE);
-        preview.setMinWidth(0);
-
-        Region titlePill = SkeletonFactory.line(160, 18);
-        Region subtitlePill = SkeletonFactory.line(120, 14, SkeletonFactory.Intensity.LIGHT);
-        VBox titleStack = new VBox(8, titlePill, subtitlePill);
-
-        Region middleSpacer = new Region();
-        VBox.setVgrow(middleSpacer, Priority.ALWAYS);
-
-        Region buttonPill = SkeletonFactory.line(120, 32);
-        Region actionCircle = SkeletonFactory.circle(32);
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
-        HBox footer = new HBox(buttonPill, footerSpacer, actionCircle);
-        footer.setAlignment(Pos.CENTER_LEFT);
-
-        card.getChildren().addAll(topRow, preview, titleStack, middleSpacer, footer);
-        return card;
     }
 
     private void layoutProfileGrid() {
@@ -693,7 +611,7 @@ public class ProfilesController {
         qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
         exportFormatComboBox.setValue(profile.getExportFormat());
-        exportNamingField.setText(profile.getExportNaming());
+        exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
 
         populateAccessRows(profile);
         updateEditorActionState();
@@ -1074,6 +992,8 @@ public class ProfilesController {
         fields.exportFormatComboBox = createProfileDialogComboBox("Multi-page TIFF", "Multi-page TIFF", "Single-page TIFF");
         fields.exportNamingField = createProfileDialogTextField(ScanProfile.DEFAULT_EXPORT_NAMING);
         fields.exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
+        fields.exportNamingField.setEditable(false);
+        fields.exportNamingField.setFocusTraversable(false);
 
         fields.exportNamingPreviewLabel = createProfileDialogValueLabel("profile-editor-code-preview");
         fields.previewProfileNameLabel = createProfileDialogValueLabel("profile-editor-preview-value");
@@ -1548,7 +1468,7 @@ public class ProfilesController {
                 Strings.clean(fields.descriptionArea.getText()),
                 safeValue(fields.statusComboBox),
                 "",
-                ScanProfile.normalizeExportNaming(fields.exportNamingField.getText()),
+                ScanProfile.DEFAULT_EXPORT_NAMING,
                 fields.barcodeSplitToggle.isSelected(),
                 safeValue(fields.barcodeDetectedComboBox),
                 safeValue(fields.barcodePageBehaviorComboBox),
@@ -1891,7 +1811,7 @@ public class ProfilesController {
                 Strings.clean(profileDescriptionArea.getText()),
                 safeValue(profileStatusComboBox),
                 "",
-                ScanProfile.normalizeExportNaming(exportNamingField.getText()),
+                ScanProfile.DEFAULT_EXPORT_NAMING,
                 barcodeSplitToggle.isSelected(),
                 safeValue(barcodeDetectedComboBox),
                 safeValue(barcodePageBehaviorComboBox),

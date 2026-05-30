@@ -191,26 +191,44 @@
 
 .admin-primary-button,
 .admin-secondary-button,
+.portal-primary-button,
+.portal-secondary-button,
 .portal-row-button {
     -fx-background-radius: 6;
     -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-cursor: hand;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
-.admin-primary-button {
+.admin-primary-button,
+.admin-primary-button:default,
+.admin-primary-button:focused,
+.portal-primary-button,
+.portal-primary-button:default,
+.portal-primary-button:focused {
     -fx-background-color: -wl-primary;
     -fx-border-color: -wl-primary;
     -fx-text-fill: -wl-on-primary;
 }
 
-.admin-primary-button:hover {
+.admin-primary-button:hover,
+.admin-primary-button:pressed,
+.portal-primary-button:hover,
+.portal-primary-button:pressed {
     -fx-background-color: -wl-primary-hover;
     -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
 }
 
 .admin-secondary-button,
+.portal-secondary-button,
 .portal-row-button {
     -fx-background-color: -wl-surface;
     -fx-border-color: -wl-border;
@@ -218,6 +236,9 @@
 }
 
 .admin-secondary-button:hover,
+.admin-secondary-button:pressed,
+.portal-secondary-button:hover,
+.portal-secondary-button:pressed,
 .portal-row-button:hover {
     -fx-background-color: -wl-surface-hover;
     -fx-border-color: -wl-secondary;
