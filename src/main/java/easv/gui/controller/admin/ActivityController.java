@@ -4,6 +4,7 @@ import easv.be.AuditLog;
 import easv.bll.AdminManager;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.AppDates;
+import easv.gui.controller.util.DateCalendarView;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.controller.util.Strings;
@@ -53,7 +54,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -83,6 +83,7 @@ public class ActivityController {
 
     private record ParsedDateRange(LocalDate startDate, LocalDate endDate) {}
 
+    private static final String LOG_ID_PREFIX = "LOG-";
     private static final String ALL_AREAS = "All areas";
     private static final String ALL_USERS = "All users";
     private static final String ALL_RESULTS = "All statuses";
@@ -205,8 +206,12 @@ public class ActivityController {
     private LocalDate rangeEndDate;
     private LocalTime rangeStartTime;
     private LocalTime rangeEndTime;
-    private YearMonth displayedCalendarMonth = YearMonth.now();
     private boolean awaitingRangeEnd;
+    private final DateCalendarView dateCalendar = new DateCalendarView(
+            "logs",
+            date -> date.equals(rangeStartDate) || date.equals(rangeEndDate),
+            this::isDateInsideSelectedRange,
+            this::selectCalendarDate);
     private String selectedArea = ALL_AREAS;
     private String pendingArea = ALL_AREAS;
     private String selectedUser = ALL_USERS;
@@ -231,8 +236,6 @@ public class ActivityController {
     @FXML private MenuButton statusMenuButton;
     @FXML private MenuButton filtersMenuButton;
     @FXML private MenuButton sortMenuButton;
-    private Label dateCalendarMonthLabel;
-    private GridPane dateCalendarGrid;
 
     @FXML private VBox logsPageRoot;
     @FXML private VBox timelineContainer;
@@ -1933,7 +1936,7 @@ public class ActivityController {
         Label title = new Label("Trace");
         title.getStyleClass().add("logs-payload-simple-footer-title");
 
-        String traceValue = "LOG-" + entry.id() + " \u00B7 " + entry.fullTimestamp();
+        String traceValue = formatTraceValue(entry);
         Label traceLabel = new Label(traceValue);
         traceLabel.getStyleClass().add("logs-payload-simple-trace");
         traceLabel.setMinWidth(0);
@@ -2177,7 +2180,7 @@ public class ActivityController {
         title.getStyleClass().add("logs-payload-section-title");
         section.getChildren().add(title);
 
-        String traceValue = "LOG-" + entry.id() + " \u00B7 " + entry.fullTimestamp();
+        String traceValue = formatTraceValue(entry);
         Label traceLabel = new Label(traceValue);
         traceLabel.getStyleClass().add("logs-payload-trace-line");
         HBox.setHgrow(traceLabel, Priority.ALWAYS);
@@ -2774,7 +2777,7 @@ public class ActivityController {
         Label labelNode = new Label("Trace");
         labelNode.getStyleClass().add("logs-payload-trace-label");
 
-        Label idNode = new Label("LOG-" + entry.id());
+        Label idNode = new Label(formatLogId(entry));
         idNode.getStyleClass().add("logs-payload-trace-value");
 
         Label timestampNode = new Label(entry.fullTimestamp());
@@ -2997,9 +3000,7 @@ public class ActivityController {
                 .toList();
 
         VBox rowHost = new VBox(0);
-        if (shouldWrapPayloadRows(title)) {
-            rowHost.getStyleClass().add("logs-payload-kv-card");
-        }
+        rowHost.getStyleClass().add("logs-payload-kv-card");
         rowHost.setFillWidth(true);
         rowHost.setMaxWidth(Double.MAX_VALUE);
 
@@ -3022,11 +3023,6 @@ public class ActivityController {
         }
 
         return section;
-    }
-
-    private boolean shouldWrapPayloadRows(String title) {
-        // Wrap every KV section in a bordered card for consistent visual hierarchy.
-        return true;
     }
 
     private VBox createPayloadTileSection(String title, List<ActivityDetailRow> rows) {
@@ -3602,7 +3598,15 @@ public class ActivityController {
     }
 
     private void addLogRailCell(List<Node> cells, ActivityLogEntry entry) {
-        addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Log ID", "LOG-" + entry.id(), "logs-inline-rail-log-cell"));
+        addRailCell(cells, createRailDetailCell(DOCUMENT_ICON_GLYPH, "Log ID", formatLogId(entry), "logs-inline-rail-log-cell"));
+    }
+
+    private String formatLogId(ActivityLogEntry entry) {
+        return LOG_ID_PREFIX + entry.id();
+    }
+
+    private String formatTraceValue(ActivityLogEntry entry) {
+        return formatLogId(entry) + " · " + entry.fullTimestamp();
     }
 
     private HBox createRailDetailCell(String iconPath, String label, String value, String... styleClasses) {
@@ -4508,7 +4512,7 @@ public class ActivityController {
         }
 
         // Trace ID match — accept "183", "LOG-183", or "log-183"
-        String traceId = Strings.normalize("LOG-" + entry.id());
+        String traceId = Strings.normalize(formatLogId(entry));
         String rawId = Strings.normalize(entry.id());
         if (traceId.contains(searchText) || rawId.equals(searchText)) {
             return true;
@@ -4925,53 +4929,8 @@ public class ActivityController {
         }
 
         prepareDatePopover();
-        VBox popover = createDateCalendarPopover();
+        VBox popover = dateCalendar.buildPopover();
         showLogsDropdownMenu(dateCalendarMenu, anchor, popover, 0, 3);
-    }
-
-    private VBox createDateCalendarPopover() {
-        VBox popover = new VBox(0);
-        popover.getStyleClass().add("logs-date-popover");
-
-        VBox panel = new VBox(0);
-        panel.getStyleClass().add("logs-calendar-panel");
-
-        HBox header = new HBox();
-        header.getStyleClass().add("logs-calendar-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setMaxWidth(Double.MAX_VALUE);
-
-        Button previousButton = new Button("<");
-        previousButton.setFocusTraversable(false);
-        previousButton.getStyleClass().add("logs-calendar-nav-button");
-        previousButton.setOnAction(event -> showPreviousCalendarMonth());
-
-        Button nextButton = new Button(">");
-        nextButton.setFocusTraversable(false);
-        nextButton.getStyleClass().add("logs-calendar-nav-button");
-        nextButton.setOnAction(event -> showNextCalendarMonth());
-
-        dateCalendarMonthLabel = new Label("July 2025");
-        dateCalendarMonthLabel.getStyleClass().add("logs-calendar-month-label");
-
-        Region leftSpacer = new Region();
-        Region rightSpacer = new Region();
-        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
-        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(previousButton, leftSpacer, dateCalendarMonthLabel, rightSpacer, nextButton);
-
-        dateCalendarGrid = new GridPane();
-        dateCalendarGrid.setHgap(3);
-        dateCalendarGrid.setVgap(6);
-        dateCalendarGrid.setMaxWidth(Double.MAX_VALUE);
-        dateCalendarGrid.getStyleClass().add("logs-calendar-grid");
-
-        panel.getChildren().addAll(header, dateCalendarGrid);
-        popover.getChildren().add(panel);
-
-        updateCalendarDisplay();
-        return popover;
     }
 
     private void applyTypedDateLive(String value) {
@@ -5138,83 +5097,18 @@ public class ActivityController {
     }
 
     @FXML
-    private void showPreviousCalendarMonth() {
-        displayedCalendarMonth = displayedCalendarMonth.minusMonths(1);
-        updateCalendarDisplay();
-    }
-
-    @FXML
-    private void showNextCalendarMonth() {
-        displayedCalendarMonth = displayedCalendarMonth.plusMonths(1);
-        updateCalendarDisplay();
-    }
-
     private void updateCalendarMonthFromSelectedDates() {
         LocalDate calendarDate = rangeStartDate != null
                 ? rangeStartDate
                 : rangeEndDate;
 
         if (calendarDate != null) {
-            displayedCalendarMonth = YearMonth.from(calendarDate);
+            dateCalendar.setDisplayedMonth(YearMonth.from(calendarDate));
         }
     }
 
     private void updateCalendarDisplay() {
-        if (dateCalendarGrid == null || dateCalendarMonthLabel == null || displayedCalendarMonth == null) {
-            return;
-        }
-
-        dateCalendarGrid.getChildren().clear();
-        dateCalendarMonthLabel.setText(displayedCalendarMonth.getMonth().getDisplayName(
-                java.time.format.TextStyle.FULL,
-                Locale.ENGLISH
-        ) + " " + displayedCalendarMonth.getYear());
-
-        String[] dayNames = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
-
-        for (int column = 0; column < dayNames.length; column++) {
-            Label label = new Label(dayNames[column]);
-            label.getStyleClass().add("logs-calendar-day-name");
-            dateCalendarGrid.add(label, column, 0);
-        }
-
-        LocalDate firstOfMonth = displayedCalendarMonth.atDay(1);
-        int leadingDays = firstOfMonth.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
-        LocalDate firstVisibleDate = firstOfMonth.minusDays(leadingDays);
-
-        for (int index = 0; index < 42; index++) {
-            LocalDate date = firstVisibleDate.plusDays(index);
-            Button dayButton = createCalendarDayButton(date);
-            dateCalendarGrid.add(dayButton, index % 7, index / 7 + 1);
-        }
-    }
-
-    private Button createCalendarDayButton(LocalDate date) {
-        Button dayButton = new Button(String.valueOf(date.getDayOfMonth()));
-        dayButton.getStyleClass().add("logs-calendar-day-button");
-        dayButton.setFocusTraversable(false);
-        dayButton.setMinSize(30, 30);
-        dayButton.setPrefSize(30, 30);
-        dayButton.setMaxSize(30, 30);
-
-        boolean selectedBoundary = date.equals(rangeStartDate) || date.equals(rangeEndDate);
-
-        if (!YearMonth.from(date).equals(displayedCalendarMonth)) {
-            dayButton.getStyleClass().add("logs-calendar-day-outside");
-        }
-
-        if (date.equals(LocalDate.now()) && !selectedBoundary) {
-            dayButton.getStyleClass().add("logs-calendar-day-today");
-        }
-
-        if (selectedBoundary) {
-            dayButton.getStyleClass().add("logs-calendar-day-selected");
-        } else if (isDateInsideSelectedRange(date)) {
-            dayButton.getStyleClass().add("logs-calendar-day-in-range");
-        }
-
-        dayButton.setOnAction(event -> selectCalendarDate(date));
-        return dayButton;
+        dateCalendar.render();
     }
 
     private boolean isDateInsideSelectedRange(LocalDate date) {
@@ -5248,7 +5142,7 @@ public class ActivityController {
         rangeEndTime = null;
 
         updatingDateControls = false;
-        displayedCalendarMonth = YearMonth.from(date);
+        dateCalendar.setDisplayedMonth(YearMonth.from(date));
         updateDateFilterState();
         updateCalendarDisplay();
 

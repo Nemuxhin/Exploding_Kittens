@@ -599,52 +599,6 @@
 }
 
 
-.document-tree-view-toggle-button {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-    -fx-padding: 0;
-    -fx-background-color: -wl-tertiary-button;
-    -fx-background-radius: 6;
-    -fx-background-insets: 0;
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-    -fx-border-insets: 0;
-    -fx-text-fill: -wl-text;
-    -fx-alignment: center;
-    -fx-effect: none;
-    -fx-cursor: hand;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.document-tree-view-toggle-button:hover,
-.document-tree-view-toggle-button:pressed {
-    -fx-background-color: -wl-tertiary;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
-}
-
-.document-tree-view-toggle-button-active,
-.document-tree-view-toggle-button-active:hover,
-.document-tree-view-toggle-button-active:pressed {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.document-tree-view-toggle-button .text {
-    -fx-fill: -wl-text;
-}
-
-.document-tree-view-toggle-button-active .text {
-    -fx-fill: -wl-on-primary;
-}
-
 /* =========================================================
    10. QA REVIEW PREVIEW / VIEW TOOLS
    ========================================================= */

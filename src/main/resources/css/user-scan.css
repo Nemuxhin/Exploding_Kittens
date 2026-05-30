@@ -398,52 +398,6 @@
 }
 
 
-.document-tree-view-toggle-button {
-    -fx-min-width: 33;
-    -fx-pref-width: 33;
-    -fx-max-width: 33;
-    -fx-min-height: 33;
-    -fx-pref-height: 33;
-    -fx-max-height: 33;
-    -fx-padding: 0;
-    -fx-background-color: -wl-tertiary-button;
-    -fx-background-radius: 6;
-    -fx-background-insets: 0;
-    -fx-border-color: -wl-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-    -fx-border-insets: 0;
-    -fx-text-fill: -wl-text;
-    -fx-alignment: center;
-    -fx-effect: none;
-    -fx-cursor: hand;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.document-tree-view-toggle-button:hover,
-.document-tree-view-toggle-button:pressed {
-    -fx-background-color: -wl-tertiary;
-    -fx-border-color: -wl-border;
-    -fx-text-fill: -wl-text;
-}
-
-.document-tree-view-toggle-button-active,
-.document-tree-view-toggle-button-active:hover,
-.document-tree-view-toggle-button-active:pressed {
-    -fx-background-color: -wl-primary;
-    -fx-border-color: -wl-primary;
-    -fx-text-fill: -wl-on-primary;
-}
-
-.document-tree-view-toggle-button .text {
-    -fx-fill: -wl-text;
-}
-
-.document-tree-view-toggle-button-active .text {
-    -fx-fill: -wl-on-primary;
-}
-
 .document-tree-scroll,
 .document-tree-scroll > .viewport {
     -fx-background-color: -wl-surface;
@@ -1696,11 +1650,10 @@
 }
 
 /* =========================================================
-   MOCK DOCUMENT PREVIEW + EMBEDDED PAGE CARDS
-   Actual scan thumbnail renderer uses mock-document-page/mock-* and
-   document-embedded-page-card / qa-embedded-page-card /
-   review-embedded-page-card. Keep the full preview large, but force
-   embedded/tray cards to be compact so thumbnails stop overflowing.
+   MOCK DOCUMENT PREVIEW + TRAY CARDS
+   Actual scan thumbnail renderer uses mock-document-page / mock-*.
+   Keep the full preview large, but force tray cards to be compact
+   so thumbnails stop overflowing.
    ========================================================= */
 
 .mock-document-page {
@@ -1765,27 +1718,7 @@
     -fx-text-fill: -wl-paper-line-strong;
 }
 
-/* Embedded cards must not behave like normal tray cards. */
-.document-embedded-page-card.page-tray-item,
-.qa-embedded-page-card.page-tray-item,
-.review-embedded-page-card.review-page-tray-item {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-effect: none;
-}
-
-.document-embedded-page-card.page-tray-item:hover,
-.qa-embedded-page-card.page-tray-item:hover,
-.review-embedded-page-card.review-page-tray-item:hover {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-/* Compact mock page inside embedded page cards. */
-.document-embedded-page-card .mock-document-page,
-.qa-embedded-page-card .mock-document-page,
-.review-embedded-page-card .mock-document-page,
+/* Compact mock page inside tray cards. */
 .page-tray-item .mock-document-page,
 .review-page-tray-item .mock-document-page {
     -fx-min-width: 72;
@@ -1801,19 +1734,10 @@
     -fx-effect: none;
 }
 
-.document-embedded-page-card .mock-form-area,
-.qa-embedded-page-card .mock-form-area,
-.review-embedded-page-card .mock-form-area,
 .page-tray-item .mock-form-area,
 .review-page-tray-item .mock-form-area,
-.document-embedded-page-card .mock-input,
-.qa-embedded-page-card .mock-input,
-.review-embedded-page-card .mock-input,
 .page-tray-item .mock-input,
 .review-page-tray-item .mock-input,
-.document-embedded-page-card .mock-barcode-box,
-.qa-embedded-page-card .mock-barcode-box,
-.review-embedded-page-card .mock-barcode-box,
 .page-tray-item .mock-barcode-box,
 .review-page-tray-item .mock-barcode-box {
     -fx-padding: 3;
@@ -1821,15 +1745,6 @@
     -fx-border-radius: 3;
 }
 
-.document-embedded-page-card .mock-line-dark,
-.document-embedded-page-card .mock-line-medium,
-.document-embedded-page-card .mock-line-light,
-.qa-embedded-page-card .mock-line-dark,
-.qa-embedded-page-card .mock-line-medium,
-.qa-embedded-page-card .mock-line-light,
-.review-embedded-page-card .mock-line-dark,
-.review-embedded-page-card .mock-line-medium,
-.review-embedded-page-card .mock-line-light,
 .page-tray-item .mock-line-dark,
 .page-tray-item .mock-line-medium,
 .page-tray-item .mock-line-light,

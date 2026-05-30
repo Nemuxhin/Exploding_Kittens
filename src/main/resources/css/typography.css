@@ -579,9 +579,6 @@
     -fx-font-weight: normal;
 }
 
-.document-embedded-page-card .page-tray-number,
-.qa-embedded-page-card .page-tray-number,
-.review-embedded-page-card .review-page-tray-number,
 .page-tray-number,
 .review-page-tray-number {
     -fx-font-family: "Montserrat Medium";

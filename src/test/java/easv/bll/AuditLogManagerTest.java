@@ -93,8 +93,10 @@ class AuditLogManagerTest {
                 () -> assertTrue(full.getTarget().contains("2"), "page number should be present"),
                 // Blank parts are dropped: a case-only target must not mention the absent document/file.
                 () -> assertTrue(caseOnly.getTarget().contains("CASE-1"), "case id should be present"),
-                () -> assertFalse(caseOnly.getTarget().contains("DOC"), "absent document should be omitted"),
-                () -> assertFalse(caseOnly.getTarget().contains("FILE"), "absent file should be omitted"),
+                () -> assertFalse(caseOnly.getTarget().toLowerCase().contains("document"),
+                        "a blank document part must be dropped entirely — not even its label should appear"),
+                () -> assertFalse(caseOnly.getTarget().toLowerCase().contains("file"),
+                        "a blank file part must be dropped entirely — not even its label should appear"),
                 // With nothing to describe, the target falls back to a stable sentinel.
                 () -> assertEquals("System", noParts.getTarget(), "No parts → default to System.")
         );

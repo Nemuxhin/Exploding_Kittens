@@ -25,7 +25,10 @@ public class DatabaseConnection {
     private static final String DEFAULT_USERNAME = "";
     private static final String DEFAULT_PASSWORD = "";
     private static final Properties FILE_PROPERTIES = loadFileProperties();
-    private static final HikariDataSource SHARED_DATA_SOURCE = createSharedDataSource();
+    // Created lazily on first real use so that merely constructing a
+    // DatabaseConnection (or loading this class) never opens a pool. This keeps
+    // unit tests that use no-DB DAO seams hermetic even when no database is reachable.
+    private static volatile HikariDataSource sharedDataSource;
 
     private final String jdbcUrl;
     private final String username;
@@ -54,9 +57,23 @@ public class DatabaseConnection {
 
     public Connection getConnection() throws SQLException {
         if (useSharedDataSource) {
-            return SHARED_DATA_SOURCE.getConnection();
+            return sharedDataSource().getConnection();
         }
         return DriverManager.getConnection(jdbcUrl, username, password);
+    }
+
+    private static HikariDataSource sharedDataSource() {
+        HikariDataSource dataSource = sharedDataSource;
+        if (dataSource == null) {
+            synchronized (DatabaseConnection.class) {
+                dataSource = sharedDataSource;
+                if (dataSource == null) {
+                    dataSource = createSharedDataSource();
+                    sharedDataSource = dataSource;
+                }
+            }
+        }
+        return dataSource;
     }
 
     static boolean tableExists(Connection connection, String tableName) throws SQLException {

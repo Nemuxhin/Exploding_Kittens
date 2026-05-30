@@ -10,6 +10,7 @@ import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.AppDates;
 import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.DateCalendarView;
 import easv.gui.controller.util.PaginationHelper;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SearchableComboBoxes;
@@ -68,13 +69,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
@@ -124,9 +123,11 @@ public class ReviewController {
     private LocalDate pendingRangeStart;
 
     private ContextMenu dateRangeCalendarMenu;
-    private GridPane dateRangeCalendarGrid;
-    private Label dateRangeCalendarMonthLabel;
-    private YearMonth displayedDateRangeMonth = YearMonth.now();
+    private final DateCalendarView dateRangeCalendar = new DateCalendarView(
+            "review",
+            date -> date.equals(fromDate) || date.equals(toDate),
+            this::isBetweenRange,
+            this::selectDateRangeCalendarDate);
 
     private record ParsedDateRange(LocalDate startDate, LocalDate endDate) {}
 
@@ -1217,7 +1218,7 @@ public class ReviewController {
 
         updateDateRangeFieldDisplay();
         updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
 
         updatingDateControls = false;
     }
@@ -1284,127 +1285,16 @@ public class ReviewController {
             return;
         }
 
-        dateRangeCalendarMenu.getItems().setAll(new CustomMenuItem(createDateRangeCalendarPopover(), false));
+        dateRangeCalendarMenu.getItems().setAll(new CustomMenuItem(dateRangeCalendar.buildPopover(), false));
         updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
         dateRangeCalendarMenu.show(anchor, Side.BOTTOM, 0, 3);
-    }
-
-    private VBox createDateRangeCalendarPopover() {
-        VBox popover = new VBox(0);
-        popover.getStyleClass().add("review-date-popover");
-
-        VBox panel = new VBox(0);
-        panel.getStyleClass().add("review-calendar-panel");
-
-        HBox header = new HBox();
-        header.getStyleClass().add("review-calendar-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setMaxWidth(Double.MAX_VALUE);
-
-        Button previousButton = new Button("<");
-        previousButton.setFocusTraversable(false);
-        previousButton.getStyleClass().add("review-calendar-nav-button");
-        previousButton.setOnAction(event -> showPreviousDateRangeCalendarMonth());
-
-        Button nextButton = new Button(">");
-        nextButton.setFocusTraversable(false);
-        nextButton.getStyleClass().add("review-calendar-nav-button");
-        nextButton.setOnAction(event -> showNextDateRangeCalendarMonth());
-
-        dateRangeCalendarMonthLabel = new Label();
-        dateRangeCalendarMonthLabel.getStyleClass().add("review-calendar-month-label");
-        dateRangeCalendarMonthLabel.setMaxWidth(Double.MAX_VALUE);
-        dateRangeCalendarMonthLabel.setAlignment(Pos.CENTER);
-        HBox.setHgrow(dateRangeCalendarMonthLabel, Priority.ALWAYS);
-
-        header.getChildren().addAll(previousButton, dateRangeCalendarMonthLabel, nextButton);
-
-        dateRangeCalendarGrid = new GridPane();
-        dateRangeCalendarGrid.setHgap(3);
-        dateRangeCalendarGrid.setVgap(6);
-        dateRangeCalendarGrid.setMaxWidth(Double.MAX_VALUE);
-        dateRangeCalendarGrid.getStyleClass().add("review-calendar-grid");
-
-        panel.getChildren().addAll(header, dateRangeCalendarGrid);
-        popover.getChildren().add(panel);
-
-        updateDateRangeCalendarDisplay();
-        return popover;
-    }
-
-    private void showPreviousDateRangeCalendarMonth() {
-        displayedDateRangeMonth = displayedDateRangeMonth.minusMonths(1);
-        updateDateRangeCalendarDisplay();
-    }
-
-    private void showNextDateRangeCalendarMonth() {
-        displayedDateRangeMonth = displayedDateRangeMonth.plusMonths(1);
-        updateDateRangeCalendarDisplay();
     }
 
     private void updateDateRangeCalendarMonthFromSelection() {
         // Always open the calendar on the current month (today) first, rather
         // than jumping back to the start of the active range (e.g. 30 days ago).
-        displayedDateRangeMonth = YearMonth.now();
-    }
-
-    private void updateDateRangeCalendarDisplay() {
-        if (dateRangeCalendarGrid == null || dateRangeCalendarMonthLabel == null || displayedDateRangeMonth == null) {
-            return;
-        }
-
-        dateRangeCalendarGrid.getChildren().clear();
-        dateRangeCalendarMonthLabel.setText(displayedDateRangeMonth.getMonth().getDisplayName(
-                TextStyle.FULL,
-                Locale.ENGLISH
-        ) + " " + displayedDateRangeMonth.getYear());
-
-        String[] dayNames = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
-
-        for (int column = 0; column < dayNames.length; column++) {
-            Label label = new Label(dayNames[column]);
-            label.getStyleClass().add("review-calendar-day-name");
-            dateRangeCalendarGrid.add(label, column, 0);
-        }
-
-        LocalDate firstOfMonth = displayedDateRangeMonth.atDay(1);
-        int leadingDays = firstOfMonth.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
-        LocalDate firstVisibleDate = firstOfMonth.minusDays(leadingDays);
-
-        for (int index = 0; index < 42; index++) {
-            LocalDate date = firstVisibleDate.plusDays(index);
-            Button dayButton = createDateRangeCalendarDayButton(date);
-            dateRangeCalendarGrid.add(dayButton, index % 7, index / 7 + 1);
-        }
-    }
-
-    private Button createDateRangeCalendarDayButton(LocalDate date) {
-        Button dayButton = new Button(String.valueOf(date.getDayOfMonth()));
-        dayButton.getStyleClass().add("review-calendar-day-button");
-        dayButton.setFocusTraversable(false);
-        dayButton.setMinSize(30, 30);
-        dayButton.setPrefSize(30, 30);
-        dayButton.setMaxSize(30, 30);
-
-        boolean selectedBoundary = date.equals(fromDate) || date.equals(toDate);
-
-        if (!YearMonth.from(date).equals(displayedDateRangeMonth)) {
-            dayButton.getStyleClass().add("review-calendar-day-outside");
-        }
-
-        if (date.equals(LocalDate.now()) && !selectedBoundary) {
-            dayButton.getStyleClass().add("review-calendar-day-today");
-        }
-
-        if (selectedBoundary) {
-            dayButton.getStyleClass().add("review-calendar-day-selected");
-        } else if (isBetweenRange(date)) {
-            dayButton.getStyleClass().add("review-calendar-day-in-range");
-        }
-
-        dayButton.setOnAction(event -> selectDateRangeCalendarDate(date));
-        return dayButton;
+        dateRangeCalendar.setDisplayedMonth(YearMonth.now());
     }
 
     private void selectDateRangeCalendarDate(LocalDate selectedDate) {
@@ -1438,9 +1328,9 @@ public class ReviewController {
 
         updatingDateControls = false;
 
-        displayedDateRangeMonth = YearMonth.from(selectedDate);
+        dateRangeCalendar.setDisplayedMonth(YearMonth.from(selectedDate));
         updateDateRangeFieldDisplay();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
 
         if (pendingRangeStart == null) {
             if (dateRangeCalendarMenu != null) {
@@ -1572,7 +1462,7 @@ public class ReviewController {
 
         updateDateRangeFieldDisplay();
         updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
     }
 
     private boolean isSameDateRange(ParsedDateRange parsedRange) {

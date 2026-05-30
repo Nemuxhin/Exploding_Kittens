@@ -7,6 +7,7 @@ import easv.bll.QAService;
 import easv.bll.TiffImageSupport;
 import easv.bll.TiffExportManager;
 import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.DateCalendarView;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.UserPortalModel;
@@ -63,7 +64,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.YearMonth;
@@ -75,7 +75,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.TextStyle;
 import java.util.stream.Collectors;
 import javafx.util.Duration;
 
@@ -153,9 +152,11 @@ public class AssignedQaController {
     private LocalDate toDate;
     private LocalDate pendingRangeStart;
     private ContextMenu dateRangeCalendarMenu;
-    private GridPane dateRangeCalendarGrid;
-    private Label dateRangeCalendarMonthLabel;
-    private YearMonth displayedDateRangeMonth = YearMonth.now();
+    private final DateCalendarView dateRangeCalendar = new DateCalendarView(
+            "assigned-qa",
+            date -> date.equals(fromDate) || date.equals(toDate),
+            this::isBetweenDateRange,
+            this::selectDateRangeCalendarDate);
     private UserPortalModel portalModel;
     private final PauseTransition qaAutoSaveDelay = new PauseTransition(Duration.millis(400));
     private boolean assignmentsLoading;
@@ -262,65 +263,10 @@ public class AssignedQaController {
             return;
         }
 
-        dateRangeCalendarMenu.getItems().setAll(new CustomMenuItem(createDateRangeCalendarPopover(), false));
+        dateRangeCalendarMenu.getItems().setAll(new CustomMenuItem(dateRangeCalendar.buildPopover(), false));
         updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
         dateRangeCalendarMenu.show(anchor, Side.BOTTOM, 0, 3);
-    }
-
-    private VBox createDateRangeCalendarPopover() {
-        VBox popover = new VBox(0);
-        popover.getStyleClass().add("assigned-qa-date-popover");
-
-        VBox panel = new VBox(0);
-        panel.getStyleClass().add("assigned-qa-calendar-panel");
-
-        HBox header = new HBox();
-        header.getStyleClass().add("assigned-qa-calendar-header");
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setMaxWidth(Double.MAX_VALUE);
-
-        Button previousButton = new Button("<");
-        previousButton.setFocusTraversable(false);
-        previousButton.getStyleClass().add("assigned-qa-calendar-nav-button");
-        previousButton.setOnAction(event -> showPreviousDateRangeCalendarMonth());
-
-        Button nextButton = new Button(">");
-        nextButton.setFocusTraversable(false);
-        nextButton.getStyleClass().add("assigned-qa-calendar-nav-button");
-        nextButton.setOnAction(event -> showNextDateRangeCalendarMonth());
-
-        dateRangeCalendarMonthLabel = new Label();
-        dateRangeCalendarMonthLabel.getStyleClass().add("assigned-qa-calendar-month-label");
-
-        Region leftSpacer = new Region();
-        Region rightSpacer = new Region();
-        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
-        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(previousButton, leftSpacer, dateRangeCalendarMonthLabel, rightSpacer, nextButton);
-
-        dateRangeCalendarGrid = new GridPane();
-        dateRangeCalendarGrid.setHgap(3);
-        dateRangeCalendarGrid.setVgap(6);
-        dateRangeCalendarGrid.setMaxWidth(Double.MAX_VALUE);
-        dateRangeCalendarGrid.getStyleClass().add("assigned-qa-calendar-grid");
-
-        panel.getChildren().addAll(header, dateRangeCalendarGrid);
-        popover.getChildren().add(panel);
-
-        updateDateRangeCalendarDisplay();
-        return popover;
-    }
-
-    private void showPreviousDateRangeCalendarMonth() {
-        displayedDateRangeMonth = displayedDateRangeMonth.minusMonths(1);
-        updateDateRangeCalendarDisplay();
-    }
-
-    private void showNextDateRangeCalendarMonth() {
-        displayedDateRangeMonth = displayedDateRangeMonth.plusMonths(1);
-        updateDateRangeCalendarDisplay();
     }
 
     private void updateDateRangeCalendarMonthFromSelection() {
@@ -328,67 +274,9 @@ public class AssignedQaController {
                 ? fromDate
                 : toDate;
 
-        displayedDateRangeMonth = calendarDate == null
+        dateRangeCalendar.setDisplayedMonth(calendarDate == null
                 ? YearMonth.now()
-                : YearMonth.from(calendarDate);
-    }
-
-    private void updateDateRangeCalendarDisplay() {
-        if (dateRangeCalendarGrid == null || dateRangeCalendarMonthLabel == null || displayedDateRangeMonth == null) {
-            return;
-        }
-
-        dateRangeCalendarGrid.getChildren().clear();
-        dateRangeCalendarMonthLabel.setText(displayedDateRangeMonth.getMonth().getDisplayName(
-                TextStyle.FULL,
-                Locale.ENGLISH
-        ) + " " + displayedDateRangeMonth.getYear());
-
-        String[] dayNames = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
-
-        for (int column = 0; column < dayNames.length; column++) {
-            Label label = new Label(dayNames[column]);
-            label.getStyleClass().add("assigned-qa-calendar-day-name");
-            dateRangeCalendarGrid.add(label, column, 0);
-        }
-
-        LocalDate firstOfMonth = displayedDateRangeMonth.atDay(1);
-        int leadingDays = firstOfMonth.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
-        LocalDate firstVisibleDate = firstOfMonth.minusDays(leadingDays);
-
-        for (int index = 0; index < 42; index++) {
-            LocalDate date = firstVisibleDate.plusDays(index);
-            Button dayButton = createDateRangeCalendarDayButton(date);
-            dateRangeCalendarGrid.add(dayButton, index % 7, index / 7 + 1);
-        }
-    }
-
-    private Button createDateRangeCalendarDayButton(LocalDate date) {
-        Button dayButton = new Button(String.valueOf(date.getDayOfMonth()));
-        dayButton.getStyleClass().add("assigned-qa-calendar-day-button");
-        dayButton.setFocusTraversable(false);
-        dayButton.setMinSize(30, 30);
-        dayButton.setPrefSize(30, 30);
-        dayButton.setMaxSize(30, 30);
-
-        boolean selectedBoundary = date.equals(fromDate) || date.equals(toDate);
-
-        if (!YearMonth.from(date).equals(displayedDateRangeMonth)) {
-            dayButton.getStyleClass().add("assigned-qa-calendar-day-outside");
-        }
-
-        if (date.equals(LocalDate.now()) && !selectedBoundary) {
-            dayButton.getStyleClass().add("assigned-qa-calendar-day-today");
-        }
-
-        if (selectedBoundary) {
-            dayButton.getStyleClass().add("assigned-qa-calendar-day-selected");
-        } else if (isBetweenDateRange(date)) {
-            dayButton.getStyleClass().add("assigned-qa-calendar-day-in-range");
-        }
-
-        dayButton.setOnAction(event -> selectDateRangeCalendarDate(date));
-        return dayButton;
+                : YearMonth.from(calendarDate));
     }
 
     private void selectDateRangeCalendarDate(LocalDate selectedDate) {
@@ -417,9 +305,9 @@ public class AssignedQaController {
         normalizeDateRange();
         updatingDateControls = false;
 
-        displayedDateRangeMonth = YearMonth.from(selectedDate);
+        dateRangeCalendar.setDisplayedMonth(YearMonth.from(selectedDate));
         updateDateRangeFieldDisplay();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
 
         if (pendingRangeStart == null) {
             if (dateRangeCalendarMenu != null) {
@@ -493,7 +381,7 @@ public class AssignedQaController {
         }
 
         updateDateRangeCalendarMonthFromSelection();
-        updateDateRangeCalendarDisplay();
+        dateRangeCalendar.render();
 
         updatingDateControls = false;
     }

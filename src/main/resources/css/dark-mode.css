@@ -8,8 +8,13 @@
    01. DARK MODE TOKENS
    Project note: page CSS should use -wl-* tokens instead of
    declaring .app-shell.dark page-specific overrides.
+
+   Dual-scoped on .root.dark so popup scenes (ContextMenu, ComboBox dropdown,
+   DatePicker calendar) follow the theme too. AdminController.updateDarkModeClass
+   adds/removes the "dark" class on every open window's scene root.
    ========================================================= */
 
+.root.dark,
 .app-shell.dark {
     -wl-background: #465160;
     -wl-surface: #354556;
@@ -178,10 +183,13 @@
    sometimes create internal nodes that do not inherit cleanly.
    ========================================================= */
 
+.root.dark .text-area .content,
 .app-shell.dark .text-area .content {
     -fx-background-color: -wl-input-bg;
 }
 
+.root.dark .combo-box-popup .list-view,
+.root.dark .context-menu,
 .app-shell.dark .combo-box-popup .list-view,
 .app-shell.dark .context-menu {
     -fx-effect: none;
@@ -193,6 +201,12 @@
    it represents scanned/exported paper, not app chrome.
    ========================================================= */
 
+.root.dark .document-preview-page,
+.root.dark .mock-document-page,
+.root.dark .page-tray-thumbnail,
+.root.dark .review-page-tray-thumbnail,
+.root.dark .review-page-tray-item-selected,
+.root.dark .review-page-tray-item-selected:hover,
 .app-shell.dark .document-preview-page,
 .app-shell.dark .mock-document-page,
 .app-shell.dark .page-tray-thumbnail,
@@ -203,6 +217,12 @@
     -fx-border-color: -wl-paper-line-light;
 }
 
+.root.dark .document-preview-form-area,
+.root.dark .document-preview-input,
+.root.dark .document-preview-barcode-box,
+.root.dark .mock-form-area,
+.root.dark .mock-input,
+.root.dark .mock-barcode-box,
 .app-shell.dark .document-preview-form-area,
 .app-shell.dark .document-preview-input,
 .app-shell.dark .document-preview-barcode-box,
@@ -213,6 +233,11 @@
     -fx-border-color: -wl-paper-line-light;
 }
 
+.root.dark .barcode-preview-title,
+.root.dark .barcode-preview-bars,
+.root.dark .document-preview-barcode-bars,
+.root.dark .mock-barcode-bars,
+.root.dark .page-tray-barcode-mark,
 .app-shell.dark .barcode-preview-title,
 .app-shell.dark .barcode-preview-bars,
 .app-shell.dark .document-preview-barcode-bars,
@@ -221,6 +246,7 @@
     -fx-text-fill: -wl-paper-line-strong;
 }
 
+.root.dark .barcode-preview-copy,
 .app-shell.dark .barcode-preview-copy {
     -fx-text-fill: -wl-secondary;
 }

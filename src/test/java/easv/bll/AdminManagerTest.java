@@ -1,7 +1,6 @@
 package easv.bll;
 
 import easv.be.AuditLog;
-import easv.be.MetadataTemplate;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -400,21 +399,6 @@ class AdminManagerTest {
         @Override
         public void deleteProfile(int profileId) {
             profiles.removeIf(profile -> profile.getId() == profileId);
-        }
-
-        @Override
-        public List<MetadataTemplate> getMetadataTemplates() {
-            return List.of();
-        }
-
-        @Override
-        public int nextMetadataTemplateId() {
-            return 1;
-        }
-
-        @Override
-        public int nextMetadataFieldId() {
-            return 1;
         }
 
         @Override

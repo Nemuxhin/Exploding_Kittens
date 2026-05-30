@@ -9,8 +9,13 @@
 /* =========================================================
    01. THEME TOKENS
    Shared default/light-mode variables. Dark-mode overrides live in dark-mode.css.
+
+   Scoped on .root as well as .app-shell so JavaFX popup scenes (ContextMenu,
+   ComboBox dropdown, DatePicker calendar) — whose root has the implicit .root
+   class but is not a descendant of .app-shell — can still resolve -wl-* tokens.
    ========================================================= */
 
+.root,
 .app-shell {
 
     /* Core surfaces */
@@ -612,6 +617,14 @@
 .check-box:disabled,
 .radio-button:disabled {
     -fx-opacity: 0.6;
+}
+
+/* Form/field labels: bind to the themed text token so they flip to white in
+   dark mode. Without an explicit fill, JavaFX (modena) auto-computes the label
+   color against the default LIGHT background and stays dark in dark mode. */
+.form-label,
+.field-label {
+    -fx-text-fill: -wl-text;
 }
 
 .search-field-shell {

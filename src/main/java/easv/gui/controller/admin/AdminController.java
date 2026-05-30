@@ -8,6 +8,7 @@ import easv.gui.MainApp;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -38,6 +39,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
@@ -119,6 +121,7 @@ public class AdminController implements AdminNavigator {
     }
 
     private void configureThemeToggle() {
+        installPopupThemeHook();
         updateTheme(isDarkModeEnabled());
 
         if (darkModeToggleButton != null) {
@@ -344,15 +347,59 @@ public class AdminController implements AdminNavigator {
     }
 
     private void updateDarkModeClass(boolean isDark) {
-        if (appShell == null) {
+        currentDarkMode = isDark;
+
+        if (appShell != null) {
+            appShell.getStyleClass().remove(DARK_MODE_CLASS);
+            if (isDark) {
+                appShell.getStyleClass().add(DARK_MODE_CLASS);
+            }
+        }
+
+        // Popup windows (ContextMenu, ComboBox dropdown, DatePicker calendar)
+        // each get their own Scene; their roots aren't descendants of appShell,
+        // so the .app-shell.dark cascade can't reach them. Mirror the class
+        // onto every open window's scene root so .root.dark catches them.
+        for (Window window : Window.getWindows()) {
+            applyDarkClassToWindow(window, isDark);
+        }
+    }
+
+    private static void applyDarkClassToWindow(Window window, boolean isDark) {
+        if (window == null || window.getScene() == null || window.getScene().getRoot() == null) {
             return;
         }
-
-        appShell.getStyleClass().remove(DARK_MODE_CLASS);
-
+        Parent root = window.getScene().getRoot();
+        root.getStyleClass().remove(DARK_MODE_CLASS);
         if (isDark) {
-            appShell.getStyleClass().add(DARK_MODE_CLASS);
+            root.getStyleClass().add(DARK_MODE_CLASS);
         }
+    }
+
+    private static volatile boolean currentDarkMode;
+    private static boolean popupThemeHookInstalled;
+
+    /**
+     * Listens for new popup windows so their scene roots receive the current
+     * dark-mode class as they appear. Pairs with {@link #updateDarkModeClass}
+     * which sweeps existing windows when the user toggles modes.
+     */
+    private static void installPopupThemeHook() {
+        if (popupThemeHookInstalled) {
+            return;
+        }
+        popupThemeHookInstalled = true;
+
+        Window.getWindows().addListener((ListChangeListener<Window>) change -> {
+            while (change.next()) {
+                for (Window added : change.getAddedSubList()) {
+                    applyDarkClassToWindow(added, currentDarkMode);
+                    added.sceneProperty().addListener((obs, oldScene, newScene) ->
+                            applyDarkClassToWindow(added, currentDarkMode)
+                    );
+                }
+            }
+        });
     }
 
     private void updateBrandLogo(boolean isDark) {
