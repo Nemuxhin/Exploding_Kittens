@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -614,6 +615,19 @@
                             onAction="#onUndoLastAction"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
+
+                    <HBox alignment="CENTER_LEFT"
+                          spacing="9"
+                          maxWidth="Infinity"
+                          styleClass="scan-autosave-row">
+                        <Label text="Auto save"
+                               styleClass="scan-autosave-label"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ToggleButton fx:id="autosaveToggle"
+                                      onAction="#onAutosaveToggle"
+                                      focusTraversable="false"
+                                      styleClass="wl-switch"/>
+                    </HBox>
 
                     <Button text="Finish &amp; Review"
                             onAction="#onFinishReview"

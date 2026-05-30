@@ -5,6 +5,7 @@ import easv.be.ReviewRecord;
 import easv.bll.AdminManager;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.PrimeIcons;
+import easv.gui.controller.util.SkeletonFactory;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -12,6 +13,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -156,25 +158,69 @@ public class DashboardController {
     }
 
     private void showLoadingState() {
-        totalUsersValueLabel.setText("-");
-        activeProfilesValueLabel.setText("-");
-        scansTodayValueLabel.setText("-");
-        waitingForQaValueLabel.setText("-");
+        applyStatSkeleton(totalUsersValueLabel, totalUsersTrendLabel);
+        applyStatSkeleton(activeProfilesValueLabel, activeProfilesTrendLabel);
+        applyStatSkeleton(scansTodayValueLabel, scansTodayTrendLabel);
+        applyStatSkeleton(waitingForQaValueLabel, waitingForQaTrendLabel);
 
-        setNeutralTrend(totalUsersTrendLabel, "Loading");
-        setNeutralTrend(activeProfilesTrendLabel, "Loading");
-        setNeutralTrend(scansTodayTrendLabel, "Loading");
-        setNeutralTrend(waitingForQaTrendLabel, "Loading");
+        if (needsAttentionCard != null) {
+            needsAttentionCard.setVisible(true);
+            needsAttentionCard.setManaged(true);
+        }
+        SkeletonFactory.applyToLabel(needsAttentionValueLabel, 40, 28);
+        setAttentionRowState(usersNoProfilesRow, true);
+        setAttentionRowState(failedEventsRow, true);
+        setAttentionRowState(draftProfilesRow, true);
+        SkeletonFactory.applyToLabel(usersNoProfilesCountLabel, 180, 14);
+        SkeletonFactory.applyToLabel(failedExportsCountLabel, 140, 14);
+        SkeletonFactory.applyToLabel(draftProfilesCountLabel, 160, 14);
 
         if (recentActivityList != null) {
-            Label loadingLabel = new Label("Loading activity...");
-            loadingLabel.getStyleClass().add("dashboard-activity-detail");
-            recentActivityList.getChildren().setAll(loadingLabel);
+            SkeletonFactory.stopShimmers(recentActivityList);
+            recentActivityList.getChildren().setAll(
+                    skeletonActivityRow(),
+                    skeletonActivityRow(),
+                    skeletonActivityRow(),
+                    skeletonActivityRow(),
+                    skeletonActivityRow()
+            );
         }
+    }
+
+    private void applyStatSkeleton(Label valueLabel, Label trendLabel) {
+        SkeletonFactory.applyToLabel(valueLabel, 56, 28);
+        trendLabel.getStyleClass().removeAll("dashboard-trend-up", "dashboard-trend-down", "dashboard-trend-neutral");
+        SkeletonFactory.applyToLabel(trendLabel, 96, 12);
+    }
+
+    private void clearStatSkeleton(Label valueLabel, Label trendLabel) {
+        SkeletonFactory.clearLabel(valueLabel);
+        SkeletonFactory.clearLabel(trendLabel);
+    }
+
+    private HBox skeletonActivityRow() {
+        Region icon = SkeletonFactory.circle(36);
+
+        Region title = SkeletonFactory.line(160, 12);
+        Region detail = SkeletonFactory.line(220, 10, SkeletonFactory.Intensity.LIGHT);
+        VBox copy = new VBox(6, title, detail);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        Region time = SkeletonFactory.line(48, 10, SkeletonFactory.Intensity.LIGHT);
+
+        HBox row = new HBox(12, icon, copy, time);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("dashboard-activity-row");
+        return row;
     }
 
     private void populateSummaryCards(DashboardSnapshot snapshot) {
         AdminManager.DashboardSummary summary = snapshot.summary();
+
+        clearStatSkeleton(totalUsersValueLabel, totalUsersTrendLabel);
+        clearStatSkeleton(activeProfilesValueLabel, activeProfilesTrendLabel);
+        clearStatSkeleton(scansTodayValueLabel, scansTodayTrendLabel);
+        clearStatSkeleton(waitingForQaValueLabel, waitingForQaTrendLabel);
 
         totalUsersValueLabel.setText(String.valueOf(summary.getTotalUsers()));
         activeProfilesValueLabel.setText(String.valueOf(summary.getActiveProfiles()));
@@ -201,6 +247,11 @@ public class DashboardController {
                 + summary.getDraftProfiles();
 
         boolean hasNeedsAttention = totalNeedsAttention > 0;
+
+        SkeletonFactory.clearLabel(needsAttentionValueLabel);
+        SkeletonFactory.clearLabel(usersNoProfilesCountLabel);
+        SkeletonFactory.clearLabel(failedExportsCountLabel);
+        SkeletonFactory.clearLabel(draftProfilesCountLabel);
 
         if (needsAttentionCard != null) {
             needsAttentionCard.setVisible(hasNeedsAttention);
@@ -234,6 +285,8 @@ public class DashboardController {
         if (recentActivityList == null) {
             return;
         }
+
+        SkeletonFactory.stopShimmers(recentActivityList);
 
         if (recentLogs.isEmpty()) {
             Label emptyLabel = new Label("No activity yet");

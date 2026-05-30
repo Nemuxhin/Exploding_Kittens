@@ -308,7 +308,10 @@ public class AdminManager {
                 input.getContrast(),
                 input.isDeskew(),
                 input.getExportFormat(),
-                input.isMetadataRequiredBeforeExport()
+                input.isMetadataRequiredBeforeExport(),
+                input.isAutosaveEnabled(),
+                input.getAutosaveIntervalSeconds(),
+                input.isAutosaveLocked()
         );
 
         ScanProfile savedProfile = metadataDAO.saveProfile(profile);
@@ -347,6 +350,9 @@ public class AdminManager {
         profile.setDeskew(input.isDeskew());
         profile.setExportFormat(input.getExportFormat());
         profile.setMetadataRequiredBeforeExport(input.isMetadataRequiredBeforeExport());
+        profile.setAutosaveEnabled(input.isAutosaveEnabled());
+        profile.setAutosaveIntervalSeconds(input.getAutosaveIntervalSeconds());
+        profile.setAutosaveLocked(input.isAutosaveLocked());
 
         metadataDAO.updateProfile(profile);
         renameAssignedProfile(previousName, profile.getName());
@@ -1003,6 +1009,9 @@ public class AdminManager {
         addCreatedChange(changes, "Contrast", profile.getContrast());
         addCreatedChange(changes, "Deskew", profile.isDeskew());
         addCreatedChange(changes, "Export format", profile.getExportFormat());
+        addCreatedChange(changes, "Autosave enabled", profile.isAutosaveEnabled());
+        addCreatedChange(changes, "Autosave interval (seconds)", profile.getAutosaveIntervalSeconds());
+        addCreatedChange(changes, "Autosave locked", profile.isAutosaveLocked());
         return changes;
     }
 
@@ -1022,6 +1031,9 @@ public class AdminManager {
         addChangedChange(changes, "Contrast", previousProfile.getContrast(), updatedProfile.getContrast());
         addChangedChange(changes, "Deskew", previousProfile.isDeskew(), updatedProfile.isDeskew());
         addChangedChange(changes, "Export format", previousProfile.getExportFormat(), updatedProfile.getExportFormat());
+        addChangedChange(changes, "Autosave enabled", previousProfile.isAutosaveEnabled(), updatedProfile.isAutosaveEnabled());
+        addChangedChange(changes, "Autosave interval (seconds)", previousProfile.getAutosaveIntervalSeconds(), updatedProfile.getAutosaveIntervalSeconds());
+        addChangedChange(changes, "Autosave locked", previousProfile.isAutosaveLocked(), updatedProfile.isAutosaveLocked());
         return changes;
     }
 
@@ -1169,7 +1181,10 @@ public class AdminManager {
                 profile.getContrast(),
                 profile.isDeskew(),
                 profile.getExportFormat(),
-                profile.isMetadataRequiredBeforeExport()
+                profile.isMetadataRequiredBeforeExport(),
+                profile.isAutosaveEnabled(),
+                profile.getAutosaveIntervalSeconds(),
+                profile.isAutosaveLocked()
         );
     }
 
@@ -1347,6 +1362,9 @@ public class AdminManager {
         private final boolean deskew;
         private final String exportFormat;
         private final boolean metadataRequiredBeforeExport;
+        private final boolean autosaveEnabled;
+        private final int autosaveIntervalSeconds;
+        private final boolean autosaveLocked;
 
         public ProfileInput(
                 String name,
@@ -1366,6 +1384,34 @@ public class AdminManager {
                 String exportFormat,
                 boolean metadataRequiredBeforeExport
         ) {
+            this(name, client, code, description, status, metadataTemplateName, exportNaming,
+                    barcodeSplitting, barcodeDetectedBehavior, barcodePageBehavior,
+                    defaultRotation, brightness, contrast, deskew, exportFormat,
+                    metadataRequiredBeforeExport,
+                    true, ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS, false);
+        }
+
+        public ProfileInput(
+                String name,
+                String client,
+                String code,
+                String description,
+                String status,
+                String metadataTemplateName,
+                String exportNaming,
+                boolean barcodeSplitting,
+                String barcodeDetectedBehavior,
+                String barcodePageBehavior,
+                String defaultRotation,
+                String brightness,
+                String contrast,
+                boolean deskew,
+                String exportFormat,
+                boolean metadataRequiredBeforeExport,
+                boolean autosaveEnabled,
+                int autosaveIntervalSeconds,
+                boolean autosaveLocked
+        ) {
             this.name = name;
             this.client = client;
             this.code = code;
@@ -1382,6 +1428,9 @@ public class AdminManager {
             this.deskew = deskew;
             this.exportFormat = exportFormat;
             this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+            this.autosaveEnabled = autosaveEnabled;
+            this.autosaveIntervalSeconds = autosaveIntervalSeconds;
+            this.autosaveLocked = autosaveLocked;
         }
 
         public String getName() { return name; }
@@ -1400,6 +1449,9 @@ public class AdminManager {
         public boolean isDeskew() { return deskew; }
         public String getExportFormat() { return exportFormat; }
         public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+        public boolean isAutosaveEnabled() { return autosaveEnabled; }
+        public int getAutosaveIntervalSeconds() { return autosaveIntervalSeconds; }
+        public boolean isAutosaveLocked() { return autosaveLocked; }
     }
 
     public static class DashboardSummary {

@@ -42,6 +42,7 @@ public class MainApp extends Application {
             "/css/admin-profiles.css",
             "/css/admin-review.css",
             "/css/dialogs.css",
+            "/css/export.css",
             "/css/activity-log.css",
             "/css/typography.css"
     };
@@ -55,6 +56,7 @@ public class MainApp extends Application {
             "/css/user-scan.css",
             "/css/user-qa.css",
             "/css/dialogs.css",
+            "/css/export.css",
             "/css/typography.css"
     };
 

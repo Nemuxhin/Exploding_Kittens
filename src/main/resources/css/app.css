@@ -318,8 +318,8 @@
 
 .secondary-button:hover,
 .secondary-button:pressed {
-    -fx-background-color: -wl-secondary-action;
-    -fx-border-color: -wl-secondary-action;
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
     -fx-text-fill: -wl-on-primary;
 }
 
@@ -940,4 +940,70 @@
 
 .exports-empty-row {
     -fx-padding: 18;
+}
+
+/* =========================================================
+   SKELETON LOADING PLACEHOLDERS
+   Styleguide: skeleton is used while data is being fetched.
+   Shimmer is animated in code (SkeletonFactory) via FadeTransition.
+   ========================================================= */
+
+.skeleton-label,
+.skeleton-circle {
+    -fx-background-color: -wl-paper-line-medium;
+}
+
+.skeleton-label {
+    -fx-background-radius: 4;
+    -fx-text-fill: transparent;
+}
+
+.skeleton-circle {
+    -fx-background-radius: 999;
+}
+
+/* =========================================================
+   SWITCH (canonical, per WebLager style guide pg 8)
+   ToggleButton styled as a 60x24 pill: navy track when on,
+   grey track when off, white thumb that shifts side on toggle.
+   ========================================================= */
+.wl-switch {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: -wl-switch-off-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 39 3 3;
+    -fx-background-radius: 999, 999;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: transparent;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.wl-switch:selected {
+    -fx-background-color: -wl-switch-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 3 3 39;
+    -fx-background-radius: 999, 999;
+}
+
+.wl-switch:hover {
+    -fx-background-color: -wl-switch-off-track-hover, -wl-switch-thumb;
+}
+
+.wl-switch:selected:hover {
+    -fx-background-color: -wl-switch-track-hover, -wl-switch-thumb;
+}
+
+.wl-switch:disabled {
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
 }

@@ -530,8 +530,8 @@
 .admin-account-logout-button:hover,
 .admin-account-logout-button:pressed,
 .admin-account-logout-button:focused {
-    -fx-background-color: -wl-destructive;
-    -fx-border-color: -wl-destructive;
+    -fx-background-color: -wl-destructive-hover;
+    -fx-border-color: -wl-destructive-hover;
     -fx-text-fill: -wl-on-primary;
 }
 

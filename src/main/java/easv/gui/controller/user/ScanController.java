@@ -11,6 +11,8 @@ import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.UserPortalModel;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -33,6 +35,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -53,6 +56,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -109,6 +113,7 @@ public class ScanController {
     @FXML private Button undoLastActionButton;
     @FXML private Button rotateLeftButton;
     @FXML private Button rotateRightButton;
+    @FXML private ToggleButton autosaveToggle;
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
@@ -182,6 +187,11 @@ public class ScanController {
     private int sessionRotationDegrees = 0;
     private boolean syncingBoxRotationComboBox = false;
     private boolean syncingPageRotationComboBox = false;
+
+    private Timeline autosaveTimer;
+    private boolean autosaveEnabled = true;
+    private int autosaveIntervalSeconds = ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
+    private boolean autosaveLockedByProfile = false;
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -548,6 +558,7 @@ public class ScanController {
         syncBoxRotationComboBox();
         refreshWorkspace();
         updateUndoButtonState();
+        initAutosaveFromProfile(getSelectedProfile());
     }
 
     private void restoreFromSavedProgress(UserPortalModel.InMemoryScanProgress progress) {
@@ -1105,6 +1116,7 @@ public class ScanController {
         syncBoxRotationComboBox();
         refreshWorkspace();
         updateUndoButtonState();
+        initAutosaveFromProfile(getSelectedProfile());
     }
 
     @FXML
@@ -1783,6 +1795,71 @@ public class ScanController {
     }
 
     @FXML
+    private void onAutosaveToggle() {
+        if (autosaveLockedByProfile) {
+            syncAutosaveToggle();
+            return;
+        }
+        applyAutosaveSettings(autosaveToggle != null && autosaveToggle.isSelected(), autosaveIntervalSeconds);
+    }
+
+    private void applyAutosaveSettings(boolean enabled, int intervalSeconds) {
+        if (autosaveTimer != null) {
+            autosaveTimer.stop();
+            autosaveTimer = null;
+        }
+
+        autosaveEnabled = enabled;
+        autosaveIntervalSeconds = intervalSeconds;
+
+        if (enabled && intervalSeconds > 0) {
+            autosaveTimer = new Timeline(new KeyFrame(Duration.seconds(intervalSeconds), event -> fireAutosave()));
+            autosaveTimer.setCycleCount(Timeline.INDEFINITE);
+            autosaveTimer.playFromStart();
+        }
+
+        syncAutosaveToggle();
+    }
+
+    private void fireAutosave() {
+        if (activeScanSession == null || allPages.isEmpty()) {
+            return;
+        }
+
+        try {
+            // Autosave is quiet — do NOT touch selectedFileRefLabel or the workspace subtitle.
+            portalModel.saveScanProgress(activeScanSession.getId(), createInMemoryScanProgress("Autosaved"));
+        } catch (RuntimeException exception) {
+            System.err.println("[Autosave] save failed: " + exception.getMessage());
+        }
+    }
+
+    private void syncAutosaveToggle() {
+        if (autosaveToggle == null) {
+            return;
+        }
+        autosaveToggle.setSelected(autosaveEnabled);
+        autosaveToggle.setDisable(autosaveLockedByProfile);
+    }
+
+    private void initAutosaveFromProfile(String profileName) {
+        ScanProfile profile = portalModel.fetchScanProfileByName(profileName);
+        autosaveLockedByProfile = profile != null && profile.isAutosaveLocked();
+        // Lock = forced ON. Style guide pg 9: Switch Checked + Disabled.
+        boolean enabled = autosaveLockedByProfile || profile == null || profile.isAutosaveEnabled();
+        int interval = profile == null ? ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS
+                : Math.max(5, profile.getAutosaveIntervalSeconds());
+        applyAutosaveSettings(enabled, interval);
+    }
+
+    void stopAutosave() {
+        if (autosaveTimer != null) {
+            autosaveTimer.stop();
+            autosaveTimer = null;
+        }
+    }
+
+    @FXML
     private void onCreateMetadata() {
         if (allPages.isEmpty()) {
             return;
@@ -1991,6 +2068,8 @@ public class ScanController {
     }
 
     private void resetAfterSubmittedScan() {
+        stopAutosave();
+
         if (activeScanSession != null) {
             portalModel.clearSavedScanProgress(activeScanSession.getId());
         }
@@ -2044,6 +2123,7 @@ public class ScanController {
 
     @FXML
     private void onBackToScanSetup() {
+        stopAutosave();
         showSetupView();
     }
 

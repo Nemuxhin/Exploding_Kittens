@@ -2,6 +2,7 @@ package easv.be;
 
 public class ScanProfile {
     public static final String DEFAULT_EXPORT_NAMING = "{profileName}_{boxId}";
+    public static final int DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 30;
 
     private static final String LEGACY_PROFILE_CODE_TOKEN = "{profileCode}";
     private static final String PROFILE_NAME_TOKEN = "{profileName}";
@@ -26,6 +27,10 @@ public class ScanProfile {
     private boolean deskew;
     private String exportFormat;
     private boolean metadataRequiredBeforeExport;
+
+    private boolean autosaveEnabled;
+    private int autosaveIntervalSeconds;
+    private boolean autosaveLocked;
 
     public ScanProfile(
             int id,
@@ -66,7 +71,10 @@ public class ScanProfile {
                 contrast,
                 deskew,
                 exportFormat,
-                metadataRequiredBeforeExport
+                metadataRequiredBeforeExport,
+                true,
+                DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                false
         );
     }
 
@@ -91,6 +99,56 @@ public class ScanProfile {
             String exportFormat,
             boolean metadataRequiredBeforeExport
     ) {
+        this(
+                id,
+                name,
+                client,
+                code,
+                description,
+                status,
+                metadataTemplateName,
+                exportNaming,
+                lastUpdated,
+                archived,
+                barcodeSplitting,
+                barcodeDetectedBehavior,
+                barcodePageBehavior,
+                defaultRotation,
+                brightness,
+                contrast,
+                deskew,
+                exportFormat,
+                metadataRequiredBeforeExport,
+                true,
+                DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                false
+        );
+    }
+
+    public ScanProfile(
+            int id,
+            String name,
+            String client,
+            String code,
+            String description,
+            String status,
+            String metadataTemplateName,
+            String exportNaming,
+            String lastUpdated,
+            boolean archived,
+            boolean barcodeSplitting,
+            String barcodeDetectedBehavior,
+            String barcodePageBehavior,
+            String defaultRotation,
+            String brightness,
+            String contrast,
+            boolean deskew,
+            String exportFormat,
+            boolean metadataRequiredBeforeExport,
+            boolean autosaveEnabled,
+            int autosaveIntervalSeconds,
+            boolean autosaveLocked
+    ) {
         this.id = id;
         this.name = clean(name);
         this.client = clean(client);
@@ -110,6 +168,9 @@ public class ScanProfile {
         this.deskew = deskew;
         this.exportFormat = clean(exportFormat);
         this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+        this.autosaveEnabled = autosaveEnabled;
+        this.autosaveIntervalSeconds = normalizeAutosaveInterval(autosaveIntervalSeconds);
+        this.autosaveLocked = autosaveLocked;
     }
 
     public int getId() { return id; }
@@ -134,6 +195,10 @@ public class ScanProfile {
     public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
     public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
     public boolean isQaRequired() { return metadataRequiredBeforeExport; }
+
+    public boolean isAutosaveEnabled() { return autosaveEnabled; }
+    public int getAutosaveIntervalSeconds() { return autosaveIntervalSeconds; }
+    public boolean isAutosaveLocked() { return autosaveLocked; }
 
     public void setName(String name) { this.name = clean(name); }
     public void setClient(String client) { this.client = clean(client); }
@@ -163,6 +228,12 @@ public class ScanProfile {
         this.metadataRequiredBeforeExport = qaRequired;
     }
 
+    public void setAutosaveEnabled(boolean autosaveEnabled) { this.autosaveEnabled = autosaveEnabled; }
+    public void setAutosaveIntervalSeconds(int autosaveIntervalSeconds) {
+        this.autosaveIntervalSeconds = normalizeAutosaveInterval(autosaveIntervalSeconds);
+    }
+    public void setAutosaveLocked(boolean autosaveLocked) { this.autosaveLocked = autosaveLocked; }
+
     private static String clean(String value) {
         return value == null ? "" : value.trim();
     }
@@ -175,5 +246,20 @@ public class ScanProfile {
         }
 
         return cleaned.replace(LEGACY_PROFILE_CODE_TOKEN, PROFILE_NAME_TOKEN);
+    }
+
+    public static int normalizeAutosaveInterval(int seconds) {
+        // 0 is reserved for the "on every edit" option (debounced separately);
+        // anything else is clamped into a sensible 5s..1h band.
+        if (seconds <= 0) {
+            return 0;
+        }
+        if (seconds < 5) {
+            return 5;
+        }
+        if (seconds > 3600) {
+            return 3600;
+        }
+        return seconds;
     }
 }

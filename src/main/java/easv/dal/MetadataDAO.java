@@ -48,16 +48,17 @@ public class MetadataDAO {
                             contrast,
                             deskew,
                             export_format,
-                            metadata_required_before_export
+                            metadata_required_before_export%s
                      FROM scan_profiles
                      ORDER BY id
-                     """.formatted(selectClientColumn(connection)));
+                     """.formatted(selectClientColumn(connection), selectAutosaveColumns(connection)));
              ResultSet resultSet = statement.executeQuery()) {
             List<ScanProfile> profiles = new ArrayList<>();
             boolean includeClient = hasProfileClientColumn(connection);
+            boolean includeAutosave = hasAutosaveColumns(connection);
 
             while (resultSet.next()) {
-                profiles.add(readScanProfile(resultSet, includeClient));
+                profiles.add(readScanProfile(resultSet, includeClient, includeAutosave));
             }
 
             return profiles;
@@ -77,13 +78,14 @@ public class MetadataDAO {
                      (name, %scode, description, status, metadata_template_name, export_naming,
                       last_updated, archived, barcode_splitting, barcode_detected_behavior,
                       barcode_page_behavior, default_rotation, brightness, contrast, deskew,
-                      export_format, metadata_required_before_export, created_at, updated_at)
+                      export_format, metadata_required_before_export%s, created_at, updated_at)
                      VALUES (%s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                      """.formatted(
                      insertClientColumn(connection),
+                     insertAutosaveColumns(connection),
                      insertProfileValuePlaceholders(connection)
              ), Statement.RETURN_GENERATED_KEYS)) {
-            setProfileValues(statement, profile, hasProfileClientColumn(connection));
+            setProfileValues(statement, profile, hasProfileClientColumn(connection), hasAutosaveColumns(connection));
             statement.executeUpdate();
             return copyProfileWithId(readGeneratedIntId(statement, "scan profile"), profile);
         } catch (SQLException exception) {
@@ -112,11 +114,11 @@ public class MetadataDAO {
                          contrast = ?,
                          deskew = ?,
                          export_format = ?,
-                         metadata_required_before_export = ?,
+                         metadata_required_before_export = ?%s,
                          updated_at = CURRENT_TIMESTAMP
                      WHERE id = ?
-                     """.formatted(updateClientColumn(connection)))) {
-            int nextIndex = setProfileValues(statement, profile, hasProfileClientColumn(connection));
+                     """.formatted(updateClientColumn(connection), updateAutosaveColumns(connection)))) {
+            int nextIndex = setProfileValues(statement, profile, hasProfileClientColumn(connection), hasAutosaveColumns(connection));
             statement.setInt(nextIndex, profile.getId());
             statement.executeUpdate();
         } catch (SQLException exception) {
@@ -293,7 +295,7 @@ public class MetadataDAO {
         }
     }
 
-    private ScanProfile readScanProfile(ResultSet resultSet, boolean includeClient) throws SQLException {
+    private ScanProfile readScanProfile(ResultSet resultSet, boolean includeClient, boolean includeAutosave) throws SQLException {
         return new ScanProfile(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
@@ -313,11 +315,14 @@ public class MetadataDAO {
                 resultSet.getString("contrast"),
                 resultSet.getBoolean("deskew"),
                 resultSet.getString("export_format"),
-                resultSet.getBoolean("metadata_required_before_export")
+                resultSet.getBoolean("metadata_required_before_export"),
+                includeAutosave ? resultSet.getBoolean("autosave_enabled") : true,
+                includeAutosave ? resultSet.getInt("autosave_interval_seconds") : ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                includeAutosave && resultSet.getBoolean("autosave_locked")
         );
     }
 
-    private int setProfileValues(PreparedStatement statement, ScanProfile profile, boolean includeClient) throws SQLException {
+    private int setProfileValues(PreparedStatement statement, ScanProfile profile, boolean includeClient, boolean includeAutosave) throws SQLException {
         int index = 1;
         statement.setString(index++, profile.getName());
         if (includeClient) {
@@ -339,6 +344,11 @@ public class MetadataDAO {
         statement.setBoolean(index++, profile.isDeskew());
         statement.setString(index++, profile.getExportFormat());
         statement.setBoolean(index++, profile.isMetadataRequiredBeforeExport());
+        if (includeAutosave) {
+            statement.setBoolean(index++, profile.isAutosaveEnabled());
+            statement.setInt(index++, profile.getAutosaveIntervalSeconds());
+            statement.setBoolean(index++, profile.isAutosaveLocked());
+        }
         return index;
     }
 
@@ -668,7 +678,10 @@ public class MetadataDAO {
                 profile.getContrast(),
                 profile.isDeskew(),
                 profile.getExportFormat(),
-                profile.isMetadataRequiredBeforeExport()
+                profile.isMetadataRequiredBeforeExport(),
+                profile.isAutosaveEnabled(),
+                profile.getAutosaveIntervalSeconds(),
+                profile.isAutosaveLocked()
         );
     }
 
@@ -676,22 +689,51 @@ public class MetadataDAO {
         return DatabaseConnection.columnExists(connection, "scan_profiles", "client");
     }
 
+    private boolean hasAutosaveColumns(Connection connection) throws SQLException {
+        // Treat the trio as one feature - either all three columns exist or none.
+        return DatabaseConnection.columnExists(connection, "scan_profiles", "autosave_enabled")
+                && DatabaseConnection.columnExists(connection, "scan_profiles", "autosave_interval_seconds")
+                && DatabaseConnection.columnExists(connection, "scan_profiles", "autosave_locked");
+    }
+
     private String selectClientColumn(Connection connection) throws SQLException {
         return hasProfileClientColumn(connection) ? "client,\n                            " : "";
+    }
+
+    private String selectAutosaveColumns(Connection connection) throws SQLException {
+        return hasAutosaveColumns(connection)
+                ? ",\n                            autosave_enabled,\n                            autosave_interval_seconds,\n                            autosave_locked"
+                : "";
     }
 
     private String insertClientColumn(Connection connection) throws SQLException {
         return hasProfileClientColumn(connection) ? "client, " : "";
     }
 
+    private String insertAutosaveColumns(Connection connection) throws SQLException {
+        return hasAutosaveColumns(connection)
+                ? ", autosave_enabled, autosave_interval_seconds, autosave_locked"
+                : "";
+    }
+
     private String updateClientColumn(Connection connection) throws SQLException {
         return hasProfileClientColumn(connection) ? "client = ?,\n                         " : "";
     }
 
+    private String updateAutosaveColumns(Connection connection) throws SQLException {
+        return hasAutosaveColumns(connection)
+                ? ",\n                         autosave_enabled = ?,\n                         autosave_interval_seconds = ?,\n                         autosave_locked = ?"
+                : "";
+    }
+
     private String insertProfileValuePlaceholders(Connection connection) throws SQLException {
-        return hasProfileClientColumn(connection)
+        StringBuilder placeholders = new StringBuilder(hasProfileClientColumn(connection)
                 ? "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?"
-                : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+                : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+        if (hasAutosaveColumns(connection)) {
+            placeholders.append(", ?, ?, ?");
+        }
+        return placeholders.toString();
     }
 
     private MetadataTemplate copyTemplateWithId(int id, MetadataTemplate template, List<MetadataField> fields) {

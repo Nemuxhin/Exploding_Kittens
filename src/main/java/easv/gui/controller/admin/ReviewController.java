@@ -9,9 +9,11 @@ import easv.bll.QAService;
 import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.AppDates;
+import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.PaginationHelper;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SearchableComboBoxes;
+import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -131,6 +133,8 @@ public class ReviewController {
     private ReviewRow activeReviewRecord;
     private ReviewQueueFilter activeQueueFilter = ReviewQueueFilter.ALL;
     private AdminManager adminManager;
+    private boolean recordsLoading;
+    private long recordsLoadSequence;
 
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
@@ -468,6 +472,23 @@ public class ReviewController {
     }
 
     private void renderRows() {
+        if (recordsLoading) {
+            SkeletonFactory.stopShimmers(resultsRowsContainer);
+            List<GridPane> skeletonRows = new ArrayList<>();
+            for (int rowIndex = 0; rowIndex < rowsPerPage; rowIndex++) {
+                skeletonRows.add(buildSkeletonTableRow());
+            }
+            resultsRowsContainer.getChildren().setAll(skeletonRows);
+            resultsRowsContainer.setVisible(true);
+            resultsRowsContainer.setManaged(true);
+            emptyStateBox.setVisible(false);
+            emptyStateBox.setManaged(false);
+            paginationBar.setVisible(false);
+            paginationBar.setManaged(false);
+            updateBatchBar();
+            return;
+        }
+
         filteredRecords = records.stream()
                 .filter(this::matchesSearch)
                 .filter(this::matchesFilters)
@@ -480,6 +501,7 @@ public class ReviewController {
 
         pageRecords = filteredRecords.subList(pageSlice.fromIndex(), pageSlice.toIndex());
 
+        SkeletonFactory.stopShimmers(resultsRowsContainer);
         resultsRowsContainer.getChildren().setAll(
                 pageRecords.stream()
                         .map(this::buildTableRow)
@@ -494,6 +516,22 @@ public class ReviewController {
                 });
         updateBatchBar();
         updateSummaryCards();
+    }
+
+    private GridPane buildSkeletonTableRow() {
+        GridPane row = new GridPane();
+        row.getStyleClass().add("review-table-row");
+        row.getColumnConstraints().setAll(createTableColumns());
+        addCell(row, SkeletonFactory.line(120, 12), 0, HPos.LEFT);
+        addCell(row, SkeletonFactory.line(80, 12), 1, HPos.LEFT);
+        addCell(row, SkeletonFactory.line(96, 12), 2, HPos.LEFT);
+        addCell(row, SkeletonFactory.line(72, 16), 3, HPos.CENTER);
+        addCell(row, SkeletonFactory.line(28, 12), 4, HPos.CENTER);
+        addCell(row, SkeletonFactory.line(80, 12), 5, HPos.LEFT);
+        addCell(row, SkeletonFactory.line(96, 12), 6, HPos.CENTER);
+        addCell(row, SkeletonFactory.line(56, 14), 7, HPos.LEFT);
+        addCell(row, SkeletonFactory.line(56, 14), 8, HPos.LEFT);
+        return row;
     }
 
     private void updateSummaryCards() {
@@ -2260,10 +2298,21 @@ public class ReviewController {
         StackPane root = new StackPane(content);
         root.getStyleClass().addAll("app-shell", "exports-dialog-stage");
 
-        URL stylesheetUrl = getClass().getResource("/css/app.css");
         Scene scene = new Scene(root);
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        // This is a separate Stage/Scene, so it does NOT inherit the app's
+        // stylesheets. Reuse the owning scene's full list (app.css, tokens,
+        // export.css, etc.) so the export dialog is styled, and carry over dark mode.
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            scene.getStylesheets().setAll(reviewWorkspaceView.getScene().getStylesheets());
+            if (reviewWorkspaceView.getScene().getRoot() != null
+                    && reviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                root.getStyleClass().add("dark");
+            }
+        } else {
+            URL stylesheetUrl = getClass().getResource("/css/app.css");
+            if (stylesheetUrl != null) {
+                scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+            }
         }
 
         stage.setScene(scene);
@@ -3020,17 +3069,38 @@ public class ReviewController {
 
     private void loadRecords() {
         if (adminManager == null) {
+            recordsLoading = false;
             records.clear();
             refreshFilterOptions();
             return;
         }
 
-        records.setAll(
-                adminManager.getReviewRecords().stream()
+        AdminManager managerSnapshot = adminManager;
+        long loadId = ++recordsLoadSequence;
+        recordsLoading = true;
+        renderRows();
+
+        BackgroundExecutor.io().execute(() -> {
+            List<ReviewRow> loadedRows;
+            try {
+                loadedRows = managerSnapshot.getReviewRecords().stream()
                         .map(this::toReviewRow)
-                        .toList()
-        );
-        refreshFilterOptions();
+                        .toList();
+            } catch (RuntimeException exception) {
+                loadedRows = List.of();
+            }
+
+            List<ReviewRow> finalLoadedRows = loadedRows;
+            Platform.runLater(() -> {
+                if (loadId != recordsLoadSequence || adminManager != managerSnapshot) {
+                    return;
+                }
+                recordsLoading = false;
+                records.setAll(finalLoadedRows);
+                refreshFilterOptions();
+                renderRows();
+            });
+        });
     }
 
     private ReviewRow toReviewRow(ReviewRecord record) {

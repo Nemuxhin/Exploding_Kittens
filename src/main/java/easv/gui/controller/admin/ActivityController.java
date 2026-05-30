@@ -5,6 +5,7 @@ import easv.bll.AdminManager;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.AppDates;
 import easv.gui.controller.util.PrimeIcons;
+import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -1357,7 +1358,7 @@ public class ActivityController {
 
         if (logsShowingLabel != null) {
             if (activityLoading) {
-                logsShowingLabel.setText("Loading events...");
+                logsShowingLabel.setText("");
             } else if (hasMoreEntries) {
                 logsShowingLabel.setText("Showing " + visibleEntries.size() + " of " + totalEntryCount + " events");
             } else {
@@ -1367,7 +1368,22 @@ public class ActivityController {
         }
 
         if (timelineContainer != null) {
+            SkeletonFactory.stopShimmers(timelineContainer);
             timelineContainer.getChildren().clear();
+        }
+
+        if (activityLoading && timelineContainer != null) {
+            timelineContainer.setVisible(true);
+            timelineContainer.setManaged(true);
+            timelineContainer.getChildren().setAll(buildActivitySkeleton());
+            if (emptyStateBox != null) {
+                emptyStateBox.setVisible(false);
+                emptyStateBox.setManaged(false);
+            }
+            return;
+        }
+
+        if (timelineContainer != null) {
             timelineContainer.setVisible(hasEntries);
             timelineContainer.setManaged(hasEntries);
         }
@@ -1389,6 +1405,60 @@ public class ActivityController {
             timelineContainer.getChildren().setAll(createLogWorkspace(visibleEntries, hasMoreEntries));
             Platform.runLater(this::scrollSelectedRowIntoView);
         }
+    }
+
+    private VBox buildActivitySkeleton() {
+        VBox stream = new VBox(0);
+        stream.getStyleClass().add("logs-event-stream-shell");
+        stream.setFillWidth(true);
+        stream.setMinWidth(0);
+        stream.setMaxWidth(Double.MAX_VALUE);
+
+        stream.getChildren().add(buildActivitySkeletonGroupHeader());
+        for (int rowIndex = 0; rowIndex < 8; rowIndex++) {
+            stream.getChildren().add(buildActivitySkeletonRow());
+        }
+        return stream;
+    }
+
+    private HBox buildActivitySkeletonGroupHeader() {
+        Region title = SkeletonFactory.line(130, 14);
+        Region countBadge = SkeletonFactory.line(28, 18);
+
+        HBox header = new HBox(9, title, countBadge);
+        header.getStyleClass().add("logs-event-group-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(Double.MAX_VALUE);
+        return header;
+    }
+
+    private VBox buildActivitySkeletonRow() {
+        Region icon = SkeletonFactory.circle(42);
+
+        Region time = SkeletonFactory.line(54, 12, SkeletonFactory.Intensity.LIGHT);
+
+        Region titleLine = SkeletonFactory.line(180, 12);
+        Region detailLine = SkeletonFactory.line(280, 10, SkeletonFactory.Intensity.LIGHT);
+        VBox copy = new VBox(6, titleLine, detailLine);
+        copy.setMinWidth(0);
+        HBox.setHgrow(copy, Priority.ALWAYS);
+
+        Region areaBadge = SkeletonFactory.line(72, 20);
+        Region statusBadge = SkeletonFactory.line(72, 20);
+
+        HBox content = new HBox(15, icon, time, copy, areaBadge, statusBadge);
+        content.getStyleClass().add("logs-event-row-content");
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMaxWidth(Double.MAX_VALUE);
+
+        VBox row = new VBox(content);
+        row.getStyleClass().add("logs-expandable-row");
+        row.setFillWidth(true);
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setMinHeight(58);
+        row.setPrefHeight(58);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     private Node createLogWorkspace(List<ActivityLogEntry> entries, boolean hasMoreEntries) {

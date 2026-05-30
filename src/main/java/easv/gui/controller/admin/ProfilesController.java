@@ -16,15 +16,18 @@ import javafx.scene.Node;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -37,6 +40,7 @@ import javafx.stage.StageStyle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -51,6 +55,15 @@ public class ProfilesController {
 
     private static final String PREVIEW_BOX_ID = "BOX-2026-004";
     private static final int MAX_VISIBLE_ASSIGNED_USERS = 5;
+
+    private static final String AUTOSAVE_15S = "15 seconds";
+    private static final String AUTOSAVE_30S = "30 seconds";
+    private static final String AUTOSAVE_1M = "1 minute";
+    private static final String AUTOSAVE_5M = "5 minutes";
+    private static final String AUTOSAVE_ON_EVERY_EDIT = "On every edit";
+    private static final List<String> AUTOSAVE_INTERVAL_OPTIONS = List.of(
+            AUTOSAVE_15S, AUTOSAVE_30S, AUTOSAVE_1M, AUTOSAVE_5M, AUTOSAVE_ON_EVERY_EDIT
+    );
 
     @FXML private ScrollPane pageScrollPane;
 
@@ -89,10 +102,11 @@ public class ProfilesController {
     @FXML private ComboBox<String> barcodeDetectedComboBox;
     @FXML private ComboBox<String> barcodePageBehaviorComboBox;
 
-    @FXML private ComboBox<String> defaultRotationComboBox;
-    @FXML private ComboBox<String> brightnessComboBox;
-    @FXML private ComboBox<String> contrastComboBox;
-    @FXML private ToggleButton deskewToggle;
+    @FXML private ToggleGroup autosaveStateToggleGroup;
+    @FXML private RadioButton autosaveEnabledRadio;
+    @FXML private RadioButton autosaveDisabledRadio;
+    @FXML private ComboBox<String> autosaveIntervalComboBox;
+    @FXML private CheckBox autosaveLockedCheckBox;
     @FXML private ToggleButton qaRequiredToggle;
 
     @FXML private ComboBox<String> exportFormatComboBox;
@@ -106,7 +120,7 @@ public class ProfilesController {
     @FXML private Label previewBoxIdLabel;
     @FXML private Label previewExportFolderLabel;
     @FXML private Label previewBarcodeLabel;
-    @FXML private Label previewPageCorrectionLabel;
+    @FXML private Label previewAutosaveLabel;
     @FXML private Label previewQaRequiredLabel;
     @FXML private Label previewExportFormatLabel;
 
@@ -168,9 +182,7 @@ public class ProfilesController {
                 "Move barcode page to separate document"
         );
 
-        defaultRotationComboBox.getItems().setAll("0 deg", "90 deg", "180 deg", "270 deg");
-        brightnessComboBox.getItems().setAll("Normal", "Lighter", "Darker");
-        contrastComboBox.getItems().setAll("Normal", "Higher", "Lower");
+        autosaveIntervalComboBox.getItems().setAll(AUTOSAVE_INTERVAL_OPTIONS);
 
         exportFormatComboBox.getItems().setAll(
                 "Multi-page TIFF",
@@ -181,14 +193,21 @@ public class ProfilesController {
         exportNamingField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         barcodeSplitToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        deskewToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         qaRequiredToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+
+        autosaveStateToggleGroup.selectedToggleProperty().addListener((observable, oldToggle, newToggle) -> syncPreview());
+        autosaveIntervalComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+        autosaveLockedCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
+
+        // The "Off" radio leaves interval/lock visually meaningless;
+        // disable to prevent confusion without blocking the actual save path.
+        autosaveDisabledRadio.selectedProperty().addListener((observable, oldValue, disabled) -> {
+            autosaveIntervalComboBox.setDisable(disabled);
+            autosaveLockedCheckBox.setDisable(disabled);
+        });
 
         barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         barcodePageBehaviorComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        defaultRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        brightnessComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
-        contrastComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         exportFormatComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
         profileNameField.textProperty().addListener((observable, oldValue, newValue) -> updateEditorActionState());
@@ -573,10 +592,15 @@ public class ProfilesController {
         barcodeDetectedComboBox.setValue(normalizeBarcodeDetectedBehavior(profile.getBarcodeDetectedBehavior()));
         barcodePageBehaviorComboBox.setValue(profile.getBarcodePageBehavior());
 
-        defaultRotationComboBox.setValue(profile.getDefaultRotation());
-        brightnessComboBox.setValue(profile.getBrightness());
-        contrastComboBox.setValue(profile.getContrast());
-        deskewToggle.setSelected(profile.isDeskew());
+        applyAutosaveValues(
+                autosaveEnabledRadio,
+                autosaveDisabledRadio,
+                autosaveIntervalComboBox,
+                autosaveLockedCheckBox,
+                profile.isAutosaveEnabled(),
+                profile.getAutosaveIntervalSeconds(),
+                profile.isAutosaveLocked()
+        );
         qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
         exportFormatComboBox.setValue(profile.getExportFormat());
@@ -605,10 +629,15 @@ public class ProfilesController {
         barcodeDetectedComboBox.setValue("Start new document");
         barcodePageBehaviorComboBox.setValue("Remove barcode page from final document");
 
-        defaultRotationComboBox.setValue("0 deg");
-        brightnessComboBox.setValue("Normal");
-        contrastComboBox.setValue("Normal");
-        deskewToggle.setSelected(true);
+        applyAutosaveValues(
+                autosaveEnabledRadio,
+                autosaveDisabledRadio,
+                autosaveIntervalComboBox,
+                autosaveLockedCheckBox,
+                true,
+                ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                false
+        );
         qaRequiredToggle.setSelected(true);
 
         exportFormatComboBox.setValue("Multi-page TIFF");
@@ -724,12 +753,11 @@ public class ProfilesController {
 
         previewBarcodeLabel.setText(barcodeStatus);
 
-        previewPageCorrectionLabel.setText(
-                "Rotation " + safeValue(defaultRotationComboBox)
-                        + " - Brightness " + safeValue(brightnessComboBox)
-                        + " - Contrast " + safeValue(contrastComboBox)
-                        + " - Deskew " + (deskewToggle.isSelected() ? "Enabled" : "Disabled")
-        );
+        previewAutosaveLabel.setText(formatAutosavePreview(
+                autosaveEnabledRadio.isSelected(),
+                safeValue(autosaveIntervalComboBox),
+                autosaveLockedCheckBox.isSelected()
+        ));
 
         previewQaRequiredLabel.setText(qaRequiredToggle.isSelected() ? "Yes" : "No");
         previewExportFormatLabel.setText(safeValue(exportFormatComboBox));
@@ -753,6 +781,59 @@ public class ProfilesController {
 
     private String safeValue(ComboBox<String> comboBox) {
         return comboBox.getValue() == null ? "" : comboBox.getValue();
+    }
+
+    private static String autosaveIntervalLabelFromSeconds(int seconds) {
+        if (seconds <= 0) {
+            return AUTOSAVE_ON_EVERY_EDIT;
+        }
+        return switch (seconds) {
+            case 15 -> AUTOSAVE_15S;
+            case 30 -> AUTOSAVE_30S;
+            case 60 -> AUTOSAVE_1M;
+            case 300 -> AUTOSAVE_5M;
+            default -> AUTOSAVE_30S;
+        };
+    }
+
+    private static int autosaveIntervalFromLabel(String label) {
+        if (label == null) {
+            return ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
+        }
+        return switch (label) {
+            case AUTOSAVE_15S -> 15;
+            case AUTOSAVE_30S -> 30;
+            case AUTOSAVE_1M -> 60;
+            case AUTOSAVE_5M -> 300;
+            case AUTOSAVE_ON_EVERY_EDIT -> 0;
+            default -> ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
+        };
+    }
+
+    private static String formatAutosavePreview(boolean enabled, String intervalLabel, boolean locked) {
+        if (!enabled) {
+            return "Off";
+        }
+        String interval = intervalLabel == null || intervalLabel.isBlank() ? AUTOSAVE_30S : intervalLabel;
+        String prefix = AUTOSAVE_ON_EVERY_EDIT.equals(interval) ? "On every edit" : "Every " + interval.toLowerCase(Locale.ROOT);
+        return locked ? prefix + " (locked)" : prefix;
+    }
+
+    private static void applyAutosaveValues(
+            RadioButton enabledRadio,
+            RadioButton disabledRadio,
+            ComboBox<String> intervalComboBox,
+            CheckBox lockedCheckBox,
+            boolean enabled,
+            int intervalSeconds,
+            boolean locked
+    ) {
+        enabledRadio.setSelected(enabled);
+        disabledRadio.setSelected(!enabled);
+        intervalComboBox.setValue(autosaveIntervalLabelFromSeconds(intervalSeconds));
+        lockedCheckBox.setSelected(locked);
+        intervalComboBox.setDisable(!enabled);
+        lockedCheckBox.setDisable(!enabled);
     }
 
     private void showOverviewPane() {
@@ -889,10 +970,14 @@ public class ProfilesController {
                 "Move barcode page to separate document"
         );
 
-        fields.defaultRotationComboBox = createProfileDialogComboBox("0 deg", "0 deg", "90 deg", "180 deg", "270 deg");
-        fields.brightnessComboBox = createProfileDialogComboBox("Normal", "Normal", "Lighter", "Darker");
-        fields.contrastComboBox = createProfileDialogComboBox("Normal", "Normal", "Higher", "Lower");
-        fields.deskewToggle = createProfileDialogToggle(true);
+        fields.autosaveStateToggleGroup = new ToggleGroup();
+        fields.autosaveEnabledRadio = createProfileDialogRadio("Autosave enabled", fields.autosaveStateToggleGroup, true);
+        fields.autosaveDisabledRadio = createProfileDialogRadio("Off", fields.autosaveStateToggleGroup, false);
+        fields.autosaveIntervalComboBox = createProfileDialogComboBox(
+                AUTOSAVE_30S,
+                AUTOSAVE_15S, AUTOSAVE_30S, AUTOSAVE_1M, AUTOSAVE_5M, AUTOSAVE_ON_EVERY_EDIT
+        );
+        fields.autosaveLockedCheckBox = createProfileDialogCheckBox("Lock for this profile", false);
         fields.qaRequiredToggle = createProfileDialogToggle(true);
 
         fields.exportFormatComboBox = createProfileDialogComboBox("Multi-page TIFF", "Multi-page TIFF", "Single-page TIFF");
@@ -904,7 +989,7 @@ public class ProfilesController {
         fields.previewBoxIdLabel = createProfileDialogValueLabel("profile-editor-preview-value");
         fields.previewExportFolderLabel = createProfileDialogValueLabel("profile-info-code");
         fields.previewBarcodeLabel = createProfileDialogValueLabel("profile-editor-preview-value");
-        fields.previewPageCorrectionLabel = createProfileDialogValueLabel("profile-editor-preview-value");
+        fields.previewAutosaveLabel = createProfileDialogValueLabel("profile-editor-preview-value");
         fields.previewQaRequiredLabel = createProfileDialogValueLabel("profile-editor-preview-value");
         fields.previewExportFormatLabel = createProfileDialogValueLabel("profile-editor-preview-value");
 
@@ -1013,26 +1098,22 @@ public class ProfilesController {
         VBox correctionSection = new VBox(27);
         correctionSection.getStyleClass().add("profile-editor-section");
 
-        GridPane correctionGrid = new GridPane();
-        correctionGrid.setHgap(21);
-        correctionGrid.setVgap(6);
-        correctionGrid.setMaxWidth(Double.MAX_VALUE);
-        correctionGrid.getColumnConstraints().setAll(createPercentColumns(3));
-        correctionGrid.add(createProfileDialogLabel("Default rotation", "profile-editor-field-label"), 0, 0);
-        correctionGrid.add(createProfileDialogLabel("Brightness", "profile-editor-field-label"), 1, 0);
-        correctionGrid.add(createProfileDialogLabel("Contrast", "profile-editor-field-label"), 2, 0);
-        correctionGrid.add(fields.defaultRotationComboBox, 0, 1);
-        correctionGrid.add(fields.brightnessComboBox, 1, 1);
-        correctionGrid.add(fields.contrastComboBox, 2, 1);
+        HBox autosaveRadioRow = new HBox(24, fields.autosaveEnabledRadio, fields.autosaveDisabledRadio);
+        autosaveRadioRow.setAlignment(Pos.CENTER_LEFT);
 
-        HBox deskewRow = new HBox();
-        deskewRow.setAlignment(Pos.CENTER_LEFT);
-        Region deskewSpacer = new Region();
-        HBox.setHgrow(deskewSpacer, Priority.ALWAYS);
-        deskewRow.getChildren().addAll(
-                createProfileDialogLabel("Deskew / straighten pages", "profile-editor-strong-text"),
-                deskewSpacer,
-                fields.deskewToggle
+        GridPane autosaveGrid = new GridPane();
+        autosaveGrid.setHgap(21);
+        autosaveGrid.setVgap(6);
+        autosaveGrid.setMaxWidth(Double.MAX_VALUE);
+        autosaveGrid.getColumnConstraints().setAll(createPercentColumns(1));
+        autosaveGrid.add(createProfileDialogLabel("Save every", "profile-editor-field-label"), 0, 0);
+        autosaveGrid.add(fields.autosaveIntervalComboBox, 0, 1);
+
+        VBox autosaveLockBox = new VBox(6,
+                fields.autosaveLockedCheckBox,
+                createProfileDialogLabel(
+                        "Scanners cannot disable autosave when working under this profile. Recommended for client work and large boxes.",
+                        "profile-editor-helper-text")
         );
 
         HBox qaRequiredRow = new HBox();
@@ -1046,9 +1127,10 @@ public class ProfilesController {
         );
 
         correctionSection.getChildren().addAll(
-                createProfileDialogLabel("Page Correction Defaults", "profile-editor-section-title"),
-                correctionGrid,
-                deskewRow,
+                createProfileDialogLabel("Autosave & Recovery", "profile-editor-section-title"),
+                autosaveRadioRow,
+                autosaveGrid,
+                autosaveLockBox,
                 qaRequiredRow
         );
 
@@ -1122,7 +1204,7 @@ public class ProfilesController {
                 createPreviewBlock("Box ID:", fields.previewBoxIdLabel),
                 createPreviewBlock("Export folder:", fields.previewExportFolderLabel),
                 createPreviewBlock("Barcode splitting:", fields.previewBarcodeLabel),
-                createPreviewBlock("Page correction:", fields.previewPageCorrectionLabel),
+                createPreviewBlock("Autosave:", fields.previewAutosaveLabel),
                 createPreviewBlock("QA required:", fields.previewQaRequiredLabel),
                 createPreviewBlock("Export format:", fields.previewExportFormatLabel)
         );
@@ -1187,6 +1269,23 @@ public class ProfilesController {
         return toggle;
     }
 
+    private RadioButton createProfileDialogRadio(String text, ToggleGroup group, boolean selected) {
+        RadioButton radio = new RadioButton(text);
+        radio.setToggleGroup(group);
+        radio.setSelected(selected);
+        radio.setFocusTraversable(false);
+        radio.getStyleClass().add("profile-editor-radio");
+        return radio;
+    }
+
+    private CheckBox createProfileDialogCheckBox(String text, boolean selected) {
+        CheckBox checkBox = new CheckBox(text);
+        checkBox.setSelected(selected);
+        checkBox.setFocusTraversable(false);
+        checkBox.getStyleClass().add("profile-editor-checkbox");
+        return checkBox;
+    }
+
     private Button createProfileDialogTabButton(String text) {
         Button button = new Button(text);
         button.setFocusTraversable(false);
@@ -1223,14 +1322,17 @@ public class ProfilesController {
         fields.nameField.textProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
         fields.exportNamingField.textProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
         fields.barcodeSplitToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
-        fields.deskewToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
         fields.qaRequiredToggle.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
         fields.barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
         fields.barcodePageBehaviorComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
-        fields.defaultRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
-        fields.brightnessComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
-        fields.contrastComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
         fields.exportFormatComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.autosaveStateToggleGroup.selectedToggleProperty().addListener((observable, oldToggle, newToggle) -> syncCreateProfilePreview(fields));
+        fields.autosaveIntervalComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.autosaveLockedCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> syncCreateProfilePreview(fields));
+        fields.autosaveDisabledRadio.selectedProperty().addListener((observable, oldValue, disabled) -> {
+            fields.autosaveIntervalComboBox.setDisable(disabled);
+            fields.autosaveLockedCheckBox.setDisable(disabled);
+        });
         syncCreateProfilePreview(fields);
     }
 
@@ -1248,12 +1350,11 @@ public class ProfilesController {
         fields.previewBarcodeLabel.setText(fields.barcodeSplitToggle.isSelected()
                 ? "Enabled - " + safeValue(fields.barcodeDetectedComboBox) + " - " + shortBarcodePageBehavior(safeValue(fields.barcodePageBehaviorComboBox))
                 : "Disabled");
-        fields.previewPageCorrectionLabel.setText(
-                "Rotation " + safeValue(fields.defaultRotationComboBox)
-                        + " - Brightness " + safeValue(fields.brightnessComboBox)
-                        + " - Contrast " + safeValue(fields.contrastComboBox)
-                        + " - Deskew " + (fields.deskewToggle.isSelected() ? "Enabled" : "Disabled")
-        );
+        fields.previewAutosaveLabel.setText(formatAutosavePreview(
+                fields.autosaveEnabledRadio.isSelected(),
+                safeValue(fields.autosaveIntervalComboBox),
+                fields.autosaveLockedCheckBox.isSelected()
+        ));
         fields.previewQaRequiredLabel.setText(fields.qaRequiredToggle.isSelected() ? "Yes" : "No");
         fields.previewExportFormatLabel.setText(safeValue(fields.exportFormatComboBox));
     }
@@ -1350,12 +1451,15 @@ public class ProfilesController {
                 fields.barcodeSplitToggle.isSelected(),
                 safeValue(fields.barcodeDetectedComboBox),
                 safeValue(fields.barcodePageBehaviorComboBox),
-                safeValue(fields.defaultRotationComboBox),
-                safeValue(fields.brightnessComboBox),
-                safeValue(fields.contrastComboBox),
-                fields.deskewToggle.isSelected(),
+                "",
+                "",
+                "",
+                false,
                 safeValue(fields.exportFormatComboBox),
-                fields.qaRequiredToggle.isSelected()
+                fields.qaRequiredToggle.isSelected(),
+                fields.autosaveEnabledRadio.isSelected(),
+                autosaveIntervalFromLabel(safeValue(fields.autosaveIntervalComboBox)),
+                fields.autosaveLockedCheckBox.isSelected()
         );
     }
 
@@ -1667,6 +1771,11 @@ public class ProfilesController {
                 ? createProfileCode(profileName)
                 : currentProfile.getCode();
 
+        String previousRotation = currentProfile == null ? "" : currentProfile.getDefaultRotation();
+        String previousBrightness = currentProfile == null ? "" : currentProfile.getBrightness();
+        String previousContrast = currentProfile == null ? "" : currentProfile.getContrast();
+        boolean previousDeskew = currentProfile != null && currentProfile.isDeskew();
+
         return new AdminManager.ProfileInput(
                 profileName,
                 Strings.clean(profileClientField.getText()),
@@ -1678,12 +1787,15 @@ public class ProfilesController {
                 barcodeSplitToggle.isSelected(),
                 safeValue(barcodeDetectedComboBox),
                 safeValue(barcodePageBehaviorComboBox),
-                safeValue(defaultRotationComboBox),
-                safeValue(brightnessComboBox),
-                safeValue(contrastComboBox),
-                deskewToggle.isSelected(),
+                previousRotation,
+                previousBrightness,
+                previousContrast,
+                previousDeskew,
                 safeValue(exportFormatComboBox),
-                qaRequiredToggle.isSelected()
+                qaRequiredToggle.isSelected(),
+                autosaveEnabledRadio.isSelected(),
+                autosaveIntervalFromLabel(safeValue(autosaveIntervalComboBox)),
+                autosaveLockedCheckBox.isSelected()
         );
     }
 
@@ -1905,10 +2017,11 @@ public class ProfilesController {
         private ComboBox<String> barcodeDetectedComboBox;
         private ComboBox<String> barcodePageBehaviorComboBox;
 
-        private ComboBox<String> defaultRotationComboBox;
-        private ComboBox<String> brightnessComboBox;
-        private ComboBox<String> contrastComboBox;
-        private ToggleButton deskewToggle;
+        private ToggleGroup autosaveStateToggleGroup;
+        private RadioButton autosaveEnabledRadio;
+        private RadioButton autosaveDisabledRadio;
+        private ComboBox<String> autosaveIntervalComboBox;
+        private CheckBox autosaveLockedCheckBox;
         private ToggleButton qaRequiredToggle;
 
         private ComboBox<String> exportFormatComboBox;
@@ -1919,7 +2032,7 @@ public class ProfilesController {
         private Label previewBoxIdLabel;
         private Label previewExportFolderLabel;
         private Label previewBarcodeLabel;
-        private Label previewPageCorrectionLabel;
+        private Label previewAutosaveLabel;
         private Label previewQaRequiredLabel;
         private Label previewExportFormatLabel;
 

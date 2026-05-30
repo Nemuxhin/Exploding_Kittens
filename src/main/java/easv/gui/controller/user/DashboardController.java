@@ -1,6 +1,7 @@
 package easv.gui.controller.user;
 
 import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -191,11 +192,15 @@ public class DashboardController {
                 );
 
                 Platform.runLater(() -> {
+                    SkeletonFactory.stopShimmers(page.getChildren().get(1));
+                    SkeletonFactory.stopShimmers(page.getChildren().get(3));
                     page.getChildren().set(1, buildMetrics(snapshot.metrics()));
                     page.getChildren().set(3, buildLowerSection(snapshot.recentScans()));
                 });
             } catch (RuntimeException exception) {
                 Platform.runLater(() -> {
+                    SkeletonFactory.stopShimmers(page.getChildren().get(1));
+                    SkeletonFactory.stopShimmers(page.getChildren().get(3));
                     page.getChildren().set(1, buildMetricsFailureState());
                     page.getChildren().set(3, buildLowerSectionFailureState());
                 });
@@ -253,10 +258,10 @@ public class DashboardController {
                 percentColumn(25)
         );
 
-        grid.add(loadingMetricCard("Assigned Profiles"), 0, 0);
-        grid.add(loadingMetricCard("Batches"), 1, 0);
-        grid.add(loadingMetricCard("Documents"), 2, 0);
-        grid.add(loadingMetricCard("Pages"), 3, 0);
+        grid.add(loadingMetricCard(), 0, 0);
+        grid.add(loadingMetricCard(), 1, 0);
+        grid.add(loadingMetricCard(), 2, 0);
+        grid.add(loadingMetricCard(), 3, 0);
         return grid;
     }
 
@@ -296,28 +301,19 @@ public class DashboardController {
         return layout;
     }
 
-    private VBox loadingMetricCard(String titleText) {
-        StackPane iconBox = new StackPane();
-        iconBox.getStyleClass().add("user-dashboard-summary-icon-blue");
-        Label icon = new Label("...");
-        icon.getStyleClass().add("dashboard-summary-title");
-        iconBox.getChildren().add(icon);
-
-        Label value = new Label("—");
-        value.getStyleClass().add("dashboard-summary-value");
+    private VBox loadingMetricCard() {
+        Region iconPlaceholder = SkeletonFactory.circle(48);
+        Region valuePlaceholder = SkeletonFactory.line(64, 28);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(iconBox, spacer, value);
-        header.setAlignment(Pos.TOP_LEFT);
+        HBox header = new HBox(iconPlaceholder, spacer, valuePlaceholder);
+        header.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label(titleText);
-        title.getStyleClass().add("dashboard-summary-title");
+        Region titlePlaceholder = SkeletonFactory.line(120, 12);
+        Region subtitlePlaceholder = SkeletonFactory.line(180, 10, SkeletonFactory.Intensity.LIGHT);
 
-        Label subtitle = new Label("Loading...");
-        subtitle.getStyleClass().add("dashboard-summary-subtitle");
-
-        VBox text = new VBox(4, title, subtitle);
+        VBox text = new VBox(6, titlePlaceholder, subtitlePlaceholder);
         VBox card = new VBox(12, header, text);
         card.getStyleClass().add("admin-metric-card");
         card.setMaxWidth(Double.MAX_VALUE);
@@ -342,13 +338,9 @@ public class DashboardController {
         VBox table = new VBox();
         table.getStyleClass().add("exports-table");
         table.getChildren().add(createHeaderRow("BOX ID", "PROFILE", "PAGES", "SIZE", "DATE", "STATUS"));
-        table.getChildren().addAll(
-                skeletonRow("Loading scans..."),
-                skeletonRow("Loading scans..."),
-                skeletonRow("Loading scans..."),
-                skeletonRow("Loading scans..."),
-                skeletonRow("Loading scans...")
-        );
+        for (int rowIndex = 0; rowIndex < MAX_RECENT_SCAN_ROWS; rowIndex++) {
+            table.getChildren().add(skeletonRow());
+        }
 
         card.getChildren().addAll(header, table);
         return card;
@@ -367,14 +359,22 @@ public class DashboardController {
         return card;
     }
 
-    private GridPane skeletonRow(String message) {
+    private GridPane skeletonRow() {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("exports-table-row");
-        Label label = new Label(message);
-        label.getStyleClass().add("exports-table-cell");
-        row.add(label, 0, 0);
-        GridPane.setColumnSpan(label, 6);
+        row.add(skeletonCell(80, 12), 0, 0);
+        row.add(skeletonCell(120, 12), 1, 0);
+        row.add(skeletonCell(32, 12), 2, 0);
+        row.add(skeletonCell(56, 12), 3, 0);
+        row.add(skeletonCell(96, 12), 4, 0);
+        row.add(skeletonCell(72, 16), 5, 0);
         return row;
+    }
+
+    private HBox skeletonCell(double width, double height) {
+        HBox wrap = new HBox(SkeletonFactory.line(width, height));
+        wrap.setAlignment(Pos.CENTER_LEFT);
+        return wrap;
     }
 
     private Button createActionTile(String iconKey, String titleText, String bodyText, boolean primary, Runnable action) {

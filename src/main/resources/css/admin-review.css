@@ -2061,8 +2061,8 @@
 
 .qa-fix-button:hover,
 .qa-fix-button:pressed {
-    -fx-background-color: -wl-destructive;
-    -fx-border-color: -wl-destructive;
+    -fx-background-color: -wl-destructive-hover;
+    -fx-border-color: -wl-destructive-hover;
     -fx-text-fill: -wl-on-primary;
 }
 

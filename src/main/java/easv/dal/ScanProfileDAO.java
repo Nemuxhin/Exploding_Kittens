@@ -34,16 +34,16 @@ public class ScanProfileDAO {
                      SELECT id, name, %s code, description, status, metadata_template_name, export_naming,
                             last_updated, archived, barcode_splitting, barcode_detected_behavior,
                             barcode_page_behavior, default_rotation, brightness, contrast, deskew,
-                            export_format, metadata_required_before_export
+                            export_format, metadata_required_before_export%s
                      FROM %s
                      WHERE id = ?
-                     """.formatted(selectClientColumn(connection), profileTable(connection)))) {
+                     """.formatted(selectClientColumn(connection), selectAutosaveColumns(connection), profileTable(connection)))) {
             statement.setInt(1, profileId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
                     return Optional.empty();
                 }
-                return Optional.of(mapProfile(resultSet, hasClientColumn(connection)));
+                return Optional.of(mapProfile(resultSet, hasClientColumn(connection), hasAutosaveColumns(connection)));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch profile " + profileId, e);
@@ -59,16 +59,16 @@ public class ScanProfileDAO {
                      SELECT id, name, %s code, description, status, metadata_template_name, export_naming,
                             last_updated, archived, barcode_splitting, barcode_detected_behavior,
                             barcode_page_behavior, default_rotation, brightness, contrast, deskew,
-                            export_format, metadata_required_before_export
+                            export_format, metadata_required_before_export%s
                      FROM %s
                      WHERE LOWER(name) = LOWER(?)
-                     """.formatted(selectClientColumn(connection), profileTable(connection)))) {
+                     """.formatted(selectClientColumn(connection), selectAutosaveColumns(connection), profileTable(connection)))) {
             statement.setString(1, profileName.trim());
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
                     return Optional.empty();
                 }
-                return Optional.of(mapProfile(resultSet, hasClientColumn(connection)));
+                return Optional.of(mapProfile(resultSet, hasClientColumn(connection), hasAutosaveColumns(connection)));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch profile " + profileName, e);
@@ -86,14 +86,15 @@ public class ScanProfileDAO {
                         name, %s code, description, status, metadata_template_name, export_naming,
                         last_updated, archived, barcode_splitting, barcode_detected_behavior,
                         barcode_page_behavior, default_rotation, brightness, contrast, deskew,
-                        export_format, metadata_required_before_export
+                        export_format, metadata_required_before_export%s
                      ) VALUES (%s)
                      """.formatted(
                      profileTable(connection),
                      insertClientColumn(connection),
+                     insertAutosaveColumns(connection),
                      insertProfilePlaceholders(connection)
              ), PreparedStatement.RETURN_GENERATED_KEYS)) {
-            bindProfile(statement, profile, hasClientColumn(connection));
+            bindProfile(statement, profile, hasClientColumn(connection), hasAutosaveColumns(connection));
             statement.executeUpdate();
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (!generatedKeys.next()) {
@@ -114,10 +115,10 @@ public class ScanProfileDAO {
                          export_naming = ?, last_updated = ?, archived = ?, barcode_splitting = ?,
                          barcode_detected_behavior = ?, barcode_page_behavior = ?, default_rotation = ?,
                          brightness = ?, contrast = ?, deskew = ?, export_format = ?,
-                         metadata_required_before_export = ?
+                         metadata_required_before_export = ?%s
                      WHERE id = ?
-                     """.formatted(profileTable(connection), updateClientColumn(connection)))) {
-            int nextIndex = bindProfile(statement, profile, hasClientColumn(connection));
+                     """.formatted(profileTable(connection), updateClientColumn(connection), updateAutosaveColumns(connection)))) {
+            int nextIndex = bindProfile(statement, profile, hasClientColumn(connection), hasAutosaveColumns(connection));
             statement.setInt(nextIndex, profile.getId());
             statement.executeUpdate();
             return findById(profile.getId()).orElseThrow();
@@ -126,7 +127,7 @@ public class ScanProfileDAO {
         }
     }
 
-    private int bindProfile(PreparedStatement statement, ScanProfile profile, boolean includeClient) throws SQLException {
+    private int bindProfile(PreparedStatement statement, ScanProfile profile, boolean includeClient, boolean includeAutosave) throws SQLException {
         int index = 1;
         statement.setString(index++, profile.getName());
         if (includeClient) {
@@ -148,10 +149,15 @@ public class ScanProfileDAO {
         statement.setBoolean(index++, profile.isDeskew());
         statement.setString(index++, profile.getExportFormat());
         statement.setBoolean(index++, profile.isMetadataRequiredBeforeExport());
+        if (includeAutosave) {
+            statement.setBoolean(index++, profile.isAutosaveEnabled());
+            statement.setInt(index++, profile.getAutosaveIntervalSeconds());
+            statement.setBoolean(index++, profile.isAutosaveLocked());
+        }
         return index;
     }
 
-    private ScanProfile mapProfile(ResultSet resultSet, boolean includeClient) throws SQLException {
+    private ScanProfile mapProfile(ResultSet resultSet, boolean includeClient, boolean includeAutosave) throws SQLException {
         return new ScanProfile(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
@@ -171,7 +177,10 @@ public class ScanProfileDAO {
                 resultSet.getString("contrast"),
                 resultSet.getBoolean("deskew"),
                 resultSet.getString("export_format"),
-                resultSet.getBoolean("metadata_required_before_export")
+                resultSet.getBoolean("metadata_required_before_export"),
+                includeAutosave ? resultSet.getBoolean("autosave_enabled") : true,
+                includeAutosave ? resultSet.getInt("autosave_interval_seconds") : ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                includeAutosave && resultSet.getBoolean("autosave_locked")
         );
     }
 
@@ -211,15 +220,16 @@ public class ScanProfileDAO {
                      SELECT id, name, %s code, description, status, metadata_template_name, export_naming,
                             last_updated, archived, barcode_splitting, barcode_detected_behavior,
                             barcode_page_behavior, default_rotation, brightness, contrast, deskew,
-                            export_format, metadata_required_before_export
+                            export_format, metadata_required_before_export%s
                      FROM %s
                      ORDER BY id
-                     """.formatted(selectClientColumn(connection), profileTable(connection)));
+                     """.formatted(selectClientColumn(connection), selectAutosaveColumns(connection), profileTable(connection)));
              ResultSet resultSet = statement.executeQuery()) {
             List<ScanProfile> profiles = new ArrayList<>();
             boolean includeClient = hasClientColumn(connection);
+            boolean includeAutosave = hasAutosaveColumns(connection);
             while (resultSet.next()) {
-                profiles.add(mapProfile(resultSet, includeClient));
+                profiles.add(mapProfile(resultSet, includeClient, includeAutosave));
             }
             return profiles;
         } catch (SQLException e) {
@@ -235,21 +245,50 @@ public class ScanProfileDAO {
         return DatabaseConnection.columnExists(connection, profileTable(connection), "client");
     }
 
+    private boolean hasAutosaveColumns(Connection connection) throws SQLException {
+        // Treat the trio as one feature - either all three columns exist or none.
+        return DatabaseConnection.columnExists(connection, profileTable(connection), "autosave_enabled")
+                && DatabaseConnection.columnExists(connection, profileTable(connection), "autosave_interval_seconds")
+                && DatabaseConnection.columnExists(connection, profileTable(connection), "autosave_locked");
+    }
+
     private String selectClientColumn(Connection connection) throws SQLException {
         return hasClientColumn(connection) ? "client, " : "";
+    }
+
+    private String selectAutosaveColumns(Connection connection) throws SQLException {
+        return hasAutosaveColumns(connection)
+                ? ", autosave_enabled, autosave_interval_seconds, autosave_locked"
+                : "";
     }
 
     private String insertClientColumn(Connection connection) throws SQLException {
         return hasClientColumn(connection) ? "client, " : "";
     }
 
+    private String insertAutosaveColumns(Connection connection) throws SQLException {
+        return hasAutosaveColumns(connection)
+                ? ", autosave_enabled, autosave_interval_seconds, autosave_locked"
+                : "";
+    }
+
     private String updateClientColumn(Connection connection) throws SQLException {
         return hasClientColumn(connection) ? "client = ?, " : "";
     }
 
+    private String updateAutosaveColumns(Connection connection) throws SQLException {
+        return hasAutosaveColumns(connection)
+                ? ", autosave_enabled = ?, autosave_interval_seconds = ?, autosave_locked = ?"
+                : "";
+    }
+
     private String insertProfilePlaceholders(Connection connection) throws SQLException {
-        return hasClientColumn(connection)
+        StringBuilder placeholders = new StringBuilder(hasClientColumn(connection)
                 ? "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?"
-                : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+                : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+        if (hasAutosaveColumns(connection)) {
+            placeholders.append(", ?, ?, ?");
+        }
+        return placeholders.toString();
     }
 }

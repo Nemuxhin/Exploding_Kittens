@@ -8,6 +8,7 @@ import easv.bll.UserSession;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.MainApp;
 import easv.gui.controller.util.PrimeIcons;
+import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -438,6 +439,9 @@ public class UserController implements UserNavigator {
     }
 
     private void loadPage(UserPage page) {
+        if (activeScanController != null) {
+            activeScanController.stopAutosave();
+        }
         activeScanController = null;
 
         if (!page.hasFxml()) {
@@ -742,9 +746,15 @@ public class UserController implements UserNavigator {
         }
 
         int requestToken = ++notificationRenderToken;
-        notificationListContainer.getChildren().setAll(createNotificationStateLabel("Loading notifications..."));
+        SkeletonFactory.stopShimmers(notificationListContainer);
+        notificationListContainer.getChildren().setAll(
+                createNotificationSkeletonRow(),
+                createNotificationSkeletonRow(),
+                createNotificationSkeletonRow(),
+                createNotificationSkeletonRow()
+        );
         if (markNotificationsReadButton != null) {
-            markNotificationsReadButton.setText("Loading...");
+            markNotificationsReadButton.setText("Mark all as read");
             markNotificationsReadButton.setDisable(true);
         }
         if (viewAllNotificationsButton != null) {
@@ -765,6 +775,7 @@ public class UserController implements UserNavigator {
             return;
         }
 
+        SkeletonFactory.stopShimmers(notificationListContainer);
         notificationListContainer.getChildren().clear();
 
         if (notifications == null || notifications.isEmpty()) {
@@ -798,6 +809,22 @@ public class UserController implements UserNavigator {
         Label label = new Label(text);
         label.getStyleClass().add("exports-footer-text");
         return label;
+    }
+
+    private HBox createNotificationSkeletonRow() {
+        Region marker = SkeletonFactory.circle(8);
+
+        Region title = SkeletonFactory.line(160, 12);
+        Region copy = SkeletonFactory.line(220, 10, SkeletonFactory.Intensity.LIGHT);
+        VBox body = new VBox(6, title, copy);
+        HBox.setHgrow(body, Priority.ALWAYS);
+
+        Region time = SkeletonFactory.line(40, 10, SkeletonFactory.Intensity.LIGHT);
+
+        HBox row = new HBox(12, marker, body, time);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("user-notification-item");
+        return row;
     }
 
     private HBox createNotificationRow(easv.bll.QAService.NotificationSnapshot notification) {

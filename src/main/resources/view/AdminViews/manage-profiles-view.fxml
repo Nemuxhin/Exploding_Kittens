@@ -3,12 +3,15 @@
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -357,64 +360,54 @@
                                   maxWidth="Infinity"
                                   styleClass="profile-editor-section">
 
-                                <Label text="Page Correction Defaults"
+                                <Label text="Autosave &amp; Recovery"
                                        styleClass="profile-editor-section-title"/>
+
+                                <VBox spacing="12" maxWidth="Infinity">
+                                    <HBox spacing="24" alignment="CENTER_LEFT">
+                                        <fx:define>
+                                            <ToggleGroup fx:id="autosaveStateToggleGroup"/>
+                                        </fx:define>
+                                        <RadioButton fx:id="autosaveEnabledRadio"
+                                                     text="Autosave enabled"
+                                                     selected="true"
+                                                     toggleGroup="$autosaveStateToggleGroup"
+                                                     styleClass="profile-editor-radio"/>
+                                        <RadioButton fx:id="autosaveDisabledRadio"
+                                                     text="Off"
+                                                     toggleGroup="$autosaveStateToggleGroup"
+                                                     styleClass="profile-editor-radio"/>
+                                    </HBox>
+                                </VBox>
 
                                 <GridPane hgap="21"
                                           vgap="6"
                                           maxWidth="Infinity">
 
                                     <columnConstraints>
-                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
-                                        <ColumnConstraints percentWidth="33.333" hgrow="ALWAYS"/>
+                                        <ColumnConstraints percentWidth="100" hgrow="ALWAYS"/>
                                     </columnConstraints>
 
-                                    <Label text="Default rotation"
+                                    <Label text="Save every"
                                            styleClass="profile-editor-field-label"
                                            GridPane.columnIndex="0"
                                            GridPane.rowIndex="0"/>
 
-                                    <Label text="Brightness"
-                                           styleClass="profile-editor-field-label"
-                                           GridPane.columnIndex="1"
-                                           GridPane.rowIndex="0"/>
-
-                                    <Label text="Contrast"
-                                           styleClass="profile-editor-field-label"
-                                           GridPane.columnIndex="2"
-                                           GridPane.rowIndex="0"/>
-
-                                    <ComboBox fx:id="defaultRotationComboBox"
+                                    <ComboBox fx:id="autosaveIntervalComboBox"
                                               maxWidth="Infinity"
                                               styleClass="profile-editor-input"
                                               GridPane.columnIndex="0"
                                               GridPane.rowIndex="1"/>
-
-                                    <ComboBox fx:id="brightnessComboBox"
-                                              maxWidth="Infinity"
-                                              styleClass="profile-editor-input"
-                                              GridPane.columnIndex="1"
-                                              GridPane.rowIndex="1"/>
-
-                                    <ComboBox fx:id="contrastComboBox"
-                                              maxWidth="Infinity"
-                                              styleClass="profile-editor-input"
-                                              GridPane.columnIndex="2"
-                                              GridPane.rowIndex="1"/>
                                 </GridPane>
 
-                                <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
-                                    <Label text="Deskew / straighten pages"
-                                           styleClass="profile-editor-strong-text"/>
-
-                                    <Region HBox.hgrow="ALWAYS"/>
-
-                                    <ToggleButton fx:id="deskewToggle"
-                                                  selected="true"
-                                                  focusTraversable="false"
-                                                  styleClass="profile-editor-switch"/>
-                                </HBox>
+                                <VBox spacing="6" maxWidth="Infinity">
+                                    <CheckBox fx:id="autosaveLockedCheckBox"
+                                              text="Lock for this profile"
+                                              styleClass="profile-editor-checkbox"/>
+                                    <Label text="Scanners cannot disable autosave when working under this profile. Recommended for client work and large boxes."
+                                           wrapText="true"
+                                           styleClass="profile-editor-helper-text"/>
+                                </VBox>
 
                                 <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
                                     <Label text="Require QA for scanned boxes"
@@ -563,10 +556,10 @@
                             </VBox>
 
                             <VBox spacing="6">
-                                <Label text="Page correction:"
+                                <Label text="Autosave:"
                                        styleClass="profile-editor-preview-key"/>
-                                <Label fx:id="previewPageCorrectionLabel"
-                                       text="Rotation 0° · Brightness Normal · Contrast Normal · Deskew Enabled"
+                                <Label fx:id="previewAutosaveLabel"
+                                       text="Enabled · every 30 seconds"
                                        styleClass="profile-editor-preview-value"/>
                             </VBox>
 

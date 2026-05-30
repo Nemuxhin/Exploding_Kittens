@@ -8,8 +8,10 @@ import easv.bll.TiffImageSupport;
 import easv.bll.TiffExportManager;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.PrimeIcons;
+import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.UserPortalModel;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
@@ -157,11 +159,12 @@ public class AssignedQaController {
     private YearMonth displayedDateRangeMonth = YearMonth.now();
     private UserPortalModel portalModel;
     private final PauseTransition qaAutoSaveDelay = new PauseTransition(Duration.millis(400));
+    private boolean assignmentsLoading;
+    private long assignmentsLoadSequence;
 
     public void setPortalModel(UserPortalModel portalModel) {
         this.portalModel = portalModel;
         loadAssignments();
-        renderAssignments();
     }
 
     @FXML
@@ -171,7 +174,6 @@ public class AssignedQaController {
         configureQaControls();
         configureQaPreviewInteractions();
         loadAssignments();
-        renderAssignments();
         showAssignedQaListView();
     }
 
@@ -968,25 +970,51 @@ public class AssignedQaController {
         allAssignments.clear();
 
         if (portalModel == null) {
+            assignmentsLoading = false;
+            renderAssignments();
             return;
         }
-        for (QAService.QaAssignmentSnapshot assignment : portalModel.fetchAssignedQaAssignments()) {
-            allAssignments.add(new QaAssignment(
-                    assignment.reviewId(),
-                    assignment.sessionId(),
-                    assignment.boxId(),
-                    assignment.profileName(),
-                    assignment.scannedByName(),
-                    assignment.documents().size(),
-                    assignment.totalPages(),
-                    assignment.submittedAt().atZone(ZoneId.systemDefault()).toLocalDate(),
-                    formatAssignedTimeLabel(assignment.submittedAt()),
-                    assignment.reviewedPages(),
-                    toQaStatus(assignment.status(), assignment.issueCount()),
-                    assignment.issueCount(),
-                    assignment.documents()
-            ));
-        }
+
+        UserPortalModel portalSnapshot = portalModel;
+        long loadId = ++assignmentsLoadSequence;
+        assignmentsLoading = true;
+        renderAssignments();
+
+        BackgroundExecutor.io().execute(() -> {
+            List<QAService.QaAssignmentSnapshot> loadedAssignments;
+            try {
+                loadedAssignments = portalSnapshot.fetchAssignedQaAssignments();
+            } catch (RuntimeException exception) {
+                loadedAssignments = List.of();
+            }
+
+            List<QAService.QaAssignmentSnapshot> finalLoadedAssignments = loadedAssignments;
+            Platform.runLater(() -> {
+                if (loadId != assignmentsLoadSequence || portalModel != portalSnapshot) {
+                    return;
+                }
+                allAssignments.clear();
+                for (QAService.QaAssignmentSnapshot assignment : finalLoadedAssignments) {
+                    allAssignments.add(new QaAssignment(
+                            assignment.reviewId(),
+                            assignment.sessionId(),
+                            assignment.boxId(),
+                            assignment.profileName(),
+                            assignment.scannedByName(),
+                            assignment.documents().size(),
+                            assignment.totalPages(),
+                            assignment.submittedAt().atZone(ZoneId.systemDefault()).toLocalDate(),
+                            formatAssignedTimeLabel(assignment.submittedAt()),
+                            assignment.reviewedPages(),
+                            toQaStatus(assignment.status(), assignment.issueCount()),
+                            assignment.issueCount(),
+                            assignment.documents()
+                    ));
+                }
+                assignmentsLoading = false;
+                renderAssignments();
+            });
+        });
     }
 
     private QaStatus toQaStatus(QAService.QaReviewStatus status, int issueCount) {
@@ -1076,7 +1104,15 @@ public class AssignedQaController {
     // =========================================================
 
     private void renderAssignments() {
+        SkeletonFactory.stopShimmers(qaCardListContainer);
         qaCardListContainer.getChildren().clear();
+
+        if (assignmentsLoading) {
+            for (int cardIndex = 0; cardIndex < 6; cardIndex++) {
+                qaCardListContainer.getChildren().add(createAssignmentSkeletonCard());
+            }
+            return;
+        }
 
         List<QaAssignment> filteredAssignments = allAssignments.stream()
                 .filter(this::matchesSearch)
@@ -1093,6 +1129,47 @@ public class AssignedQaController {
         for (QaAssignment assignment : filteredAssignments) {
             qaCardListContainer.getChildren().add(createAssignmentCard(assignment));
         }
+    }
+
+    private VBox createAssignmentSkeletonCard() {
+        VBox card = new VBox(18);
+        card.getStyleClass().add("assigned-qa-card");
+        card.setMinWidth(280);
+        card.setPrefWidth(280);
+        card.setMaxWidth(280);
+        card.setMinHeight(350);
+        card.setPrefHeight(350);
+        card.setMaxHeight(350);
+
+        HBox titleRow = new HBox(15, SkeletonFactory.line(110, 18), SkeletonFactory.line(70, 16));
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        Region profile = SkeletonFactory.line(180, 14);
+        Region scannedBy = SkeletonFactory.line(150, 12, SkeletonFactory.Intensity.LIGHT);
+        Region summary = SkeletonFactory.line(200, 12);
+        Region assigned = SkeletonFactory.line(140, 12, SkeletonFactory.Intensity.LIGHT);
+        Region progress = SkeletonFactory.line(220, 12, SkeletonFactory.Intensity.LIGHT);
+
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        Region progressBar = SkeletonFactory.line(232, 10);
+
+        Region actionButton = SkeletonFactory.line(232, 40);
+
+        card.getChildren().addAll(
+                titleRow,
+                profile,
+                scannedBy,
+                summary,
+                assigned,
+                progress,
+                spacer,
+                progressBar,
+                actionButton
+        );
+
+        return card;
     }
 
     private VBox createEmptyState() {
@@ -2076,7 +2153,6 @@ public class AssignedQaController {
         qaAutoSaveDelay.stop();
         persistQaProgressAsync();
         loadAssignments();
-        renderAssignments();
         showAssignedQaListView();
     }
 
@@ -2251,14 +2327,12 @@ public class AssignedQaController {
         if (approved) {
             refreshQaReviewWorkspace();
             loadAssignments();
-            renderAssignments();
             showExportAlert(null, Alert.AlertType.INFORMATION, "QA approved",
                     "QA is complete. Export is now available for this review.");
             return;
         }
 
         loadAssignments();
-        renderAssignments();
         showAssignedQaListView();
         showExportAlert(null, Alert.AlertType.INFORMATION, "QA rejected",
                 "QA was rejected and returned to the scan owner with your comments.");
