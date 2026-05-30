@@ -54,15 +54,6 @@
     -fx-wrap-text: true;
 }
 
-.profile-card-divider,
-.profile-editor-section-divider,
-.assignment-divider {
-    -fx-min-height: 1;
-    -fx-pref-height: 1;
-    -fx-max-height: 1;
-    -fx-background-color: -wl-border;
-}
-
 .profile-info-label {
     -fx-text-fill: -wl-text-muted;
 }
@@ -225,41 +216,6 @@
 .profile-editor-field-label,
 .admin-field-label {
     -fx-text-fill: -wl-text;
-}
-
-.profile-editor-switch {
-    -fx-min-width: 60;
-    -fx-pref-width: 60;
-    -fx-max-width: 60;
-    -fx-min-height: 24;
-    -fx-pref-height: 24;
-    -fx-max-height: 24;
-    -fx-padding: 0;
-    -fx-background-color: -wl-switch-off-track, -wl-switch-thumb;
-    -fx-background-insets: 0, 3 39 3 3;
-    -fx-background-radius: 999, 999;
-    -fx-border-color: transparent;
-    -fx-border-radius: 999;
-    -fx-border-width: 0;
-    -fx-border-insets: 0;
-    -fx-text-fill: transparent;
-    -fx-effect: none;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.profile-editor-switch:selected {
-    -fx-background-color: -wl-switch-track, -wl-switch-thumb;
-    -fx-background-insets: 0, 3 3 3 39;
-    -fx-background-radius: 999, 999;
-}
-
-.profile-editor-switch:hover {
-    -fx-background-color: -wl-switch-off-track-hover, -wl-switch-thumb;
-}
-
-.profile-editor-switch:selected:hover {
-    -fx-background-color: -wl-switch-track-hover, -wl-switch-thumb;
 }
 
 .profile-editor-preview-box,

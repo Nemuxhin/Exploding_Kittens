@@ -261,7 +261,7 @@
 
 .portal-table-cell,
 .exports-table-cell {
-    -fx-text-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text;
 }
 
 .exports-table-cell-primary {

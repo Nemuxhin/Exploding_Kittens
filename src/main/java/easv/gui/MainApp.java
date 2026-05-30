@@ -50,6 +50,7 @@ public class MainApp extends Application {
             "/css/dark-mode.css",
             "/css/shell.css",
             "/css/user-portal.css",
+            "/css/dashboard.css",
             "/css/user-scan.css",
             "/css/user-qa.css",
             "/css/dialogs.css",

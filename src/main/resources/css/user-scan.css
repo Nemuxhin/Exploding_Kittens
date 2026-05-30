@@ -1554,7 +1554,7 @@
     -fx-min-height: 354;
     -fx-pref-height: 354;
     -fx-max-height: 354;
-    -fx-background-color: -wl-paper-bg;
+    -fx-background-color: -wl-surface;
     -fx-background-radius: 6;
     -fx-border-color: transparent;
 }

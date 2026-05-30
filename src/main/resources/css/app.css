@@ -95,13 +95,13 @@
     -wl-status-danger-bg: #FFF1F1;
     -wl-status-danger-border: #FFB4B4;
     -wl-status-danger-strong-border: #FF7A7A;
-    -wl-status-danger-text: #DC2626;
+    -wl-status-danger-text: #EF4444;
     -wl-status-neutral-bg: #F9F9F9;
     -wl-status-neutral-border: #E2E4E8;
     -wl-status-neutral-text: #64748B;
     -wl-status-error-bg: #FFF1F1;
     -wl-status-error-border: #FFB4B4;
-    -wl-status-error-text: #DC2626;
+    -wl-status-error-text: #FF3D32;
     -wl-status-error-hover-bg: #FFE1E1;
     -wl-status-success-hover-bg: #DDF8EF;
 
@@ -120,7 +120,7 @@
     -wl-tag-amber-text: #C96A00;
     -wl-tag-red-bg: #FFF1F1;
     -wl-tag-red-border: #FFB4B4;
-    -wl-tag-red-text: #DC2626;
+    -wl-tag-red-text: #FF3D32;
 
     /* Activity colors */
     -wl-activity-user-bg: #64748B;
@@ -163,7 +163,7 @@
     -wl-scroll-thumb-hover: #8C9AAF;
     -wl-progress-track: #E2E8F0;
     -wl-progress-review: #1D7DBA;
-    -wl-progress-issues: #D92D20;
+    -wl-progress-issues: #EF4444;
     -wl-progress-complete: #1F9D75;
 
     -fx-background-color: -wl-background;

@@ -17,7 +17,7 @@
     -wl-input-bg: #465160;
 
     -wl-text: #FFFFFF;
-    -wl-text-muted: #BFBFBF;
+    -wl-text-muted: #FFFFFF;
     -wl-table-header-text: #FFFFFF;
     -wl-on-primary: #FFFFFF;
     -wl-text-inverse: #2D3D4F;
@@ -38,7 +38,7 @@
     -wl-tertiary-button: #4B5563;
     -wl-tertiary-hover: #2B3B4C;
     -wl-border: #2B3B4C;
-    -wl-placeholder: #697489;
+    -wl-placeholder: #FFFFFF;
     -wl-surface-hover: #2B3B4C;
 
     -wl-destructive: #EF4444;
@@ -92,11 +92,11 @@
     -wl-status-danger-bg: #4A2512;
     -wl-status-danger-border: #9A1D1B;
     -wl-status-danger-strong-border: #9A1D1B;
-    -wl-status-danger-text: #FDBA74;
+    -wl-status-danger-text: #EF4444;
 
     -wl-status-error-bg: #4A2512;
     -wl-status-error-border: #9A1D1B;
-    -wl-status-error-text: #FDBA74;
+    -wl-status-error-text: #FF3D32;
     -wl-status-error-hover-bg: #4A2512;
 
     -wl-status-neutral-bg: #2D3D4F;
@@ -121,7 +121,7 @@
 
     -wl-tag-red-bg: #4A2512;
     -wl-tag-red-border: #9A1D1B;
-    -wl-tag-red-text: #FDBA74;
+    -wl-tag-red-text: #FF3D32;
 
     -wl-activity-user-bg: #74849A;
     -wl-activity-profile-bg: #8B5CF6;
@@ -138,12 +138,12 @@
 
     -wl-date-range-between-bg: #143358;
     -wl-progress-amber: #B7791F;
-    -wl-muted-icon: #697489;
+    -wl-muted-icon: #FFFFFF;
 
     -wl-workspace-viewer-bg: #2D3D4F;
     -wl-workspace-paper-bg: #FFFFFF;
     -wl-workspace-paper-border: #415060;
-    -wl-workspace-placeholder: #697489;
+    -wl-workspace-placeholder: #FFFFFF;
 
     -wl-role-admin-bg: #0D4F73;
     -wl-role-admin-text: #7DD3FC;
@@ -168,7 +168,7 @@
 
     -wl-progress-track: #415060;
     -wl-progress-review: #7DD3FC;
-    -wl-progress-issues: #FDBA74;
+    -wl-progress-issues: #EF4444;
     -wl-progress-complete: #4CD07D;
 
     -fx-background-color: -wl-background;
@@ -197,8 +197,6 @@
 
 .app-shell.dark .document-preview-page,
 .app-shell.dark .mock-document-page,
-.app-shell.dark .review-preview-empty,
-.app-shell.dark .scan-preview-empty,
 .app-shell.dark .page-tray-thumbnail,
 .app-shell.dark .review-page-tray-thumbnail,
 .app-shell.dark .review-page-tray-item-selected,
