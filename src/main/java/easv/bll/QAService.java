@@ -208,6 +208,7 @@ public class QAService {
     private Integer selectReviewer(String profileName, Integer creatorUserId) {
         List<User> users = userDAO.getAllUsers().stream()
                 .filter(User::isActive)
+                .filter(user -> !"Admin".equalsIgnoreCase(user.getRole()))
                 .filter(user -> creatorUserId == null || user.getId() != creatorUserId)
                 .toList();
 
@@ -217,7 +218,7 @@ public class QAService {
             }
         }
 
-        return users.isEmpty() ? creatorUserId : users.get(0).getId();
+        return users.isEmpty() ? null : users.get(0).getId();
     }
 
     private boolean matchesAssignedProfile(User user, String profileName) {

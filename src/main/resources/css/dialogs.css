@@ -1076,25 +1076,25 @@
 }
 
 .first-login-password-dialog-pane > .button-bar > .container {
-    -fx-padding: 0 0 8 0;
+    -fx-padding: 0 0 9 0;
     -fx-background-color: transparent;
     -fx-alignment: center-right;
 }
 
 .first-login-password-dialog-root {
-    -fx-padding: 34 38 34 38;
+    -fx-padding: 33 36 33 36;
     -fx-background-color: -wl-surface;
-    -fx-background-radius: 18;
+    -fx-background-radius: 10;
     -fx-border-color: -wl-border;
-    -fx-border-radius: 18;
+    -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 26, 0.18, 0, 8);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-max-width: 620;
     -fx-pref-width: 620;
 }
 
 .first-login-password-header {
-    -fx-padding: 0 0 4 0;
+    -fx-padding: 0 0 3 0;
     -fx-max-width: 500;
     -fx-pref-width: 500;
 }
@@ -1102,7 +1102,7 @@
 .first-login-password-title {
     -fx-text-fill: -wl-text;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 24px;
+    -fx-font-size: 21px;
     -fx-font-weight: 700;
 }
 
@@ -1117,8 +1117,8 @@
 .first-login-password-label {
     -fx-text-fill: -wl-text;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
 }
 
 .first-login-password-input-row {
@@ -1128,7 +1128,7 @@
 }
 
 .first-login-password-field {
-    -fx-padding: 2 0 0 0;
+    -fx-padding: 3 0 0 0;
     -fx-max-width: 420;
     -fx-pref-width: 420;
     -fx-alignment: center-left;
@@ -1137,16 +1137,16 @@
 .first-login-password-hint {
     -fx-text-fill: -wl-text-muted;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 13px;
-    -fx-font-weight: 500;
-    -fx-padding: -4 0 0 0;
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+    -fx-padding: -3 0 0 0;
     -fx-max-width: 420;
     -fx-pref-width: 420;
 }
 
 .first-login-password-actions {
     -fx-alignment: center;
-    -fx-padding: 10 0 0 0;
+    -fx-padding: 12 0 0 0;
     -fx-max-width: 420;
     -fx-pref-width: 420;
 }
@@ -1194,13 +1194,13 @@
 .first-login-password-validation {
     -fx-text-fill: -wl-destructive;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
     -fx-wrap-text: true;
     -fx-max-width: 420;
     -fx-pref-width: 420;
-    -fx-min-height: 22;
-    -fx-pref-height: 22;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
 }
 
 .first-login-password-dialog-pane.dark .first-login-password-dialog-root {

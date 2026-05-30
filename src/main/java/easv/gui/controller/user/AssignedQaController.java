@@ -1692,6 +1692,10 @@ public class AssignedQaController {
     private HBox createQaPageLabelRow(QaPage page, boolean centered) {
         HBox labelRow = new HBox(6);
         labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+        if (!centered) {
+            labelRow.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(labelRow, Priority.ALWAYS);
+        }
 
         Label pageLabel = new Label("Page " + page.pageNumber);
         pageLabel.getStyleClass().add(centered ? "page-tray-number" : "document-tree-page-title");
@@ -1709,11 +1713,7 @@ public class AssignedQaController {
                     approved ? Character.toString(0xE90A) : Character.toString(0xE922),
                     approved ? "qa-page-status-icon-approved" : "qa-page-status-icon-fix"
             );
-            Label statusLabel = new Label(approved ? "Approved" : "Needs Fix");
-            statusLabel.getStyleClass().add(
-                    approved ? "qa-page-status-text-approved" : "qa-page-status-text-fix"
-            );
-            labelRow.getChildren().addAll(statusIcon, statusLabel);
+            labelRow.getChildren().add(statusIcon);
         }
 
         return labelRow;
@@ -2274,6 +2274,12 @@ public class AssignedQaController {
             showExportBlockedMessage();
             return;
         }
+
+        // Flush any pending autosave so QA edits made just before clicking
+        // Export (rotation tweaks, status changes, comments) are persisted
+        // before we read the assignment back for the export plan.
+        qaAutoSaveDelay.stop();
+        persistQaProgressAsync();
 
         Stage stage = new Stage();
         stage.setTitle("TIFF Export");

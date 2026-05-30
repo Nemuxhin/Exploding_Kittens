@@ -492,7 +492,7 @@
 .reactivate-link-button .reactivate-link-icon {
     -fx-fill: -wl-primary;
     -fx-text-fill: -wl-primary;
-    -fx-font-size: 13px;
+    -fx-font-size: 12px;
 }
 
 .reactivate-link-button:hover .reactivate-link-icon {
@@ -729,7 +729,7 @@
     -fx-min-height: 60;
     -fx-pref-height: 60;
     -fx-padding: 0 18 0 18;
-    -fx-spacing: 10;
+    -fx-spacing: 9;
     -fx-alignment: center-left;
     -fx-background-color: -wl-surface;
     -fx-border-color: transparent transparent -wl-border transparent;

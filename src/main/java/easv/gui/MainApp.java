@@ -4,6 +4,7 @@ import easv.be.User;
 import easv.bll.UserSession;
 import easv.gui.controller.admin.AdminController;
 import easv.gui.controller.user.UserController;
+import easv.gui.controller.util.ComboBoxes;
 import easv.gui.controller.util.LoginController;
 import easv.gui.controller.util.PrimeIcons;
 import javafx.application.Application;
@@ -149,6 +150,7 @@ public class MainApp extends Application {
         Scene scene = new Scene(root, width, height);
         addStylesheets(scene, stylesheets);
         PrimeIcons.applyFont(root);
+        ComboBoxes.applyToScene(scene);
 
         stage.setTitle(title);
         stage.setScene(scene);

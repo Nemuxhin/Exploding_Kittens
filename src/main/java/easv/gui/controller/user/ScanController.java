@@ -1923,6 +1923,11 @@ public class ScanController {
     }
 
     private UserPortalModel.InMemoryScanProgress createInMemoryScanProgress(String status) {
+        // Resync documents/pendingPages with the latest allPages state so that
+        // edits made since the last explicit rebuild (rotations, page moves,
+        // deletes, splits) are reflected in whatever consumer this snapshot
+        // feeds — save-to-DB, submit-to-QA, or export.
+        rebuildDocumentsFromPages();
         List<UserPortalModel.InMemoryScanPage> savedPages = allPages.stream()
                 .map(this::toInMemoryScanPage)
                 .toList();
@@ -3829,6 +3834,10 @@ public class ScanController {
     private HBox createScanPageLabelRow(ScannedPage page, String baseLabel, boolean centered) {
         HBox labelRow = new HBox(6);
         labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+        if (!centered) {
+            labelRow.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(labelRow, Priority.ALWAYS);
+        }
 
         Label pageLabel = new Label(baseLabel);
         pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
@@ -3841,9 +3850,7 @@ public class ScanController {
                 labelRow.getChildren().add(statusSpacer);
             }
             Label statusIcon = PrimeIcons.create(Character.toString(0xE922), "qa-page-status-icon-fix");
-            Label statusLabel = new Label("Needs Rescan");
-            statusLabel.getStyleClass().add("qa-page-status-text-fix");
-            labelRow.getChildren().addAll(statusIcon, statusLabel);
+            labelRow.getChildren().add(statusIcon);
         }
 
         return labelRow;
@@ -3856,6 +3863,13 @@ public class ScanController {
 
     @FXML
     public void onOpenExportTypeDialog() {
+        // Persist the latest scan edits before exporting so rotations, manual
+        // splits, page moves, and rescan flags can't be lost if the user
+        // navigates away or the app crashes after the export dialog opens.
+        if (activeScanSession != null) {
+            portalModel.saveScanProgress(activeScanSession.getId(), createInMemoryScanProgress("Saved"));
+        }
+
         Stage stage = new Stage();
         stage.setTitle("TIFF Export");
         stage.initModality(Modality.WINDOW_MODAL);

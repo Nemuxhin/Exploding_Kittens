@@ -592,18 +592,12 @@ public class AdminManager {
             return List.of();
         }
 
-        List<User> activeUsers = users.stream()
+        return users.stream()
                 .filter(User::isActive)
+                .filter(user -> !"Admin".equalsIgnoreCase(user.getRole()))
                 .filter(user -> assignment.createdByUserId() == null || user.getId() != assignment.createdByUserId())
                 .sorted(Comparator.comparing(User::getName, String.CASE_INSENSITIVE_ORDER))
                 .toList();
-
-        List<User> matchingProfile = activeUsers.stream()
-                .filter(user -> user.getAssignedProfiles().stream()
-                        .anyMatch(profile -> profile.equalsIgnoreCase(assignment.profileName())))
-                .toList();
-
-        return matchingProfile.isEmpty() ? activeUsers : matchingProfile;
     }
 
     public Map<Integer, Set<Integer>> getProfileAssignments() {

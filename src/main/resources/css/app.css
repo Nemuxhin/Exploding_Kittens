@@ -681,6 +681,10 @@
     -fx-cell-size: 30;
 }
 
+/* Popup width: at least the trigger width (ComboBoxes utility binds
+   minWidth) but free to grow if an item is longer. No horizontal scroll
+   needed — content fits naturally. */
+
 .combo-box-popup .list-cell {
     -fx-background-color: -wl-surface;
     -fx-text-fill: -wl-text;
@@ -794,14 +798,17 @@
     -fx-text-fill: -wl-status-danger-text;
 }
 
-/* QA per-page review status — text label + primeicons glyph */
-.qa-page-status-text-approved,
-.qa-page-status-icon-approved {
+/* QA per-page review status — colored primeicons glyph (font + vector paths).
+   Two-class selectors beat shell.css's .prime-icon / .prime-icon-vector. */
+.qa-page-status-icon-approved.prime-icon,
+.qa-page-status-icon-approved.prime-icon-vector {
+    -fx-fill: -wl-success;
     -fx-text-fill: -wl-success;
 }
 
-.qa-page-status-text-fix,
-.qa-page-status-icon-fix {
+.qa-page-status-icon-fix.prime-icon,
+.qa-page-status-icon-fix.prime-icon-vector {
+    -fx-fill: -wl-error;
     -fx-text-fill: -wl-error;
 }
 

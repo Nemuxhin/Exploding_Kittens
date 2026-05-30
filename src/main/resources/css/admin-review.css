@@ -405,7 +405,7 @@
     -fx-border-width: 1;
     -fx-border-insets: 0;
     -fx-padding: 6;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .combo-box-popup .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell,
@@ -667,7 +667,7 @@
 
 .review-strip-label-row {
     -fx-alignment: center-left;
-    -fx-spacing: 5;
+    -fx-spacing: 6;
 }
 
 .review-strip-label,
@@ -1037,7 +1037,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 18, 0, 0, 6);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .qa-picker-header {

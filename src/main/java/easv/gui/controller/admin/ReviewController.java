@@ -2609,6 +2609,10 @@ public class ReviewController {
     private HBox createWorkspacePageLabelRow(WorkspaceQaPage page, String baseLabel, boolean centered) {
         HBox labelRow = new HBox(6);
         labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
+        if (!centered) {
+            labelRow.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(labelRow, Priority.ALWAYS);
+        }
 
         Label pageLabel = new Label(baseLabel);
         pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
@@ -2626,11 +2630,7 @@ public class ReviewController {
                     approved ? Character.toString(0xE90A) : Character.toString(0xE922),
                     approved ? "qa-page-status-icon-approved" : "qa-page-status-icon-fix"
             );
-            Label statusLabel = new Label(approved ? "Approved" : "Needs Fix");
-            statusLabel.getStyleClass().add(
-                    approved ? "qa-page-status-text-approved" : "qa-page-status-text-fix"
-            );
-            labelRow.getChildren().addAll(statusIcon, statusLabel);
+            labelRow.getChildren().add(statusIcon);
         }
 
         return labelRow;

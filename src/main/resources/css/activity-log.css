@@ -178,7 +178,7 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-padding: 6;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 15, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .combo-box-popup .list-cell {
@@ -250,7 +250,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 6;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .logs-search-popover {
@@ -317,7 +317,7 @@
 
 .logs-status-options {
     -fx-padding: 9 9 6 9;
-    -fx-spacing: 5;
+    -fx-spacing: 6;
 }
 
 .logs-status-checkbox {
@@ -585,7 +585,7 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-border-insets: 0;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .logs-select-popover-scroll {
@@ -839,7 +839,7 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-border-insets: 0;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .logs-time-popover-scroll {
@@ -1213,7 +1213,7 @@
 .activity-log-page.logs-page .logs-sort-popover,
 .activity-log-page.logs-page .logs-sort-popover:focused {
     -fx-border-color: -wl-border;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 16, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
@@ -1762,7 +1762,7 @@
 
 .activity-log-page.logs-page .logs-payload-simple-body {
     -fx-padding: 15 21 15 21;
-    -fx-spacing: 10;
+    -fx-spacing: 9;
 }
 
 .activity-log-page.logs-page .logs-payload-simple-row {
@@ -2062,7 +2062,7 @@
     -fx-border-color: -wl-border;
     -fx-border-radius: 10;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0.16, 0, 3);
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
 .activity-log-page.logs-page .logs-payload-card-header {
