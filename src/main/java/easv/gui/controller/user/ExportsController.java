@@ -269,10 +269,17 @@ public class ExportsController {
             root.getStyleClass().add("dark");
         }
 
-        URL stylesheetUrl = getClass().getResource("/css/app.css");
+        // Separate Stage/Scene, so it does NOT inherit the app's stylesheets.
+        // Reuse the owning scene's full list (app.css, tokens, export.css, etc.)
+        // so the export dialog is fully styled rather than only app.css.
         Scene scene = new Scene(root);
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        if (table.getScene() != null) {
+            scene.getStylesheets().setAll(table.getScene().getStylesheets());
+        } else {
+            URL stylesheetUrl = getClass().getResource("/css/app.css");
+            if (stylesheetUrl != null) {
+                scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+            }
         }
 
         stage.setScene(scene);

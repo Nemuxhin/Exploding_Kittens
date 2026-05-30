@@ -4007,10 +4007,21 @@ public class ScanController {
         StackPane root = new StackPane(content);
         root.getStyleClass().addAll("app-shell", "exports-dialog-stage");
 
-        URL stylesheetUrl = getClass().getResource("/css/app.css");
+        // Separate Stage/Scene, so it does NOT inherit the app's stylesheets.
+        // Reuse the owning scene's full list (app.css, tokens, export.css, etc.)
+        // so the export dialog is fully styled, and carry over dark mode.
         Scene scene = new Scene(root);
-        if (stylesheetUrl != null) {
-            scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+        if (reviewWorkspaceView != null && reviewWorkspaceView.getScene() != null) {
+            scene.getStylesheets().setAll(reviewWorkspaceView.getScene().getStylesheets());
+            if (reviewWorkspaceView.getScene().getRoot() != null
+                    && reviewWorkspaceView.getScene().getRoot().getStyleClass().contains("dark")) {
+                root.getStyleClass().add("dark");
+            }
+        } else {
+            URL stylesheetUrl = getClass().getResource("/css/app.css");
+            if (stylesheetUrl != null) {
+                scene.getStylesheets().add(stylesheetUrl.toExternalForm());
+            }
         }
 
         stage.setScene(scene);
