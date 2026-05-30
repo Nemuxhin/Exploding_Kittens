@@ -290,7 +290,7 @@ public class DashboardController {
         return countReviewRecords(record ->
                 contains(record.getQaStatus(), "waiting")
                         || contains(record.getQaStatus(), "ready")
-                        || contains(record.getDocumentDetailsStatus(), "ready")
+                        || contains(record.getMetadataStatus(), "ready")
         );
     }
 

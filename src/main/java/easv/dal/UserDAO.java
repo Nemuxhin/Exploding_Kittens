@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Reads and writes users through the existing database user tables.
- */
 public class UserDAO {
 
     private final DatabaseConnection databaseConnection;
@@ -28,7 +25,6 @@ public class UserDAO {
 
     public UserDAO(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
-        ensureMustChangePasswordColumn();
     }
 
     public User findByUsername(String username) {
@@ -429,21 +425,6 @@ public class UserDAO {
                 resultSet.getBoolean("is_current_user"),
                 resultSet.getBoolean("must_change_password")
         );
-    }
-
-    private void ensureMustChangePasswordColumn() {
-        try (Connection connection = databaseConnection.getConnection()) {
-            if (!DatabaseConnection.columnExists(connection, "users", "must_change_password")) {
-                try (PreparedStatement statement = connection.prepareStatement("""
-                        ALTER TABLE users
-                        ADD must_change_password BIT NOT NULL CONSTRAINT DF_users_must_change_password DEFAULT 0
-                        """)) {
-                    statement.executeUpdate();
-                }
-            }
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to verify the users.must_change_password column.", exception);
-        }
     }
 
     private int readGeneratedIntId(Statement statement) throws SQLException {

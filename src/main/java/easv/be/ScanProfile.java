@@ -3,7 +3,7 @@ package easv.be;
 public class ScanProfile {
     public static final String DEFAULT_EXPORT_NAMING = "{profileName}_{boxId}";
 
-    private static final String LEGACY_PROFILE_CODE_TOKEN = "{profileCode}";
+    private static final String PROFILE_CODE_TOKEN = "{profileCode}";
     private static final String PROFILE_NAME_TOKEN = "{profileName}";
 
     private final int id;
@@ -12,7 +12,6 @@ public class ScanProfile {
     private String code;
     private String description;
     private String status;
-    private String metadataTemplateName;
     private String exportNaming;
     private String lastUpdated;
 
@@ -33,7 +32,6 @@ public class ScanProfile {
             String code,
             String description,
             String status,
-            String metadataTemplateName,
             String exportNaming,
             String lastUpdated,
             boolean archived,
@@ -54,7 +52,6 @@ public class ScanProfile {
                 code,
                 description,
                 status,
-                metadataTemplateName,
                 exportNaming,
                 lastUpdated,
                 archived,
@@ -77,7 +74,6 @@ public class ScanProfile {
             String code,
             String description,
             String status,
-            String metadataTemplateName,
             String exportNaming,
             String lastUpdated,
             boolean archived,
@@ -97,7 +93,6 @@ public class ScanProfile {
         this.code = clean(code);
         this.description = clean(description);
         this.status = clean(status);
-        this.metadataTemplateName = clean(metadataTemplateName);
         this.exportNaming = normalizeExportNaming(exportNaming);
         this.lastUpdated = clean(lastUpdated);
         this.archived = archived;
@@ -118,7 +113,6 @@ public class ScanProfile {
     public String getCode() { return code; }
     public String getDescription() { return description; }
     public String getStatus() { return status; }
-    public String getMetadataTemplateName() { return metadataTemplateName; }
     public String getExportNaming() { return exportNaming; }
     public String getLastUpdated() { return lastUpdated; }
 
@@ -132,15 +126,12 @@ public class ScanProfile {
     public boolean isDeskew() { return deskew; }
     public String getExportFormat() { return exportFormat; }
     public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
-    public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
-    public boolean isQaRequired() { return metadataRequiredBeforeExport; }
 
     public void setName(String name) { this.name = clean(name); }
     public void setClient(String client) { this.client = clean(client); }
     public void setCode(String code) { this.code = clean(code); }
     public void setDescription(String description) { this.description = clean(description); }
     public void setStatus(String status) { this.status = clean(status); }
-    public void setMetadataTemplateName(String metadataTemplateName) { this.metadataTemplateName = clean(metadataTemplateName); }
     public void setExportNaming(String exportNaming) { this.exportNaming = normalizeExportNaming(exportNaming); }
     public void setLastUpdated(String lastUpdated) { this.lastUpdated = clean(lastUpdated); }
 
@@ -156,12 +147,6 @@ public class ScanProfile {
     public void setMetadataRequiredBeforeExport(boolean metadataRequiredBeforeExport) {
         this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
     }
-    public void setDocumentDetailsRequiredBeforeExport(boolean documentDetailsRequiredBeforeExport) {
-        this.metadataRequiredBeforeExport = documentDetailsRequiredBeforeExport;
-    }
-    public void setQaRequired(boolean qaRequired) {
-        this.metadataRequiredBeforeExport = qaRequired;
-    }
 
     private static String clean(String value) {
         return value == null ? "" : value.trim();
@@ -174,6 +159,6 @@ public class ScanProfile {
             return DEFAULT_EXPORT_NAMING;
         }
 
-        return cleaned.replace(LEGACY_PROFILE_CODE_TOKEN, PROFILE_NAME_TOKEN);
+        return cleaned.replace(PROFILE_CODE_TOKEN, PROFILE_NAME_TOKEN);
     }
 }

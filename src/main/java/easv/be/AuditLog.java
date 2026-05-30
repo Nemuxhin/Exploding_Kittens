@@ -12,11 +12,6 @@ public class AuditLog {
     private final String target;
     private final String status;
     private final String description;
-    private final Integer userId;
-    private final String userName;
-    private final String pageId;
-    private final String documentId;
-    private final String caseId;
     private final List<AuditLogDetail> details;
 
     public AuditLog(
@@ -30,25 +25,6 @@ public class AuditLog {
             String description,
             List<AuditLogDetail> details
     ) {
-        this(id, timestamp, type, actor, action, target, status, description, null, actor, null, null, null, details);
-    }
-
-    public AuditLog(
-            int id,
-            LocalDateTime timestamp,
-            String type,
-            String actor,
-            String action,
-            String target,
-            String status,
-            String description,
-            Integer userId,
-            String userName,
-            String pageId,
-            String documentId,
-            String caseId,
-            List<AuditLogDetail> details
-    ) {
         this.id = id;
         this.timestamp = timestamp;
         this.type = clean(type);
@@ -57,11 +33,6 @@ public class AuditLog {
         this.target = clean(target);
         this.status = clean(status);
         this.description = clean(description);
-        this.userId = userId;
-        this.userName = clean(userName);
-        this.pageId = clean(pageId);
-        this.documentId = clean(documentId);
-        this.caseId = clean(caseId);
         this.details = details == null ? List.of() : List.copyOf(details);
     }
 
@@ -73,11 +44,6 @@ public class AuditLog {
     public String getTarget() { return target; }
     public String getStatus() { return status; }
     public String getDescription() { return description; }
-    public Integer getUserId() { return userId; }
-    public String getUserName() { return userName; }
-    public String getPageId() { return pageId; }
-    public String getDocumentId() { return documentId; }
-    public String getCaseId() { return caseId; }
     public List<AuditLogDetail> getDetails() { return details; }
 
     private static String clean(String value) {

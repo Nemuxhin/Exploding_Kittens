@@ -1,4 +1,4 @@
-USE [Exploding_Kittens];
+USE [Exploding_KittensV2];
 GO
 
 UPDATE dbo.users

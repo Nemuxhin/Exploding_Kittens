@@ -2354,7 +2354,7 @@ public class AssignedQaController {
         String boxId = selectedAssignment == null ? "" : selectedAssignment.boxId;
         ScanProfile profile = portalModel == null ? null : portalModel.fetchScanProfileByName(profileName);
         String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
-        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), "{profileCode}_{boxId}");
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING);
 
         try {
             Path outputDirectory = Path.of(

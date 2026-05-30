@@ -1,9 +1,7 @@
 package easv.bll;
 
 import easv.be.AuditLog;
-import easv.be.CaseMetadata;
 import easv.be.Document;
-import easv.be.MetadataTemplate;
 import easv.be.PageImage;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
@@ -11,6 +9,7 @@ import easv.be.TiffExportPlan;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
+import easv.dal.ReviewRecordDAO;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,42 +82,12 @@ class AuditMetadataExportTest {
     }
 
     @Test
-    void metadataCanBeSavedLoadedAndLocked() {
-        MetadataManager metadataManager = new MetadataManager(new MetadataDAO(), new AuditLogManager(AuditLogDAO.inMemory()));
-
-        boolean saved = metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Ready"));
-        CaseMetadata loaded = metadataManager.loadMetadataForm("CASE-1");
-
-        assertTrue(saved);
-        assertEquals("Ready", loaded.getValues().get("Notes"));
-        assertTrue(metadataManager.canEdit("CASE-1"));
-
-        metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Completed"), true, false);
-
-        assertFalse(metadataManager.saveMetadata("CASE-1", "Building Archive", "BOX-1", Map.of("Notes", "Changed")));
-    }
-
-    @Test
-    void sharedMetadataManagerKeepsMetadataAcrossControllers() {
-        Map<String, CaseMetadata> sharedMetadata = new LinkedHashMap<>();
-        AuditLogManager auditLogManager = new AuditLogManager(AuditLogDAO.inMemory());
-        MetadataManager firstControllerManager = new MetadataManager(sharedMetadata, auditLogManager);
-        MetadataManager secondControllerManager = new MetadataManager(sharedMetadata, auditLogManager);
-
-        firstControllerManager.saveMetadata("CASE-SHARED", "Building Archive", "BOX-2", Map.of("Notes", "Shared"));
-
-        CaseMetadata loaded = secondControllerManager.loadMetadataForm("CASE-SHARED");
-
-        assertNotNull(loaded);
-        assertEquals("Shared", loaded.getValues().get("Notes"));
-    }
-
-    @Test
     void adminUserActionsUseLoggedInAdminName() {
         UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
         AdminManager adminManager = new AdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
+                new FakeReviewRecordDAO(),
                 AuditLogDAO.inMemory()
         );
 
@@ -146,6 +114,7 @@ class AuditMetadataExportTest {
         AdminManager adminManager = new AdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
+                new FakeReviewRecordDAO(),
                 AuditLogDAO.inMemory()
         );
 
@@ -175,6 +144,7 @@ class AuditMetadataExportTest {
         AdminManager adminManager = new AdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
+                new FakeReviewRecordDAO(),
                 AuditLogDAO.inMemory()
         );
 
@@ -211,6 +181,7 @@ class AuditMetadataExportTest {
         AdminManager adminManager = new AdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
+                new FakeReviewRecordDAO(),
                 AuditLogDAO.inMemory()
         );
 
@@ -220,8 +191,7 @@ class AuditMetadataExportTest {
                 "NewProfile2",
                 "Used for test scanning.",
                 "Active",
-                "Metadata Form",
-                "{profileCode}_{boxId}",
+                "{profileName}_{boxId}",
                 true,
                 "Start new document",
                 "Remove barcode page from final document",
@@ -274,7 +244,7 @@ class AuditMetadataExportTest {
         TiffExportPlan multiPagePlan = tiffExportManager.createMultiPagePlan(
                 "",
                 "",
-                "{profileCode}_{boxId}_{documentNumber}",
+                "{profileName}_{boxId}_{documentNumber}",
                 "",
                 List.of(
                         new Document("DOC-1", List.of(pageOne)),
@@ -319,7 +289,7 @@ class AuditMetadataExportTest {
         TiffExportPlan plan = tiffExportManager.createSinglePagePlan(
                 "Profile A",
                 "PA",
-                "{profileCode}_{boxId}_{documentNumber}",
+                "{profileName}_{boxId}_{documentNumber}",
                 "BOX-1",
                 List.of(documentOnePageOne, documentTwoPageOne)
         );
@@ -411,10 +381,10 @@ class AuditMetadataExportTest {
             ScanProfile savedProfile = new ScanProfile(
                     nextProfileId++,
                     profile.getName(),
+                    profile.getClient(),
                     profile.getCode(),
                     profile.getDescription(),
                     profile.getStatus(),
-                    profile.getMetadataTemplateName(),
                     profile.getExportNaming(),
                     profile.getLastUpdated(),
                     profile.isArchived(),
@@ -442,25 +412,16 @@ class AuditMetadataExportTest {
         public void deleteProfile(int profileId) {
             profiles.removeIf(profile -> profile.getId() == profileId);
         }
+    }
 
-        @Override
-        public List<MetadataTemplate> getMetadataTemplates() {
-            return List.of();
-        }
-
-        @Override
-        public int nextMetadataTemplateId() {
-            return 1;
-        }
-
-        @Override
-        public int nextMetadataFieldId() {
-            return 1;
-        }
-
+    private static class FakeReviewRecordDAO extends ReviewRecordDAO {
         @Override
         public List<ReviewRecord> getReviewRecords() {
             return List.of();
+        }
+
+        @Override
+        public void saveReviewRecord(ReviewRecord record) {
         }
     }
 }

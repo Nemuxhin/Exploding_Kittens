@@ -62,7 +62,7 @@
 
                     <VBox spacing="3" styleClass="page-heading-copy">
                         <Label text="Review Center" styleClass="page-title"/>
-                        <Label text="Track scanned boxes through document details, QA assignment, QA review, and export readiness"
+                        <Label text="Track scanned boxes through metadata review, QA assignment, QA review, and export readiness"
                                styleClass="page-subtitle"/>
                     </VBox>
 
