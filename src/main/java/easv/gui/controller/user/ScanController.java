@@ -273,17 +273,16 @@ public class ScanController {
             });
         }
 
-        // Manual rotate buttons sit under the combo box; each click rotates the
-        // selected page by ROTATION_STEP_DEGREES (5°). Keep them visible.
+        // Manual rotate buttons sit side by side under the combo box; each click
+        // rotates the selected page by ROTATION_STEP_DEGREES (5°). Their icon +
+        // degree labels are defined in scan-view.fxml, so don't override text here.
         if (rotateLeftButton != null) {
             rotateLeftButton.setVisible(true);
             rotateLeftButton.setManaged(true);
-            rotateLeftButton.setText("Rotate Left (" + ROTATION_STEP_DEGREES + "°)");
         }
         if (rotateRightButton != null) {
             rotateRightButton.setVisible(true);
             rotateRightButton.setManaged(true);
-            rotateRightButton.setText("Rotate Right (" + ROTATION_STEP_DEGREES + "°)");
         }
     }
 
@@ -2085,21 +2084,11 @@ public class ScanController {
         loadSelectedPreviewState();
         updateWorkspaceHeader();
         refreshHeaderInfoChips();
-        updateRotationButtons();
         syncPageRotationComboBox();
         renderDocumentTree();
         renderPageTray();
         renderPreview();
         updateUndoButtonState();
-    }
-
-    private void updateRotationButtons() {
-        if (rotateLeftButton == null || rotateRightButton == null) {
-            return;
-        }
-
-        rotateLeftButton.setText("Rotate Left (" + ROTATION_STEP_DEGREES + "\u00B0)");
-        rotateRightButton.setText("Rotate Right (" + ROTATION_STEP_DEGREES + "\u00B0)");
     }
 
     private void syncBoxRotationComboBox() {
