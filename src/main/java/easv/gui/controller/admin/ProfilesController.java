@@ -3,6 +3,9 @@ package easv.gui.controller.admin;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.bll.AutosaveSettingsStore;
+import easv.gui.controller.util.BackgroundExecutor;
+import easv.gui.controller.util.SkeletonFactory;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -125,6 +128,7 @@ public class ProfilesController {
     @FXML private Label previewExportFormatLabel;
 
     private final ObservableList<ScanProfile> masterProfiles = FXCollections.observableArrayList();
+    private final AutosaveSettingsStore autosaveSettingsStore = new AutosaveSettingsStore();
 
     private FilteredList<ScanProfile> filteredProfiles;
     private ScanProfile currentProfile;
@@ -132,6 +136,8 @@ public class ProfilesController {
 
     private AdminManager adminManager;
     private AdminNavigator navigator = AdminNavigator.none();
+    private boolean profilesLoading;
+    private long profilesLoadSequence;
 
     void setNavigator(AdminNavigator navigator) {
         this.navigator = navigator == null ? AdminNavigator.none() : navigator;
@@ -199,11 +205,15 @@ public class ProfilesController {
         autosaveIntervalComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
         autosaveLockedCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> syncPreview());
 
-        // The "Off" radio leaves interval/lock visually meaningless;
-        // disable to prevent confusion without blocking the actual save path.
+        // The "Off" radio leaves interval/lock meaningless; disable them, and
+        // clear the lock so we can't persist the contradictory Off+locked state
+        // (the scan side treats lock as "force on", which would override Off).
         autosaveDisabledRadio.selectedProperty().addListener((observable, oldValue, disabled) -> {
             autosaveIntervalComboBox.setDisable(disabled);
             autosaveLockedCheckBox.setDisable(disabled);
+            if (disabled) {
+                autosaveLockedCheckBox.setSelected(false);
+            }
         });
 
         barcodeDetectedComboBox.valueProperty().addListener((observable, oldValue, newValue) -> syncPreview());
@@ -231,11 +241,34 @@ public class ProfilesController {
 
     private void loadProfiles() {
         if (adminManager == null) {
+            profilesLoading = false;
             masterProfiles.clear();
             return;
         }
 
-        masterProfiles.setAll(adminManager.getProfiles());
+        AdminManager managerSnapshot = adminManager;
+        long loadId = ++profilesLoadSequence;
+        profilesLoading = true;
+        renderProfileCards();
+
+        BackgroundExecutor.io().execute(() -> {
+            List<ScanProfile> loadedProfiles;
+            try {
+                loadedProfiles = managerSnapshot.getProfiles();
+            } catch (RuntimeException exception) {
+                loadedProfiles = List.of();
+            }
+
+            List<ScanProfile> finalLoadedProfiles = loadedProfiles;
+            Platform.runLater(() -> {
+                if (loadId != profilesLoadSequence || adminManager != managerSnapshot) {
+                    return;
+                }
+                profilesLoading = false;
+                masterProfiles.setAll(finalLoadedProfiles);
+                applyFilters();
+            });
+        });
     }
 
     private void applyFilters() {
@@ -274,6 +307,23 @@ public class ProfilesController {
     }
 
     private void renderProfileCards() {
+        SkeletonFactory.stopShimmers(profilesCardsGrid);
+
+        if (profilesLoading) {
+            List<VBox> skeletonCards = new ArrayList<>();
+            for (int cardIndex = 0; cardIndex < 6; cardIndex++) {
+                skeletonCards.add(buildProfileSkeletonCard());
+            }
+            profilesCardsGrid.getChildren().setAll(skeletonCards);
+            profilesCountLabel.setText("");
+            profilesCardsGrid.setVisible(true);
+            profilesCardsGrid.setManaged(true);
+            emptyStateBox.setVisible(false);
+            emptyStateBox.setManaged(false);
+            Platform.runLater(this::layoutProfileGrid);
+            return;
+        }
+
         List<VBox> cards = filteredProfiles.stream()
                 .map(this::buildProfileCard)
                 .toList();
@@ -292,6 +342,44 @@ public class ProfilesController {
         emptyStateBox.setManaged(!hasProfiles);
 
         Platform.runLater(this::layoutProfileGrid);
+    }
+
+    private VBox buildProfileSkeletonCard() {
+        // Matches the reference exactly: two small pills at top, a big
+        // central rectangle, two stacked pills (title + subtitle) below it,
+        // and a wider button pill + small circle at the bottom.
+        VBox card = new VBox(16);
+        card.getStyleClass().add("profile-card");
+        card.setMinWidth(0);
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        Region topLeftPill = SkeletonFactory.line(96, 22);
+        Region topRightPill = SkeletonFactory.line(56, 22);
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+        HBox topRow = new HBox(topLeftPill, topSpacer, topRightPill);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        Region preview = SkeletonFactory.line(Double.MAX_VALUE, 150);
+        preview.setMaxWidth(Double.MAX_VALUE);
+        preview.setMinWidth(0);
+
+        Region titlePill = SkeletonFactory.line(160, 18);
+        Region subtitlePill = SkeletonFactory.line(120, 14, SkeletonFactory.Intensity.LIGHT);
+        VBox titleStack = new VBox(8, titlePill, subtitlePill);
+
+        Region middleSpacer = new Region();
+        VBox.setVgrow(middleSpacer, Priority.ALWAYS);
+
+        Region buttonPill = SkeletonFactory.line(120, 32);
+        Region actionCircle = SkeletonFactory.circle(32);
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+        HBox footer = new HBox(buttonPill, footerSpacer, actionCircle);
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        card.getChildren().addAll(topRow, preview, titleStack, middleSpacer, footer);
+        return card;
     }
 
     private void layoutProfileGrid() {
@@ -592,14 +680,15 @@ public class ProfilesController {
         barcodeDetectedComboBox.setValue(normalizeBarcodeDetectedBehavior(profile.getBarcodeDetectedBehavior()));
         barcodePageBehaviorComboBox.setValue(profile.getBarcodePageBehavior());
 
+        AutosaveSettingsStore.Settings autosave = autosaveSettingsStore.read(profile.getName());
         applyAutosaveValues(
                 autosaveEnabledRadio,
                 autosaveDisabledRadio,
                 autosaveIntervalComboBox,
                 autosaveLockedCheckBox,
-                profile.isAutosaveEnabled(),
-                profile.getAutosaveIntervalSeconds(),
-                profile.isAutosaveLocked()
+                autosave.enabled(),
+                autosave.intervalSeconds(),
+                autosave.locked()
         );
         qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
@@ -831,7 +920,9 @@ public class ProfilesController {
         enabledRadio.setSelected(enabled);
         disabledRadio.setSelected(!enabled);
         intervalComboBox.setValue(autosaveIntervalLabelFromSeconds(intervalSeconds));
-        lockedCheckBox.setSelected(locked);
+        // Coerce away the contradictory Off+locked state on load (lock means
+        // "force on" to the scan side, so it only makes sense while enabled).
+        lockedCheckBox.setSelected(locked && enabled);
         intervalComboBox.setDisable(!enabled);
         lockedCheckBox.setDisable(!enabled);
     }
@@ -1332,6 +1423,9 @@ public class ProfilesController {
         fields.autosaveDisabledRadio.selectedProperty().addListener((observable, oldValue, disabled) -> {
             fields.autosaveIntervalComboBox.setDisable(disabled);
             fields.autosaveLockedCheckBox.setDisable(disabled);
+            if (disabled) {
+                fields.autosaveLockedCheckBox.setSelected(false);
+            }
         });
         syncCreateProfilePreview(fields);
     }
@@ -1385,6 +1479,13 @@ public class ProfilesController {
         try {
             String profileName = Strings.clean(fields.nameField.getText());
             adminManager.createProfile(createProfileInputFromDialog(fields));
+
+            autosaveSettingsStore.write(
+                    profileName,
+                    fields.autosaveEnabledRadio.isSelected(),
+                    autosaveIntervalFromLabel(safeValue(fields.autosaveIntervalComboBox)),
+                    fields.autosaveLockedCheckBox.isSelected()
+            );
 
             refreshAfterProfileCreated();
             Platform.runLater(() -> showProfileCreatedDialog(profileName, this::showOverviewPane));
@@ -1482,6 +1583,13 @@ public class ProfilesController {
                             currentProfile.getId(),
                             createProfileInputFromEditor()
                     );
+
+            autosaveSettingsStore.write(
+                    savedProfile.getName(),
+                    autosaveEnabledRadio.isSelected(),
+                    autosaveIntervalFromLabel(safeValue(autosaveIntervalComboBox)),
+                    autosaveLockedCheckBox.isSelected()
+            );
 
             loadProfiles();
             applyFilters();

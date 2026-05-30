@@ -108,7 +108,6 @@ public class UserController implements UserNavigator {
     @FXML private Label accountDropdownNameLabel;
     @FXML private Label accountDropdownDetailLabel;
     @FXML private Button editProfileMenuButton;
-    @FXML private Button settingsPrivacyMenuButton;
     @FXML private Button logoutMenuButton;
     @FXML private ToggleButton darkModeToggleButton;
     @FXML private SVGPath darkModeToggleIcon;
@@ -190,11 +189,6 @@ public class UserController implements UserNavigator {
 
         if (editProfileMenuButton != null) {
             editProfileMenuButton.setOnAction(event -> showAccountSettingsPage(ACCOUNT_SECTION));
-        }
-
-        if (settingsPrivacyMenuButton != null) {
-            settingsPrivacyMenuButton.setVisible(false);
-            settingsPrivacyMenuButton.setManaged(false);
         }
 
         if (logoutMenuButton != null) {
@@ -683,12 +677,13 @@ public class UserController implements UserNavigator {
             accountMenu.getItems().setAll(item);
         }
 
-        // Size the dropdown to the account button's actual width and show it
-        // flush underneath, so it stays connected and never spills past the edge.
+        // Use the account button width as a floor — the dropdown is at least
+        // that wide so it never looks orphaned, but free to grow when its
+        // contents (e.g. "Light Mode" toggle) need more room. No clipping.
         double buttonWidth = accountMenuButton.getWidth();
         accountDropdownPane.setMinWidth(buttonWidth);
-        accountDropdownPane.setPrefWidth(buttonWidth);
-        accountDropdownPane.setMaxWidth(buttonWidth);
+        accountDropdownPane.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        accountDropdownPane.setMaxWidth(Region.USE_COMPUTED_SIZE);
         accountMenu.show(accountMenuButton, Side.BOTTOM, 0, 4);
     }
 

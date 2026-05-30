@@ -115,7 +115,7 @@
 }
 
 .weblager-help-content {
-    -fx-padding: 24;
+    -fx-padding: 15;
     -fx-spacing: 18;
     -fx-background-color: -wl-surface;
 }
@@ -440,7 +440,7 @@
 }
 
 .weblager-shortcuts-body {
-    -fx-padding: 15 18 24 18;
+    -fx-padding: 15;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 0 0 10 10;
 }
@@ -573,7 +573,7 @@
 }
 
 .create-user-editor {
-    -fx-padding: 24;
+    -fx-padding: 15;
     -fx-spacing: 18;
     -fx-background-color: -wl-surface;
 }
@@ -902,7 +902,7 @@
 }
 
 .profile-delete-dialog-body {
-    -fx-padding: 24 27 24 27;
+    -fx-padding: 15;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 0 0 10 10;
 }
@@ -1031,7 +1031,7 @@
 }
 
 .profile-created-dialog-body {
-    -fx-padding: 24 27 24 27;
+    -fx-padding: 15;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 0 0 10 10;
 }
@@ -1071,7 +1071,7 @@
 }
 
 .first-login-password-dialog-pane > .content {
-    -fx-padding: 18;
+    -fx-padding: 0;
     -fx-background-color: transparent;
 }
 
@@ -1082,7 +1082,7 @@
 }
 
 .first-login-password-dialog-root {
-    -fx-padding: 33 36 33 36;
+    -fx-padding: 15;
     -fx-background-color: -wl-surface;
     -fx-background-radius: 10;
     -fx-border-color: -wl-border;

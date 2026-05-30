@@ -708,7 +708,7 @@
 
 .review-waiting-pill {
     -fx-padding: 3 6 3 6;
-    -fx-background-radius: 999;
+    -fx-background-radius: 3;
     -fx-border-width: 0;
 }
 

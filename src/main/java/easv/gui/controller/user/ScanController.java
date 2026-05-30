@@ -4,6 +4,7 @@ import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.ScanSession;
+import easv.bll.AutosaveSettingsStore;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.TiffExportManager;
@@ -188,6 +189,7 @@ public class ScanController {
     private boolean syncingBoxRotationComboBox = false;
     private boolean syncingPageRotationComboBox = false;
 
+    private final AutosaveSettingsStore autosaveSettingsStore = new AutosaveSettingsStore();
     private Timeline autosaveTimer;
     private boolean autosaveEnabled = true;
     private int autosaveIntervalSeconds = ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
@@ -1843,12 +1845,11 @@ public class ScanController {
     }
 
     private void initAutosaveFromProfile(String profileName) {
-        ScanProfile profile = portalModel.fetchScanProfileByName(profileName);
-        autosaveLockedByProfile = profile != null && profile.isAutosaveLocked();
+        AutosaveSettingsStore.Settings settings = autosaveSettingsStore.read(profileName);
+        autosaveLockedByProfile = settings.locked();
         // Lock = forced ON. Style guide pg 9: Switch Checked + Disabled.
-        boolean enabled = autosaveLockedByProfile || profile == null || profile.isAutosaveEnabled();
-        int interval = profile == null ? ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS
-                : Math.max(5, profile.getAutosaveIntervalSeconds());
+        boolean enabled = autosaveLockedByProfile || settings.enabled();
+        int interval = Math.max(5, settings.intervalSeconds());
         applyAutosaveSettings(enabled, interval);
     }
 

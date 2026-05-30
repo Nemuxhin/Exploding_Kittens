@@ -222,11 +222,6 @@
                 maxWidth="Infinity"
                 alignment="CENTER_LEFT"
                 styleClass="admin-account-dropdown-item"/>
-        <Button fx:id="settingsPrivacyMenuButton"
-                text="Settings and Privacy"
-                maxWidth="Infinity"
-                alignment="CENTER_LEFT"
-                styleClass="admin-account-dropdown-item"/>
 
         <Region styleClass="admin-account-dropdown-divider"/>
 

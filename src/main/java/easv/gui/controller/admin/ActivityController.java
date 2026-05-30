@@ -1415,8 +1415,8 @@ public class ActivityController {
         stream.setMaxWidth(Double.MAX_VALUE);
 
         stream.getChildren().add(buildActivitySkeletonGroupHeader());
-        for (int rowIndex = 0; rowIndex < 8; rowIndex++) {
-            stream.getChildren().add(buildActivitySkeletonRow());
+        for (int rowIndex = 0; rowIndex < 6; rowIndex++) {
+            stream.getChildren().add(buildActivitySkeletonRow(rowIndex));
         }
         return stream;
     }
@@ -1432,21 +1432,31 @@ public class ActivityController {
         return header;
     }
 
-    private VBox buildActivitySkeletonRow() {
-        Region icon = SkeletonFactory.circle(42);
+    private VBox buildActivitySkeletonRow(int rowIndex) {
+        // Image-1 style: chunky thumbnail rectangle on the left, multi-line
+        // text block in the middle, pill + circle stacked on the right.
+        Region thumbnail = SkeletonFactory.line(96, 56);
 
-        Region time = SkeletonFactory.line(54, 12, SkeletonFactory.Intensity.LIGHT);
+        // Vary the line widths per row so the skeleton doesn't look like
+        // a perfectly uniform grid.
+        double titleWidth = 200 + ((rowIndex * 23) % 80);
+        double detailWidth = 280 + ((rowIndex * 37) % 110);
+        double subDetailWidth = 140 + ((rowIndex * 19) % 70);
 
-        Region titleLine = SkeletonFactory.line(180, 12);
-        Region detailLine = SkeletonFactory.line(280, 10, SkeletonFactory.Intensity.LIGHT);
-        VBox copy = new VBox(6, titleLine, detailLine);
+        Region titleLine = SkeletonFactory.line(titleWidth, 14);
+        Region detailLine = SkeletonFactory.line(detailWidth, 10, SkeletonFactory.Intensity.LIGHT);
+        Region subDetailLine = SkeletonFactory.line(subDetailWidth, 10, SkeletonFactory.Intensity.LIGHT);
+        VBox copy = new VBox(8, titleLine, detailLine, subDetailLine);
+        copy.setAlignment(Pos.CENTER_LEFT);
         copy.setMinWidth(0);
         HBox.setHgrow(copy, Priority.ALWAYS);
 
-        Region areaBadge = SkeletonFactory.line(72, 20);
-        Region statusBadge = SkeletonFactory.line(72, 20);
+        Region rightPill = SkeletonFactory.line(64, 20);
+        Region rightCircle = SkeletonFactory.circle(28);
+        VBox rightSide = new VBox(10, rightPill, rightCircle);
+        rightSide.setAlignment(Pos.CENTER_RIGHT);
 
-        HBox content = new HBox(15, icon, time, copy, areaBadge, statusBadge);
+        HBox content = new HBox(18, thumbnail, copy, rightSide);
         content.getStyleClass().add("logs-event-row-content");
         content.setAlignment(Pos.CENTER_LEFT);
         content.setMaxWidth(Double.MAX_VALUE);
@@ -1455,8 +1465,8 @@ public class ActivityController {
         row.getStyleClass().add("logs-expandable-row");
         row.setFillWidth(true);
         row.setMaxWidth(Double.MAX_VALUE);
-        row.setMinHeight(58);
-        row.setPrefHeight(58);
+        row.setMinHeight(88);
+        row.setPrefHeight(88);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }

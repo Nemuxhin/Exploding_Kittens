@@ -830,6 +830,16 @@
     -fx-border-color: -wl-input-hover-border;
 }
 
+/* Disabled = 60% opacity (style guide pg 3 / pg 7). Overrides the JavaFX
+   default of 0.4 so the autosave "Off" state (which disables the interval
+   and lock controls) dims to the documented amount. */
+.profile-editor-radio:disabled,
+.profile-editor-checkbox:disabled,
+.profile-editor-input:disabled,
+.profile-editor-switch:disabled {
+    -fx-opacity: 0.6;
+}
+
 .profile-editor-preview-box,
 .profile-editor-scanner-preview-box {
     -fx-padding: 18 21 18 21;

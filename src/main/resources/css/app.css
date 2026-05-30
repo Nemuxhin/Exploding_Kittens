@@ -555,7 +555,9 @@
 .password-field:disabled,
 .text-area:disabled,
 .combo-box-base:disabled,
-.date-picker:disabled {
+.date-picker:disabled,
+.check-box:disabled,
+.radio-button:disabled {
     -fx-opacity: 0.6;
 }
 
@@ -954,7 +956,7 @@
 }
 
 .skeleton-label {
-    -fx-background-radius: 4;
+    -fx-background-radius: 3;
     -fx-text-fill: transparent;
 }
 
@@ -1006,4 +1008,25 @@
 .wl-switch:disabled {
     -fx-opacity: 0.6;
     -fx-cursor: default;
+}
+
+/* =========================================================
+   TOOLTIP (per WebLager style guide pg 9)
+   Dark primary background, white text, standard 6px radius.
+   Tooltips are installed in code via Tooltip.install(...) and
+   pick up this global ".tooltip" style class automatically.
+   ========================================================= */
+.tooltip {
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-padding: 6 12 6 12;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+/* Validation tooltip variant: red background for error messaging. */
+.tooltip.tooltip-error {
+    -fx-background-color: -wl-destructive;
 }
