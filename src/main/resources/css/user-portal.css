@@ -16,8 +16,7 @@
     -fx-fill-width: true;
 }
 
-.exports-page,
-.my-scans-page {
+.exports-page {
     -fx-background-color: -wl-background;
 }
 
@@ -313,22 +312,6 @@
     -fx-underline: true;
 }
 
-.my-scans-box-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 12;
-    -fx-text-fill: -wl-text;
-    -fx-alignment: center-left;
-    -fx-cursor: hand;
-}
-
-.my-scans-box-button:hover,
-.my-scans-box-button:pressed {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: -wl-primary;
-}
-
 .exports-table-cell-wrap {
     -fx-padding: 9 12;
     -fx-alignment: center-left;
@@ -340,8 +323,7 @@
     -fx-spacing: 9;
 }
 
-.exports-export-button,
-.my-scans-action-button {
+.exports-export-button {
     -fx-min-width: 99;
     -fx-pref-width: 99;
     -fx-max-width: 99;
@@ -351,9 +333,7 @@
 }
 
 .exports-export-button:hover,
-.exports-export-button:pressed,
-.my-scans-action-button:hover,
-.my-scans-action-button:pressed {
+.exports-export-button:pressed {
     -fx-background-color: -wl-primary-hover;
     -fx-border-color: -wl-primary-hover;
 }

@@ -27,8 +27,19 @@ public class UserDAO {
     }
 
     public UserDAO(DatabaseConnection databaseConnection) {
+        this(databaseConnection, true);
+    }
+
+    /**
+     * Visible for testing. Builds the DAO without contacting the database so that
+     * test fakes (which override every query method) stay hermetic. Production code
+     * always uses the public constructors, which run the schema check (ensureSchema = true).
+     */
+    protected UserDAO(DatabaseConnection databaseConnection, boolean ensureSchema) {
         this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
-        ensureMustChangePasswordColumn();
+        if (ensureSchema) {
+            ensureMustChangePasswordColumn();
+        }
     }
 
     public User findByUsername(String username) {

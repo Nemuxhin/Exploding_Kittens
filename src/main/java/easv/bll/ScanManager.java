@@ -254,7 +254,9 @@ public class ScanManager {
         return caseFileDAO.findByReference(caseReference);
     }
 
-    private BarcodeHandlingResult splitIntoDocuments(
+    // Package-private (instead of private) so unit tests can exercise the
+    // barcode-to-document grouping rules directly, without a scanner or database.
+    BarcodeHandlingResult splitIntoDocuments(
             String itemId,
             List<TiffFetchService.FetchedPage> pages,
             ScanSession session,
@@ -425,7 +427,8 @@ public class ScanManager {
         return clientName == null || clientName.isBlank() || "Imported Client".equalsIgnoreCase(clientName.trim());
     }
 
-    private record BarcodeHandlingResult(List<Document> documents, List<PageImage> scannedPages, boolean stoppedOnBarcode, String message) {
+    // Package-private so unit tests in this package can read the grouping result.
+    record BarcodeHandlingResult(List<Document> documents, List<PageImage> scannedPages, boolean stoppedOnBarcode, String message) {
     }
 
     private record NormalizedItem(String itemId, String caseReference, String clientNumber, String clientName) {

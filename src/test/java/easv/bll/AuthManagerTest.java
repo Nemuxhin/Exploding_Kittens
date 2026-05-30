@@ -71,6 +71,7 @@ class AuthManagerTest {
         private final Map<String, User> usersByUsername;
 
         private FakeUserDAO(Map<String, User> usersByUsername) {
+            super(null, false); // hermetic: never opens a database connection
             this.usersByUsername = usersByUsername;
         }
 

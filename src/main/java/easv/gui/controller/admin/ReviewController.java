@@ -195,8 +195,6 @@ public class ReviewController {
     @FXML private Label reviewSelectionReferenceValueLabel;
     @FXML private Label reviewSelectionFileIdValueLabel;
     @FXML private Label reviewSelectedTitleLabel;
-    @FXML private Button reviewDocumentGridViewButton;
-    @FXML private Button reviewDocumentListViewButton;
     @FXML private TextField reviewWorkspaceSearchField;
     @FXML private VBox reviewWorkspaceTreeContainer;
     @FXML private Label reviewWorkspaceViewerPageLabel;
@@ -236,7 +234,6 @@ public class ReviewController {
     private StackPane currentReviewPreviewWrapper;
     private double currentReviewPreviewBaseWidth = 1.0;
     private double currentReviewPreviewBaseHeight = 1.0;
-    private boolean reviewDocumentListView = true;
     private boolean syncingWorkspaceQaControls;
     private final Set<Integer> collapsedReviewDocuments = new HashSet<>();
 
@@ -1806,7 +1803,6 @@ public class ReviewController {
             return;
         }
         treeContainer.getChildren().clear();
-        updateReviewDocumentViewButtons();
 
         if (activeQaDocuments.isEmpty()) {
             VBox emptyState = new VBox(6);
@@ -1847,17 +1843,11 @@ public class ReviewController {
 
             VBox documentBlock = new VBox(12);
             documentBlock.setAlignment(Pos.TOP_LEFT);
-            documentBlock.getStyleClass().add("document-tree-document-block");
-            if (reviewDocumentListView) {
-                documentBlock.getStyleClass().add("document-tree-list-block");
-            }
+            documentBlock.getStyleClass().addAll("document-tree-document-block", "document-tree-list-block");
 
             HBox documentHeader = new HBox(9);
             documentHeader.setAlignment(Pos.CENTER_LEFT);
-            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
-            if (reviewDocumentListView) {
-                documentHeader.getStyleClass().add("document-tree-list-header");
-            }
+            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed", "document-tree-list-header");
 
             Region chevron = new Region();
             chevron.getStyleClass().add("document-tree-chevron-icon");
@@ -1893,19 +1883,13 @@ public class ReviewController {
             documentBlock.getChildren().add(documentHeader);
 
             if (!collapsedReviewDocuments.contains(documentIndex)) {
-                VBox pageStack = new VBox(reviewDocumentListView ? 0 : 18);
-                pageStack.setAlignment(reviewDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
-                pageStack.getStyleClass().add("document-tree-page-stack");
-                if (reviewDocumentListView) {
-                    pageStack.getStyleClass().add("document-tree-list-page-stack");
-                }
+                VBox pageStack = new VBox(0);
+                pageStack.setAlignment(Pos.TOP_LEFT);
+                pageStack.getStyleClass().addAll("document-tree-page-stack", "document-tree-list-page-stack");
 
                 for (PagePointer pointer : matchingPages) {
                     WorkspaceQaPage page = activeQaDocuments.get(pointer.documentIndex()).pages().get(pointer.pageIndex());
-                    Node pageNode = reviewDocumentListView
-                            ? createWorkspacePageRow(pointer, page)
-                            : createWorkspaceEmbeddedPageCard(pointer, page);
-                    pageStack.getChildren().add(pageNode);
+                    pageStack.getChildren().add(createWorkspacePageRow(pointer, page));
                 }
                 documentBlock.getChildren().add(pageStack);
             }
@@ -2422,18 +2406,6 @@ public class ReviewController {
     }
 
     @FXML
-    private void onShowReviewDocumentGridView() {
-        reviewDocumentListView = true;
-        renderWorkspaceQaTree();
-    }
-
-    @FXML
-    private void onShowReviewDocumentListView() {
-        reviewDocumentListView = true;
-        renderWorkspaceQaTree();
-    }
-
-    @FXML
     private void onPreviousReviewPage() {
         showPreviousWorkspacePage();
     }
@@ -2587,13 +2559,6 @@ public class ReviewController {
         }
     }
 
-    private void updateReviewDocumentViewButtons() {
-        if (reviewDocumentListViewButton != null) {
-            reviewDocumentListViewButton.getStyleClass().remove("document-tree-view-toggle-button-active");
-            reviewDocumentListViewButton.getStyleClass().add("document-tree-view-toggle-button-active");
-        }
-    }
-
     private String workspaceDocumentTitle(WorkspaceQaDocument document, int documentIndex) {
         String normalizedName = document.name() == null ? "" : document.name().trim();
         if (normalizedName.isBlank()) {
@@ -2617,64 +2582,28 @@ public class ReviewController {
             row.getStyleClass().add("document-tree-page-selected");
         }
 
-        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber(), false);
+        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber());
         row.getChildren().add(labelRow);
         row.setOnMouseClicked(event -> selectWorkspacePage(pointer));
         return row;
     }
 
-    private Node createWorkspaceEmbeddedPageCard(PagePointer pointer, WorkspaceQaPage page) {
-        VBox card = new VBox(3);
-        card.setAlignment(Pos.CENTER);
-        card.getStyleClass().addAll("review-page-tray-item", "review-embedded-page-card");
-        if (pointer.documentIndex() == selectedQaDocumentIndex && pointer.pageIndex() == selectedQaPageIndex) {
-            card.getStyleClass().add("review-page-tray-item-selected");
-        }
-
-        StackPane thumbnail = new StackPane();
-        thumbnail.getStyleClass().add("review-page-tray-thumbnail");
-
-        Image image = decodeWorkspaceQaImage(page.imageContent());
-        if (image != null) {
-            ImageView imageView = new ImageView(image);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-            imageView.setFitWidth(148);
-            imageView.setFitHeight(214);
-            imageView.setRotate(page.rotationDegrees());
-            thumbnail.getChildren().add(imageView);
-        } else {
-            Label placeholder = new Label("No preview");
-            placeholder.getStyleClass().add("review-preview-empty-copy");
-            thumbnail.getChildren().add(placeholder);
-        }
-
-        HBox labelRow = createWorkspacePageLabelRow(page, "Page " + page.pageNumber(), true);
-        card.getChildren().addAll(thumbnail, labelRow);
-        card.setOnMouseClicked(event -> selectWorkspacePage(pointer));
-        return card;
-    }
-
-    private HBox createWorkspacePageLabelRow(WorkspaceQaPage page, String baseLabel, boolean centered) {
+    private HBox createWorkspacePageLabelRow(WorkspaceQaPage page, String baseLabel) {
         HBox labelRow = new HBox(6);
-        labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
-        if (!centered) {
-            labelRow.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(labelRow, Priority.ALWAYS);
-        }
+        labelRow.setAlignment(Pos.CENTER_LEFT);
+        labelRow.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(labelRow, Priority.ALWAYS);
 
         Label pageLabel = new Label(baseLabel);
-        pageLabel.getStyleClass().add(centered ? "review-page-tray-number" : "document-tree-page-title");
+        pageLabel.getStyleClass().add("document-tree-page-title");
         labelRow.getChildren().add(pageLabel);
 
         if (page.status() == QAService.QaPageReviewStatus.APPROVED
                 || page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
             boolean approved = page.status() == QAService.QaPageReviewStatus.APPROVED;
-            if (!centered) {
-                Region statusSpacer = new Region();
-                HBox.setHgrow(statusSpacer, Priority.ALWAYS);
-                labelRow.getChildren().add(statusSpacer);
-            }
+            Region statusSpacer = new Region();
+            HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+            labelRow.getChildren().add(statusSpacer);
             Label statusIcon = PrimeIcons.create(
                     approved ? Character.toString(0xE90A) : Character.toString(0xE922),
                     approved ? "qa-page-status-icon-approved" : "qa-page-status-icon-fix"

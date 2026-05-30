@@ -148,7 +148,6 @@ public class AssignedQaController {
     private StackPane currentQaPreviewWrapper;
 
     private boolean syncingQaControls = false;
-    private final boolean qaDocumentListView = true;
     private boolean updatingDateControls = false;
     private LocalDate fromDate;
     private LocalDate toDate;
@@ -1561,17 +1560,11 @@ public class AssignedQaController {
 
             VBox documentBlock = new VBox(12);
             documentBlock.setAlignment(Pos.TOP_LEFT);
-            documentBlock.getStyleClass().add("document-tree-document-block");
-            if (qaDocumentListView) {
-                documentBlock.getStyleClass().add("document-tree-list-block");
-            }
+            documentBlock.getStyleClass().addAll("document-tree-document-block", "document-tree-list-block");
 
             HBox documentHeader = new HBox(9);
             documentHeader.setAlignment(Pos.CENTER_LEFT);
-            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed");
-            if (qaDocumentListView) {
-                documentHeader.getStyleClass().add("document-tree-list-header");
-            }
+            documentHeader.getStyleClass().addAll("document-tree-document-header", "document-tree-document-header-framed", "document-tree-list-header");
 
             Region chevron = new Region();
             chevron.getStyleClass().add("document-tree-chevron-icon");
@@ -1597,20 +1590,14 @@ public class AssignedQaController {
             documentBlock.getChildren().add(documentHeader);
 
             if (document.expanded) {
-                VBox pageStack = new VBox(qaDocumentListView ? 0 : 18);
-                pageStack.setAlignment(qaDocumentListView ? Pos.TOP_LEFT : Pos.TOP_CENTER);
-                pageStack.getStyleClass().add("document-tree-page-stack");
-                if (qaDocumentListView) {
-                    pageStack.getStyleClass().add("document-tree-list-page-stack");
-                }
+                VBox pageStack = new VBox(0);
+                pageStack.setAlignment(Pos.TOP_LEFT);
+                pageStack.getStyleClass().addAll("document-tree-page-stack", "document-tree-list-page-stack");
                 for (int pageIndex = 0; pageIndex < document.pages.size(); pageIndex++) {
                     QaPage page = document.pages.get(pageIndex);
                     final int rowDocumentIndex = documentIndex;
                     final int rowPageIndex = pageIndex;
-                    Node pageNode = qaDocumentListView
-                            ? createQaPageRow(page, rowDocumentIndex, rowPageIndex)
-                            : createQaEmbeddedPageCard(page, rowDocumentIndex, rowPageIndex);
-                    pageStack.getChildren().add(pageNode);
+                    pageStack.getChildren().add(createQaPageRow(page, rowDocumentIndex, rowPageIndex));
                 }
                 documentBlock.getChildren().add(pageStack);
             }
@@ -1700,39 +1687,6 @@ public class AssignedQaController {
         qaSidebarSubtitleLabel.setText(selectedAssignment.profile + " \u00B7 " + selectedAssignment.boxId);
     }
 
-    private VBox createQaEmbeddedPageCard(QaPage page, int documentIndex, int pageIndex) {
-        VBox card = new VBox(3);
-        card.setAlignment(Pos.CENTER);
-        card.getStyleClass().addAll("page-tray-item", "qa-embedded-page-card");
-
-        if (pageIndex == selectedPageIndex && documentIndex == selectedDocumentIndex) {
-            card.getStyleClass().add("page-tray-item-selected");
-        }
-
-        StackPane thumbnail = new StackPane();
-        thumbnail.getStyleClass().add("page-tray-thumbnail");
-
-        Image pageImage = decodeDataUriImage(page.imageContent());
-        if (pageImage == null) {
-            Region pageBlock = new Region();
-            pageBlock.getStyleClass().add("qa-tray-page-block");
-            thumbnail.getChildren().add(pageBlock);
-        } else {
-            ImageView imageView = new ImageView(pageImage);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-            imageView.setFitWidth(104);
-            imageView.setFitHeight(126);
-            imageView.setRotate(page.rotationDegrees);
-            thumbnail.getChildren().add(imageView);
-        }
-
-        HBox labelRow = createQaPageLabelRow(page, true);
-        card.getChildren().addAll(thumbnail, labelRow);
-        card.setOnMouseClicked(event -> selectQaPage(documentIndex, pageIndex));
-        return card;
-    }
-
     private HBox createQaPageRow(QaPage page, int documentIndex, int pageIndex) {
         HBox row = new HBox(9);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -1742,7 +1696,7 @@ public class AssignedQaController {
             row.getStyleClass().add("document-tree-page-selected");
         }
 
-        HBox labelRow = createQaPageLabelRow(page, false);
+        HBox labelRow = createQaPageLabelRow(page);
 
         row.getChildren().add(labelRow);
         row.setOnMouseClicked(event -> selectQaPage(documentIndex, pageIndex));
@@ -1766,26 +1720,22 @@ public class AssignedQaController {
         qaPreviewHost.requestFocus();
     }
 
-    private HBox createQaPageLabelRow(QaPage page, boolean centered) {
+    private HBox createQaPageLabelRow(QaPage page) {
         HBox labelRow = new HBox(6);
-        labelRow.setAlignment(centered ? Pos.CENTER : Pos.CENTER_LEFT);
-        if (!centered) {
-            labelRow.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(labelRow, Priority.ALWAYS);
-        }
+        labelRow.setAlignment(Pos.CENTER_LEFT);
+        labelRow.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(labelRow, Priority.ALWAYS);
 
         Label pageLabel = new Label("Page " + page.pageNumber);
-        pageLabel.getStyleClass().add(centered ? "page-tray-number" : "document-tree-page-title");
+        pageLabel.getStyleClass().add("document-tree-page-title");
 
         labelRow.getChildren().add(pageLabel);
 
         if (page.status != QaPageStatus.NOT_REVIEWED) {
             boolean approved = page.status == QaPageStatus.APPROVED;
-            if (!centered) {
-                Region statusSpacer = new Region();
-                HBox.setHgrow(statusSpacer, Priority.ALWAYS);
-                labelRow.getChildren().add(statusSpacer);
-            }
+            Region statusSpacer = new Region();
+            HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+            labelRow.getChildren().add(statusSpacer);
             Label statusIcon = PrimeIcons.create(
                     approved ? Character.toString(0xE90A) : Character.toString(0xE922),
                     approved ? "qa-page-status-icon-approved" : "qa-page-status-icon-fix"
