@@ -67,7 +67,7 @@ public class LoginController {
 
                     if (authResult.isSuccess()) {
                         try {
-                            mainApp.showMainView(authResult.getUser());
+                            mainApp.showMainView(authResult.getUser(), password);
                         } catch (IOException exception) {
                             messageLabel.setText("The user portal could not be opened.");
                             setMessageStyle(false);

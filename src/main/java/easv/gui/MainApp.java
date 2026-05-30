@@ -103,6 +103,10 @@ public class MainApp extends Application {
     }
 
     public void showMainView(User user) throws IOException {
+        showMainView(user, null);
+    }
+
+    public void showMainView(User user, String loginPassword) throws IOException {
         UserSession.setCurrentUser(user);
 
         String view = isAdmin(user) ? ADMIN_VIEW : USER_VIEW;
@@ -118,6 +122,7 @@ public class MainApp extends Application {
 
         if (controller instanceof UserController userController) {
             userController.setMainApp(this);
+            userController.setLoginPassword(loginPassword);
         }
 
         String[] stylesheets = isAdmin(user) ? ADMIN_STYLESHEETS : USER_STYLESHEETS;

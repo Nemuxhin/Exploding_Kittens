@@ -1061,6 +1061,199 @@
     -fx-faint-focus-color: transparent;
 }
 /* =========================================================
+   FIRST LOGIN PASSWORD DIALOG
+   Ported from main during merge; hard-coded colors mapped to
+   -wl-* tokens to honor the style guide.
+   ========================================================= */
+
+.first-login-password-dialog-pane {
+    -fx-background-color: transparent;
+}
+
+.first-login-password-dialog-pane > .header-panel,
+.first-login-password-dialog-pane > .graphic-container {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-opacity: 0;
+    -fx-max-height: 0;
+}
+
+.first-login-password-dialog-pane > .content {
+    -fx-padding: 18;
+    -fx-background-color: transparent;
+}
+
+.first-login-password-dialog-pane > .button-bar > .container {
+    -fx-padding: 0 0 8 0;
+    -fx-background-color: transparent;
+    -fx-alignment: center-right;
+}
+
+.first-login-password-dialog-root {
+    -fx-padding: 34 38 34 38;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 18;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 26, 0.18, 0, 8);
+    -fx-max-width: 620;
+    -fx-pref-width: 620;
+}
+
+.first-login-password-header {
+    -fx-padding: 0 0 4 0;
+    -fx-max-width: 500;
+    -fx-pref-width: 500;
+}
+
+.first-login-password-title {
+    -fx-text-fill: -wl-text;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+}
+
+.first-login-password-copy {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-max-width: 500;
+}
+
+.first-login-password-label {
+    -fx-text-fill: -wl-text;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.first-login-password-input-row {
+    -fx-alignment: center-left;
+    -fx-max-width: 360;
+    -fx-pref-width: 360;
+}
+
+.first-login-password-field {
+    -fx-padding: 2 0 0 0;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+    -fx-alignment: center-left;
+}
+
+.first-login-password-hint {
+    -fx-text-fill: -wl-text-muted;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-padding: -4 0 0 0;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+}
+
+.first-login-password-actions {
+    -fx-alignment: center;
+    -fx-padding: 10 0 0 0;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+}
+
+.first-login-password-field-stack {
+    -fx-max-width: 310;
+    -fx-pref-width: 310;
+}
+
+.first-login-password-short-field {
+    -fx-max-width: 360;
+    -fx-pref-width: 360;
+}
+
+.first-login-password-toggle-button {
+    -fx-min-width: 42;
+    -fx-pref-width: 42;
+    -fx-max-width: 42;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-max-height: 42;
+    -fx-padding: 0;
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.first-login-password-toggle-button:hover,
+.first-login-password-toggle-button:pressed,
+.first-login-password-toggle-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-secondary;
+}
+
+.first-login-password-toggle-icon {
+    -fx-fill: -wl-text;
+}
+
+.first-login-password-readonly-field {
+    -fx-opacity: 1;
+}
+
+.first-login-password-validation {
+    -fx-text-fill: -wl-destructive;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-wrap-text: true;
+    -fx-max-width: 420;
+    -fx-pref-width: 420;
+    -fx-min-height: 22;
+    -fx-pref-height: 22;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-dialog-root {
+    -fx-background-color: -wl-card-content;
+    -fx-border-color: -wl-input-bg;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-title,
+.first-login-password-dialog-pane.dark .first-login-password-label {
+    -fx-text-fill: -wl-text;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-copy,
+.first-login-password-dialog-pane.dark .first-login-password-hint {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.first-login-password-dialog-pane.dark .portal-text-field,
+.first-login-password-dialog-pane.dark .portal-text-field:hover,
+.first-login-password-dialog-pane.dark .portal-text-field:focused,
+.first-login-password-dialog-pane.dark .portal-text-field:pressed,
+.first-login-password-dialog-pane.dark .portal-text-field:armed {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-bg;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-bg;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button:hover,
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button:pressed,
+.first-login-password-dialog-pane.dark .first-login-password-toggle-button:focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-secondary;
+}
+
+.first-login-password-dialog-pane.dark .first-login-password-toggle-icon {
+    -fx-fill: -wl-text;
+}
+
+/* =========================================================
    WEBLAGER EXPORT DIALOG
    Moved from user-portal.css.
    Dialog-specific styling belongs in dialogs.css.

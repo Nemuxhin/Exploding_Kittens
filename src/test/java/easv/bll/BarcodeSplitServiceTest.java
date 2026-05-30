@@ -95,6 +95,17 @@ class BarcodeSplitServiceTest {
         );
     }
 
+    @Test
+    void readFirstFrameDownsamplesToRequestedBounds() throws Exception {
+        byte[] tiffBytes = createBarcodeTiff("112233445566");
+
+        BufferedImage image = TiffImageSupport.readFirstFrame(tiffBytes, 900, 900);
+
+        assertTrue(image != null);
+        assertTrue(image.getWidth() <= 900, "Expected width <= 900 but was " + image.getWidth());
+        assertTrue(image.getHeight() <= 900, "Expected height <= 900 but was " + image.getHeight());
+    }
+
     private byte[] createBarcodeTiff(String value) throws Exception {
         return createBarcodeTiff(value, BarcodeFormat.CODE_128);
     }

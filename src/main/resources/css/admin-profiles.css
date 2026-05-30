@@ -532,6 +532,18 @@
     -fx-text-fill: -wl-destructive-hover;
 }
 
+.reactivate-link-icon,
+.reactivate-link-button .reactivate-link-icon {
+    -fx-fill: -wl-primary;
+    -fx-text-fill: -wl-primary;
+    -fx-font-size: 13px;
+}
+
+.reactivate-link-button:hover .reactivate-link-icon {
+    -fx-fill: -wl-primary-hover;
+    -fx-text-fill: -wl-primary-hover;
+}
+
 .delete-link-icon,
 .delete-link-button .delete-link-icon {
     -fx-fill: -wl-destructive;

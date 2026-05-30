@@ -195,6 +195,79 @@ public class SavedScanProgressDAO {
         }
     }
 
+    public StoredProgress findLatestByBoxAndProfile(String boxId, String profileName) {
+        String normalizedBox = clean(boxId);
+        String normalizedProfile = clean(profileName);
+        if (normalizedBox.isBlank() || normalizedProfile.isBlank()) {
+            return null;
+        }
+
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement header = connection.prepareStatement("""
+                     SELECT TOP 1 session_id, box, profile, status, saved_at
+                     FROM scan_saved_progress
+                     WHERE box = ?
+                       AND profile = ?
+                     ORDER BY saved_at DESC, session_id DESC
+                     """)) {
+            header.setString(1, normalizedBox);
+            header.setString(2, normalizedProfile);
+
+            try (ResultSet headerResult = header.executeQuery()) {
+                if (!headerResult.next()) {
+                    return null;
+                }
+
+                String sessionId = headerResult.getString("session_id");
+                List<StoredPage> pages = new ArrayList<>();
+                try (PreparedStatement pageStatement = connection.prepareStatement("""
+                        SELECT reference_id,
+                               file_id,
+                               document_number,
+                               is_barcode,
+                               rotation_degrees,
+                               needs_rescan,
+                               split_reason_after,
+                               source_reference,
+                               display_content,
+                               preview_content
+                        FROM scan_saved_progress_pages
+                        WHERE session_id = ?
+                        ORDER BY page_order, id
+                        """)) {
+                    pageStatement.setString(1, sessionId);
+                    try (ResultSet resultSet = pageStatement.executeQuery()) {
+                        while (resultSet.next()) {
+                            pages.add(new StoredPage(
+                                    resultSet.getInt("reference_id"),
+                                    resultSet.getInt("file_id"),
+                                    resultSet.getInt("document_number"),
+                                    resultSet.getBoolean("is_barcode"),
+                                    resultSet.getInt("rotation_degrees"),
+                                    resultSet.getBoolean("needs_rescan"),
+                                    resultSet.getString("split_reason_after"),
+                                    resultSet.getString("source_reference"),
+                                    resultSet.getString("display_content"),
+                                    resultSet.getString("preview_content")
+                            ));
+                        }
+                    }
+                }
+
+                Timestamp savedAtTimestamp = headerResult.getTimestamp("saved_at");
+                return new StoredProgress(
+                        headerResult.getString("box"),
+                        headerResult.getString("profile"),
+                        headerResult.getString("status"),
+                        savedAtTimestamp == null ? Instant.now() : savedAtTimestamp.toInstant(),
+                        pages
+                );
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to load latest saved scan progress for box " + normalizedBox, e);
+        }
+    }
+
     public void deleteBySessionId(UUID sessionId) {
         if (sessionId == null) {
             return;

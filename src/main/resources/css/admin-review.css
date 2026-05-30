@@ -833,8 +833,8 @@
 .review-workspace-tree-row-active {
     -fx-min-height: 36;
     -fx-pref-height: 36;
-    -fx-padding: 0 9 0 24;
-    -fx-spacing: 9;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 0;
     -fx-background-radius: 6;
 }
 

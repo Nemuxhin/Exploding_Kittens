@@ -220,6 +220,7 @@
 .edit-link-button,
 .delete-link-button,
 .deactivate-link-button,
+.reactivate-link-button,
 .inline-action-button,
 .inline-action-button-muted,
 .inline-icon-action-button,
@@ -252,6 +253,10 @@
     -fx-text-fill: -wl-destructive;
 }
 
+.reactivate-link-button {
+    -fx-text-fill: -wl-primary;
+}
+
 .edit-link-button:hover,
 .inline-action-button:hover,
 .inline-action-button-muted:hover,
@@ -274,6 +279,13 @@
 .inline-actions {
     -fx-alignment: center;
     -fx-spacing: 12;
+}
+
+.reactivate-link-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
 }
 
 /* =========================================================

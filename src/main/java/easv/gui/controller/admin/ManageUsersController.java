@@ -60,6 +60,7 @@ public class ManageUsersController {
 
     private static final String EDIT_ICON = "\ue942";
     private static final String DEACTIVATE_ICON = "\ue90b";
+    private static final String REACTIVATE_ICON = "\ue938";
 
     @FXML private TextField searchField;
     @FXML private ComboBox<String> roleFilterComboBox;
@@ -438,6 +439,8 @@ public class ManageUsersController {
     }
 
     private AdminManager.UserInput createUserInputFromEditor() {
+        String password = Strings.clean(temporaryPasswordField.getText());
+        Boolean mustChangePassword = password.isBlank() ? null : Boolean.TRUE;
         return new AdminManager.UserInput(
                 Strings.clean(fullNameField.getText()),
                 Strings.clean(usernameField.getText()),
@@ -445,7 +448,8 @@ public class ManageUsersController {
                 userRoleComboBox.getValue(),
                 userStatusComboBox.getValue(),
                 getSelectedProfileNames(),
-                Strings.clean(temporaryPasswordField.getText())
+                password,
+                mustChangePassword
         );
     }
 
@@ -481,6 +485,24 @@ public class ManageUsersController {
         loadUsers();
         applyFilters();
         showUserActionMessage(user.getName() + " was deactivated.");
+    }
+
+    private void reactivateUser(User user) {
+        if (adminManager == null) {
+            showUserActionMessage("User storage is not available.");
+            return;
+        }
+
+        try {
+            adminManager.reactivateUser(user.getId());
+        } catch (DataAccessException exception) {
+            showUserActionMessage("User could not be reactivated. Check the database connection.");
+            return;
+        }
+
+        loadUsers();
+        applyFilters();
+        showUserActionMessage(user.getName() + " was reactivated.");
     }
 
     private void applyFilters() {
@@ -680,6 +702,10 @@ public class ManageUsersController {
             Button deactivateButton = createInlineActionButton("Deactivate", DEACTIVATE_ICON, "deactivate-link-button", "deactivate-link-icon");
             deactivateButton.setOnAction(event -> deactivateUser(user));
             actionBox.getChildren().add(deactivateButton);
+        } else if (!user.isCurrentUser()) {
+            Button reactivateButton = createInlineActionButton("Reactivate", REACTIVATE_ICON, "reactivate-link-button", "reactivate-link-icon");
+            reactivateButton.setOnAction(event -> reactivateUser(user));
+            actionBox.getChildren().add(reactivateButton);
         }
 
         return actionBox;

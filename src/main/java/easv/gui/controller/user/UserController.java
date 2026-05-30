@@ -10,6 +10,8 @@ import easv.gui.MainApp;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.UserPortalModel;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -58,8 +60,6 @@ public class UserController implements UserNavigator {
     private static final String DARK_MODE_PREFERENCE_KEY = "userPortal.darkMode";
 
     private static final String ACCOUNT_SECTION = "Edit Profile";
-    private static final String PRIVACY_SECTION = "Settings and Privacy";
-
     private static final String LIGHT_MODE_LOGO =
             "/images/weblager/styleguide/Main Blue/LogoBlueH.png";
 
@@ -71,6 +71,12 @@ public class UserController implements UserNavigator {
 
     private static final String SUN_ICON_PATH =
             "M12 5.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.22 2.81l2.12 2.12-1.41 1.41L2.81 4.22l1.41-1.41zm14.85 14.85 2.12 2.12-1.41 1.41-2.12-2.12 1.41-1.41zM19.78 2.81l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12zM4.93 17.66l1.41 1.41-2.12 2.12-1.41-1.41 2.12-2.12z";
+
+    private static final String EYE_ICON_PATH =
+            "M12 5c5.5 0 9.5 5.3 9.5 7s-4 7-9.5 7S2.5 14.7 2.5 12 6.5 5 12 5zm0 2C8.4 7 5.5 10.4 4.7 12 5.5 13.6 8.4 17 12 17s6.5-3.4 7.3-5C18.5 10.4 15.6 7 12 7zm0 1.8A3.2 3.2 0 1 1 8.8 12 3.2 3.2 0 0 1 12 8.8z";
+
+    private static final String EYE_OFF_ICON_PATH =
+            "M3.8 4.9 19.1 20.2l-1.4 1.4-2.3-2.3A11.9 11.9 0 0 1 12 19c-5.5 0-9.5-5.3-9.5-7 0-1 1.1-2.7 3.1-4.3L2.4 6.3l1.4-1.4zm3.3 3.3C5.6 9.3 4.9 11 4.7 12c.8 1.6 3.7 5 7.3 5 1 0 2-.3 2.8-.7l-1.8-1.8A3.2 3.2 0 0 1 9.5 11l-2.4-2.4zM12 5c5.5 0 9.5 5.3 9.5 7 0 1-.9 2.4-2.4 3.8l-1.5-1.5c.8-.8 1.4-1.7 1.7-2.3-.8-1.6-3.7-5-7.3-5-1.2 0-2.3.4-3.3.9L7.1 6.3C8.5 5.5 10.1 5 12 5zm-.2 3.8c1.8 0 3.2 1.4 3.2 3.2 0 .6-.2 1.2-.5 1.8l-4.5-4.5c.5-.3 1.1-.5 1.8-.5z";
 
     @FXML private StackPane appShell;
     @FXML private BorderPane appRoot;
@@ -116,9 +122,15 @@ public class UserController implements UserNavigator {
     private UserPage currentPage;
     private boolean userEditingTextInput;
     private int notificationRenderToken;
+    private String loginPassword;
+    private boolean forcedPasswordDialogShown;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
+    }
+
+    public void setLoginPassword(String loginPassword) {
+        this.loginPassword = loginPassword;
     }
 
     @FXML
@@ -131,6 +143,7 @@ public class UserController implements UserNavigator {
         configureThemeToggle();
         configureNavigation();
         showPage(UserPage.DASHBOARD);
+        Platform.runLater(this::showFirstLoginPasswordDialogIfNeeded);
     }
 
     private void configureAccount() {
@@ -172,7 +185,8 @@ public class UserController implements UserNavigator {
         }
 
         if (settingsPrivacyMenuButton != null) {
-            settingsPrivacyMenuButton.setOnAction(event -> showAccountSettingsPage(PRIVACY_SECTION));
+            settingsPrivacyMenuButton.setVisible(false);
+            settingsPrivacyMenuButton.setManaged(false);
         }
 
         if (logoutMenuButton != null) {
@@ -462,7 +476,7 @@ public class UserController implements UserNavigator {
             case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> new ExportsController(portalModel).create();
             case EDIT_PROFILE -> createAccountSettingsPage(ACCOUNT_SECTION);
-            case SETTINGS -> createAccountSettingsPage(PRIVACY_SECTION);
+            case SETTINGS -> createAccountSettingsPage(ACCOUNT_SECTION);
             default -> createMissingPagePlaceholder(page.title());
         };
     }
@@ -832,7 +846,6 @@ public class UserController implements UserNavigator {
         detailsPanel.getChildren().setAll(
                 switch (safeSection) {
                     case ACCOUNT_SECTION -> buildAccountProfileSection();
-                    case PRIVACY_SECTION -> buildEmptyAccountSection(PRIVACY_SECTION);
                     default -> buildEmptyAccountSection(safeSection);
                 }
         );
@@ -853,7 +866,6 @@ public class UserController implements UserNavigator {
     private String accountPageSubtitle(String section) {
         return switch (section) {
             case ACCOUNT_SECTION -> "Manage your account information and password.";
-            case PRIVACY_SECTION -> "Settings and privacy options.";
             default -> "";
         };
     }
@@ -863,7 +875,7 @@ public class UserController implements UserNavigator {
         nav.getStyleClass().add("settings-nav");
         nav.setMaxHeight(Region.USE_PREF_SIZE);
 
-        List<String> sections = List.of(ACCOUNT_SECTION, PRIVACY_SECTION);
+        List<String> sections = List.of(ACCOUNT_SECTION);
 
         for (int index = 0; index < sections.size(); index++) {
             String section = sections.get(index);
@@ -1009,7 +1021,8 @@ public class UserController implements UserNavigator {
                             nameField.getText(),
                             usernameField.getText(),
                             emailField.getText(),
-                            newPassword
+                            newPassword,
+                            newPassword.isBlank() ? null : Boolean.FALSE
                     )
             );
 
@@ -1027,6 +1040,236 @@ public class UserController implements UserNavigator {
 
     private User currentAccountUser() {
         return userManager.getCurrentAccount();
+    }
+
+    private void showFirstLoginPasswordDialogIfNeeded() {
+        if (forcedPasswordDialogShown || appShell == null) {
+            return;
+        }
+
+        if (appShell.getScene() == null) {
+            Platform.runLater(this::showFirstLoginPasswordDialogIfNeeded);
+            return;
+        }
+
+        User currentUser = currentAccountUser();
+        if (currentUser == null || !currentUser.isMustChangePassword()) {
+            return;
+        }
+
+        forcedPasswordDialogShown = true;
+        showFirstLoginPasswordDialog(currentUser);
+    }
+
+    private void showFirstLoginPasswordDialog(User account) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        final boolean[] passwordChangeCompleted = {false};
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setHeaderText(null);
+        dialog.setTitle("Change Temporary Password");
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "first-login-password-dialog-pane");
+
+        if (appShell != null && appShell.getStyleClass().contains(DARK_MODE_CLASS)) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
+
+        if (appShell != null && appShell.getScene() != null) {
+            dialog.initOwner(appShell.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
+        }
+
+        String oldPassword = clean(loginPassword).isBlank() ? "Temporary password used at sign-in" : clean(loginPassword);
+        TextField oldPasswordField = new TextField(oldPassword);
+        oldPasswordField.setEditable(false);
+        oldPasswordField.setFocusTraversable(false);
+        oldPasswordField.getStyleClass().addAll("first-login-password-readonly-field", "first-login-password-short-field");
+        HBox oldPasswordRow = new HBox(oldPasswordField);
+        oldPasswordRow.setAlignment(Pos.CENTER_LEFT);
+        oldPasswordRow.getStyleClass().add("first-login-password-input-row");
+
+        PasswordVisibilityField newPasswordField = createPasswordVisibilityField("Enter new password");
+        PasswordVisibilityField confirmPasswordField = createPasswordVisibilityField("Type the same password again");
+
+        Label passwordHintLabel = new Label("Password must be at least 6 characters.");
+        passwordHintLabel.getStyleClass().add("first-login-password-hint");
+
+        Label validationLabel = new Label();
+        validationLabel.getStyleClass().add("first-login-password-validation");
+        validationLabel.setText(" ");
+        validationLabel.setVisible(true);
+        validationLabel.setManaged(true);
+
+        Button changePasswordButton = new Button("Change Password");
+        changePasswordButton.getStyleClass().add("portal-primary-button");
+        changePasswordButton.setDefaultButton(true);
+        changePasswordButton.setOnAction(event -> {
+            if (!validateFirstLoginPasswordInputs(validationLabel, newPasswordField, confirmPasswordField, true)) {
+                return;
+            }
+
+            String newPassword = newPasswordField.getText().trim();
+
+            try {
+                User updatedUser = userManager.updateCurrentAccount(
+                        new UserManager.AccountInput(
+                                account.getName(),
+                                account.getUsername(),
+                                account.getEmail(),
+                                newPassword,
+                                false
+                        )
+                );
+                UserSession.setCurrentUser(updatedUser);
+                configureAccount();
+                loginPassword = null;
+                passwordChangeCompleted[0] = true;
+                dialog.setResult(ButtonType.OK);
+                dialog.close();
+            } catch (RuntimeException exception) {
+                showFirstLoginValidation(validationLabel, exception.getMessage());
+            }
+        });
+
+        newPasswordField.setOnAction(event -> changePasswordButton.fire());
+        confirmPasswordField.setOnAction(event -> changePasswordButton.fire());
+
+        VBox content = new VBox(16,
+                createFirstLoginDialogTitle(account),
+                createFirstLoginDialogField("Temporary Password", oldPasswordRow),
+                createFirstLoginDialogField("New Password", newPasswordField.root()),
+                passwordHintLabel,
+                createFirstLoginDialogField("Confirm New Password", confirmPasswordField.root()),
+                validationLabel,
+                createFirstLoginDialogActions(changePasswordButton)
+        );
+        content.getStyleClass().add("first-login-password-dialog-root");
+        content.setAlignment(Pos.TOP_CENTER);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setPrefWidth(640);
+        dialog.getDialogPane().setMinWidth(640);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMinHeight(Region.USE_COMPUTED_SIZE);
+
+        dialog.setOnCloseRequest(event -> {
+            if (!passwordChangeCompleted[0]) {
+                event.consume();
+            }
+        });
+
+        dialog.showAndWait();
+    }
+
+    private VBox createFirstLoginDialogTitle(User account) {
+        Label title = new Label("Change Your Temporary Password");
+        title.getStyleClass().add("first-login-password-title");
+
+        Label copy = new Label(clean(account.getName()).isBlank()
+                ? "This account was created with a temporary password. Choose a new password before continuing."
+                : clean(account.getName()) + ", this account was created with a temporary password. Choose a new password before continuing.");
+        copy.setWrapText(true);
+        copy.getStyleClass().add("first-login-password-copy");
+
+        VBox header = new VBox(8, title, copy);
+        header.getStyleClass().add("first-login-password-header");
+        return header;
+    }
+
+    private VBox createFirstLoginDialogField(String labelText, Node field) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("first-login-password-label");
+
+        VBox wrapper = new VBox(8, label, field);
+        wrapper.getStyleClass().add("first-login-password-field");
+        return wrapper;
+    }
+
+    private HBox createFirstLoginDialogActions(Button changePasswordButton) {
+        HBox actions = new HBox(changePasswordButton);
+        actions.setAlignment(Pos.CENTER);
+        actions.getStyleClass().add("first-login-password-actions");
+        return actions;
+    }
+
+    private void showFirstLoginValidation(Label validationLabel, String message) {
+        String cleanedMessage = clean(message);
+        validationLabel.setText(cleanedMessage.isBlank() ? " " : cleanedMessage);
+    }
+
+    private boolean validateFirstLoginPasswordInputs(Label validationLabel,
+                                                     PasswordVisibilityField newPasswordField,
+                                                     PasswordVisibilityField confirmPasswordField,
+                                                     boolean requireNewPassword) {
+        String newPassword = newPasswordField.getText().trim();
+        String confirmPassword = confirmPasswordField.getText().trim();
+
+        if (requireNewPassword && newPassword.isBlank()) {
+            showFirstLoginValidation(validationLabel, "New password is required.");
+            return false;
+        }
+
+        if (!newPassword.isBlank() && newPassword.length() < 6) {
+            showFirstLoginValidation(validationLabel, "Password must be at least 6 characters.");
+            return false;
+        }
+
+        if (!confirmPassword.isBlank() && !newPassword.equals(confirmPassword)) {
+            showFirstLoginValidation(validationLabel, "Passwords do not match.");
+            return false;
+        }
+
+        showFirstLoginValidation(validationLabel, "");
+        return true;
+    }
+
+    private PasswordVisibilityField createPasswordVisibilityField(String promptText) {
+        PasswordField hiddenField = createAccountPasswordField(promptText);
+        TextField visibleField = createAccountTextField("");
+        visibleField.setPromptText(promptText);
+        visibleField.setManaged(false);
+        visibleField.setVisible(false);
+
+        hiddenField.textProperty().bindBidirectional(visibleField.textProperty());
+
+        BooleanProperty showingPassword = new SimpleBooleanProperty(false);
+
+        Button toggleButton = new Button();
+        toggleButton.setFocusTraversable(false);
+        toggleButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        toggleButton.getStyleClass().add("first-login-password-toggle-button");
+
+        SVGPath icon = new SVGPath();
+        icon.setContent(EYE_OFF_ICON_PATH);
+        icon.getStyleClass().add("first-login-password-toggle-icon");
+        toggleButton.setGraphic(icon);
+
+        showingPassword.addListener((observable, oldValue, showPassword) -> {
+            hiddenField.setVisible(!showPassword);
+            hiddenField.setManaged(!showPassword);
+            visibleField.setVisible(showPassword);
+            visibleField.setManaged(showPassword);
+            icon.setContent(showPassword ? EYE_ICON_PATH : EYE_OFF_ICON_PATH);
+        });
+
+        toggleButton.setOnAction(event -> {
+            showingPassword.set(!showingPassword.get());
+            if (showingPassword.get()) {
+                visibleField.requestFocus();
+                visibleField.positionCaret(visibleField.getText().length());
+            } else {
+                hiddenField.requestFocus();
+                hiddenField.positionCaret(hiddenField.getText().length());
+            }
+        });
+
+        StackPane fieldStack = new StackPane(hiddenField, visibleField);
+        HBox.setHgrow(fieldStack, Priority.ALWAYS);
+        fieldStack.getStyleClass().add("first-login-password-field-stack");
+
+        HBox root = new HBox(8, fieldStack, toggleButton);
+        root.setAlignment(Pos.CENTER_LEFT);
+        root.getStyleClass().add("first-login-password-input-row");
+
+        return new PasswordVisibilityField(root, hiddenField, visibleField);
     }
 
     private VBox formField(String labelText, Node field) {
@@ -1344,5 +1587,16 @@ public class UserController implements UserNavigator {
 
     private String clean(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private record PasswordVisibilityField(HBox root, PasswordField hiddenField, TextField visibleField) {
+        private String getText() {
+            return hiddenField.getText() == null ? "" : hiddenField.getText();
+        }
+
+        private void setOnAction(javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
+            hiddenField.setOnAction(handler);
+            visibleField.setOnAction(handler);
+        }
     }
 }

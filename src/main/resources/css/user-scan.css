@@ -1078,6 +1078,17 @@
     -fx-border-width: 0 0 0 1;
 }
 
+.scan-side-scroll,
+.scan-side-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.scan-side-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
 .scan-workflow-box {
     -fx-padding: 9 0 0 0;
     -fx-background-color: -wl-surface;

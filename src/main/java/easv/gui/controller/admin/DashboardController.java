@@ -8,6 +8,7 @@ import easv.gui.controller.util.PrimeIcons;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -26,6 +27,18 @@ public class DashboardController {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private static final int MAX_RECENT_ACTIVITY_ITEMS = 5;
+    private static final String ALL_ACTIVITY_TYPES = "All activity";
+    private static final List<String> RECENT_ACTIVITY_FILTER_OPTIONS = List.of(
+            ALL_ACTIVITY_TYPES,
+            "Scans",
+            "QA",
+            "Profiles",
+            "Users",
+            "Access",
+            "Exports",
+            "Files",
+            "Security"
+    );
 
     private static final Set<String> ACRONYM_WORDS =
             Set.of("TIFF", "QA", "ID", "IP", "PDF", "PNG", "JPG", "OCR", "API", "URL");
@@ -50,6 +63,7 @@ public class DashboardController {
     @FXML private HBox draftProfilesRow;
 
     @FXML private VBox recentActivityList;
+    @FXML private ComboBox<String> recentActivityFilterComboBox;
 
     private AdminNavigator navigator = AdminNavigator.none();
     private AdminManager adminManager;
@@ -71,6 +85,7 @@ public class DashboardController {
 
     @FXML
     private void initialize() {
+        configureRecentActivityFilter();
     }
 
     private void refreshDashboard() {
@@ -202,6 +217,19 @@ public class DashboardController {
         needsAttentionValueLabel.setText(String.valueOf(totalNeedsAttention));
     }
 
+    private void populateRecentActivity() {
+        if (recentActivityList == null || adminManager == null) {
+            return;
+        }
+
+        List<AuditLog> recentLogs = adminManager.getAuditLogs().stream()
+                .filter(log -> !isLoginLog(log))
+                .filter(this::matchesRecentActivityFilter)
+                .limit(MAX_RECENT_ACTIVITY_ITEMS)
+                .toList();
+        populateRecentActivity(recentLogs);
+    }
+
     private void populateRecentActivity(List<AuditLog> recentLogs) {
         if (recentActivityList == null) {
             return;
@@ -219,6 +247,29 @@ public class DashboardController {
                         .map(this::createRecentActivityRow)
                         .toList()
         );
+    }
+
+    private void configureRecentActivityFilter() {
+        if (recentActivityFilterComboBox == null) {
+            return;
+        }
+
+        recentActivityFilterComboBox.getItems().setAll(RECENT_ACTIVITY_FILTER_OPTIONS);
+        recentActivityFilterComboBox.setValue(ALL_ACTIVITY_TYPES);
+        recentActivityFilterComboBox.valueProperty().addListener((observable, oldValue, newValue) -> populateRecentActivity());
+    }
+
+    private boolean matchesRecentActivityFilter(AuditLog log) {
+        if (log == null || recentActivityFilterComboBox == null) {
+            return true;
+        }
+
+        String selectedType = recentActivityFilterComboBox.getValue();
+        if (selectedType == null || selectedType.isBlank() || ALL_ACTIVITY_TYPES.equalsIgnoreCase(selectedType)) {
+            return true;
+        }
+
+        return selectedType.equalsIgnoreCase(safeText(log.getType(), ""));
     }
 
     private HBox createRecentActivityRow(AuditLog log) {

@@ -28,6 +28,7 @@ public class UserDAO {
 
     public UserDAO(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
+        ensureMustChangePasswordColumn();
     }
 
     public User findByUsername(String username) {
@@ -46,7 +47,8 @@ public class UserDAO {
                             u.password_hash,
                             COALESCE(r.name, '') AS role,
                             u.status,
-                            u.is_current_user
+                            u.is_current_user,
+                            u.must_change_password
                      FROM users u
                      LEFT JOIN roles r ON r.id = u.role_id
                      WHERE LOWER(u.username) = LOWER(?)
@@ -124,7 +126,8 @@ public class UserDAO {
                         displayRole(user.getRole()),
                         displayStatus(user.getStatus()),
                         user.getAssignedProfiles(),
-                        user.isCurrentUser()
+                        user.isCurrentUser(),
+                        user.isMustChangePassword()
                 );
             } catch (SQLException exception) {
                 connection.rollback();
@@ -178,7 +181,8 @@ public class UserDAO {
                             u.password_hash,
                             COALESCE(r.name, '') AS role,
                             u.status,
-                            u.is_current_user
+                            u.is_current_user,
+                            u.must_change_password
                      FROM users u
                      LEFT JOIN roles r ON r.id = u.role_id
                      ORDER BY u.id
@@ -243,8 +247,8 @@ public class UserDAO {
     private User insertUser(Connection connection, User user) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 INSERT INTO users
-                (name, username, email, password_hash, role_id, status, is_current_user, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                (name, username, email, password_hash, role_id, status, is_current_user, must_change_password, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, user.getName());
             statement.setString(2, user.getUsername());
@@ -253,6 +257,7 @@ public class UserDAO {
             statement.setInt(5, findRoleId(connection, user.getRole()));
             statement.setString(6, user.getStatus());
             statement.setBoolean(7, user.isCurrentUser());
+            statement.setBoolean(8, user.isMustChangePassword());
             statement.executeUpdate();
 
             return new User(
@@ -264,7 +269,8 @@ public class UserDAO {
                     displayRole(user.getRole()),
                     displayStatus(user.getStatus()),
                     user.getAssignedProfiles(),
-                    user.isCurrentUser()
+                    user.isCurrentUser(),
+                    user.isMustChangePassword()
             );
         }
     }
@@ -279,6 +285,7 @@ public class UserDAO {
                     role_id = ?,
                     status = ?,
                     is_current_user = ?,
+                    must_change_password = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """)) {
@@ -289,7 +296,8 @@ public class UserDAO {
             statement.setInt(5, findRoleId(connection, user.getRole()));
             statement.setString(6, user.getStatus());
             statement.setBoolean(7, user.isCurrentUser());
-            statement.setInt(8, user.getId());
+            statement.setBoolean(8, user.isMustChangePassword());
+            statement.setInt(9, user.getId());
             int updatedRows = statement.executeUpdate();
 
             if (updatedRows == 0) {
@@ -418,8 +426,24 @@ public class UserDAO {
                 displayRole(resultSet.getString("role")),
                 displayStatus(resultSet.getString("status")),
                 assignedProfileNames,
-                resultSet.getBoolean("is_current_user")
+                resultSet.getBoolean("is_current_user"),
+                resultSet.getBoolean("must_change_password")
         );
+    }
+
+    private void ensureMustChangePasswordColumn() {
+        try (Connection connection = databaseConnection.getConnection()) {
+            if (!DatabaseConnection.columnExists(connection, "users", "must_change_password")) {
+                try (PreparedStatement statement = connection.prepareStatement("""
+                        ALTER TABLE users
+                        ADD must_change_password BIT NOT NULL CONSTRAINT DF_users_must_change_password DEFAULT 0
+                        """)) {
+                    statement.executeUpdate();
+                }
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to verify the users.must_change_password column.", exception);
+        }
     }
 
     private int readGeneratedIntId(Statement statement) throws SQLException {
