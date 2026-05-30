@@ -1,13 +1,20 @@
+# Compiled class files
 target/
-data/
-*.class
-database.properties
 
+*.class
+
+# IDE / editor noise
 .idea/
+.vscode/
+
+# OS noise
 *.iml
 
-tmp_inspect/
-screenshots/
-*.log
+.DS_Store
 
 .claude/settings.local.json
+
+# Local audit artifacts (not part of the project)
+status-tag-audit-output/
+dark-mode-audit-output/
+*.BROKEN-before-safe-undo.*

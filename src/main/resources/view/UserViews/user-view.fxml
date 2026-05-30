@@ -96,21 +96,6 @@
                             </graphic>
                         </ToggleButton>
 
-                        <ToggleButton fx:id="myScansNavItem"
-                                      focusTraversable="false"
-                                      contentDisplay="GRAPHIC_ONLY">
-                            <styleClass>
-                                <String fx:value="admin-top-nav-button"/>
-                            </styleClass>
-                            <graphic>
-                                <HBox alignment="CENTER_LEFT" spacing="8">
-                                    <SVGPath content="M4 4h16v2H4V4zm0 5h16v2H4V9zm0 5h10v2H4v-2zm0 5h10v2H4v-2zm12-5h4v6h-4v-6z"
-                                             styleClass="admin-top-nav-icon"/>
-                                    <Label text="My Scans" styleClass="admin-top-nav-label"/>
-                                </HBox>
-                            </graphic>
-                        </ToggleButton>
-
                         <ToggleButton fx:id="assignedQANavItem"
                                       focusTraversable="false"
                                       contentDisplay="GRAPHIC_ONLY">

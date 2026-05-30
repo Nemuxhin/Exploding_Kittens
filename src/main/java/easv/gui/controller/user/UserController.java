@@ -88,7 +88,6 @@ public class UserController implements UserNavigator {
 
     @FXML private ToggleButton dashboardNavItem;
     @FXML private ToggleButton scanNavItem;
-    @FXML private ToggleButton myScansNavItem;
     @FXML private ToggleButton assignedQANavItem;
     @FXML private Button keyboardShortcutsButton;
     @FXML private Button notificationMenuButton;
@@ -473,7 +472,6 @@ public class UserController implements UserNavigator {
     private Node createProgrammaticPage(UserPage page) {
         return switch (page) {
             case DASHBOARD -> new DashboardController(portalModel, this).create();
-            case MY_SCANS -> new MyScansController(portalModel, this).create();
             case EXPORTS -> new ExportsController(portalModel).create();
             case EDIT_PROFILE -> createAccountSettingsPage(ACCOUNT_SECTION);
             case SETTINGS -> createAccountSettingsPage(ACCOUNT_SECTION);
@@ -497,7 +495,6 @@ public class UserController implements UserNavigator {
         return List.of(
                 UserPage.DASHBOARD,
                 UserPage.SCAN,
-                UserPage.MY_SCANS,
                 UserPage.ASSIGNED_QA,
                 UserPage.EXPORTS
         );
@@ -589,7 +586,6 @@ public class UserController implements UserNavigator {
         return List.of(
                 dashboardNavItem,
                 scanNavItem,
-                myScansNavItem,
                 assignedQANavItem
         );
     }
@@ -598,7 +594,6 @@ public class UserController implements UserNavigator {
         return switch (page) {
             case DASHBOARD -> dashboardNavItem;
             case SCAN -> scanNavItem;
-            case MY_SCANS -> myScansNavItem;
             case ASSIGNED_QA -> assignedQANavItem;
             case EXPORTS -> null;
             case EDIT_PROFILE -> null;

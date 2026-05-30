@@ -137,24 +137,6 @@ public class QAService {
                 documents
         );
 
-        if (assignment.createdByUserId() != null) {
-            if (approved) {
-                notificationDAO.create(
-                        assignment.createdByUserId(),
-                        reviewId,
-                        "QA approved " + assignment.boxId(),
-                        "Your scan for " + assignment.profileName() + " passed QA and is ready for export."
-                );
-            } else {
-                notificationDAO.create(
-                        assignment.createdByUserId(),
-                        reviewId,
-                        "QA rejected " + assignment.boxId(),
-                        buildRejectionMessage(assignment.profileName(), documents)
-                );
-            }
-        }
-
         writeQaAuditLog(
                 approved ? "Approved QA" : "Rejected QA",
                 qaTarget(assignment.profileName(), assignment.boxId()),
@@ -244,39 +226,6 @@ public class QAService {
         }
         return user.getAssignedProfiles().stream()
                 .anyMatch(profile -> profile.equalsIgnoreCase(profileName));
-    }
-
-    private String buildRejectionMessage(String profileName, List<QaDocumentSnapshot> documents) {
-        List<String> comments = new ArrayList<>();
-        if (documents != null) {
-            for (QaDocumentSnapshot document : documents) {
-                if (document == null || document.pages() == null) {
-                    continue;
-                }
-                for (QaPageSnapshot page : document.pages()) {
-                    if (page == null || page.reviewStatus() != QaPageReviewStatus.NEEDS_FIX) {
-                        continue;
-                    }
-                    String comment = clean(page.comment());
-                    if (comment.isBlank()) {
-                        comment = "Needs correction.";
-                    }
-                    comments.add("Document " + document.number() + ", page " + page.pageNumber() + ": " + comment);
-                    if (comments.size() >= 3) {
-                        break;
-                    }
-                }
-                if (comments.size() >= 3) {
-                    break;
-                }
-            }
-        }
-
-        if (comments.isEmpty()) {
-            return "Your " + clean(profileName) + " scan was rejected and returned for changes.";
-        }
-
-        return "Returned for changes. " + String.join(" | ", comments);
     }
 
     private User requireCurrentUser() {

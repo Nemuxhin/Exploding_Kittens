@@ -79,7 +79,6 @@ import javafx.util.Duration;
 public class AssignedQaController {
     private record ParsedDateRange(LocalDate startDate, LocalDate endDate) {}
 
-    private static final List<String> QA_ROTATION_OPTIONS = List.of("0\u00B0", "90\u00B0", "180\u00B0", "270\u00B0");
     private static final DateTimeFormatter QA_DATE_RANGE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH);
 
 
@@ -111,8 +110,6 @@ public class AssignedQaController {
     @FXML private Label qaSidebarSubtitleLabel;
 
     @FXML private VBox qaDocumentTreeContainer;
-    @FXML private Button qaDocumentGridViewButton;
-    @FXML private Button qaDocumentListViewButton;
     @FXML private Label selectedQaPageTitleLabel;
     @FXML private Label selectedQaPageSubtitleLabel;
     @FXML private StackPane qaPreviewHost;
@@ -127,9 +124,6 @@ public class AssignedQaController {
     @FXML private CheckBox pageCountCorrectCheckBox;
     @FXML private TextArea qaCommentTextArea;
     @FXML private ComboBox<String> qaActionScopeComboBox;
-    @FXML private ComboBox<String> qaRotationComboBox;
-    @FXML private Button qaRotateLeftButton;
-    @FXML private Button qaRotateRightButton;
 
     private final List<QaAssignment> allAssignments = new ArrayList<>();
     private final List<QaDocument> reviewDocuments = new ArrayList<>();
@@ -151,8 +145,7 @@ public class AssignedQaController {
     private StackPane currentQaPreviewWrapper;
 
     private boolean syncingQaControls = false;
-    private boolean syncingQaRotationComboBox = false;
-    private boolean qaDocumentListView = false;
+    private final boolean qaDocumentListView = true;
     private boolean updatingDateControls = false;
     private LocalDate fromDate;
     private LocalDate toDate;
@@ -174,7 +167,6 @@ public class AssignedQaController {
     private void initialize() {
         configureFilters();
         configureAssignedQaListLayout();
-        configureQaRotation();
         configureQaControls();
         configureQaPreviewInteractions();
         loadAssignments();
@@ -648,37 +640,6 @@ public class AssignedQaController {
             qaCardListContainer.prefWidthProperty().bind(assignedQaFilterPanel.widthProperty());
             qaCardListContainer.maxWidthProperty().bind(assignedQaFilterPanel.widthProperty());
         }
-        updateQaDocumentViewToggleButtons();
-    }
-
-    @FXML
-    private void onShowQaDocumentGridView() {
-        qaDocumentListView = false;
-        updateQaDocumentViewToggleButtons();
-        renderQaDocumentTree();
-    }
-
-    @FXML
-    private void onShowQaDocumentListView() {
-        qaDocumentListView = true;
-        updateQaDocumentViewToggleButtons();
-        renderQaDocumentTree();
-    }
-
-    private void updateQaDocumentViewToggleButtons() {
-        setDocumentViewButtonActive(qaDocumentGridViewButton, !qaDocumentListView);
-        setDocumentViewButtonActive(qaDocumentListViewButton, qaDocumentListView);
-    }
-
-    private void setDocumentViewButtonActive(Button button, boolean active) {
-        if (button == null) {
-            return;
-        }
-
-        button.getStyleClass().remove("document-tree-view-toggle-button-active");
-        if (active) {
-            button.getStyleClass().add("document-tree-view-toggle-button-active");
-        }
     }
 
     // =========================================================
@@ -760,70 +721,6 @@ public class AssignedQaController {
         });
 
         qaAutoSaveDelay.setOnFinished(event -> persistQaProgressAsync());
-    }
-
-    private void configureQaRotation() {
-        if (qaRotationComboBox == null) {
-            return;
-        }
-
-        qaRotationComboBox.getItems().setAll(QA_ROTATION_OPTIONS);
-        qaRotationComboBox.setEditable(true);
-        qaRotationComboBox.setPromptText("Enter rotation in degrees");
-        syncQaRotationComboBox();
-        qaRotationComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null || newValue.isBlank()) {
-                return;
-            }
-
-            applyQaRotationSelection(newValue);
-        });
-
-        if (qaRotationComboBox.getEditor() != null) {
-            qaRotationComboBox.getEditor().setOnAction(event -> commitCustomQaRotation());
-            qaRotationComboBox.getEditor().focusedProperty().addListener((observable, oldValue, focused) -> {
-                if (!focused) {
-                    commitCustomQaRotation();
-                }
-            });
-        }
-    }
-
-    private void commitCustomQaRotation() {
-        if (qaRotationComboBox == null || qaRotationComboBox.getEditor() == null) {
-            return;
-        }
-
-        String editorValue = qaRotationComboBox.getEditor().getText();
-        if (editorValue == null || editorValue.isBlank()) {
-            syncQaRotationComboBox();
-            return;
-        }
-
-        qaRotationComboBox.setValue(formatRotationDegrees(parseRotationDegrees(editorValue)));
-    }
-
-    private void applyQaRotationSelection(String newValue) {
-        if (syncingQaRotationComboBox) {
-            return;
-        }
-
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            syncQaRotationComboBox();
-            return;
-        }
-
-        int newRotationDegrees = parseRotationDegrees(newValue);
-        if (page.rotationDegrees == newRotationDegrees) {
-            syncQaRotationComboBox();
-            return;
-        }
-
-        page.rotationDegrees = newRotationDegrees;
-        renderQaPreview();
-        updateQaRotationButtons();
-        scheduleQaProgressSave();
     }
 
     // =========================================================
@@ -1492,7 +1389,6 @@ public class AssignedQaController {
         renderQaDocumentTree();
         renderQaPreview();
         renderQaTools();
-        updateQaRotationButtons();
     }
 
     private void updateSelectedAssignmentFromReview() {
@@ -1563,26 +1459,6 @@ public class AssignedQaController {
         }
 
         updateQaZoomLabel();
-    }
-
-    private void updateQaRotationButtons() {
-        if (qaRotateLeftButton == null || qaRotateRightButton == null) {
-            return;
-        }
-
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            qaRotateLeftButton.setText("Rotate Left (90°)");
-            qaRotateRightButton.setText("Rotate Right (90°)");
-            return;
-        }
-
-        int currentRotation = normalizeRotation(page.rotationDegrees);
-        int leftTarget = normalizeRotation(currentRotation - 90);
-        int rightTarget = normalizeRotation(currentRotation + 90);
-
-        qaRotateLeftButton.setText("Rotate Left (" + leftTarget + "°)");
-        qaRotateRightButton.setText("Rotate Right (" + rightTarget + "°)");
     }
 
     private String getReviewStatusStyleClass(QaStatus status) {
@@ -1926,7 +1802,6 @@ public class AssignedQaController {
             pageCountCorrectCheckBox.setSelected(page.pageCountCorrect);
         }
         qaCommentTextArea.setText(page.comment == null ? "" : page.comment);
-        syncQaRotationComboBox();
 
         syncingQaControls = false;
     }
@@ -2270,83 +2145,6 @@ public class AssignedQaController {
         renderQaPreview();
     }
 
-    @FXML
-    private void onRotateLeft() {
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            return;
-        }
-
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees - 90);
-        renderQaPreview();
-        updateQaRotationButtons();
-        syncQaRotationComboBox();
-        scheduleQaProgressSave();
-    }
-
-    @FXML
-    private void onRotateRight() {
-        QaPage page = getSelectedQaPage();
-        if (page == null) {
-            return;
-        }
-
-        page.rotationDegrees = normalizeRotation(page.rotationDegrees + 90);
-        renderQaPreview();
-        updateQaRotationButtons();
-        syncQaRotationComboBox();
-        scheduleQaProgressSave();
-    }
-
-    private int normalizeRotation(int rotationDegrees) {
-        int normalized = rotationDegrees % 360;
-
-        if (normalized < 0) {
-            normalized += 360;
-        }
-
-        return normalized;
-    }
-
-    private void syncQaRotationComboBox() {
-        if (qaRotationComboBox == null) {
-            return;
-        }
-
-        syncingQaRotationComboBox = true;
-        QaPage page = getSelectedQaPage();
-        String rotationValue = formatRotationDegrees(page == null ? 0 : page.rotationDegrees);
-        qaRotationComboBox.setValue(rotationValue);
-        if (qaRotationComboBox.getEditor() != null) {
-            qaRotationComboBox.getEditor().setText(rotationValue);
-        }
-        syncingQaRotationComboBox = false;
-    }
-
-    private String formatRotationDegrees(int rotationDegrees) {
-        return normalizeRotation(rotationDegrees) + "\u00B0";
-    }
-
-    private int parseRotationDegrees(String value) {
-        if (value == null || value.isBlank()) {
-            return 0;
-        }
-
-        String normalizedValue = value.trim().replace("\u00B0", "");
-        try {
-            return normalizeRotation(Integer.parseInt(normalizedValue));
-        } catch (NumberFormatException ignored) {
-            String digitsOnly = normalizedValue.replaceAll("[^0-9-]", "");
-            if (digitsOnly.isBlank() || "-".equals(digitsOnly)) {
-                return 0;
-            }
-            try {
-                return normalizeRotation(Integer.parseInt(digitsOnly));
-            } catch (NumberFormatException ignoredAgain) {
-                return 0;
-            }
-        }
-    }
 
     // =========================================================
     // FXML ACTIONS: QA WORK

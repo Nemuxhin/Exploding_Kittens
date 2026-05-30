@@ -158,13 +158,7 @@ public class DashboardController {
         subtitle.getStyleClass().add("dashboard-section-subtitle");
         subtitle.setWrapText(true);
 
-        Button link = new Button("View All");
-        link.getStyleClass().addAll("admin-secondary-button", "dashboard-view-all-button");
-        link.setOnAction(event -> navigator.showScans());
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(10, new VBox(2, title, subtitle), spacer, link);
+        HBox header = new HBox(10, new VBox(2, title, subtitle));
         header.getStyleClass().add("admin-panel-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -341,13 +335,7 @@ public class DashboardController {
         subtitle.getStyleClass().add("dashboard-section-subtitle");
         subtitle.setWrapText(true);
 
-        Button link = new Button("View All");
-        link.getStyleClass().addAll("admin-secondary-button", "dashboard-view-all-button");
-        link.setOnAction(event -> navigator.showScans());
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(10, new VBox(2, title, subtitle), spacer, link);
+        HBox header = new HBox(10, new VBox(2, title, subtitle));
         header.getStyleClass().add("admin-panel-header");
         header.setAlignment(Pos.CENTER_LEFT);
 

@@ -219,13 +219,6 @@
                                     HBox.hgrow="ALWAYS"
                                     styleClass="primary-button"/>
 
-                            <Button fx:id="viewMyScansButton"
-                                    text="View My Scans"
-                                    onAction="#onViewMyScans"
-                                    minWidth="180"
-                                    prefWidth="180"
-                                    maxWidth="180"
-                                    styleClass="tertiary-button"/>
                         </HBox>
 
                         <!-- Calm utility line -->
@@ -338,19 +331,6 @@
                         <Label text="Box Structure"
                                styleClass="scan-panel-title"/>
 
-                        <Region HBox.hgrow="ALWAYS"/>
-
-                        <Button fx:id="documentTreeGridViewButton"
-                                text="⧉"
-                                onAction="#onShowDocumentTreeGridView"
-                                focusTraversable="false"
-                                styleClass="document-tree-view-toggle-button"/>
-
-                        <Button fx:id="documentTreeListViewButton"
-                                text="☰"
-                                onAction="#onShowDocumentTreeListView"
-                                focusTraversable="false"
-                                styleClass="document-tree-view-toggle-button"/>
                     </HBox>
 
                     <Label fx:id="boxStructureSubtitleLabel"
@@ -578,13 +558,13 @@
                               promptText="Enter rotation in degrees"
                               styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Left (1°)"
+                    <Button text="Rotate Left (5°)"
                             fx:id="rotateLeftButton"
                             onAction="#onRotateLeft"
                             maxWidth="Infinity"
                             styleClass="scan-tool-button"/>
 
-                    <Button text="Rotate Right (1°)"
+                    <Button text="Rotate Right (5°)"
                             fx:id="rotateRightButton"
                             onAction="#onRotateRight"
                             maxWidth="Infinity"
@@ -735,19 +715,6 @@
                     <Label text="Box Structure"
                            styleClass="review-panel-title"/>
 
-                    <Region HBox.hgrow="ALWAYS"/>
-
-                    <Button fx:id="reviewDocumentGridViewButton"
-                            text="⧉"
-                            onAction="#onShowReviewDocumentGridView"
-                            focusTraversable="false"
-                            styleClass="document-tree-view-toggle-button"/>
-
-                    <Button fx:id="reviewDocumentListViewButton"
-                            text="☰"
-                            onAction="#onShowReviewDocumentListView"
-                            focusTraversable="false"
-                            styleClass="document-tree-view-toggle-button"/>
                 </HBox>
 
                 <Label fx:id="reviewSidebarSubtitleLabel"
@@ -1073,11 +1040,6 @@
                     onAction="#onSubmitForQaFromFinishModal"
                     maxWidth="Infinity"
                     styleClass="finish-review-primary-button"/>
-
-            <Button text="Back to Scanning"
-                    onAction="#onBackToScanningFromFinishModal"
-                    maxWidth="Infinity"
-                    styleClass="finish-review-secondary-button"/>
 
             <Button text="Cancel"
                     onAction="#onBackToScanningFromFinishModal"

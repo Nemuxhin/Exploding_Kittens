@@ -85,7 +85,7 @@ public class ScanController {
     private static final double PREVIEW_NUDGE_AMOUNT = 36;
 
     private static final int MAX_UNDO_STEPS = 30;
-    private static final int ROTATION_STEP_DEGREES = 1;
+    private static final int ROTATION_STEP_DEGREES = 5;
     private static final List<String> BOX_ROTATION_OPTIONS = List.of("0°", "90°", "180°", "270°");
 
     @FXML private VBox scanSetupView;
@@ -105,14 +105,9 @@ public class ScanController {
     @FXML private Label profileInfoSplittingLabel;
 
     @FXML private Button startScanningButton;
-    @FXML private Button viewMyScansButton;
     @FXML private Button undoLastActionButton;
     @FXML private Button rotateLeftButton;
     @FXML private Button rotateRightButton;
-    @FXML private Button documentTreeGridViewButton;
-    @FXML private Button documentTreeListViewButton;
-    @FXML private Button reviewDocumentGridViewButton;
-    @FXML private Button reviewDocumentListViewButton;
 
     @FXML private Label workspaceSessionTitleLabel;
     @FXML private Label workspaceSessionSubtitleLabel;
@@ -200,8 +195,8 @@ public class ScanController {
     private StackPane currentReviewPreviewWrapper;
 
     private ScannedPage selectedPage;
-    private boolean documentTreeListView = false;
-    private boolean reviewDocumentListView = false;
+    private final boolean documentTreeListView = true;
+    private final boolean reviewDocumentListView = true;
 
     private UserNavigator navigator = UserNavigator.none();
     private UserPortalModel portalModel = new UserPortalModel();
@@ -241,7 +236,6 @@ public class ScanController {
         configureProfileInfo();
         configureValidation();
         configureDocumentTreeScroll();
-        configureDocumentTreeViewToggle();
         configureWorkspacePanelClipping();
         configurePreviewInteractions();
         configureReviewPreviewInteractions();
@@ -279,13 +273,17 @@ public class ScanController {
             });
         }
 
+        // Manual rotate buttons sit under the combo box; each click rotates the
+        // selected page by ROTATION_STEP_DEGREES (5°). Keep them visible.
         if (rotateLeftButton != null) {
-            rotateLeftButton.setVisible(false);
-            rotateLeftButton.setManaged(false);
+            rotateLeftButton.setVisible(true);
+            rotateLeftButton.setManaged(true);
+            rotateLeftButton.setText("Rotate Left (" + ROTATION_STEP_DEGREES + "°)");
         }
         if (rotateRightButton != null) {
-            rotateRightButton.setVisible(false);
-            rotateRightButton.setManaged(false);
+            rotateRightButton.setVisible(true);
+            rotateRightButton.setManaged(true);
+            rotateRightButton.setText("Rotate Right (" + ROTATION_STEP_DEGREES + "°)");
         }
     }
 
@@ -304,11 +302,6 @@ public class ScanController {
         }
     }
 
-    private void configureDocumentTreeViewToggle() {
-        updateDocumentTreeViewToggleButtons();
-        updateReviewDocumentViewToggleButtons();
-    }
-
     private void configureWorkspacePanelClipping() {
         installPanelClip(scanLeftPanel);
         installPanelClip(scanToolsPanel);
@@ -323,55 +316,6 @@ public class ScanController {
         clip.widthProperty().bind(panel.widthProperty());
         clip.heightProperty().bind(panel.heightProperty());
         panel.setClip(clip);
-    }
-
-    @FXML
-    private void onShowDocumentTreeGridView() {
-        documentTreeListView = false;
-        updateDocumentTreeViewToggleButtons();
-        renderDocumentTree();
-    }
-
-    @FXML
-    private void onShowDocumentTreeListView() {
-        documentTreeListView = true;
-        updateDocumentTreeViewToggleButtons();
-        renderDocumentTree();
-    }
-
-    private void updateDocumentTreeViewToggleButtons() {
-        setDocumentTreeViewButtonActive(documentTreeGridViewButton, !documentTreeListView);
-        setDocumentTreeViewButtonActive(documentTreeListViewButton, documentTreeListView);
-    }
-
-    @FXML
-    private void onShowReviewDocumentGridView() {
-        reviewDocumentListView = false;
-        updateReviewDocumentViewToggleButtons();
-        renderReviewDocumentList();
-    }
-
-    @FXML
-    private void onShowReviewDocumentListView() {
-        reviewDocumentListView = true;
-        updateReviewDocumentViewToggleButtons();
-        renderReviewDocumentList();
-    }
-
-    private void updateReviewDocumentViewToggleButtons() {
-        setDocumentTreeViewButtonActive(reviewDocumentGridViewButton, !reviewDocumentListView);
-        setDocumentTreeViewButtonActive(reviewDocumentListViewButton, reviewDocumentListView);
-    }
-
-    private void setDocumentTreeViewButtonActive(Button button, boolean active) {
-        if (button == null) {
-            return;
-        }
-
-        button.getStyleClass().remove("document-tree-view-toggle-button-active");
-        if (active) {
-            button.getStyleClass().add("document-tree-view-toggle-button-active");
-        }
     }
 
     private void installDocumentTreeScrollHandler(Node node) {
@@ -2094,11 +2038,6 @@ public class ScanController {
     }
 
     @FXML
-    private void onViewMyScans() {
-        navigator.showMyScans();
-    }
-
-    @FXML
     private void onBackToScanSetup() {
         showSetupView();
     }
@@ -2159,8 +2098,8 @@ public class ScanController {
             return;
         }
 
-        rotateLeftButton.setText("Rotate Left (1\u00B0)");
-        rotateRightButton.setText("Rotate Right (1\u00B0)");
+        rotateLeftButton.setText("Rotate Left (" + ROTATION_STEP_DEGREES + "\u00B0)");
+        rotateRightButton.setText("Rotate Right (" + ROTATION_STEP_DEGREES + "\u00B0)");
     }
 
     private void syncBoxRotationComboBox() {
