@@ -537,7 +537,7 @@
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
-    -fx-padding: 0 12 0 12;
+    -fx-padding: 0 9 0 9;
 }
 
 .combo-box-base:hover,
@@ -627,16 +627,33 @@
     -fx-fill: -wl-secondary;
 }
 
+/* Canonical dropdown caret — styleguide pp.4, 5 & 7:
+   - PrimeNG pi-chevron-down shape (the styleguide says PrimeNG icons everywhere)
+   - 9px from the right edge of the field, 9px gap to the text on the left
+   - Primary text colour (-wl-text)
+   - Same look across ComboBox, DatePicker, and MenuButton
+   The account-menu chevron (.admin-account-chevron / .top-user-chevron) is
+   intentionally not part of this rule — it stays muted as before. */
 .combo-box-base > .arrow-button,
-.date-picker > .arrow-button {
+.date-picker > .arrow-button,
+.menu-button > .arrow-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-padding: 0 12 0 9;
+    -fx-padding: 0 9 0 9;
 }
 
 .combo-box-base > .arrow-button > .arrow,
-.date-picker > .arrow-button > .arrow {
+.date-picker > .arrow-button > .arrow,
+.menu-button > .arrow-button > .arrow {
     -fx-background-color: -wl-text;
+    -fx-shape: "M3.5 5.5 L7 9 L10.5 5.5 L9.793 4.793 L7 7.586 L4.207 4.793 Z";
+    -fx-scale-shape: false;
+    -fx-min-width: 10;
+    -fx-min-height: 6;
+    -fx-pref-width: 10;
+    -fx-pref-height: 6;
+    -fx-max-width: 10;
+    -fx-max-height: 6;
 }
 
 .combo-box-base .list-cell,

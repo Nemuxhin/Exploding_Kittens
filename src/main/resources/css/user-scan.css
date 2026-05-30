@@ -233,7 +233,7 @@
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-border-insets: 0;
-    -fx-padding: 0 15 0 15;
+    -fx-padding: 0 9 0 9;
     -fx-text-fill: -wl-text;
     -fx-prompt-text-fill: -wl-placeholder;
     -fx-focus-color: transparent;
@@ -251,15 +251,7 @@
     -fx-border-color: -wl-input-focus-border;
 }
 
-.scan-setup-view .weblager-combo-box > .arrow-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0 15 0 9;
-}
-
-.scan-setup-view .weblager-combo-box > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
+/* Caret padding inherits from app.css (styleguide canonical: 0 9 0 9). */
 
 .scan-setup-view .weblager-combo-box .list-cell {
     -fx-text-fill: -wl-text;

@@ -15,12 +15,15 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -35,6 +38,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -117,6 +121,7 @@ public class UserController implements UserNavigator {
     private UserPortalModel.RecentScanItem pendingRecentScanItem;
     private UserPortalModel.HistoryItem pendingHistoryScanItem;
     private ScanController activeScanController;
+    private ContextMenu accountMenu;
     private Scene shortcutScene;
     private UserPage currentPage;
     private boolean userEditingTextInput;
@@ -173,6 +178,9 @@ public class UserController implements UserNavigator {
         if (accountDropdownPane != null) {
             accountDropdownPane.setMaxHeight(Region.USE_PREF_SIZE);
             accountDropdownPane.setVisible(false);
+            // Shown via a ContextMenu anchored to the button (see
+            // toggleAccountDropdown) so it stays connected to the button.
+            accountDropdownPane.managedProperty().bind(accountDropdownPane.visibleProperty());
         }
 
         if (accountMenuButton != null) {
@@ -643,17 +651,41 @@ public class UserController implements UserNavigator {
     }
 
     private void toggleAccountDropdown() {
-        if (accountDropdownPane == null) {
+        if (accountDropdownPane == null || accountMenuButton == null) {
             return;
         }
 
-        boolean shouldShow = !accountDropdownPane.isVisible();
-        hideNotificationDropdown();
-        accountDropdownPane.setVisible(shouldShow);
-
-        if (shouldShow) {
-            accountDropdownPane.toFront();
+        if (accountMenu != null && accountMenu.isShowing()) {
+            accountMenu.hide();
+            return;
         }
+
+        hideNotificationDropdown();
+
+        if (accountMenu == null) {
+            accountMenu = new ContextMenu();
+            accountMenu.getStyleClass().add("admin-account-popover-menu");
+            accountMenu.setAutoHide(true);
+
+            // Reparent the existing dropdown VBox into the context menu so all
+            // its wiring is preserved, but it now pops up anchored directly
+            // under the account button.
+            if (accountDropdownPane.getParent() instanceof Pane parent) {
+                parent.getChildren().remove(accountDropdownPane);
+            }
+            accountDropdownPane.setVisible(true);
+            CustomMenuItem item = new CustomMenuItem(accountDropdownPane, false);
+            item.getStyleClass().add("admin-account-popover-item");
+            accountMenu.getItems().setAll(item);
+        }
+
+        // Size the dropdown to the account button's actual width and show it
+        // flush underneath, so it stays connected and never spills past the edge.
+        double buttonWidth = accountMenuButton.getWidth();
+        accountDropdownPane.setMinWidth(buttonWidth);
+        accountDropdownPane.setPrefWidth(buttonWidth);
+        accountDropdownPane.setMaxWidth(buttonWidth);
+        accountMenu.show(accountMenuButton, Side.BOTTOM, 0, 4);
     }
 
     private void toggleNotificationDropdown() {
@@ -672,8 +704,8 @@ public class UserController implements UserNavigator {
     }
 
     private void hideAccountDropdown() {
-        if (accountDropdownPane != null) {
-            accountDropdownPane.setVisible(false);
+        if (accountMenu != null) {
+            accountMenu.hide();
         }
     }
 

@@ -188,12 +188,7 @@
 
     <VBox fx:id="accountDropdownPane"
           visible="false"
-          maxWidth="270"
-          styleClass="admin-account-dropdown"
-          StackPane.alignment="TOP_RIGHT">
-        <StackPane.margin>
-            <Insets top="60" right="24"/>
-        </StackPane.margin>
+          styleClass="admin-account-dropdown">
 
         <VBox spacing="3" styleClass="admin-account-dropdown-header">
             <Label fx:id="accountDropdownNameLabel"

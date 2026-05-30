@@ -230,12 +230,10 @@ public class AssignedQaController {
         }
 
         if (dateRangeMenuButton != null) {
-            Region arrowGraphic = new Region();
-            arrowGraphic.getStyleClass().add("assigned-qa-date-filter-arrow");
-
-            dateRangeMenuButton.setText(null);
-            dateRangeMenuButton.setGraphic(arrowGraphic);
-            dateRangeMenuButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
+            dateRangeMenuButton.setText("");
+            dateRangeMenuButton.setGraphic(null);
+            dateRangeMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
             dateRangeMenuButton.setOnAction(event -> showDateRangeCalendarMenu());
         }
 

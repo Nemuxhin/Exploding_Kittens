@@ -102,9 +102,9 @@
                                styleClass="logs-date-filter-input"/>
 
                     <Button fx:id="dateFilterMenuButton"
-                            text="▾"
+                            text="&#xe930;"
                             focusTraversable="false"
-                            styleClass="logs-date-filter-menu"/>
+                            styleClass="prime-icon logs-date-filter-menu"/>
                 </HBox>
                 <HBox fx:id="timeFilterBox"
                       prefWidth="135"
@@ -124,9 +124,9 @@
                            styleClass="logs-time-filter-value"/>
 
                     <Button fx:id="timeFilterMenuButton"
-                            text="▾"
+                            text="&#xe930;"
                             focusTraversable="false"
-                            styleClass="logs-time-filter-menu"/>
+                            styleClass="prime-icon logs-time-filter-menu"/>
                 </HBox>
 
                 <MenuButton fx:id="statusMenuButton"

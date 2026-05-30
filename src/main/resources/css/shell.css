@@ -395,6 +395,30 @@
     -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
 }
 
+/* Account dropdown shown via ContextMenu (anchored under the button).
+   Strip the default menu chrome so only the dropdown panel shows. */
+.admin-account-popover-menu,
+.admin-account-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.admin-account-popover-menu .custom-menu-item,
+.admin-account-popover-menu .menu-item,
+.admin-account-popover-menu .menu-item:focused,
+.admin-account-popover-menu .menu-item:hovered {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
 .admin-account-dropdown-header {
     -fx-background-color: -wl-surface-hover;
     -fx-background-radius: 6;

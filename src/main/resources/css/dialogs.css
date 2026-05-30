@@ -671,17 +671,9 @@
     -fx-effect: none;
 }
 
-.create-user-input > .arrow-button,
-.admin-dialog-pane .combo-box-base > .arrow-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0 12 0 9;
-}
-
-.create-user-input > .arrow-button > .arrow,
-.admin-dialog-pane .combo-box-base > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
+/* Arrow-button styling inherits from app.css (styleguide canonical: 0 9 0 9).
+   .create-user-input ComboBoxes and .admin-dialog-pane combo-boxes both
+   match the base .combo-box-base > .arrow-button rule, so no override needed. */
 
 .create-user-generate-button {
     -fx-min-height: 33;

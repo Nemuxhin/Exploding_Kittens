@@ -944,7 +944,8 @@ public class ActivityController {
         timeOptionsMenu = new ContextMenu();
         timeOptionsMenu.getStyleClass().add("logs-time-popover-menu");
 
-        timeFilterMenuButton.setText("▾");
+        // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
+        timeFilterMenuButton.setText("");
         timeFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
         timeFilterMenuButton.setOnAction(event -> {
             event.consume();
@@ -4801,7 +4802,8 @@ public class ActivityController {
         }
 
         if (dateFilterMenuButton != null) {
-            dateFilterMenuButton.setText("▾");
+            // Canonical dropdown caret: PrimeIcon pi-chevron-down (styleguide pp.4 & 7).
+            dateFilterMenuButton.setText("");
             dateFilterMenuButton.setContentDisplay(ContentDisplay.TEXT_ONLY);
             dateFilterMenuButton.setOnAction(event -> {
                 event.consume();

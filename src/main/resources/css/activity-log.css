@@ -145,14 +145,7 @@
     -fx-text-fill: -wl-text;
 }
 
-.activity-log-page.logs-page .logs-filter > .arrow-button {
-    -fx-background-color: transparent;
-    -fx-padding: 0;
-}
-
-.activity-log-page.logs-page .logs-filter > .arrow-button > .arrow {
-    -fx-background-color: -wl-primary;
-}
+/* Arrow-button styling inherits from app.css (canonical PrimeNG chevron at -wl-text). */
 
 .activity-log-page.logs-page .logs-clear-button {
     -fx-min-height: 30;
@@ -782,13 +775,15 @@
     -fx-padding: 0;
 }
 
+/* Renders the &#xe930; PrimeIcon chevron set by ActivityController.
+   Color & shape follow the canonical caret (styleguide pp.4 & 7). */
 .activity-log-page.logs-page .logs-time-filter-menu,
 .activity-log-page.logs-page .logs-time-filter-menu:hover,
 .activity-log-page.logs-page .logs-time-filter-menu:focused,
 .activity-log-page.logs-page .logs-time-filter-menu:pressed {
-    -fx-min-width: 18;
-    -fx-pref-width: 18;
-    -fx-max-width: 18;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -797,7 +792,7 @@
     -fx-background-insets: 0;
     -fx-border-color: transparent;
     -fx-border-width: 0;
-    -fx-text-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -808,7 +803,7 @@
 .activity-log-page.logs-page .logs-time-filter-menu:hover .text,
 .activity-log-page.logs-page .logs-time-filter-menu:focused .text,
 .activity-log-page.logs-page .logs-time-filter-menu:pressed .text {
-    -fx-fill: -wl-text-muted;
+    -fx-fill: -wl-text;
 }
 
 .logs-time-popover-menu,
@@ -983,13 +978,15 @@
     -fx-faint-focus-color: transparent;
 }
 
+/* Renders the &#xe930; PrimeIcon chevron set by ActivityController.
+   Color & shape follow the canonical caret (styleguide pp.4 & 7). */
 .activity-log-page.logs-page .logs-date-filter-menu,
 .activity-log-page.logs-page .logs-date-filter-menu:hover,
 .activity-log-page.logs-page .logs-date-filter-menu:focused,
 .activity-log-page.logs-page .logs-date-filter-menu:pressed {
-    -fx-min-width: 18;
-    -fx-pref-width: 18;
-    -fx-max-width: 18;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -998,7 +995,7 @@
     -fx-background-insets: 0;
     -fx-border-color: transparent;
     -fx-border-width: 0;
-    -fx-text-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -1009,7 +1006,7 @@
 .activity-log-page.logs-page .logs-date-filter-menu:hover .text,
 .activity-log-page.logs-page .logs-date-filter-menu:focused .text,
 .activity-log-page.logs-page .logs-date-filter-menu:pressed .text {
-    -fx-fill: -wl-text-muted;
+    -fx-fill: -wl-text;
 }
 
 .logs-date-popover-menu,

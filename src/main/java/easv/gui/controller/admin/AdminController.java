@@ -11,11 +11,14 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -29,6 +32,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -91,6 +95,7 @@ public class AdminController implements AdminNavigator {
     private final Preferences preferences = Preferences.userRoot().node(THEME_PREFERENCES_NODE);
     private MainApp mainApp;
     private AdminPage currentPage = AdminPage.DASHBOARD;
+    private ContextMenu accountMenu;
     private Scene shortcutScene;
     private boolean sceneListenerRegistered;
     private boolean userEditingTextInput;
@@ -149,6 +154,9 @@ public class AdminController implements AdminNavigator {
     private void configureAccountMenu() {
         if (accountDropdownPane != null) {
             accountDropdownPane.setMaxHeight(Region.USE_PREF_SIZE);
+            // The dropdown is shown via a ContextMenu anchored to the button
+            // (see toggleAccountDropdown), so it stays connected to the button.
+            accountDropdownPane.managedProperty().bind(accountDropdownPane.visibleProperty());
         }
 
         if (accountMenuButton != null) {
@@ -160,7 +168,8 @@ public class AdminController implements AdminNavigator {
         }
 
         if (settingsPrivacyMenuButton != null) {
-            settingsPrivacyMenuButton.setOnAction(event -> showAccountSettingsPage(PRIVACY_SECTION));
+            settingsPrivacyMenuButton.setVisible(false);
+            settingsPrivacyMenuButton.setManaged(false);
         }
 
         if (logoutMenuButton != null) {
@@ -521,21 +530,44 @@ public class AdminController implements AdminNavigator {
     }
 
     private void toggleAccountDropdown() {
-        if (accountDropdownPane == null) {
+        if (accountDropdownPane == null || accountMenuButton == null) {
             return;
         }
 
-        boolean shouldShow = !accountDropdownPane.isVisible();
-        accountDropdownPane.setVisible(shouldShow);
-
-        if (shouldShow) {
-            accountDropdownPane.toFront();
+        if (accountMenu != null && accountMenu.isShowing()) {
+            accountMenu.hide();
+            return;
         }
+
+        if (accountMenu == null) {
+            accountMenu = new ContextMenu();
+            accountMenu.getStyleClass().add("admin-account-popover-menu");
+            accountMenu.setAutoHide(true);
+
+            // Reparent the existing dropdown VBox into the context menu so all
+            // its wiring (labels, theme toggle, logout) is preserved, but it now
+            // pops up anchored directly under the account button.
+            if (accountDropdownPane.getParent() instanceof Pane parent) {
+                parent.getChildren().remove(accountDropdownPane);
+            }
+            accountDropdownPane.setVisible(true);
+            CustomMenuItem item = new CustomMenuItem(accountDropdownPane, false);
+            item.getStyleClass().add("admin-account-popover-item");
+            accountMenu.getItems().setAll(item);
+        }
+
+        // Size the dropdown to the account button's actual width and show it
+        // flush underneath, so it stays connected and never spills past the edge.
+        double buttonWidth = accountMenuButton.getWidth();
+        accountDropdownPane.setMinWidth(buttonWidth);
+        accountDropdownPane.setPrefWidth(buttonWidth);
+        accountDropdownPane.setMaxWidth(buttonWidth);
+        accountMenu.show(accountMenuButton, Side.BOTTOM, 0, 4);
     }
 
     private void hideAccountDropdown() {
-        if (accountDropdownPane != null) {
-            accountDropdownPane.setVisible(false);
+        if (accountMenu != null) {
+            accountMenu.hide();
         }
     }
 

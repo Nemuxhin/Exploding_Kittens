@@ -81,15 +81,7 @@
     -fx-border-color: -wl-input-focus-border;
 }
 
-.assigned-qa-filter-combo > .arrow-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0 12 0 9;
-}
-
-.assigned-qa-filter-combo > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
+/* Arrow-button styling inherits from app.css (styleguide canonical: 0 9 0 9). */
 
 .assigned-qa-filter-combo .list-cell {
     -fx-text-fill: -wl-text;
@@ -169,13 +161,15 @@
     -fx-faint-focus-color: transparent;
 }
 
+/* Renders the &#xe930; PrimeIcon chevron set by AssignedQaController.
+   Color & shape follow the canonical caret (styleguide pp.4 & 7). */
 .assigned-qa-date-filter-menu,
 .assigned-qa-date-filter-menu:hover,
 .assigned-qa-date-filter-menu:focused,
 .assigned-qa-date-filter-menu:pressed {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-max-width: 30;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -185,24 +179,22 @@
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-alignment: center;
-    -fx-content-display: graphic-only;
+    -fx-text-fill: -wl-text;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
     -fx-cursor: hand;
 }
 
-.assigned-qa-date-filter-arrow {
-    -fx-min-width: 8;
-    -fx-pref-width: 8;
-    -fx-max-width: 8;
-    -fx-min-height: 5;
-    -fx-pref-height: 5;
-    -fx-max-height: 5;
-    -fx-background-color: -wl-text;
-    -fx-scale-shape: false;
-    -fx-shape: "M 0 0 L 8 0 L 4 5 Z";
+.assigned-qa-date-filter-menu .text,
+.assigned-qa-date-filter-menu:hover .text,
+.assigned-qa-date-filter-menu:focused .text,
+.assigned-qa-date-filter-menu:pressed .text {
+    -fx-fill: -wl-text;
 }
+
+/* The arrow Region graphic was retired in favour of the &#xe930; PrimeIcon text
+   glyph rendered by .assigned-qa-date-filter-menu (styleguide canonical). */
 
 .assigned-qa-date-popover-menu,
 .assigned-qa-date-popover-menu .context-menu {

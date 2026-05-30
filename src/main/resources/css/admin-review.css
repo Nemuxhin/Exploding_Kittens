@@ -340,34 +340,9 @@
     -fx-alignment: center-left;
 }
 
-.review-filter > .arrow-button,
-.review-filter:hover > .arrow-button,
-.review-filter:focused > .arrow-button,
-.review-filter:showing > .arrow-button,
-.review-filter:armed > .arrow-button,
-.review-filter:pressed > .arrow-button,
-.review-workspace-input > .arrow-button {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-max-width: 30;
-    -fx-padding: 0 9 0 6;
-    -fx-background-color: transparent;
-    -fx-background-radius: 0 6 6 0;
-    -fx-background-insets: 0;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-effect: none;
-}
-
-.review-filter > .arrow-button > .arrow,
-.review-filter:hover > .arrow-button > .arrow,
-.review-filter:focused > .arrow-button > .arrow,
-.review-filter:showing > .arrow-button > .arrow,
-.review-filter:armed > .arrow-button > .arrow,
-.review-filter:pressed > .arrow-button > .arrow,
-.review-workspace-input > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
+/* Arrow-button styling inherits from app.css (styleguide canonical: 0 9 0 9).
+   The :editable rules below still adjust the rounded-corner radius when the
+   field is in editable/searchable mode — that override is intentional. */
 
 .review-filter .text,
 .review-filter:hover .text,
@@ -1387,19 +1362,11 @@
     -fx-border-color: -wl-input-focus-border;
 }
 
-.rows-per-page-filter > .arrow-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0 6 0 6;
-}
-
-.rows-per-page-filter > .arrow-button > .arrow {
-    -fx-background-color: -wl-text;
-}
+/* Arrow-button styling inherits from app.css (styleguide canonical: 0 9 0 9). */
 
 .rows-per-page-filter .list-cell {
     -fx-text-fill: -wl-text;
-    -fx-padding: 0 6 0 6;
+    -fx-padding: 0 9 0 9;
     -fx-alignment: center-left;
 }
 
@@ -1476,13 +1443,16 @@
     -fx-faint-focus-color: transparent;
 }
 
+/* Canonical PrimeNG chevron-down — renders the &#xe930; PrimeIcon glyph
+   added to the FXML. Shape & color follow the app.css canonical rule. */
 .review-date-filter-menu,
 .review-date-filter-menu:hover,
 .review-date-filter-menu:focused,
-.review-date-filter-menu:pressed {
-    -fx-min-width: 30;
-    -fx-pref-width: 30;
-    -fx-max-width: 30;
+.review-date-filter-menu:pressed,
+.review-date-filter-menu:armed {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
     -fx-min-height: 30;
     -fx-pref-height: 30;
     -fx-max-height: 30;
@@ -1491,29 +1461,11 @@
     -fx-background-insets: 0;
     -fx-border-color: transparent;
     -fx-border-width: 0;
-    -fx-text-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text;
     -fx-effect: none;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
     -fx-cursor: hand;
-}
-
-.review-date-filter-menu {
-    -fx-shape: "M 0 0 L 8 0 L 4 5 Z";
-    -fx-background-color: -wl-text;
-    -fx-scale-shape: false;
-    -fx-min-width: 8;
-    -fx-pref-width: 8;
-    -fx-max-width: 8;
-    -fx-min-height: 5;
-    -fx-pref-height: 5;
-    -fx-max-height: 5;
-}
-
-.review-date-filter-menu:hover,
-.review-date-filter-menu:focused,
-.review-date-filter-menu:pressed {
-    -fx-background-color: -wl-text;
 }
 
 
@@ -1676,4 +1628,531 @@
 
 .review-calendar-day-outside {
     -fx-text-fill: -wl-placeholder;
+}
+
+/* =========================================================
+   REVIEW QA WORKSPACE
+   Self-contained styling for the admin Review QA workspace.
+   The admin scene does NOT load user-qa.css / user-scan.css,
+   so the workspace controls (which reuse qa-*/scan-*/view-*
+   class names) are styled here with -wl-* tokens to match the
+   style guide. Do not depend on user-portal stylesheets.
+   ========================================================= */
+
+.qa-review-workspace {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-title,
+.qa-review-panel-title,
+.qa-tools-section-title,
+.review-selected-title,
+.review-summary-value,
+.review-page-tray-title {
+    -fx-text-fill: -wl-text;
+}
+
+.review-summary-label,
+.view-toolbar-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.view-toolbar-muted-label {
+    -fx-text-fill: -wl-placeholder;
+}
+
+.view-zoom-label {
+    -fx-text-fill: -wl-text;
+}
+
+.qa-review-left-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.qa-tools-panel {
+    -fx-padding: 9 15 15 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.qa-tools-content {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-section-box {
+    -fx-background-color: transparent;
+}
+
+.review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.review-view-icon {
+    -fx-min-width: 0;
+    -fx-pref-width: 0;
+    -fx-max-width: 0;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+    -fx-opacity: 0;
+}
+
+.scan-panel-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.view-toolbar-divider {
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-background-color: -wl-border;
+}
+
+/* Document tree (left) */
+.document-tree-scroll,
+.document-tree-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.document-tree-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.document-tree-container {
+    -fx-background-color: -wl-surface;
+    -fx-padding: 0;
+}
+
+.document-tree-subtitle {
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* View toolbar */
+.scan-view-toolbar {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.view-tool-button {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.view-tool-button:hover,
+.view-tool-button:pressed,
+.view-reset-button:hover,
+.view-reset-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+.view-reset-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+/* Center preview + arrows */
+.review-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+    -fx-padding: 0 42 15 42;
+}
+
+.review-preview-host {
+    -fx-alignment: center;
+}
+
+.preview-arrow-button {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 45;
+    -fx-pref-height: 45;
+    -fx-max-height: 45;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.preview-arrow-button:hover,
+.preview-arrow-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+/* Bottom page tray */
+.review-page-tray-shell {
+    -fx-padding: 6 18 9 18;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-min-height: 144;
+    -fx-pref-height: 144;
+    -fx-max-height: 144;
+}
+
+.review-page-tray-scroll,
+.review-page-tray-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.review-page-tray-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+    -fx-min-height: 144;
+    -fx-pref-height: 144;
+    -fx-max-height: 144;
+}
+
+.review-page-tray-container {
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+    -fx-min-height: 111;
+    -fx-alignment: center-left;
+}
+
+/* Session info chips + back button (header) */
+.scan-session-info-chip {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+}
+
+.scan-back-button {
+    -fx-min-width: 99;
+    -fx-pref-width: 99;
+    -fx-max-width: 99;
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.scan-back-button:hover,
+.scan-back-button:pressed,
+.scan-back-button:focused:hover,
+.scan-back-button:focused:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+/* Tool buttons (right panel) */
+.scan-tool-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.scan-tool-button:hover,
+.scan-tool-button:pressed,
+.scan-tool-button:focused {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.combo-box-base.scan-tool-button,
+.combo-box-base.scan-tool-button:hover,
+.combo-box-base.scan-tool-button:focused,
+.combo-box-base.scan-tool-button:showing {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base.scan-tool-button > .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-alignment: center;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+/* Comment textarea */
+.qa-comment-textarea {
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-max-height: 84;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 9;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-comment-textarea .scroll-pane,
+.qa-comment-textarea .scroll-pane > .viewport,
+.qa-comment-textarea .scroll-pane > .content,
+.qa-comment-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+.qa-comment-textarea .scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+.qa-comment-textarea:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.qa-comment-textarea:focused {
+    -fx-border-color: -wl-input-focus-border;
+}
+
+/* QA action buttons */
+.qa-approve-button,
+.qa-fix-button,
+.qa-neutral-button,
+.qa-export-type-button,
+.qa-complete-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.qa-approve-button,
+.qa-complete-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-approve-button:hover,
+.qa-approve-button:pressed,
+.qa-complete-button:hover,
+.qa-complete-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-fix-button {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-fix-button:hover,
+.qa-fix-button:pressed {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-neutral-button,
+.qa-export-type-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.qa-neutral-button:hover,
+.qa-neutral-button:pressed,
+.qa-export-type-button:hover,
+.qa-export-type-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+/* Box Structure document tree (left panel, list view) */
+.document-tree-empty-state {
+    -fx-padding: 15;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.document-tree-empty-title {
+    -fx-text-fill: -wl-text;
+}
+
+.document-tree-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.document-tree-document-block {
+    -fx-padding: 0;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.document-tree-list-block {
+    -fx-spacing: 0;
+}
+
+.document-tree-list-page-stack {
+    -fx-spacing: 0;
+    -fx-padding: 0;
+}
+
+.document-tree-document-header {
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6 6 0 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.document-tree-document-header:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.document-tree-chevron-icon,
+.document-tree-document-title {
+    -fx-text-fill: -wl-text;
+}
+
+.document-tree-count {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.document-tree-warning {
+    -fx-text-fill: -wl-destructive;
+}
+
+.document-tree-page-row {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-padding: 0 9 0 18;
+    -fx-background-color: -wl-surface;
+    -fx-cursor: hand;
+}
+
+.document-tree-page-row:hover {
+    -fx-background-color: -wl-surface-hover;
 }
