@@ -3,6 +3,8 @@ package easv.gui.controller.user;
 import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
+import easv.be.TiffExportPlan;
+import easv.bll.ExportService;
 import easv.bll.QAService;
 import easv.bll.TiffImageSupport;
 import easv.bll.TiffExportManager;
@@ -114,6 +116,7 @@ public class AssignedQaController {
     private final List<QaAssignment> allAssignments = new ArrayList<>();
     private final List<QaDocument> reviewDocuments = new ArrayList<>();
     private final TiffExportManager tiffExportManager = new TiffExportManager();
+    private final ExportService exportService = new ExportService();
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
 
@@ -2361,23 +2364,29 @@ public class AssignedQaController {
                     safeFolderName(profileName, boxId)
             );
 
-            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
-                    exportType == TiffExportType.SINGLE_PAGE
-                            ? tiffExportManager.createSinglePagePlan(
-                            profileName,
-                            profileCode,
-                            exportNaming,
-                            boxId,
-                            flattenExportPages(exportDocuments)
-                    )
-                            : tiffExportManager.createMultiPagePlan(
-                            profileName,
-                            profileCode,
-                            exportNaming,
-                            boxId,
-                            exportDocuments
-                    ),
-                    outputDirectory
+            TiffExportPlan plan = exportType == TiffExportType.SINGLE_PAGE
+                    ? tiffExportManager.createSinglePagePlan(
+                    profileName,
+                    profileCode,
+                    exportNaming,
+                    boxId,
+                    flattenExportPages(exportDocuments)
+            )
+                    : tiffExportManager.createMultiPagePlan(
+                    profileName,
+                    profileCode,
+                    exportNaming,
+                    boxId,
+                    exportDocuments
+            );
+
+            TiffExportManager.ExportResult result = exportService.exportPlan(
+                    selectedAssignment == null ? null : selectedAssignment.sessionId,
+                    profileName,
+                    boxId,
+                    plan,
+                    outputDirectory,
+                    exportDocuments
             );
 
             showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
@@ -2607,5 +2616,3 @@ public class AssignedQaController {
         MULTI_PAGE
     }
 }
-
-

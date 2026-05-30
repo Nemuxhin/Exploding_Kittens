@@ -1,6 +1,5 @@
 package easv.dal;
 
-import easv.be.MetadataField;
 import easv.be.ReviewRecord;
 import easv.be.MetadataTemplate;
 import easv.be.ScanProfile;
@@ -12,9 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MetadataDAO {
     private final DatabaseConnection databaseConnection;
@@ -148,89 +145,23 @@ public class MetadataDAO {
     }
 
     public List<MetadataTemplate> getMetadataTemplates() {
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, name, description, status, last_updated
-                     FROM metadata_templates
-                     ORDER BY id
-                     """);
-             ResultSet resultSet = statement.executeQuery()) {
-            Map<Integer, List<MetadataField>> fieldsByTemplate = loadFieldsByTemplate(connection);
-            Map<Integer, List<String>> profileNamesByTemplate = loadAssignedProfileNamesByTemplate(connection);
-            List<MetadataTemplate> templates = new ArrayList<>();
-
-            while (resultSet.next()) {
-                int templateId = resultSet.getInt("id");
-                templates.add(new MetadataTemplate(
-                        templateId,
-                        resultSet.getString("name"),
-                        resultSet.getString("description"),
-                        profileNamesByTemplate.getOrDefault(templateId, List.of()),
-                        fieldsByTemplate.getOrDefault(templateId, List.of()),
-                        displayStatus(resultSet.getString("status")),
-                        resultSet.getString("last_updated")
-                ));
-            }
-
-            return templates;
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to read metadata templates.", exception);
-        }
+        return List.of();
     }
 
     public int nextMetadataTemplateId() {
-        return nextId("metadata_templates", "metadata template");
+        return 1;
     }
 
     public int nextMetadataFieldId() {
-        return nextId("metadata_fields", "metadata field");
+        return 1;
     }
 
     public MetadataTemplate saveMetadataTemplate(MetadataTemplate template) {
-        try (Connection connection = databaseConnection.getConnection()) {
-            boolean previousAutoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
-
-            try {
-                int templateId = insertMetadataTemplate(connection, template);
-                List<MetadataField> savedFields = insertMetadataFields(connection, templateId, template.getFields());
-                MetadataTemplate savedTemplate = copyTemplateWithId(templateId, template, savedFields);
-                replaceMetadataTemplateProfileAssignments(connection, savedTemplate);
-                connection.commit();
-                return savedTemplate;
-            } catch (SQLException exception) {
-                connection.rollback();
-                throw exception;
-            } finally {
-                connection.setAutoCommit(previousAutoCommit);
-            }
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to save metadata template " + template.getName(), exception);
-        }
+        throw new UnsupportedOperationException("Metadata templates are not supported by schema v2.");
     }
 
     public MetadataTemplate updateMetadataTemplate(MetadataTemplate template) {
-        try (Connection connection = databaseConnection.getConnection()) {
-            boolean previousAutoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
-
-            try {
-                updateMetadataTemplateRow(connection, template);
-                deleteMetadataFields(connection, template.getId());
-                List<MetadataField> savedFields = insertMetadataFields(connection, template.getId(), template.getFields());
-                template.setFields(savedFields);
-                replaceMetadataTemplateProfileAssignments(connection, template);
-                connection.commit();
-                return template;
-            } catch (SQLException exception) {
-                connection.rollback();
-                throw exception;
-            } finally {
-                connection.setAutoCommit(previousAutoCommit);
-            }
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to update metadata template " + template.getName(), exception);
-        }
+        throw new UnsupportedOperationException("Metadata templates are not supported by schema v2.");
     }
 
     public List<ReviewRecord> getReviewRecords() {
@@ -342,187 +273,7 @@ public class MetadataDAO {
         return index;
     }
 
-    private Map<Integer, List<MetadataField>> loadFieldsByTemplate(Connection connection) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                     SELECT id, template_id, name, type, required, placeholder
-                     FROM metadata_fields
-                     ORDER BY template_id, sort_order, id
-                     """);
-             ResultSet resultSet = statement.executeQuery()) {
-            Map<Integer, List<MetadataField>> fieldsByTemplate = new HashMap<>();
-
-            while (resultSet.next()) {
-                fieldsByTemplate
-                        .computeIfAbsent(resultSet.getInt("template_id"), ignored -> new ArrayList<>())
-                        .add(new MetadataField(
-                                resultSet.getInt("id"),
-                                resultSet.getString("name"),
-                                resultSet.getString("type"),
-                                resultSet.getBoolean("required"),
-                                resultSet.getString("placeholder")
-                        ));
-            }
-
-            return fieldsByTemplate;
-        }
-    }
-
-    private Map<Integer, List<String>> loadAssignedProfileNamesByTemplate(Connection connection) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                     SELECT mtpa.metadata_template_id, sp.name
-                     FROM metadata_template_profile_assignments mtpa
-                     JOIN scan_profiles sp ON sp.id = mtpa.scan_profile_id
-                     ORDER BY sp.name
-                     """);
-             ResultSet resultSet = statement.executeQuery()) {
-            Map<Integer, List<String>> profileNamesByTemplate = new HashMap<>();
-
-            while (resultSet.next()) {
-                profileNamesByTemplate
-                        .computeIfAbsent(resultSet.getInt("metadata_template_id"), ignored -> new ArrayList<>())
-                        .add(resultSet.getString("name"));
-            }
-
-            return profileNamesByTemplate;
-        }
-    }
-
-    private int insertMetadataTemplate(Connection connection, MetadataTemplate template) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                INSERT INTO metadata_templates
-                (name, description, status, last_updated, created_at, updated_at)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, template.getName());
-            statement.setString(2, template.getDescription());
-            statement.setString(3, template.getStatus());
-            statement.setString(4, template.getLastUpdated());
-            statement.executeUpdate();
-            return readGeneratedIntId(statement, "metadata template");
-        }
-    }
-
-    private void updateMetadataTemplateRow(Connection connection, MetadataTemplate template) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                UPDATE metadata_templates
-                SET name = ?,
-                    description = ?,
-                    status = ?,
-                    last_updated = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
-                """)) {
-            statement.setString(1, template.getName());
-            statement.setString(2, template.getDescription());
-            statement.setString(3, template.getStatus());
-            statement.setString(4, template.getLastUpdated());
-            statement.setInt(5, template.getId());
-            statement.executeUpdate();
-        }
-    }
-
-    private void deleteMetadataFields(Connection connection, int templateId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                DELETE FROM metadata_fields
-                WHERE template_id = ?
-                """)) {
-            statement.setInt(1, templateId);
-            statement.executeUpdate();
-        }
-    }
-
-    private List<MetadataField> insertMetadataFields(Connection connection, int templateId, List<MetadataField> fields)
-            throws SQLException {
-        if (fields == null || fields.isEmpty()) {
-            return List.of();
-        }
-
-        List<MetadataField> savedFields = new ArrayList<>();
-
-        try (PreparedStatement statement = connection.prepareStatement("""
-                INSERT INTO metadata_fields
-                (template_id, name, type, required, placeholder, sort_order, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """, Statement.RETURN_GENERATED_KEYS)) {
-            for (int index = 0; index < fields.size(); index++) {
-                MetadataField field = fields.get(index);
-                statement.setInt(1, templateId);
-                statement.setString(2, field.getName());
-                statement.setString(3, field.getType());
-                statement.setBoolean(4, field.isRequired());
-                statement.setString(5, field.getPlaceholder());
-                statement.setInt(6, index + 1);
-                statement.executeUpdate();
-
-                savedFields.add(new MetadataField(
-                        readGeneratedIntId(statement, "metadata field"),
-                        field.getName(),
-                        field.getType(),
-                        field.isRequired(),
-                        field.getPlaceholder()
-                ));
-            }
-        }
-
-        return savedFields;
-    }
-
-    private void replaceMetadataTemplateProfileAssignments(Connection connection, MetadataTemplate template)
-            throws SQLException {
-        try (PreparedStatement deleteStatement = connection.prepareStatement("""
-                     DELETE FROM metadata_template_profile_assignments
-                     WHERE metadata_template_id = ?
-                     """)) {
-            deleteStatement.setInt(1, template.getId());
-            deleteStatement.executeUpdate();
-        }
-
-        if (template.getAssignedProfileNames().isEmpty()) {
-            return;
-        }
-
-        try (PreparedStatement insertStatement = connection.prepareStatement("""
-                INSERT INTO metadata_template_profile_assignments
-                (metadata_template_id, scan_profile_id)
-                VALUES (?, ?)
-                """)) {
-            for (String profileName : template.getAssignedProfileNames()) {
-                insertStatement.setInt(1, template.getId());
-                insertStatement.setInt(2, findProfileIdByName(connection, profileName));
-                insertStatement.addBatch();
-            }
-
-            insertStatement.executeBatch();
-        }
-    }
-
-    private int findProfileIdByName(Connection connection, String profileName) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT id
-                FROM scan_profiles
-                WHERE LOWER(name) = LOWER(?)
-                """)) {
-            statement.setString(1, Strings.clean(profileName));
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt("id");
-                }
-            }
-        }
-
-        throw new DataAccessException("Scan profile does not exist in the database: " + Strings.clean(profileName), null);
-    }
-
     private void deleteProfileReferences(Connection connection, int profileId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("""
-                DELETE FROM metadata_template_profile_assignments
-                WHERE scan_profile_id = ?
-                """)) {
-            statement.setInt(1, profileId);
-            statement.executeUpdate();
-        }
-
         try (PreparedStatement statement = connection.prepareStatement("""
                 DELETE FROM user_profile_assignments
                 WHERE scan_profile_id = ?
@@ -692,18 +443,6 @@ public class MetadataDAO {
         return hasProfileClientColumn(connection)
                 ? "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?"
                 : "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
-    }
-
-    private MetadataTemplate copyTemplateWithId(int id, MetadataTemplate template, List<MetadataField> fields) {
-        return new MetadataTemplate(
-                id,
-                template.getName(),
-                template.getDescription(),
-                template.getAssignedProfileNames(),
-                fields,
-                template.getStatus(),
-                template.getLastUpdated()
-        );
     }
 
     private String displayStatus(String status) {

@@ -4,6 +4,7 @@ import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.TiffExportPlan;
+import easv.bll.ExportService;
 import easv.bll.TiffExportManager;
 import easv.gui.UserPortalModel;
 import javafx.beans.property.ObjectProperty;
@@ -55,6 +56,7 @@ public class ExportsController {
     private final HBox paginationButtonsBox = new HBox();
     private final ComboBox<Integer> rowsPerPageFilter = new ComboBox<>();
     private final TiffExportManager tiffExportManager = new TiffExportManager();
+    private final ExportService exportService = new ExportService();
     private int currentPage = 1;
 
     public ExportsController(UserPortalModel portalModel) {
@@ -68,7 +70,7 @@ public class ExportsController {
         Label title = new Label("Exports");
         title.getStyleClass().add("exports-title");
 
-        Label subtitle = new Label("Export scans that have completed QA approval.");
+        Label subtitle = new Label("Review previous exports and export approved scans again.");
         subtitle.getStyleClass().add("exports-subtitle");
 
         configureFilters();
@@ -94,7 +96,7 @@ public class ExportsController {
         searchField.getStyleClass().add("exports-filter-input");
         searchField.textProperty().addListener((observable, oldValue, newValue) -> refreshTable());
 
-        statusFilter.getItems().setAll(ALL_STATUSES, "QA Approved");
+        statusFilter.getItems().setAll(ALL_STATUSES, "Success", "Failed");
         statusFilter.setValue(ALL_STATUSES);
         statusFilter.getStyleClass().add("exports-status-filter");
         statusFilter.setMinWidth(0);
@@ -120,7 +122,7 @@ public class ExportsController {
     private HBox buildSummaryRow() {
         HBox row = new HBox(18,
                 metricCard("Total Files", String.valueOf(portalModel.fetchExports().size())),
-                metricCard("Ready for Export", String.valueOf(countReadyExports())),
+                metricCard("Successful Exports", String.valueOf(countSuccessfulExports())),
                 metricCard("Total Size", totalExportSizeText())
         );
         row.getStyleClass().add("exports-summary-row");
@@ -233,10 +235,9 @@ public class ExportsController {
         GridPane row = createRowSkeleton();
         row.getStyleClass().add("exports-table-row");
 
-        Button action = new Button("Export");
+        Button action = new Button("Export Again");
         action.getStyleClass().addAll("portal-row-button", "exports-export-button");
         action.setGraphic(UserPortalUi.buildIcon("download", "portal-button-icon-inverse"));
-        action.setDisable(!"QA Approved".equalsIgnoreCase(item.status()));
         action.setOnAction(event -> openExportDialog(item));
 
         HBox actionBox = new HBox(action);
@@ -551,7 +552,14 @@ public class ExportsController {
                     "WebLager Exports",
                     safeFolderName(profileName, boxId)
             );
-            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(plan, outputDirectory);
+            TiffExportManager.ExportResult result = exportService.exportPlan(
+                    item.sessionId(),
+                    profileName,
+                    boxId,
+                    plan,
+                    outputDirectory,
+                    documents
+            );
             showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
                     result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")
                             + " written to " + result.outputDirectory());
@@ -649,9 +657,9 @@ public class ExportsController {
         return row;
     }
 
-    private int countReadyExports() {
+    private int countSuccessfulExports() {
         return (int) portalModel.fetchExports().stream()
-                .filter(item -> "QA Approved".equalsIgnoreCase(item.status()))
+                .filter(item -> "Success".equalsIgnoreCase(item.status()))
                 .count();
     }
 

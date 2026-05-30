@@ -228,7 +228,7 @@ public class ScanProfileDAO {
     }
 
     private String profileTable(Connection connection) throws SQLException {
-        return DatabaseConnection.tableExists(connection, "scan_profiles") ? "scan_profiles" : "profiles";
+        return "scan_profiles";
     }
 
     private boolean hasClientColumn(Connection connection) throws SQLException {
