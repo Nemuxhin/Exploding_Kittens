@@ -18,6 +18,9 @@ public class ScanSession {
     private String barcodePageBehavior = "";
     private boolean barcodeSplittingEnabled = true;
     private String lastStatus = "READY";
+    private String lastFailureMessage;
+    private Instant lastFailureAt;
+    private int failureCount;
     private int nextReferenceId = 1;
     private int nextImportedItemNumber = 1;
 
@@ -76,6 +79,18 @@ public class ScanSession {
         return lastStatus;
     }
 
+    public String getLastFailureMessage() {
+        return lastFailureMessage;
+    }
+
+    public Instant getLastFailureAt() {
+        return lastFailureAt;
+    }
+
+    public int getFailureCount() {
+        return failureCount;
+    }
+
     public void setSelectedBarcodeBehavior(String selectedBarcodeBehavior) {
         this.selectedBarcodeBehavior = selectedBarcodeBehavior == null ? "" : selectedBarcodeBehavior.trim();
     }
@@ -124,11 +139,21 @@ public class ScanSession {
         }
     }
 
+    public void restoreFailureState(String message, Instant occurredAt, int failureCount) {
+        this.lastFailureMessage = message == null || message.isBlank() ? null : message.trim();
+        this.lastFailureAt = occurredAt;
+        this.failureCount = Math.max(0, failureCount);
+    }
+
     public void recordFailure(String message) {
         if (message == null || message.isBlank()) {
             throw new IllegalArgumentException("message must not be blank");
         }
-        failures.add(message);
+        String normalizedMessage = message.trim();
+        failures.add(normalizedMessage);
+        lastFailureMessage = normalizedMessage;
+        lastFailureAt = Instant.now();
+        failureCount++;
         lastStatus = "FAILED";
     }
 }

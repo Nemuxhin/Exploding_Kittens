@@ -21,7 +21,7 @@ import java.util.Properties;
 public class DatabaseConnection {
     private static final String DATABASE_PROPERTIES_FILE = "database.properties";
     private static final String DEFAULT_JDBC_URL =
-            "jdbc:sqlserver://10.176.111.34:1433;databaseName=Exploding_Kittens;encrypt=true;trustServerCertificate=true";
+            "jdbc:sqlserver://10.176.111.34:1433;databaseName=Exploding_KittensV2;encrypt=true;trustServerCertificate=true";
     private static final String DEFAULT_USERNAME = "";
     private static final String DEFAULT_PASSWORD = "";
     private static final Properties FILE_PROPERTIES = loadFileProperties();

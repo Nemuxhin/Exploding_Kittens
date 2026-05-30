@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Reads and writes users through the existing database user tables.
- */
 public class UserDAO {
 
     private final DatabaseConnection databaseConnection;

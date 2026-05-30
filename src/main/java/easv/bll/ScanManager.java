@@ -1,14 +1,12 @@
 package easv.bll;
 
 import easv.be.Box;
-import easv.be.CaseFile;
 import easv.be.Client;
 import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.dal.BoxDAO;
-import easv.dal.CaseFileDAO;
 import easv.dal.ClientDAO;
 import easv.dal.DatabaseConnection;
 import easv.dal.DocumentDAO;
@@ -28,7 +26,6 @@ public class ScanManager {
     private final BarcodeSplitService barcodeSplitService;
     private final ClientDAO clientDAO;
     private final BoxDAO boxDAO;
-    private final CaseFileDAO caseFileDAO;
     private final DocumentDAO documentDAO;
     private final ScanSessionDAO scanSessionDAO;
     private final ScanProfileDAO scanProfileDAO;
@@ -42,7 +39,6 @@ public class ScanManager {
         this.barcodeSplitService = new BarcodeSplitService();
         this.clientDAO = new ClientDAO(databaseConnection);
         this.boxDAO = new BoxDAO(databaseConnection);
-        this.caseFileDAO = new CaseFileDAO(databaseConnection, documentDAO);
         this.documentDAO = documentDAO;
         this.scanSessionDAO = new ScanSessionDAO(databaseConnection);
         this.scanProfileDAO = new ScanProfileDAO(databaseConnection);
@@ -53,7 +49,6 @@ public class ScanManager {
             BarcodeSplitService barcodeSplitService,
             ClientDAO clientDAO,
             BoxDAO boxDAO,
-            CaseFileDAO caseFileDAO,
             DocumentDAO documentDAO,
             ScanSessionDAO scanSessionDAO,
             ScanProfileDAO scanProfileDAO
@@ -63,7 +58,6 @@ public class ScanManager {
         this.barcodeSplitService = Objects.requireNonNull(barcodeSplitService, "barcodeSplitService");
         this.clientDAO = Objects.requireNonNull(clientDAO, "clientDAO");
         this.boxDAO = Objects.requireNonNull(boxDAO, "boxDAO");
-        this.caseFileDAO = Objects.requireNonNull(caseFileDAO, "caseFileDAO");
         this.documentDAO = Objects.requireNonNull(documentDAO, "documentDAO");
         this.scanSessionDAO = Objects.requireNonNull(scanSessionDAO, "scanSessionDAO");
         this.scanProfileDAO = Objects.requireNonNull(scanProfileDAO, "scanProfileDAO");
@@ -106,6 +100,7 @@ public class ScanManager {
         applyProfileSettings(resumedSession, resolveProfileSettings(stored.profileName()));
         resumedSession.setSelectedBarcodeBehavior(stored.selectedBarcodeBehavior());
         resumedSession.setLastStatus(stored.lastStatus());
+        resumedSession.restoreFailureState(stored.lastFailureMessage(), stored.lastFailureAt(), stored.failureCount());
 
         List<Document> linkedDocuments = new ArrayList<>(documentDAO.findBySessionId(stored.sessionId()));
         int nextReferenceId = 1;
@@ -142,6 +137,7 @@ public class ScanManager {
         applyProfileSettings(resumedSession, resolveProfileSettings(stored.profileName()));
         resumedSession.setSelectedBarcodeBehavior(stored.selectedBarcodeBehavior());
         resumedSession.setLastStatus(stored.lastStatus());
+        resumedSession.restoreFailureState(stored.lastFailureMessage(), stored.lastFailureAt(), stored.failureCount());
 
         List<Document> linkedDocuments = new ArrayList<>(documentDAO.findBySessionId(stored.sessionId()));
         int nextReferenceId = 1;
@@ -178,7 +174,7 @@ public class ScanManager {
 
         if (fetchResult.isFailure()) {
             session.recordFailure(fetchResult.message());
-            scanSessionDAO.recordFailure(session, fetchResult.message());
+            scanSessionDAO.recordFailure(session);
             return ScanImportResult.failed(fetchResult.message());
         }
 
@@ -186,7 +182,6 @@ public class ScanManager {
         NormalizedItem item = normalizeImportedItem(session, fetchedItem.source());
         Client client = registerClient(item.clientNumber(), item.clientName());
         Box box = session.getBox();
-        CaseFile caseFile = caseFileDAO.saveOrGetExisting(item.caseReference(), client, box);
 
         final BarcodeHandlingResult handlingResult;
         try {
@@ -200,13 +195,12 @@ public class ScanManager {
             );
         } catch (IllegalArgumentException exception) {
             session.recordFailure(exception.getMessage());
-            scanSessionDAO.recordFailure(session, exception.getMessage());
+            scanSessionDAO.recordFailure(session);
             return ScanImportResult.failed(exception.getMessage());
         }
         List<Document> storedDocuments = new ArrayList<>();
         for (Document document : handlingResult.documents()) {
-            Document storedDocument = documentDAO.saveOrGetExisting(document, caseFile.getId());
-            caseFile.addDocument(storedDocument);
+            Document storedDocument = documentDAO.saveOrGetExisting(document, item.caseReference(), client, box);
             session.addImportedDocument(storedDocument);
             scanSessionDAO.linkDocument(session, storedDocument);
             storedDocuments.add(storedDocument);
@@ -248,10 +242,6 @@ public class ScanManager {
 
     public Optional<Box> findBox(String boxId) {
         return boxDAO.findByBoxId(boxId);
-    }
-
-    public Optional<CaseFile> findCaseFile(String caseReference) {
-        return caseFileDAO.findByReference(caseReference);
     }
 
     // Package-private (instead of private) so unit tests can exercise the

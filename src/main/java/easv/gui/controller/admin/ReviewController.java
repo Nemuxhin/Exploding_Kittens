@@ -5,6 +5,7 @@ import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
+import easv.bll.ExportService;
 import easv.bll.QAService;
 import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
@@ -136,6 +137,7 @@ public class ReviewController {
     private AdminManager adminManager;
     private boolean recordsLoading;
     private long recordsLoadSequence;
+    private final ExportService exportService = new ExportService();
 
     @FXML private VBox overviewPane;
     @FXML private VBox workspacePane;
@@ -835,7 +837,16 @@ public class ReviewController {
 
             try {
                 Path recordDirectory = outputDirectory.resolve(safeFolderSegment(row.profile(), row.identity()));
-                TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+                QAService.QaAssignmentSnapshot assignment = adminManager.getQaAssignmentForReviewRecord(row.id());
+                if (assignment == null || assignment.sessionId() == null) {
+                    failures.add(row.identity() + ": missing session context");
+                    continue;
+                }
+
+                TiffExportManager.ExportResult result = exportService.exportPlan(
+                        assignment.sessionId(),
+                        row.profile(),
+                        row.identity(),
                         tiffExportManager.createMultiPagePlan(
                                 row.profile(),
                                 profileCode,
@@ -843,7 +854,8 @@ public class ReviewController {
                                 row.identity(),
                                 documents
                         ),
-                        recordDirectory
+                        recordDirectory,
+                        documents
                 );
                 exportedRecords++;
                 filesWritten += result.writtenFiles().size();
@@ -2929,8 +2941,7 @@ public class ReviewController {
                 record.getClient(),
                 record.getArchive(),
                 record.getProfile(),
-                record.getDocumentDetailsTemplate(),
-                record.getDocumentDetailsStatus(),
+                record.getMetadataStatus(),
                 record.getQaStatus(),
                 record.getPages(),
                 record.getLastUpdated(),
@@ -2948,7 +2959,6 @@ public class ReviewController {
                 row.client(),
                 row.archive(),
                 row.profile(),
-                row.documentDetailsTemplate(),
                 row.documentDetailsStatus(),
                 row.qaStatus(),
                 row.pages(),
@@ -3462,7 +3472,17 @@ public class ReviewController {
             );
 
             TiffExportManager tiffExportManager = new TiffExportManager();
-            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
+            QAService.QaAssignmentSnapshot assignment = activeReviewRecord == null
+                    ? null
+                    : adminManager.getQaAssignmentForReviewRecord(activeReviewRecord.id());
+            if (assignment == null || assignment.sessionId() == null) {
+                showExportAlert(Alert.AlertType.ERROR, "Export failed", "The selected review record is missing its session context.");
+                return;
+            }
+            TiffExportManager.ExportResult result = exportService.exportPlan(
+                    assignment.sessionId(),
+                    profileName,
+                    boxId,
                     exportType == TiffExportType.SINGLE_PAGE
                             ? tiffExportManager.createSinglePagePlan(
                             profileName,
@@ -3478,7 +3498,8 @@ public class ReviewController {
                             boxId,
                             exportDocuments
                     ),
-                    outputDirectory
+                    outputDirectory,
+                    exportDocuments
             );
 
             showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
@@ -3572,7 +3593,6 @@ public class ReviewController {
             String client,
             String archive,
             String profile,
-            String documentDetailsTemplate,
             String documentDetailsStatus,
             String qaStatus,
             int pages,
@@ -3589,7 +3609,6 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    documentDetailsTemplate,
                     documentDetailsStatus,
                     qaStatus,
                     pages,
@@ -3608,7 +3627,6 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    documentDetailsTemplate,
                     documentDetailsStatus,
                     qaStatus,
                     pages,
@@ -3627,7 +3645,6 @@ public class ReviewController {
                     client,
                     archive,
                     profile,
-                    documentDetailsTemplate,
                     newDocumentDetailsStatus,
                     newQaStatus,
                     pages,

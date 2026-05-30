@@ -1,5 +1,7 @@
 package easv.dal;
 
+import easv.be.Box;
+import easv.be.Client;
 import easv.be.Document;
 import easv.be.PageImage;
 
@@ -26,12 +28,18 @@ public class DocumentDAO {
         this.pageImageDAO = pageImageDAO;
     }
 
-    public Document saveOrGetExisting(Document document, UUID caseFileId) {
+    public Document saveOrGetExisting(Document document, String caseReference, Client client, Box box) {
         if (document == null) {
             throw new IllegalArgumentException("document must not be null");
         }
-        if (caseFileId == null) {
-            throw new IllegalArgumentException("caseFileId must not be null");
+        if (caseReference == null || caseReference.isBlank()) {
+            throw new IllegalArgumentException("caseReference must not be blank");
+        }
+        if (client == null) {
+            throw new IllegalArgumentException("client must not be null");
+        }
+        if (box == null) {
+            throw new IllegalArgumentException("box must not be null");
         }
         try (Connection connection = databaseConnection.getConnection()) {
             Optional<Document> existing = findBySourceItemId(connection, document.getSourceItemId());
@@ -40,10 +48,12 @@ public class DocumentDAO {
             }
             connection.setAutoCommit(false);
             try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO documents (id, source_item_id, case_file_id) VALUES (?, ?, ?)")) {
+                    "INSERT INTO documents (id, source_item_id, case_reference, client_id, box_id) VALUES (?, ?, ?, ?, ?)")) {
                 statement.setString(1, document.getId().toString());
                 statement.setString(2, document.getSourceItemId());
-                statement.setString(3, caseFileId.toString());
+                statement.setString(3, caseReference.trim());
+                statement.setString(4, client.getId().toString());
+                statement.setString(5, box.getId().toString());
                 statement.executeUpdate();
                 pageImageDAO.syncDocumentPages(connection, document.getId(), document.getAllPages());
                 connection.commit();
@@ -105,18 +115,6 @@ public class DocumentDAO {
         }
     }
 
-    public Collection<Document> findByCaseFileId(UUID caseFileId) {
-        if (caseFileId == null) {
-            throw new IllegalArgumentException("caseFileId must not be null");
-        }
-        try (Connection connection = databaseConnection.getConnection();
-             ) {
-            return findByCaseFileId(connection, caseFileId);
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to fetch documents for case file " + caseFileId, e);
-        }
-    }
-
     public Collection<Document> findBySessionId(UUID sessionId) {
         if (sessionId == null) {
             throw new IllegalArgumentException("sessionId must not be null");
@@ -143,22 +141,6 @@ public class DocumentDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to fetch documents for session " + sessionId, e);
-        }
-    }
-
-    Collection<Document> findByCaseFileId(Connection connection, UUID caseFileId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT id, source_item_id FROM documents WHERE case_file_id = ? ORDER BY source_item_id")) {
-            statement.setString(1, caseFileId.toString());
-            try (ResultSet resultSet = statement.executeQuery()) {
-                Collection<Document> documents = new ArrayList<>();
-                while (resultSet.next()) {
-                    UUID documentId = UUID.fromString(resultSet.getString("id"));
-                    loadPersistedDocument(connection, documentId, resultSet.getString("source_item_id"))
-                            .ifPresent(documents::add);
-                }
-                return documents;
-            }
         }
     }
 

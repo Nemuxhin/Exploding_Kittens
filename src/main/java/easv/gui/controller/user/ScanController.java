@@ -4,8 +4,10 @@ import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.ScanSession;
+import easv.be.TiffExportPlan;
 import easv.bll.AuditLogManager;
 import easv.bll.AutosaveSettingsStore;
+import easv.bll.ExportService;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
 import easv.bll.TiffExportManager;
@@ -179,6 +181,7 @@ public class ScanController {
     private final ScanManager scanManager = new ScanManager();
     private final TiffExportManager tiffExportManager = new TiffExportManager();
     private final AuditLogManager auditLogManager = new AuditLogManager();
+    private final ExportService exportService = new ExportService();
 
     private final DoubleProperty previewZoomMultiplier = new SimpleDoubleProperty(1.0);
     private final DoubleProperty reviewZoomMultiplier = new SimpleDoubleProperty(1.0);
@@ -4198,7 +4201,7 @@ public class ScanController {
         String profileName = getSelectedProfile();
         ScanProfile profile = portalModel.fetchScanProfileByName(profileName);
         String profileCode = firstNonBlank(profile == null ? null : profile.getCode(), profileName);
-        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), "{profileCode}_{boxId}");
+        String exportNaming = firstNonBlank(profile == null ? null : profile.getExportNaming(), ScanProfile.DEFAULT_EXPORT_NAMING);
 
         try {
             Path outputDirectory = Path.of(
@@ -4207,23 +4210,28 @@ public class ScanController {
                     "WebLager Exports",
                     safeFolderName(profileName, getBoxId())
             );
-            TiffExportManager.ExportResult result = tiffExportManager.exportPlan(
-                    exportType == TiffExportType.SINGLE_PAGE
-                            ? tiffExportManager.createSinglePagePlan(
-                            profileName,
-                            profileCode,
-                            exportNaming,
-                            getBoxId(),
-                            flattenExportPages(exportDocuments)
-                    )
-                            : tiffExportManager.createMultiPagePlan(
-                            profileName,
-                            profileCode,
-                            exportNaming,
-                            getBoxId(),
-                            exportDocuments
-                    ),
-                    outputDirectory
+            TiffExportPlan plan = exportType == TiffExportType.SINGLE_PAGE
+                    ? tiffExportManager.createSinglePagePlan(
+                    profileName,
+                    profileCode,
+                    exportNaming,
+                    getBoxId(),
+                    flattenExportPages(exportDocuments)
+            )
+                    : tiffExportManager.createMultiPagePlan(
+                    profileName,
+                    profileCode,
+                    exportNaming,
+                    getBoxId(),
+                    exportDocuments
+            );
+            TiffExportManager.ExportResult result = exportService.exportPlan(
+                    activeScanSession == null ? null : activeScanSession.getId(),
+                    profileName,
+                    getBoxId(),
+                    plan,
+                    outputDirectory,
+                    exportDocuments
             );
 
             showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",

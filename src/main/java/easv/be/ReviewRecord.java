@@ -22,6 +22,25 @@ public class ReviewRecord {
             String client,
             String archive,
             String profile,
+            String metadataStatus,
+            String qaStatus,
+            int pages,
+            String lastUpdated,
+            String assignedTo,
+            String scannedBy,
+            String dateGroup,
+            boolean warning
+    ) {
+        this(id, identity, client, archive, profile, "", metadataStatus, qaStatus, pages,
+                lastUpdated, assignedTo, scannedBy, dateGroup, warning);
+    }
+
+    public ReviewRecord(
+            String id,
+            String identity,
+            String client,
+            String archive,
+            String profile,
             String metadataTemplate,
             String metadataStatus,
             String qaStatus,

@@ -10,12 +10,11 @@ import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.MetadataDAO;
 import easv.dal.QaReviewDAO;
+import easv.dal.ReviewRecordDAO;
 import easv.dal.SavedScanProgressDAO;
 import easv.dal.UserDAO;
 import easv.gui.controller.util.Strings;
 
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,22 +22,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 public class AdminManager {
-    private static final String QA_RECORD_PREFIX = "qa:";
-    private static final DateTimeFormatter ADMIN_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
     private final UserDAO userDAO;
     private final MetadataDAO metadataDAO;
+    private final ReviewRecordDAO reviewRecordDAO;
     private final AuditLogDAO auditLogDAO;
     private final QaReviewDAO qaReviewDAO;
     private final SavedScanProgressDAO savedScanProgressDAO;
     private final QAService qaService;
+    private final AdminReviewService adminReviewService;
+    private final AdminProfileService adminProfileService;
 
     private final List<User> users = new ArrayList<>();
     private final List<ScanProfile> profiles = new ArrayList<>();
@@ -52,21 +49,45 @@ public class AdminManager {
     private int nextAuditLogId = 1;
 
     public AdminManager() {
-        this(new UserDAO(), new MetadataDAO(), new AuditLogDAO());
+        this(new UserDAO(), new MetadataDAO(), new ReviewRecordDAO(), new AuditLogDAO());
     }
 
     public AdminManager(UserDAO userDAO) {
-        this(userDAO, new MetadataDAO(), new AuditLogDAO());
+        this(userDAO, new MetadataDAO(), new ReviewRecordDAO(), new AuditLogDAO());
     }
 
     public AdminManager(UserDAO userDAO, MetadataDAO metadataDAO, AuditLogDAO auditLogDAO) {
+        this(userDAO, metadataDAO, reviewRecordDAOFor(metadataDAO), auditLogDAO);
+    }
+
+    public AdminManager(UserDAO userDAO, MetadataDAO metadataDAO, ReviewRecordDAO reviewRecordDAO, AuditLogDAO auditLogDAO) {
         this.userDAO = userDAO == null ? new UserDAO() : userDAO;
         this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
+        this.reviewRecordDAO = reviewRecordDAO == null ? new ReviewRecordDAO() : reviewRecordDAO;
         this.auditLogDAO = auditLogDAO == null ? new AuditLogDAO() : auditLogDAO;
         this.qaReviewDAO = new QaReviewDAO();
         this.savedScanProgressDAO = new SavedScanProgressDAO();
         this.qaService = new QAService();
+        this.adminReviewService = new AdminReviewService(
+                this.reviewRecordDAO,
+                this.qaReviewDAO,
+                this.savedScanProgressDAO,
+                this.qaService,
+                this.users,
+                this.profiles,
+                this.reviewRecords
+        );
+        this.adminProfileService = new AdminProfileService(
+                this.metadataDAO,
+                this.profiles,
+                this.users,
+                this.profileAssignments
+        );
         loadAdminData();
+    }
+
+    private static ReviewRecordDAO reviewRecordDAOFor(MetadataDAO metadataDAO) {
+        return new MetadataBackedReviewRecordDAO(metadataDAO);
     }
 
     public List<User> getUsers() {
@@ -171,7 +192,7 @@ public class AdminManager {
         }
 
         userDAO.deleteUser(userId);
-        removeUserFromAssignments(userId);
+        adminProfileService.removeUserFromAssignments(userId);
         users.remove(user);
 
         addAuditLog("Users", "Deleted user", user.getName(), "Success",
@@ -274,48 +295,16 @@ public class AdminManager {
     }
 
     public List<ScanProfile> getProfiles() {
-        return profiles.stream()
-                .sorted(Comparator.comparingInt(ScanProfile::getId))
-                .toList();
+        return adminProfileService.getProfiles();
     }
 
     public List<ScanProfile> getAssignableProfiles() {
-        return profiles.stream()
-                .filter(profile -> !profile.isArchived())
-                .sorted(Comparator.comparing(ScanProfile::getName, String.CASE_INSENSITIVE_ORDER))
-                .toList();
+        return adminProfileService.getAssignableProfiles();
     }
 
     public ScanProfile createProfile(ProfileInput input) {
         validateProfileInput(input, null);
-
-        ScanProfile profile = new ScanProfile(
-                0,
-                input.getName(),
-                input.getClient(),
-                input.getCode(),
-                input.getDescription(),
-                input.getStatus(),
-                input.getMetadataTemplateName(),
-                input.getExportNaming(),
-                "Created just now",
-                isArchivedStatus(input.getStatus()),
-                input.isBarcodeSplitting(),
-                input.getBarcodeDetectedBehavior(),
-                input.getBarcodePageBehavior(),
-                input.getDefaultRotation(),
-                input.getBrightness(),
-                input.getContrast(),
-                input.isDeskew(),
-                input.getExportFormat(),
-                input.isMetadataRequiredBeforeExport(),
-                input.isAutosaveEnabled(),
-                input.getAutosaveIntervalSeconds(),
-                input.isAutosaveLocked()
-        );
-
-        ScanProfile savedProfile = metadataDAO.saveProfile(profile);
-        profiles.add(savedProfile);
+        ScanProfile savedProfile = adminProfileService.createProfile(input);
         nextProfileId = Math.max(nextProfileId, savedProfile.getId() + 1);
 
         addAuditLog("Profiles", "Created profile", savedProfile.getName(), "Success",
@@ -326,153 +315,57 @@ public class AdminManager {
     }
 
     public ScanProfile updateProfile(int profileId, ProfileInput input) {
-        ScanProfile profile = findRequiredProfile(profileId);
         validateProfileInput(input, profileId);
-
-        ScanProfile previousProfile = copyProfile(profile);
-        String previousName = profile.getName();
-
-        profile.setName(input.getName());
-        profile.setClient(input.getClient());
-        profile.setCode(input.getCode());
-        profile.setDescription(input.getDescription());
-        profile.setStatus(input.getStatus());
-        profile.setMetadataTemplateName(input.getMetadataTemplateName());
-        profile.setExportNaming(input.getExportNaming());
-        profile.setLastUpdated("Updated just now");
-        profile.setArchived(isArchivedStatus(input.getStatus()));
-        profile.setBarcodeSplitting(input.isBarcodeSplitting());
-        profile.setBarcodeDetectedBehavior(input.getBarcodeDetectedBehavior());
-        profile.setBarcodePageBehavior(input.getBarcodePageBehavior());
-        profile.setDefaultRotation(input.getDefaultRotation());
-        profile.setBrightness(input.getBrightness());
-        profile.setContrast(input.getContrast());
-        profile.setDeskew(input.isDeskew());
-        profile.setExportFormat(input.getExportFormat());
-        profile.setMetadataRequiredBeforeExport(input.isMetadataRequiredBeforeExport());
-        profile.setAutosaveEnabled(input.isAutosaveEnabled());
-        profile.setAutosaveIntervalSeconds(input.getAutosaveIntervalSeconds());
-        profile.setAutosaveLocked(input.isAutosaveLocked());
-
-        metadataDAO.updateProfile(profile);
-        renameAssignedProfile(previousName, profile.getName());
-
-        List<AuditLogDetail> profileChanges = changedProfileFields(previousProfile, profile);
+        AdminProfileService.ProfileUpdateResult result = adminProfileService.updateProfile(profileId, input);
+        List<AuditLogDetail> profileChanges = changedProfileFields(result.previousProfile(), result.profile());
         if (!profileChanges.isEmpty()) {
-            addAuditLog("Profiles", "Updated profile", profile.getName(), "Success",
+            addAuditLog("Profiles", "Updated profile", result.profile().getName(), "Success",
                     "A scan profile was updated.",
                     profileChanges);
         }
 
-        return profile;
+        return result.profile();
     }
 
     public void archiveProfile(int profileId) {
-        ScanProfile profile = findRequiredProfile(profileId);
-        String previousStatus = profile.getStatus();
-        profile.setArchived(true);
-        profile.setStatus("Archived");
-        profile.setLastUpdated("Archived just now");
-
-        metadataDAO.updateProfile(profile);
-
-        addAuditLog("Profiles", "Archived profile", profile.getName(), "Success",
+        AdminProfileService.ProfileStatusResult result = adminProfileService.archiveProfile(profileId);
+        addAuditLog("Profiles", "Archived profile", result.profile().getName(), "Success",
                 "A scan profile was archived.",
-                changeList("Profile status", previousStatus, "Archived"));
+                changeList("Profile status", result.previousStatus(), "Archived"));
     }
 
     public void restoreProfile(int profileId) {
-        ScanProfile profile = findRequiredProfile(profileId);
-        String previousStatus = profile.getStatus();
-        profile.setArchived(false);
-        profile.setStatus("Active");
-        profile.setLastUpdated("Restored just now");
-
-        metadataDAO.updateProfile(profile);
-
-        addAuditLog("Profiles", "Restored profile", profile.getName(), "Success",
+        AdminProfileService.ProfileStatusResult result = adminProfileService.restoreProfile(profileId);
+        addAuditLog("Profiles", "Restored profile", result.profile().getName(), "Success",
                 "A scan profile was restored.",
-                changeList("Profile status", previousStatus, "Active"));
+                changeList("Profile status", result.previousStatus(), "Active"));
     }
 
     public void deleteProfile(int profileId) {
-        ScanProfile profile = findRequiredProfile(profileId);
-        String deletedProfileName = profile.getName();
-        String normalizedDeletedProfileName = Strings.normalize(deletedProfileName);
-
-        metadataDAO.deleteProfile(profileId);
-
-        profiles.removeIf(storedProfile -> storedProfile.getId() == profileId);
-        profileAssignments.remove(profileId);
-
-        users.forEach(user -> user.setAssignedProfiles(
-                user.getAssignedProfiles().stream()
-                        .filter(profileName -> !Strings.normalize(profileName).equals(normalizedDeletedProfileName))
-                        .toList()
-        ));
-
-        addAuditLog("Profiles", "Deleted profile", deletedProfileName, "Success",
+        ScanProfile profile = adminProfileService.deleteProfile(profileId);
+        addAuditLog("Profiles", "Deleted profile", profile.getName(), "Success",
                 "A scan profile was deleted.",
                 deletedProfileChanges(profile));
     }
 
     public boolean profileCodeExists(String code, Integer excludedProfileId) {
-        String normalizedCode = Strings.normalize(code);
-
-        if (normalizedCode.isBlank()) {
-            return false;
-        }
-
-        return profiles.stream()
-                .filter(profile -> excludedProfileId == null || profile.getId() != excludedProfileId)
-                .map(ScanProfile::getCode)
-                .map(Strings::normalize)
-                .anyMatch(existingCode -> existingCode.equals(normalizedCode));
+        return adminProfileService.profileCodeExists(code, excludedProfileId);
     }
 
     public List<ReviewRecord> getReviewRecords() {
-        List<ReviewRecord> allRecords = new ArrayList<>();
-        reviewRecords.stream()
-                .map(this::copyReviewRecord)
-                .forEach(allRecords::add);
-        qaService.getAllAssignmentSummariesForAdmin().stream()
-                .map(this::toQaReviewRecord)
-                .forEach(allRecords::add);
-        return allRecords;
+        return adminReviewService.getReviewRecords();
     }
 
     public ReviewRecord saveReviewRecord(ReviewRecord updatedRecord) {
-        if (updatedRecord == null || Strings.clean(updatedRecord.getId()).isBlank()) {
-            throw new IllegalArgumentException("Review record is required.");
+        AdminReviewService.ReviewSaveResult result = adminReviewService.saveReviewRecord(updatedRecord);
+        if (result.change() == AdminReviewService.ReviewChange.UPDATED) {
+            addAuditLog("Review", "Updated review", updatedRecord.getIdentity(), "Success",
+                    "A review record was updated.");
+        } else if (result.change() == AdminReviewService.ReviewChange.CREATED) {
+            addAuditLog("Review", "Created review", updatedRecord.getIdentity(), "Success",
+                    "A review record was created.");
         }
-
-        if (isQaRecordId(updatedRecord.getId())) {
-            return saveQaReviewRecord(updatedRecord);
-        }
-
-        for (int index = 0; index < reviewRecords.size(); index++) {
-            ReviewRecord existingRecord = reviewRecords.get(index);
-
-            if (existingRecord.getId().equals(updatedRecord.getId())) {
-                ReviewRecord savedRecord = copyReviewRecord(updatedRecord);
-                metadataDAO.saveReviewRecord(savedRecord);
-                reviewRecords.set(index, savedRecord);
-
-                addAuditLog("Review", "Updated review", updatedRecord.getIdentity(), "Success",
-                        "A review record was updated.");
-
-                return copyReviewRecord(updatedRecord);
-            }
-        }
-
-        ReviewRecord savedRecord = copyReviewRecord(updatedRecord);
-        metadataDAO.saveReviewRecord(savedRecord);
-        reviewRecords.add(savedRecord);
-
-        addAuditLog("Review", "Created review", updatedRecord.getIdentity(), "Success",
-                "A review record was created.");
-
-        return copyReviewRecord(updatedRecord);
+        return result.record();
     }
 
     public ReviewRecord assignReviewRecordToQa(String recordId) {
@@ -480,156 +373,49 @@ public class AdminManager {
     }
 
     public ReviewRecord assignReviewRecordToQa(String recordId, Integer reviewerUserId) {
-        if (!isQaRecordId(recordId)) {
-            return null;
-        }
-
-        QAService.QaAssignmentSnapshot assignment = qaService.assignReview(parseQaReviewId(recordId), reviewerUserId);
-        return assignment == null ? null : toQaReviewRecord(assignment);
+        return adminReviewService.assignReviewRecordToQa(recordId, reviewerUserId);
     }
 
     public QAService.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
-        if (!isQaRecordId(recordId)) {
-            return null;
-        }
-        return qaReviewDAO.findById(parseQaReviewId(recordId));
+        return adminReviewService.getQaAssignmentForReviewRecord(recordId);
     }
 
     public List<Document> getExportableDocumentsForRecord(String recordId) {
-        QAService.QaAssignmentSnapshot assignment = getQaAssignmentForReviewRecord(recordId);
-        if (assignment == null || assignment.status() != QAService.QaReviewStatus.APPROVED) {
-            return List.of();
-        }
-
-        List<Document> documents = new ArrayList<>();
-        for (QAService.QaDocumentSnapshot qaDocument : assignment.documents()) {
-            List<PageImage> pages = new ArrayList<>();
-            for (QAService.QaPageSnapshot qaPage : qaDocument.pages()) {
-                if (qaPage.reviewStatus() != QAService.QaPageReviewStatus.APPROVED) {
-                    continue;
-                }
-                String sourceReference = qaPage.sourceReference() == null || qaPage.sourceReference().isBlank()
-                        ? "Document " + qaDocument.number()
-                        : qaPage.sourceReference();
-                PageImage pageImage = new PageImage(qaPage.pageNumber(), PageImage.PageType.TIFF, sourceReference);
-                pageImage.setRotationDegrees(qaPage.rotationDegrees());
-                pageImage.setDisplayContent(qaPage.displayContent());
-                pages.add(pageImage);
-            }
-            if (!pages.isEmpty()) {
-                documents.add(new Document(
-                        "document_" + String.format(Locale.US, "%03d", qaDocument.number()),
-                        pages
-                ));
-            }
-        }
-        return documents;
+        return adminReviewService.getExportableDocumentsForRecord(recordId);
     }
 
     public List<QAService.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
-        SavedScanProgressDAO.StoredProgress progress = savedScanProgressDAO.findLatestByBoxAndProfile(boxId, profileName);
-        if (progress == null || progress.pages().isEmpty()) {
-            return List.of();
-        }
-
-        Map<Integer, List<QAService.QaPageSnapshot>> pagesByDocument = new HashMap<>();
-        for (SavedScanProgressDAO.StoredPage page : progress.pages()) {
-            if (page == null || page.barcode()) {
-                continue;
-            }
-
-            String previewContent = page.previewContent() == null || page.previewContent().isBlank()
-                    ? page.displayContent()
-                    : page.previewContent();
-
-            pagesByDocument.computeIfAbsent(Math.max(1, page.documentNumber()), ignored -> new ArrayList<>())
-                    .add(new QAService.QaPageSnapshot(
-                            Math.max(1, page.referenceId()),
-                            Math.max(1, page.fileId()),
-                            page.sourceReference(),
-                            previewContent,
-                            page.rotationDegrees(),
-                            QAService.QaPageReviewStatus.NOT_REVIEWED,
-                            false,
-                            false,
-                            false,
-                            false,
-                            ""
-                    ));
-        }
-
-        if (pagesByDocument.isEmpty()) {
-            return List.of();
-        }
-
-        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
-        pagesByDocument.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> {
-                    List<QAService.QaPageSnapshot> pages = new ArrayList<>(entry.getValue());
-                    pages.sort(Comparator.comparingInt(QAService.QaPageSnapshot::pageNumber));
-                    documents.add(new QAService.QaDocumentSnapshot(
-                            entry.getKey(),
-                            "Document " + entry.getKey(),
-                            pages
-                    ));
-                });
-        return documents;
+        return adminReviewService.getSavedProgressDocumentsForReviewRecord(boxId, profileName);
     }
 
     public ScanProfile findProfileByName(String profileName) {
-        if (profileName == null || profileName.isBlank()) {
-            return null;
-        }
-        String normalized = profileName.trim();
-        return profiles.stream()
-                .filter(profile -> profile.getName().equalsIgnoreCase(normalized))
-                .findFirst()
-                .orElse(null);
+        return adminProfileService.findProfileByName(profileName);
     }
 
     public List<User> getEligibleQaAssignees(String recordId) {
-        if (!isQaRecordId(recordId)) {
-            return List.of();
-        }
-
-        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(parseQaReviewId(recordId));
-        if (assignment == null) {
-            return List.of();
-        }
-
-        return users.stream()
-                .filter(User::isActive)
-                .filter(user -> !"Admin".equalsIgnoreCase(user.getRole()))
-                .filter(user -> assignment.createdByUserId() == null || user.getId() != assignment.createdByUserId())
-                .sorted(Comparator.comparing(User::getName, String.CASE_INSENSITIVE_ORDER))
-                .toList();
+        return adminReviewService.getEligibleQaAssignees(recordId);
     }
 
     public Map<Integer, Set<Integer>> getProfileAssignments() {
-        return copyAssignments(profileAssignments);
+        return adminProfileService.copyAssignments(profileAssignments);
     }
 
     public Set<Integer> getAssignedUserIds(int profileId) {
-        return new HashSet<>(profileAssignments.getOrDefault(profileId, Set.of()));
+        return adminProfileService.getAssignedUserIds(profileId);
     }
 
     public List<Integer> getAssignedProfileIds(int userId) {
-        return profileAssignments.entrySet().stream()
-                .filter(entry -> entry.getValue().contains(userId))
-                .map(Map.Entry::getKey)
-                .sorted()
-                .toList();
+        return adminProfileService.getAssignedProfileIds(userId);
     }
 
     public void saveProfileAssignments(Map<Integer, Set<Integer>> assignments) {
-        Map<Integer, Set<Integer>> previousAssignments = copyAssignments(profileAssignments);
-        Map<Integer, Set<Integer>> updatedAssignments = copyAssignments(assignments);
+        Map<Integer, Set<Integer>> previousAssignments = adminProfileService.copyAssignments(profileAssignments);
+        Map<Integer, Set<Integer>> updatedAssignments = adminProfileService.copyAssignments(assignments);
 
         profileAssignments.clear();
         profileAssignments.putAll(updatedAssignments);
         userDAO.replaceProfileAssignments(profileAssignments);
-        refreshUsersFromProfileAssignments();
+        adminProfileService.refreshUsersFromProfileAssignments();
 
         addAuditLog("Access", "Updated profile access", "Assignments", "Success",
                 "Profile access assignments were saved.",
@@ -703,143 +489,13 @@ public class AdminManager {
         return new DashboardSummary(totalUsers, activeProfiles, draftProfiles, usersWithoutProfiles, failedEvents);
     }
 
-    private ReviewRecord copyReviewRecord(ReviewRecord record) {
-        return new ReviewRecord(
-                record.getId(),
-                record.getIdentity(),
-                record.getClient(),
-                record.getArchive(),
-                record.getProfile(),
-                record.getMetadataTemplate(),
-                record.getMetadataStatus(),
-                record.getQaStatus(),
-                record.getPages(),
-                record.getLastUpdated(),
-                record.getAssignedTo(),
-                record.getScannedBy(),
-                record.getDateGroup(),
-                record.hasWarning()
-        );
-    }
-
     private void loadAdminData() {
         loadUsers();
         loadProfiles();
         loadReviewRecords();
         loadProfileAssignments();
         loadAuditLogs();
-        refreshUsersFromProfileAssignments();
-    }
-
-    private ReviewRecord saveQaReviewRecord(ReviewRecord updatedRecord) {
-        UUID reviewId = parseQaReviewId(updatedRecord.getId());
-        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
-        if (assignment == null) {
-            throw new IllegalArgumentException("QA review could not be found.");
-        }
-
-        QAService.QaReviewStatus targetStatus = toQaReviewStatus(updatedRecord.getQaStatus());
-        int reviewedPages = Math.max(assignment.reviewedPages(), assignment.totalPages());
-        int issueCount = Math.max(assignment.issueCount(), updatedRecord.hasWarning() ? 1 : 0);
-
-        if (targetStatus == QAService.QaReviewStatus.APPROVED || targetStatus == QAService.QaReviewStatus.REJECTED) {
-            qaService.completeReview(
-                    reviewId,
-                    targetStatus == QAService.QaReviewStatus.APPROVED,
-                    reviewedPages,
-                    assignment.totalPages(),
-                    issueCount,
-                    assignment.documents()
-            );
-        } else {
-            qaReviewDAO.saveProgress(
-                    reviewId,
-                    targetStatus,
-                    reviewedPages,
-                    assignment.totalPages(),
-                    issueCount,
-                    assignment.documents()
-            );
-        }
-
-        QAService.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
-        return saved == null ? updatedRecord : toQaReviewRecord(saved);
-    }
-
-    private ReviewRecord toQaReviewRecord(QAService.QaAssignmentSnapshot assignment) {
-        Map<Integer, User> usersById = new HashMap<>();
-        for (User user : users) {
-            usersById.put(user.getId(), user);
-        }
-
-        String client = findProfileOptionalByName(assignment.profileName())
-                .map(ScanProfile::getClient)
-                .orElse("");
-
-        String assignedTo = "";
-        if (assignment.assignedToUserId() != null) {
-            User assignedUser = usersById.get(assignment.assignedToUserId());
-            if (assignedUser != null) {
-                assignedTo = assignedUser.getName();
-            }
-        }
-
-        String metadataStatus = assignment.status() == QAService.QaReviewStatus.REJECTED
-                ? "Returned for changes"
-                : "Complete";
-
-        return new ReviewRecord(
-                QA_RECORD_PREFIX + assignment.reviewId(),
-                assignment.boxId(),
-                client,
-                assignment.boxId(),
-                assignment.profileName(),
-                assignment.profileName(),
-                metadataStatus,
-                toAdminQaStatus(assignment.status()),
-                assignment.totalPages(),
-                formatTimestamp(assignment.completedAt() != null ? assignment.completedAt() : assignment.submittedAt()),
-                assignedTo,
-                assignment.scannedByName(),
-                formatTimestamp(assignment.submittedAt()),
-                assignment.issueCount() > 0 || assignment.status() == QAService.QaReviewStatus.REJECTED
-        );
-    }
-
-    private String toAdminQaStatus(QAService.QaReviewStatus status) {
-        return switch (status) {
-            case WAITING_FOR_QA -> "Ready for QA";
-            case IN_REVIEW -> "QA In Progress";
-            case APPROVED -> "QA Approved";
-            case REJECTED -> "QA Rejected";
-        };
-    }
-
-    private QAService.QaReviewStatus toQaReviewStatus(String status) {
-        String normalized = Strings.normalize(status);
-        return switch (normalized) {
-            case "qa approved" -> QAService.QaReviewStatus.APPROVED;
-            case "qa rejected" -> QAService.QaReviewStatus.REJECTED;
-            case "qa in progress" -> QAService.QaReviewStatus.IN_REVIEW;
-            case "ready for qa", "waiting for qa" -> QAService.QaReviewStatus.WAITING_FOR_QA;
-            default -> QAService.QaReviewStatus.WAITING_FOR_QA;
-        };
-    }
-
-    private boolean isQaRecordId(String recordId) {
-        return Strings.clean(recordId).startsWith(QA_RECORD_PREFIX);
-    }
-
-    private UUID parseQaReviewId(String recordId) {
-        String value = Strings.clean(recordId);
-        return UUID.fromString(value.substring(QA_RECORD_PREFIX.length()));
-    }
-
-    private String formatTimestamp(java.time.Instant instant) {
-        if (instant == null) {
-            return "";
-        }
-        return ADMIN_TIME_FORMATTER.format(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+        adminProfileService.refreshUsersFromProfileAssignments();
     }
 
     private void loadUsers() {
@@ -849,19 +505,17 @@ public class AdminManager {
     }
 
     private void loadProfiles() {
-        profiles.clear();
-        profiles.addAll(metadataDAO.getProfiles());
+        adminProfileService.loadProfiles();
         nextProfileId = metadataDAO.nextProfileId();
     }
 
     private void loadReviewRecords() {
-        reviewRecords.clear();
-        reviewRecords.addAll(metadataDAO.getReviewRecords());
+        adminReviewService.loadReviewRecords();
     }
 
     private void loadProfileAssignments() {
         profileAssignments.clear();
-        profileAssignments.putAll(copyAssignments(userDAO.getProfileAssignments()));
+        profileAssignments.putAll(adminProfileService.copyAssignments(userDAO.getProfileAssignments()));
     }
 
     private void loadAuditLogs() {
@@ -885,13 +539,6 @@ public class AdminManager {
                 .filter(user -> user.getId() == userId)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("User could not be found."));
-    }
-
-    private ScanProfile findRequiredProfile(int profileId) {
-        return profiles.stream()
-                .filter(profile -> profile.getId() == profileId)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Profile could not be found."));
     }
 
     private void validateUserInput(UserInput input, Integer excludedUserId) {
@@ -1189,107 +836,11 @@ public class AdminManager {
     }
 
     private List<Integer> profileIdsForNames(List<String> profileNames) {
-        if (profileNames == null || profileNames.isEmpty()) {
-            return List.of();
-        }
-
-        List<Integer> profileIds = new ArrayList<>();
-
-        for (String profileName : profileNames) {
-            if (Strings.clean(profileName).isBlank()) {
-                continue;
-            }
-
-            ScanProfile profile = findProfileOptionalByName(profileName)
-                    .orElseThrow(() -> new IllegalArgumentException("Profile could not be found: " + profileName));
-            profileIds.add(profile.getId());
-        }
-
-        return profileIds;
+        return adminProfileService.profileIdsForNames(profileNames);
     }
 
     private void syncProfileAssignmentsForUser(User user) {
-        removeUserFromAssignments(user.getId());
-
-        for (String assignedProfileName : user.getAssignedProfiles()) {
-            findProfileOptionalByName(assignedProfileName).ifPresent(profile ->
-                    profileAssignments
-                            .computeIfAbsent(profile.getId(), profileId -> new HashSet<>())
-                            .add(user.getId())
-            );
-        }
-    }
-
-    private java.util.Optional<ScanProfile> findProfileOptionalByName(String profileName) {
-        String normalizedProfileName = Strings.normalize(profileName);
-
-        return profiles.stream()
-                .filter(profile -> Strings.normalize(profile.getName()).equals(normalizedProfileName))
-                .findFirst();
-    }
-
-    private void refreshUsersFromProfileAssignments() {
-        for (User user : users) {
-            user.setAssignedProfiles(getAssignedProfileNames(user.getId()));
-        }
-    }
-
-    private List<String> getAssignedProfileNames(int userId) {
-        List<String> assignedProfileNames = new ArrayList<>();
-
-        for (ScanProfile profile : getProfiles()) {
-            Set<Integer> assignedUserIds = profileAssignments.getOrDefault(profile.getId(), Set.of());
-
-            if (assignedUserIds.contains(userId)) {
-                assignedProfileNames.add(profile.getName());
-            }
-        }
-
-        return assignedProfileNames;
-    }
-
-    private void renameAssignedProfile(String previousName, String newName) {
-        if (Strings.normalize(previousName).equals(Strings.normalize(newName))) {
-            return;
-        }
-
-        for (User user : users) {
-            LinkedHashSet<String> updatedProfiles = new LinkedHashSet<>();
-
-            for (String assignedProfile : user.getAssignedProfiles()) {
-                if (Strings.normalize(assignedProfile).equals(Strings.normalize(previousName))) {
-                    updatedProfiles.add(newName);
-                } else {
-                    updatedProfiles.add(assignedProfile);
-                }
-            }
-
-            user.setAssignedProfiles(new ArrayList<>(updatedProfiles));
-        }
-    }
-
-    private void removeUserFromAssignments(int userId) {
-        for (Set<Integer> assignedUserIds : profileAssignments.values()) {
-            assignedUserIds.remove(userId);
-        }
-    }
-
-    private Map<Integer, Set<Integer>> copyAssignments(Map<Integer, Set<Integer>> source) {
-        Map<Integer, Set<Integer>> copy = new HashMap<>();
-
-        if (source == null) {
-            return copy;
-        }
-
-        source.forEach((profileId, userIds) ->
-                copy.put(profileId, userIds == null ? new HashSet<>() : new HashSet<>(userIds))
-        );
-
-        return copy;
-    }
-
-    private boolean isArchivedStatus(String status) {
-        return "Archived".equalsIgnoreCase(status);
+        adminProfileService.syncProfileAssignmentsForUser(user);
     }
 
     private boolean isValidEmail(String email) {
@@ -1365,6 +916,29 @@ public class AdminManager {
         private final boolean autosaveEnabled;
         private final int autosaveIntervalSeconds;
         private final boolean autosaveLocked;
+
+        public ProfileInput(
+                String name,
+                String client,
+                String code,
+                String description,
+                String status,
+                String exportNaming,
+                boolean barcodeSplitting,
+                String barcodeDetectedBehavior,
+                String barcodePageBehavior,
+                String defaultRotation,
+                String brightness,
+                String contrast,
+                boolean deskew,
+                String exportFormat,
+                boolean metadataRequiredBeforeExport
+        ) {
+            this(name, client, code, description, status, "", exportNaming,
+                    barcodeSplitting, barcodeDetectedBehavior, barcodePageBehavior,
+                    defaultRotation, brightness, contrast, deskew, exportFormat,
+                    metadataRequiredBeforeExport);
+        }
 
         public ProfileInput(
                 String name,
@@ -1452,6 +1026,24 @@ public class AdminManager {
         public boolean isAutosaveEnabled() { return autosaveEnabled; }
         public int getAutosaveIntervalSeconds() { return autosaveIntervalSeconds; }
         public boolean isAutosaveLocked() { return autosaveLocked; }
+    }
+
+    private static class MetadataBackedReviewRecordDAO extends ReviewRecordDAO {
+        private final MetadataDAO metadataDAO;
+
+        MetadataBackedReviewRecordDAO(MetadataDAO metadataDAO) {
+            this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
+        }
+
+        @Override
+        public List<ReviewRecord> getReviewRecords() {
+            return metadataDAO.getReviewRecords();
+        }
+
+        @Override
+        public void saveReviewRecord(ReviewRecord record) {
+            metadataDAO.saveReviewRecord(record);
+        }
     }
 
     public static class DashboardSummary {

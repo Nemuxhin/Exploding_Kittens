@@ -5300,7 +5300,7 @@ public class ActivityController {
 
         switch (actionKey) {
             case "DOCUMENT_DETAILS_SAVED" -> {
-                return "Saved document details";
+                return "Saved metadata";
             }
             case "SCAN_STARTED" -> {
                 return "Started TIFF scan";

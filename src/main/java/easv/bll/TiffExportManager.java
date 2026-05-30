@@ -2,6 +2,7 @@ package easv.bll;
 
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.ScanProfile;
 import easv.be.TiffExportItem;
 import easv.be.TiffExportPlan;
 
@@ -31,7 +32,7 @@ import java.util.Map;
  * It does not depend on JavaFX, so any future screen can reuse it.
  */
 public class TiffExportManager {
-    private static final String DEFAULT_NAMING_PATTERN = "{profileName}_{boxId}";
+    private static final String DEFAULT_NAMING_PATTERN = ScanProfile.DEFAULT_EXPORT_NAMING;
 
     public TiffExportPlan createSinglePagePlan(String profileName, String boxId, List<PageImage> pages) {
         return createSinglePagePlan(profileName, profileName, DEFAULT_NAMING_PATTERN, boxId, pages);
