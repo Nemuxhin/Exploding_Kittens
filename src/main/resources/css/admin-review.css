@@ -1634,8 +1634,8 @@
    REVIEW QA WORKSPACE
    Self-contained styling for the admin Review QA workspace.
    The admin scene does NOT load user-qa.css / user-scan.css,
-   so the workspace controls (which reuse qa-*/scan-*/view-*
-   class names) are styled here with -wl-* tokens to match the
+   so the workspace controls (which reuse the qa, scan and view
+   class names) are styled here with -wl- tokens to match the
    style guide. Do not depend on user-portal stylesheets.
    ========================================================= */
 
