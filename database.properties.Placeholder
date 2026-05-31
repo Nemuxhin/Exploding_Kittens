@@ -1,6 +1,6 @@
 exploding-kittens.db.url=jdbc:sqlserver://10.176.111.34:1433;databaseName=Exploding_KittensV2;encrypt=true;trustServerCertificate=true
-exploding-kittens.db.user=CS2025b_e_17
-exploding-kittens.db.password=CS2025bE17#23
+exploding-kittens.db.user=##########
+exploding-kittens.db.password=############
 scanner.api.base-url=https://studentiffapi-production.up.railway.app
 scanner.api.fetch-mode=paged
 scanner.api.page-size=1
