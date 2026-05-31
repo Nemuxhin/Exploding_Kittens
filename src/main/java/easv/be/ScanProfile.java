@@ -3,6 +3,8 @@ package easv.be;
 public class ScanProfile {
     public static final String DEFAULT_EXPORT_NAMING = "{profileName}_{boxId}";
     public static final int DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 30;
+    public static final String EXPORT_FORMAT_MULTI_PAGE_TIFF = "Multi-page TIFF";
+    public static final String EXPORT_FORMAT_SINGLE_PAGE_TIFF = "Single-page TIFF";
 
     private static final String LEGACY_PROFILE_CODE_TOKEN = "{profileCode}";
     private static final String PROFILE_NAME_TOKEN = "{profileName}";
@@ -166,7 +168,7 @@ public class ScanProfile {
         this.brightness = clean(brightness);
         this.contrast = clean(contrast);
         this.deskew = deskew;
-        this.exportFormat = clean(exportFormat);
+        this.exportFormat = normalizeExportFormat(exportFormat);
         this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
         this.autosaveEnabled = autosaveEnabled;
         this.autosaveIntervalSeconds = normalizeAutosaveInterval(autosaveIntervalSeconds);
@@ -217,7 +219,7 @@ public class ScanProfile {
     public void setBrightness(String brightness) { this.brightness = clean(brightness); }
     public void setContrast(String contrast) { this.contrast = clean(contrast); }
     public void setDeskew(boolean deskew) { this.deskew = deskew; }
-    public void setExportFormat(String exportFormat) { this.exportFormat = clean(exportFormat); }
+    public void setExportFormat(String exportFormat) { this.exportFormat = normalizeExportFormat(exportFormat); }
     public void setMetadataRequiredBeforeExport(boolean metadataRequiredBeforeExport) {
         this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
     }
@@ -246,6 +248,27 @@ public class ScanProfile {
         }
 
         return cleaned.replace(LEGACY_PROFILE_CODE_TOKEN, PROFILE_NAME_TOKEN);
+    }
+
+    public static String normalizeExportFormat(String value) {
+        String cleaned = clean(value);
+
+        if (cleaned.isBlank()) {
+            return EXPORT_FORMAT_MULTI_PAGE_TIFF;
+        }
+
+        if (cleaned.equalsIgnoreCase(EXPORT_FORMAT_SINGLE_PAGE_TIFF)) {
+            return EXPORT_FORMAT_SINGLE_PAGE_TIFF;
+        }
+
+        if (cleaned.equalsIgnoreCase(EXPORT_FORMAT_MULTI_PAGE_TIFF)
+                || cleaned.equalsIgnoreCase("TIFF")
+                || cleaned.equalsIgnoreCase("PDF")
+                || cleaned.equalsIgnoreCase("PDF/A")) {
+            return EXPORT_FORMAT_MULTI_PAGE_TIFF;
+        }
+
+        return EXPORT_FORMAT_MULTI_PAGE_TIFF;
     }
 
     public static int normalizeAutosaveInterval(int seconds) {

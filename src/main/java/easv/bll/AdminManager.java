@@ -384,6 +384,14 @@ public class AdminManager {
         return adminReviewService.getExportableDocumentsForRecord(recordId);
     }
 
+    public ReviewRecord completeQaReviewRecord(
+            String recordId,
+            boolean approved,
+            List<QAService.QaDocumentSnapshot> documents
+    ) {
+        return adminReviewService.completeQaReviewRecord(recordId, approved, documents);
+    }
+
     public List<QAService.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
         return adminReviewService.getSavedProgressDocumentsForReviewRecord(boxId, profileName);
     }

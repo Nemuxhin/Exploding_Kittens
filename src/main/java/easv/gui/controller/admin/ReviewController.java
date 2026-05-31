@@ -2096,10 +2096,17 @@ public class ReviewController {
         }
 
         boolean approved = getWorkspaceQaIssueCount() == 0;
-        ReviewRow updatedRecord = approved
-                ? activeReviewRecord.withReviewState("Approved", "QA Approved", false)
-                : activeReviewRecord.withReviewState(activeReviewRecord.documentDetailsStatus(), "QA Rejected", true);
-        replaceActiveRecord(updatedRecord);
+        ReviewRecord savedRecord = adminManager == null
+                ? null
+                : adminManager.completeQaReviewRecord(
+                        activeReviewRecord.id(),
+                        approved,
+                        toWorkspaceQaDocumentSnapshots()
+                );
+        if (savedRecord != null) {
+            replaceActiveRecord(toReviewRow(savedRecord));
+            activeQaAssignment = adminManager.getQaAssignmentForReviewRecord(activeReviewRecord.id());
+        }
 
         if (approved) {
             String boxId = activeReviewRecord.identity() == null || activeReviewRecord.identity().isBlank()
@@ -2171,6 +2178,20 @@ public class ReviewController {
             return;
         }
 
+        QAService.QaAssignmentSnapshot assignment = adminManager.getQaAssignmentForReviewRecord(activeReviewRecord.id());
+        if (assignment == null || assignment.status() != QAService.QaReviewStatus.APPROVED) {
+            showExportAlert(null, Alert.AlertType.WARNING, "Export blocked",
+                    "This batch cannot be exported until QA is completed and approved.");
+            return;
+        }
+
+        List<Document> exportDocuments = adminManager.getExportableDocumentsForRecord(activeReviewRecord.id());
+        if (exportDocuments.isEmpty()) {
+            showExportAlert(null, Alert.AlertType.WARNING, "Export blocked",
+                    "No approved QA documents are available for export.");
+            return;
+        }
+
         Stage stage = new Stage();
         stage.setTitle("TIFF Export");
         stage.initModality(Modality.WINDOW_MODAL);
@@ -2180,7 +2201,7 @@ public class ReviewController {
             stage.initOwner(reviewWorkspaceView.getScene().getWindow());
         }
 
-        VBox content = buildWorkspaceExportDialogContent(stage);
+        VBox content = buildWorkspaceExportDialogContent(stage, exportDocuments);
         StackPane root = new StackPane(content);
         root.getStyleClass().addAll("app-shell", "exports-dialog-stage");
 
@@ -2620,6 +2641,36 @@ public class ReviewController {
             }
         }
         return count;
+    }
+
+    private List<QAService.QaDocumentSnapshot> toWorkspaceQaDocumentSnapshots() {
+        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+        for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
+            WorkspaceQaDocument document = activeQaDocuments.get(documentIndex);
+            List<QAService.QaPageSnapshot> pages = new ArrayList<>();
+            for (WorkspaceQaPage page : document.pages()) {
+                boolean approved = page.status() == QAService.QaPageReviewStatus.APPROVED;
+                pages.add(new QAService.QaPageSnapshot(
+                        page.pageNumber(),
+                        page.globalPageNumber(),
+                        page.sourceReference(),
+                        page.imageContent(),
+                        page.rotationDegrees(),
+                        page.status(),
+                        approved,
+                        approved,
+                        approved,
+                        approved,
+                        page.comment()
+                ));
+            }
+            documents.add(new QAService.QaDocumentSnapshot(
+                    documentIndex + 1,
+                    document.name(),
+                    pages
+            ));
+        }
+        return documents;
     }
 
     private boolean hasWorkspaceQaIssues() {
@@ -3194,11 +3245,9 @@ public class ReviewController {
         return row;
     }
 
-    private VBox buildWorkspaceExportDialogContent(Stage stage) {
-        List<Document> exportDocuments = adminManager == null || activeReviewRecord == null
-                ? List.of()
-                : adminManager.getExportableDocumentsForRecord(activeReviewRecord.id());
-        List<String> boxFiles = buildExportFiles(exportDocuments);
+    private VBox buildWorkspaceExportDialogContent(Stage stage, List<Document> exportDocuments) {
+        List<Document> safeExportDocuments = exportDocuments == null ? List.of() : exportDocuments;
+        List<String> boxFiles = buildExportFiles(safeExportDocuments);
         ObjectProperty<TiffExportType> selectedType = new SimpleObjectProperty<>(TiffExportType.MULTI_PAGE);
 
         Label title = new Label("TIFF Export");
@@ -3267,7 +3316,7 @@ public class ReviewController {
         Label outputLabel = new Label("Output:");
         outputLabel.getStyleClass().add("exports-dialog-output-label");
 
-        Label outputValue = new Label(buildOutputText(selectedType.get(), exportDocuments));
+        Label outputValue = new Label(buildOutputText(selectedType.get(), safeExportDocuments));
         outputValue.getStyleClass().add("exports-dialog-output-value");
         outputValue.setWrapText(false);
         outputValue.setMinHeight(Region.USE_PREF_SIZE);
@@ -3275,7 +3324,7 @@ public class ReviewController {
         outputValue.setMaxWidth(420);
 
         selectedType.addListener((observable, oldValue, newValue) ->
-                outputValue.setText(buildOutputText(newValue, exportDocuments))
+                outputValue.setText(buildOutputText(newValue, safeExportDocuments))
         );
 
         HBox outputBox = new HBox(9, outputLabel, outputValue);
@@ -3293,7 +3342,7 @@ public class ReviewController {
         Button exportButton = new Button("Export");
         exportButton.getStyleClass().addAll("portal-primary-button", "exports-dialog-export-button");
         exportButton.setDefaultButton(true);
-        exportButton.setOnAction(event -> handleWorkspaceExport(stage, selectedType.get(), exportDocuments));
+        exportButton.setOnAction(event -> handleWorkspaceExport(stage, selectedType.get(), safeExportDocuments));
 
         HBox footerActions = new HBox(9, cancelButton, exportButton);
         footerActions.getStyleClass().add("exports-dialog-footer-actions");

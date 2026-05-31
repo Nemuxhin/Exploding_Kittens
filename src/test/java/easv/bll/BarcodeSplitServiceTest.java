@@ -31,6 +31,21 @@ class BarcodeSplitServiceTest {
     }
 
     @Test
+    void classifyAcceptsScannerZipInferredBarcodeValueForBarcodeNamedPage() {
+        BarcodeSplitService service = new BarcodeSplitService();
+        ScannerApiClient.ApiTiffPage page = new ScannerApiClient.ApiTiffPage(1, "separator_barcode.tiff");
+
+        BarcodeSplitService.DetectionResult result = service.classify(
+                page.sourceReference(),
+                page.barcodeValue(),
+                page.fileData()
+        );
+
+        assertEquals(PageImage.PageType.BARCODE, result.pageType());
+        assertEquals("SEP4643719", result.barcodeValue());
+    }
+
+    @Test
     void classifyDetectsBarcodeFromTiffBytes() throws Exception {
         BarcodeSplitService service = new BarcodeSplitService();
         byte[] tiffBytes = createBarcodeTiff("123456789012");

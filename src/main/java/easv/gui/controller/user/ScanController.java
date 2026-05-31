@@ -6,7 +6,6 @@ import easv.be.ScanProfile;
 import easv.be.ScanSession;
 import easv.be.TiffExportPlan;
 import easv.bll.AuditLogManager;
-import easv.bll.AutosaveSettingsStore;
 import easv.bll.ExportService;
 import easv.bll.ScanImportResult;
 import easv.bll.ScanManager;
@@ -82,6 +81,10 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ScanController {
+    private static final String SPLIT_REASON_BARCODE = "Barcode split";
+    private static final String SPLIT_REASON_MANUAL = "Manual split";
+    private static final String SPLIT_REASON_FINISH_BATCH = "Finish batch";
+
 
     private static final double PREVIEW_PAGE_WIDTH = 500;
     private static final double PREVIEW_PAGE_HEIGHT = 560;
@@ -194,7 +197,6 @@ public class ScanController {
     private boolean syncingBoxRotationComboBox = false;
     private boolean syncingPageRotationComboBox = false;
 
-    private final AutosaveSettingsStore autosaveSettingsStore = new AutosaveSettingsStore();
     private Timeline autosaveTimer;
     private boolean autosaveEnabled = true;
     private int autosaveIntervalSeconds = ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
@@ -505,12 +507,15 @@ public class ScanController {
                     ? scanManager.resumeLatestSession(selectedBoxId, selectedProfile)
                     : scanManager.resumeSession(sessionId))
                     .orElse(null);
-            UserPortalModel.InMemoryScanProgress savedProgress = sessionId == null
+            UUID restoredSessionId = sessionId != null
+                    ? sessionId
+                    : resumedSession == null ? null : resumedSession.session().getId();
+            UserPortalModel.InMemoryScanProgress savedProgress = restoredSessionId == null
                     ? null
-                    : portalModel.fetchSavedScanProgress(sessionId);
-            UserPortalModel.InMemoryScanProgress returnedQaProgress = sessionId == null
+                    : portalModel.fetchSavedScanProgress(restoredSessionId);
+            UserPortalModel.InMemoryScanProgress returnedQaProgress = restoredSessionId == null
                     ? null
-                    : portalModel.fetchReturnedQaProgress(sessionId);
+                    : portalModel.fetchReturnedQaProgress(restoredSessionId);
             Platform.runLater(() -> {
                 if (!selectedBoxId.equals(getBoxId()) || !selectedProfile.equals(getSelectedProfile())) {
                     return;
@@ -520,6 +525,7 @@ public class ScanController {
                     beginScanSession();
                 } else {
                     restoreScanSession(resumedSession, returnedQaProgress != null ? returnedQaProgress : savedProgress);
+                    persistWorkspaceProgressQuietly("Autosaved");
                 }
             });
         });
@@ -570,6 +576,7 @@ public class ScanController {
         nextReferenceId = 1;
         nextFileId = 1;
         for (UserPortalModel.InMemoryScanPage storedPage : progress.pages()) {
+            String previewContent = firstNonBlank(storedPage.previewContent(), storedPage.displayContent());
             ScannedPage page = new ScannedPage(
                     Math.max(1, storedPage.referenceId()),
                     Math.max(1, storedPage.fileId()),
@@ -578,7 +585,7 @@ public class ScanController {
                     storedPage.sourceReference(),
                     storedPage.displayContent(),
                     storedPage.previewContent(),
-                    extractDisplayContentBytes(storedPage.previewContent())
+                    extractDisplayContentBytes(previewContent)
             );
             page.documentNumber = storedPage.documentNumber();
             page.rotationDegrees = normalizeRotation(storedPage.rotationDegrees());
@@ -680,23 +687,23 @@ public class ScanController {
         }
 
         profileInfoTitleLabel.setText(selectedProfile);
-
-        // Demo profile defaults until the full ScanProfile is plumbed into this
-        // screen. "Standard Scan" is the lightweight profile; everything else is
-        // treated as a regular archive profile that requires metadata, QA, and
-        // barcode-based splitting.
-        switch (selectedProfile) {
-            case "Standard Scan" -> {
-                profileInfoMetadataLabel.setText("Metadata required: No");
-                profileInfoQaLabel.setText("QA required: No");
-                profileInfoSplittingLabel.setText("Splitting method: Manual");
-            }
-            default -> {
-                profileInfoMetadataLabel.setText("Metadata required: Yes");
-                profileInfoQaLabel.setText("QA required: Yes");
-                profileInfoSplittingLabel.setText("Splitting method: Barcode");
-            }
+        ScanProfile profile = portalModel == null ? null : portalModel.fetchScanProfileByName(selectedProfile);
+        if (profile == null) {
+            profileInfoMetadataLabel.setText("Metadata required: —");
+            profileInfoQaLabel.setText("QA required: —");
+            profileInfoSplittingLabel.setText("Splitting method: —");
+            return;
         }
+
+        profileInfoMetadataLabel.setText(
+                "Metadata required: " + (profile.isMetadataRequiredBeforeExport() ? "Yes" : "No")
+        );
+        profileInfoQaLabel.setText(
+                "QA required: " + (profile.isMetadataRequiredBeforeExport() ? "Yes" : "No")
+        );
+        profileInfoSplittingLabel.setText(
+                "Splitting method: " + (profile.isBarcodeSplitting() ? "Barcode" : "Manual")
+        );
     }
 
     private void configureValidation() {
@@ -1083,8 +1090,46 @@ public class ScanController {
             return;
         }
 
-        beginScanSession();
+        openInterruptedSessionOrBeginNewSession();
         showWorkspaceView();
+    }
+
+    private void openInterruptedSessionOrBeginNewSession() {
+        String selectedBoxId = getBoxId();
+        String selectedProfile = getSelectedProfile();
+
+        selectedFileTitleLabel.setText("Loading scan session");
+        selectedFileRefLabel.setText("Please wait while we restore unfinished scan progress.");
+        refreshWorkspace();
+
+        BackgroundExecutor.io().execute(() -> {
+            ScanManager.ResumedSession resumedSession = scanManager.resumeLatestSession(selectedBoxId, selectedProfile)
+                    .orElse(null);
+            UUID restoredSessionId = resumedSession == null ? null : resumedSession.session().getId();
+            UserPortalModel.InMemoryScanProgress savedProgress = restoredSessionId == null
+                    ? null
+                    : portalModel.fetchSavedScanProgress(restoredSessionId);
+            UserPortalModel.InMemoryScanProgress returnedQaProgress = restoredSessionId == null
+                    ? null
+                    : portalModel.fetchReturnedQaProgress(restoredSessionId);
+
+            Platform.runLater(() -> {
+                if (!selectedBoxId.equals(getBoxId()) || !selectedProfile.equals(getSelectedProfile())) {
+                    return;
+                }
+
+                UserPortalModel.InMemoryScanProgress progressToRestore =
+                        returnedQaProgress != null ? returnedQaProgress : savedProgress;
+
+                if (resumedSession != null && progressToRestore != null && !progressToRestore.pages().isEmpty()) {
+                    restoreScanSession(resumedSession, progressToRestore);
+                    persistWorkspaceProgressQuietly("Autosaved");
+                    return;
+                }
+
+                beginScanSession();
+            });
+        });
     }
 
     private void beginScanSession() {
@@ -1168,14 +1213,18 @@ public class ScanController {
             return;
         }
 
+        List<ScannedPage> importedPages = new ArrayList<>();
         for (PageImage pageImage : result.getScannedPages()) {
             ScannedPage scannedPage = mapImportedPage(pageImage);
             allPages.add(scannedPage);
+            importedPages.add(scannedPage);
             selectedPage = scannedPage;
             logPageCreatedAudit(scannedPage);
         }
 
+        applyImportedDocumentBoundaries(importedPages, result.getImportedDocuments());
         rebuildDocumentsFromPages();
+        persistWorkspaceProgressQuietly("Autosaved");
         refreshWorkspace();
         scrollDocumentTreeToLatest();
 
@@ -1248,9 +1297,11 @@ public class ScanController {
         int documentNumber = 1;
 
         for (ScannedPage page : allPages) {
-            if (page.barcode) {
+            String splitReasonAfter = cleanSplitReason(page.splitReasonAfter);
+
+            if (page.barcode && splitReasonAfter == null) {
                 if (!currentDocumentPages.isEmpty()) {
-                    DocumentGroup document = createDocument(documentNumber, "Barcode split", currentDocumentPages);
+                    DocumentGroup document = createDocument(documentNumber, SPLIT_REASON_BARCODE, currentDocumentPages);
                     documents.add(document);
                     documentNumber++;
                     currentDocumentPages = new ArrayList<>();
@@ -1262,8 +1313,8 @@ public class ScanController {
 
             currentDocumentPages.add(page);
 
-            if ("Finish batch".equals(page.splitReasonAfter)) {
-                DocumentGroup document = createDocument(documentNumber, page.splitReasonAfter, currentDocumentPages);
+            if (splitReasonAfter != null) {
+                DocumentGroup document = createDocument(documentNumber, splitReasonAfter, currentDocumentPages);
                 documents.add(document);
                 documentNumber++;
                 currentDocumentPages.clear();
@@ -1277,6 +1328,42 @@ public class ScanController {
             pendingPages.addAll(currentDocumentPages);
         }
         collapsedDocuments.removeIf(documentId -> documentId > documents.size());
+    }
+
+    private void applyImportedDocumentBoundaries(List<ScannedPage> importedPages, List<Document> importedDocuments) {
+        if (importedPages == null || importedPages.isEmpty() || importedDocuments == null || importedDocuments.size() < 2) {
+            return;
+        }
+
+        Map<Integer, ScannedPage> pagesByReferenceId = new HashMap<>();
+        for (ScannedPage importedPage : importedPages) {
+            if (importedPage != null) {
+                pagesByReferenceId.put(importedPage.referenceId, importedPage);
+            }
+        }
+
+        for (int index = 0; index < importedDocuments.size() - 1; index++) {
+            Document document = importedDocuments.get(index);
+            List<PageImage> pages = document == null ? List.of() : document.getPages();
+            if (pages == null || pages.isEmpty()) {
+                continue;
+            }
+
+            PageImage lastPage = pages.get(pages.size() - 1);
+            ScannedPage scannedPage = pagesByReferenceId.get(lastPage.getReferenceId());
+            if (scannedPage != null) {
+                scannedPage.splitReasonAfter = SPLIT_REASON_BARCODE;
+            }
+        }
+    }
+
+    private String cleanSplitReason(String splitReason) {
+        if (splitReason == null) {
+            return null;
+        }
+
+        String cleaned = splitReason.trim();
+        return cleaned.isBlank() ? null : cleaned;
     }
 
     private DocumentGroup createDocument(int documentNumber, String splitReason, List<ScannedPage> pages) {
@@ -1822,7 +1909,25 @@ public class ScanController {
 
     @FXML
     private void onSplitHere() {
-        // Document boundaries are created by barcode pages only.
+        ScannedPage page = resolveActiveNormalPage();
+        if (page == null) {
+            return;
+        }
+
+        int selectedIndex = allPages.indexOf(page);
+        if (selectedIndex < 0 || selectedIndex >= allPages.size() - 1) {
+            return;
+        }
+
+        ScannedPage nextPage = allPages.get(selectedIndex + 1);
+        if (nextPage.barcode) {
+            return;
+        }
+
+        saveUndoState();
+        page.splitReasonAfter = SPLIT_REASON_MANUAL;
+        rebuildDocumentsFromPages();
+        refreshWorkspace();
     }
 
     @FXML
@@ -1868,16 +1973,7 @@ public class ScanController {
     }
 
     private void fireAutosave() {
-        if (activeScanSession == null || allPages.isEmpty()) {
-            return;
-        }
-
-        try {
-            // Autosave is quiet — do NOT touch selectedFileRefLabel or the workspace subtitle.
-            portalModel.saveScanProgress(activeScanSession.getId(), createInMemoryScanProgress("Autosaved"));
-        } catch (RuntimeException exception) {
-            System.err.println("[Autosave] save failed: " + exception.getMessage());
-        }
+        persistWorkspaceProgressQuietly("Autosaved");
     }
 
     private void syncAutosaveToggle() {
@@ -1889,11 +1985,12 @@ public class ScanController {
     }
 
     private void initAutosaveFromProfile(String profileName) {
-        AutosaveSettingsStore.Settings settings = autosaveSettingsStore.read(profileName);
-        autosaveLockedByProfile = settings.locked();
-        // Lock = forced ON. Style guide pg 9: Switch Checked + Disabled.
-        boolean enabled = autosaveLockedByProfile || settings.enabled();
-        int interval = Math.max(5, settings.intervalSeconds());
+        ScanProfile profile = portalModel == null ? null : portalModel.fetchScanProfileByName(profileName);
+        autosaveLockedByProfile = profile != null && profile.isAutosaveLocked();
+        boolean enabled = autosaveLockedByProfile || profile == null || profile.isAutosaveEnabled();
+        int interval = profile == null
+                ? ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS
+                : Math.max(5, profile.getAutosaveIntervalSeconds());
         applyAutosaveSettings(enabled, interval);
     }
 
@@ -1914,7 +2011,7 @@ public class ScanController {
             saveUndoState();
 
             ScannedPage lastPendingPage = pendingPages.get(pendingPages.size() - 1);
-            lastPendingPage.splitReasonAfter = "Finish batch";
+            lastPendingPage.splitReasonAfter = SPLIT_REASON_FINISH_BATCH;
 
             rebuildDocumentsFromPages();
             refreshWorkspace();
@@ -1935,7 +2032,7 @@ public class ScanController {
             saveUndoState();
 
             ScannedPage lastPendingPage = pendingPages.get(pendingPages.size() - 1);
-            lastPendingPage.splitReasonAfter = "Finish batch";
+            lastPendingPage.splitReasonAfter = SPLIT_REASON_FINISH_BATCH;
 
             rebuildDocumentsFromPages();
             refreshWorkspace();
@@ -2065,6 +2162,27 @@ public class ScanController {
         );
     }
 
+    void persistWorkspaceProgressBeforeInterruption() {
+        persistWorkspaceProgressQuietly("Saved");
+    }
+
+    private void persistWorkspaceProgressQuietly(String status) {
+        if (activeScanSession == null || allPages.isEmpty()) {
+            return;
+        }
+
+        try {
+            // Quiet persistence for interruption recovery. UI text stays unchanged.
+            portalModel.saveScanProgress(activeScanSession.getId(), createInMemoryScanProgress(status));
+        } catch (RuntimeException exception) {
+            Throwable cause = exception.getCause();
+            String causeMessage = cause == null || cause.getMessage() == null || cause.getMessage().isBlank()
+                    ? ""
+                    : " | cause: " + cause.getMessage();
+            System.err.println("[Autosave] save failed: " + exception.getMessage() + causeMessage);
+        }
+    }
+
     private List<UserPortalModel.InMemoryScanDocument> buildInMemoryScanDocuments() {
         List<UserPortalModel.InMemoryScanDocument> savedDocuments = new ArrayList<>();
 
@@ -2101,7 +2219,7 @@ public class ScanController {
                 page.splitReasonAfter,
                 page.sourceReference,
                 encodedContent,
-                encodedContent
+                ""
         );
     }
 
@@ -2586,11 +2704,11 @@ public class ScanController {
     private boolean shouldShowTreeSplitRow(DocumentGroup document, int documentIndex) {
         boolean isLastDocument = documentIndex == documents.size() - 1;
 
-        if ("Finish batch".equals(document.splitReason) && isLastDocument) {
+        if (SPLIT_REASON_FINISH_BATCH.equals(document.splitReason) && isLastDocument) {
             return false;
         }
 
-        return "Barcode split".equals(document.splitReason);
+        return cleanSplitReason(document.splitReason) != null;
     }
 
     private HBox createDocumentTreeSplitRow(String splitReason) {
@@ -3566,7 +3684,7 @@ public class ScanController {
                 page.splitReasonAfter = null;
             }
 
-            if (!group.pending && "Finish batch".equals(group.splitReason)) {
+            if (!group.pending && cleanSplitReason(group.splitReason) != null) {
                 group.pages.get(group.pages.size() - 1).splitReasonAfter = group.splitReason;
             }
 
@@ -3770,13 +3888,13 @@ public class ScanController {
 
             reviewDocumentListContainer.getChildren().add(documentBlock);
 
-            if (index < documents.size() - 1) {
-                reviewDocumentListContainer.getChildren().add(createReviewSplitRow());
+            if (index < documents.size() - 1 && cleanSplitReason(document.splitReason) != null) {
+                reviewDocumentListContainer.getChildren().add(createReviewSplitRow(document.splitReason));
             }
         }
     }
 
-    private Node createReviewSplitRow() {
+    private Node createReviewSplitRow(String splitReason) {
         HBox row = new HBox(9);
         row.setAlignment(Pos.CENTER);
         row.getStyleClass().add("review-split-row");
@@ -3785,7 +3903,7 @@ public class ScanController {
         leftLine.getStyleClass().add("review-split-line");
         HBox.setHgrow(leftLine, Priority.ALWAYS);
 
-        Label label = new Label("||||  Barcode split");
+        Label label = new Label("||||  " + firstNonBlank(cleanSplitReason(splitReason), SPLIT_REASON_BARCODE));
         label.getStyleClass().add("review-split-label");
 
         Region rightLine = new Region();
@@ -4233,6 +4351,9 @@ public class ScanController {
                     outputDirectory,
                     exportDocuments
             );
+            if (activeScanSession != null) {
+                portalModel.clearSavedScanProgress(activeScanSession.getId());
+            }
 
             showExportAlert(stage, Alert.AlertType.INFORMATION, "Export completed",
                     result.writtenFiles().size() + " TIFF " + pluralize(result.writtenFiles().size(), "file")

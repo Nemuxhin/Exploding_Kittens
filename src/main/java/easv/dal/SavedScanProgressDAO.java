@@ -31,34 +31,7 @@ public class SavedScanProgressDAO {
             boolean previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
             try {
-                try (PreparedStatement upsert = connection.prepareStatement("""
-                        MERGE scan_saved_progress AS target
-                        USING (SELECT ? AS session_id) AS source
-                        ON target.session_id = source.session_id
-                        WHEN MATCHED THEN
-                            UPDATE SET box = ?,
-                                       profile = ?,
-                                       status = ?,
-                                       created_by_user_id = ?,
-                                       saved_at = ?
-                        WHEN NOT MATCHED THEN
-                            INSERT (session_id, box, profile, status, created_by_user_id, saved_at)
-                            VALUES (?, ?, ?, ?, ?, ?);
-                        """)) {
-                    upsert.setString(1, sessionId.toString());
-                    upsert.setString(2, clean(progress.boxId()));
-                    upsert.setString(3, clean(progress.profileName()));
-                    upsert.setString(4, clean(progress.status()));
-                    setNullableInt(upsert, 5, createdByUserId);
-                    upsert.setTimestamp(6, Timestamp.from(now));
-                    upsert.setString(7, sessionId.toString());
-                    upsert.setString(8, clean(progress.boxId()));
-                    upsert.setString(9, clean(progress.profileName()));
-                    upsert.setString(10, clean(progress.status()));
-                    setNullableInt(upsert, 11, createdByUserId);
-                    upsert.setTimestamp(12, Timestamp.from(now));
-                    upsert.executeUpdate();
-                }
+                upsertHeader(connection, sessionId, createdByUserId, progress, now);
 
                 try (PreparedStatement deletePages = connection.prepareStatement("""
                         DELETE FROM scan_saved_progress_pages
@@ -117,6 +90,62 @@ public class SavedScanProgressDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to save scan progress for session " + sessionId, e);
+        }
+    }
+
+    private void upsertHeader(
+            Connection connection,
+            UUID sessionId,
+            Integer createdByUserId,
+            StoredProgress progress,
+            Instant now
+    ) throws SQLException {
+        String normalizedSessionId = sessionId.toString();
+        String boxId = clean(progress.boxId());
+        String profileName = clean(progress.profileName());
+        String status = clean(progress.status());
+        Timestamp savedAt = Timestamp.from(now);
+
+        int updated;
+        try (PreparedStatement update = connection.prepareStatement("""
+                UPDATE scan_saved_progress
+                SET box = ?,
+                    profile = ?,
+                    status = ?,
+                    created_by_user_id = ?,
+                    saved_at = ?
+                WHERE session_id = ?
+                """)) {
+            update.setString(1, boxId);
+            update.setString(2, profileName);
+            update.setString(3, status);
+            setNullableInt(update, 4, createdByUserId);
+            update.setTimestamp(5, savedAt);
+            update.setString(6, normalizedSessionId);
+            updated = update.executeUpdate();
+        }
+
+        if (updated > 0) {
+            return;
+        }
+
+        try (PreparedStatement insert = connection.prepareStatement("""
+                INSERT INTO scan_saved_progress (
+                    session_id,
+                    box,
+                    profile,
+                    status,
+                    created_by_user_id,
+                    saved_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """)) {
+            insert.setString(1, normalizedSessionId);
+            insert.setString(2, boxId);
+            insert.setString(3, profileName);
+            insert.setString(4, status);
+            setNullableInt(insert, 5, createdByUserId);
+            insert.setTimestamp(6, savedAt);
+            insert.executeUpdate();
         }
     }
 
@@ -268,6 +297,38 @@ public class SavedScanProgressDAO {
         }
     }
 
+    public StoredProgressSummary findLatestForUser(Integer createdByUserId) {
+        if (createdByUserId == null) {
+            return null;
+        }
+
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     SELECT TOP 1 session_id, box, profile, status, saved_at
+                     FROM scan_saved_progress
+                     WHERE created_by_user_id = ?
+                     ORDER BY saved_at DESC, session_id DESC
+                     """)) {
+            statement.setInt(1, createdByUserId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                Timestamp savedAtTimestamp = resultSet.getTimestamp("saved_at");
+                return new StoredProgressSummary(
+                        UUID.fromString(resultSet.getString("session_id")),
+                        resultSet.getString("box"),
+                        resultSet.getString("profile"),
+                        resultSet.getString("status"),
+                        savedAtTimestamp == null ? Instant.now() : savedAtTimestamp.toInstant()
+                );
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to load latest saved scan progress for user " + createdByUserId, e);
+        }
+    }
+
     public void deleteBySessionId(UUID sessionId) {
         if (sessionId == null) {
             return;
@@ -339,5 +400,13 @@ public class SavedScanProgressDAO {
             String sourceReference,
             String displayContent,
             String previewContent
+    ) {}
+
+    public record StoredProgressSummary(
+            UUID sessionId,
+            String boxId,
+            String profileName,
+            String status,
+            Instant savedAt
     ) {}
 }

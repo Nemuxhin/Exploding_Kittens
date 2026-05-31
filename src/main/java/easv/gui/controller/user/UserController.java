@@ -435,6 +435,7 @@ public class UserController implements UserNavigator {
     private void loadPage(UserPage page) {
         if (activeScanController != null) {
             activeScanController.stopAutosave();
+            activeScanController.persistWorkspaceProgressBeforeInterruption();
         }
         activeScanController = null;
 
@@ -532,6 +533,11 @@ public class UserController implements UserNavigator {
             } else if (pendingRecentScanItem != null) {
                 scanController.resumeRecentScan(pendingRecentScanItem);
                 pendingRecentScanItem = null;
+            } else {
+                UserPortalModel.RecentScanItem interruptedScan = portalModel.fetchLatestInterruptedScan();
+                if (interruptedScan != null) {
+                    scanController.resumeRecentScan(interruptedScan);
+                }
             }
         }
 

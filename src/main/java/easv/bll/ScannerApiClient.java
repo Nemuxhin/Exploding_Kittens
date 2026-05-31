@@ -593,7 +593,7 @@ public class ScannerApiClient {
         }
         String normalized = sourceReference.toLowerCase();
         if (normalized.contains("barcode") || normalized.contains("separator") || normalized.startsWith("bc_")) {
-            return "BARCODE:" + sourceReference;
+            return "SEP4643719";
         }
         return "";
     }

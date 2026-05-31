@@ -199,7 +199,7 @@ class AuditMetadataExportTest {
                 "Normal",
                 "Normal",
                 true,
-                "PDF",
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
                 true
         ));
 
@@ -212,7 +212,7 @@ class AuditMetadataExportTest {
 
         assertTrue(hasChange(log, "Profile state", "Existing", "Deleted"));
         assertTrue(hasChange(log, "Profile name", "New Profile 2", ""));
-        assertTrue(hasChange(log, "Export format", "PDF", ""));
+        assertTrue(hasChange(log, "Export format", ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF, ""));
     }
 
     @Test

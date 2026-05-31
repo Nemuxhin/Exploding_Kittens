@@ -3,7 +3,6 @@ package easv.gui.controller.admin;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
-import easv.bll.AutosaveSettingsStore;
 import easv.gui.controller.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -126,7 +125,6 @@ public class ProfilesController {
     @FXML private Label previewExportFormatLabel;
 
     private final ObservableList<ScanProfile> masterProfiles = FXCollections.observableArrayList();
-    private final AutosaveSettingsStore autosaveSettingsStore = new AutosaveSettingsStore();
 
     private FilteredList<ScanProfile> filteredProfiles;
     private ScanProfile currentProfile;
@@ -187,8 +185,8 @@ public class ProfilesController {
         autosaveIntervalComboBox.getItems().setAll(AUTOSAVE_INTERVAL_OPTIONS);
 
         exportFormatComboBox.getItems().setAll(
-                "Multi-page TIFF",
-                "Single-page TIFF"
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF
         );
 
         profileNameField.textProperty().addListener((observable, oldValue, newValue) -> syncPreview());
@@ -582,6 +580,12 @@ public class ProfilesController {
         Platform.runLater(() -> pageScrollPane.setVvalue(0));
     }
 
+    private Optional<ScanProfile> findLoadedProfile(int profileId) {
+        return masterProfiles.stream()
+                .filter(profile -> profile.getId() == profileId)
+                .findFirst();
+    }
+
     private void populateEditor(ScanProfile profile) {
         editorTitleLabel.setText(profile.getName() + " Profile");
         editorSubtitleLabel.setText(profile.getDescription());
@@ -598,20 +602,19 @@ public class ProfilesController {
         barcodeDetectedComboBox.setValue(normalizeBarcodeDetectedBehavior(profile.getBarcodeDetectedBehavior()));
         barcodePageBehaviorComboBox.setValue(profile.getBarcodePageBehavior());
 
-        AutosaveSettingsStore.Settings autosave = autosaveSettingsStore.read(profile.getName());
         applyAutosaveValues(
                 autosaveEnabledRadio,
                 autosaveDisabledRadio,
                 autosaveIntervalComboBox,
                 autosaveLockedCheckBox,
-                autosave.enabled(),
-                autosave.intervalSeconds(),
-                autosave.locked()
+                profile.isAutosaveEnabled(),
+                profile.getAutosaveIntervalSeconds(),
+                profile.isAutosaveLocked()
         );
         qaRequiredToggle.setSelected(profile.isMetadataRequiredBeforeExport());
 
         exportFormatComboBox.setValue(profile.getExportFormat());
-        exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
+        exportNamingField.setText(profile.getExportNaming());
 
         populateAccessRows(profile);
         updateEditorActionState();
@@ -647,7 +650,7 @@ public class ProfilesController {
         );
         qaRequiredToggle.setSelected(true);
 
-        exportFormatComboBox.setValue("Multi-page TIFF");
+        exportFormatComboBox.setValue(ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF);
         exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
 
         populateCreateAccessRows();
@@ -989,7 +992,11 @@ public class ProfilesController {
         fields.autosaveLockedCheckBox = createProfileDialogCheckBox("Lock for this profile", false);
         fields.qaRequiredToggle = createProfileDialogToggle(true);
 
-        fields.exportFormatComboBox = createProfileDialogComboBox("Multi-page TIFF", "Multi-page TIFF", "Single-page TIFF");
+        fields.exportFormatComboBox = createProfileDialogComboBox(
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                ScanProfile.EXPORT_FORMAT_SINGLE_PAGE_TIFF
+        );
         fields.exportNamingField = createProfileDialogTextField(ScanProfile.DEFAULT_EXPORT_NAMING);
         fields.exportNamingField.setText(ScanProfile.DEFAULT_EXPORT_NAMING);
         fields.exportNamingField.setEditable(false);
@@ -1400,13 +1407,6 @@ public class ProfilesController {
             String profileName = Strings.clean(fields.nameField.getText());
             adminManager.createProfile(createProfileInputFromDialog(fields));
 
-            autosaveSettingsStore.write(
-                    profileName,
-                    fields.autosaveEnabledRadio.isSelected(),
-                    autosaveIntervalFromLabel(safeValue(fields.autosaveIntervalComboBox)),
-                    fields.autosaveLockedCheckBox.isSelected()
-            );
-
             refreshAfterProfileCreated();
             Platform.runLater(() -> showProfileCreatedDialog(profileName, this::showOverviewPane));
         } catch (RuntimeException exception) {
@@ -1504,16 +1504,9 @@ public class ProfilesController {
                             createProfileInputFromEditor()
                     );
 
-            autosaveSettingsStore.write(
-                    savedProfile.getName(),
-                    autosaveEnabledRadio.isSelected(),
-                    autosaveIntervalFromLabel(safeValue(autosaveIntervalComboBox)),
-                    autosaveLockedCheckBox.isSelected()
-            );
-
             loadProfiles();
             applyFilters();
-            openProfile(savedProfile);
+            openProfile(findLoadedProfile(savedProfile.getId()).orElse(savedProfile));
 
             if (created) {
                 Platform.runLater(() -> showProfileCreatedDialog(savedProfile.getName(), this::showOverviewPane));

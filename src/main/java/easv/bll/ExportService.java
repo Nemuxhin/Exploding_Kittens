@@ -6,6 +6,7 @@ import easv.be.ExportRecord;
 import easv.be.TiffExportItem;
 import easv.be.TiffExportPlan;
 import easv.dal.AuditLogDAO;
+import easv.dal.DocumentDAO;
 import easv.dal.ExportDAO;
 
 import java.io.IOException;
@@ -19,15 +20,17 @@ public class ExportService {
     private final TiffExportManager tiffExportManager;
     private final ExportDAO exportDAO;
     private final AuditLogDAO auditLogDAO;
+    private final DocumentDAO documentDAO;
 
     public ExportService() {
-        this(new TiffExportManager(), new ExportDAO(), new AuditLogDAO());
+        this(new TiffExportManager(), new ExportDAO(), new AuditLogDAO(), new DocumentDAO());
     }
 
-    ExportService(TiffExportManager tiffExportManager, ExportDAO exportDAO, AuditLogDAO auditLogDAO) {
+    ExportService(TiffExportManager tiffExportManager, ExportDAO exportDAO, AuditLogDAO auditLogDAO, DocumentDAO documentDAO) {
         this.tiffExportManager = tiffExportManager == null ? new TiffExportManager() : tiffExportManager;
         this.exportDAO = exportDAO == null ? new ExportDAO() : exportDAO;
         this.auditLogDAO = auditLogDAO == null ? new AuditLogDAO() : auditLogDAO;
+        this.documentDAO = documentDAO == null ? new DocumentDAO() : documentDAO;
     }
 
     public TiffExportManager.ExportResult exportPlan(
@@ -120,15 +123,37 @@ public class ExportService {
     }
 
     private UUID resolveDocumentId(String exportDocumentId, List<Document> sourceDocuments) {
-        if (exportDocumentId == null || exportDocumentId.isBlank() || sourceDocuments == null) {
+        if (exportDocumentId == null || exportDocumentId.isBlank()) {
             return null;
         }
 
-        return sourceDocuments.stream()
-                .filter(document -> exportDocumentId.equals(document.getSourceItemId()))
+        UUID persistedDocumentId = documentDAO.findBySourceItemId(exportDocumentId)
                 .map(Document::getId)
-                .findFirst()
                 .orElse(null);
+        if (persistedDocumentId != null) {
+            return persistedDocumentId;
+        }
+
+        if (sourceDocuments == null) {
+            return null;
+        }
+
+        for (Document document : sourceDocuments) {
+            if (document == null || !exportDocumentId.equals(document.getSourceItemId())) {
+                continue;
+            }
+
+            String sourceItemId = document.getSourceItemId();
+            if (sourceItemId == null || sourceItemId.isBlank()) {
+                return null;
+            }
+
+            return documentDAO.findBySourceItemId(sourceItemId)
+                    .map(Document::getId)
+                    .orElse(null);
+        }
+
+        return null;
     }
 
     private String buildTarget(String profileName, String boxId) {

@@ -97,6 +97,39 @@ final class AdminReviewService {
         return assignment == null ? null : toQaReviewRecord(assignment);
     }
 
+    ReviewRecord completeQaReviewRecord(
+            String recordId,
+            boolean approved,
+            List<QAService.QaDocumentSnapshot> documents
+    ) {
+        if (!isQaRecordId(recordId)) {
+            return null;
+        }
+
+        UUID reviewId = parseQaReviewId(recordId);
+        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
+        if (assignment == null) {
+            return null;
+        }
+
+        List<QAService.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        int totalPages = countPages(safeDocuments);
+        int reviewedPages = countReviewedPages(safeDocuments);
+        int issueCount = countIssuePages(safeDocuments);
+
+        qaService.completeReview(
+                reviewId,
+                approved,
+                reviewedPages,
+                totalPages,
+                issueCount,
+                safeDocuments
+        );
+
+        QAService.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
+        return saved == null ? null : toQaReviewRecord(saved);
+    }
+
     QAService.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
         if (!isQaRecordId(recordId)) {
             return null;
@@ -335,6 +368,46 @@ final class AdminReviewService {
 
     private boolean isQaRecordId(String recordId) {
         return Strings.clean(recordId).startsWith(QA_RECORD_PREFIX);
+    }
+
+    private int countPages(List<QAService.QaDocumentSnapshot> documents) {
+        int pages = 0;
+        for (QAService.QaDocumentSnapshot document : documents) {
+            if (document != null && document.pages() != null) {
+                pages += document.pages().size();
+            }
+        }
+        return pages;
+    }
+
+    private int countReviewedPages(List<QAService.QaDocumentSnapshot> documents) {
+        int reviewedPages = 0;
+        for (QAService.QaDocumentSnapshot document : documents) {
+            if (document == null || document.pages() == null) {
+                continue;
+            }
+            for (QAService.QaPageSnapshot page : document.pages()) {
+                if (page != null && page.reviewStatus() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                    reviewedPages++;
+                }
+            }
+        }
+        return reviewedPages;
+    }
+
+    private int countIssuePages(List<QAService.QaDocumentSnapshot> documents) {
+        int issuePages = 0;
+        for (QAService.QaDocumentSnapshot document : documents) {
+            if (document == null || document.pages() == null) {
+                continue;
+            }
+            for (QAService.QaPageSnapshot page : document.pages()) {
+                if (page != null && page.reviewStatus() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                    issuePages++;
+                }
+            }
+        }
+        return issuePages;
     }
 
     private UUID parseQaReviewId(String recordId) {

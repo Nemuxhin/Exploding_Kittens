@@ -197,6 +197,29 @@ public class UserPortalModel {
                 .toList();
     }
 
+    public RecentScanItem fetchLatestInterruptedScan() {
+        try {
+            Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
+            SavedScanProgressDAO.StoredProgressSummary progress = savedScanProgressDAO.findLatestForUser(currentUserId);
+            if (progress == null) {
+                return null;
+            }
+
+            InMemoryScanProgress savedProgress = fetchSavedScanProgress(progress.sessionId());
+            int pages = savedProgress == null ? 0 : savedProgress.pages().size();
+            return new RecentScanItem(
+                    progress.sessionId(),
+                    progress.boxId(),
+                    progress.profileName(),
+                    progress.status(),
+                    formatHistoryTime(progress.savedAt()),
+                    pages
+            );
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
     public List<HistoryItem> fetchScanHistory() {
         try {
             Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
