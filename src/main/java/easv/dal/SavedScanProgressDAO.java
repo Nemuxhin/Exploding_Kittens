@@ -304,10 +304,19 @@ public class SavedScanProgressDAO {
 
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                     SELECT TOP 1 session_id, box, profile, status, saved_at
-                     FROM scan_saved_progress
-                     WHERE created_by_user_id = ?
-                     ORDER BY saved_at DESC, session_id DESC
+                     SELECT TOP 1 sp.session_id,
+                                  sp.box,
+                                  sp.profile,
+                                  sp.status,
+                                  sp.saved_at,
+                                  (
+                                      SELECT COUNT(*)
+                                      FROM scan_saved_progress_pages spp
+                                      WHERE spp.session_id = sp.session_id
+                                  ) AS page_count
+                     FROM scan_saved_progress sp
+                     WHERE sp.created_by_user_id = ?
+                     ORDER BY sp.saved_at DESC, sp.session_id DESC
                      """)) {
             statement.setInt(1, createdByUserId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -321,7 +330,8 @@ public class SavedScanProgressDAO {
                         resultSet.getString("box"),
                         resultSet.getString("profile"),
                         resultSet.getString("status"),
-                        savedAtTimestamp == null ? Instant.now() : savedAtTimestamp.toInstant()
+                        savedAtTimestamp == null ? Instant.now() : savedAtTimestamp.toInstant(),
+                        resultSet.getInt("page_count")
                 );
             }
         } catch (SQLException e) {
@@ -407,6 +417,7 @@ public class SavedScanProgressDAO {
             String boxId,
             String profileName,
             String status,
-            Instant savedAt
+            Instant savedAt,
+            int pageCount
     ) {}
 }

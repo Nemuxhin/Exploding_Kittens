@@ -1,11 +1,9 @@
-package easv.gui;
+package easv.bll;
 
 import easv.be.Document;
 import easv.be.PageImage;
 import easv.be.ScanProfile;
 import easv.be.User;
-import easv.bll.QAService;
-import easv.bll.UserSession;
 import easv.dal.BoxDAO;
 import easv.dal.DataAccessException;
 import easv.dal.ExportDAO;

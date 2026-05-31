@@ -5,7 +5,12 @@ import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
+import easv.dal.DatabaseConnection;
 import easv.dal.MetadataDAO;
+import easv.dal.NotificationDAO;
+import easv.dal.QaReviewDAO;
+import easv.dal.ReviewRecordDAO;
+import easv.dal.SavedScanProgressDAO;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +43,8 @@ class AdminManagerTest {
         // Clear session both before and after to guard against pollution from
         // any test that forgot to clean up, and from any leftover state in this run.
         UserSession.clearCurrentUser();
-        adminManager = new AdminManager(new FakeUserDAO(), new FakeMetadataDAO(), AuditLogDAO.inMemory());
+        UserSession.setCurrentUser(new User(999, "Admin User", "admin", "", "hash", "Admin", "Active", List.of(), true));
+        adminManager = createAdminManager(new FakeUserDAO(), new FakeMetadataDAO(), AuditLogDAO.inMemory());
     }
 
     @AfterEach
@@ -56,6 +62,16 @@ class AdminManagerTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> adminManager.createUser(input));
         assertTrue(error.getMessage().toLowerCase().contains("name"));
+    }
+
+    @Test
+    void createUser_shouldRejectNonAdminCaller() {
+        UserSession.setCurrentUser(new User(998, "Scanner", "scanner", "", "hash", "User", "Active", List.of(), true));
+
+        AdminManager.UserInput input = new AdminManager.UserInput(
+                "Alice", "alice", "alice@example.com", "User", "Active", List.of(), "secret123");
+
+        assertThrows(SecurityException.class, () -> adminManager.createUser(input));
     }
 
     @Test
@@ -153,7 +169,7 @@ class AdminManagerTest {
     void deactivateUser_shouldRejectTheCurrentlyLoggedInUser() {
         FakeUserDAO userDAO = new FakeUserDAO();
         userDAO.preloadUser(new User(1, "Self", "self", "", "h", "User", "Active", List.of(), true));
-        AdminManager manager = new AdminManager(userDAO, new FakeMetadataDAO(), AuditLogDAO.inMemory());
+        AdminManager manager = createAdminManager(userDAO, new FakeMetadataDAO(), AuditLogDAO.inMemory());
 
         // Behaviour under test: you cannot deactivate the logged-in user. Wording not asserted.
         assertThrows(IllegalArgumentException.class, () -> manager.deactivateUser(1));
@@ -163,7 +179,7 @@ class AdminManagerTest {
     void deactivateUser_shouldBeNoOpWhenAlreadyInactive() {
         FakeUserDAO userDAO = new FakeUserDAO();
         userDAO.preloadUser(new User(1, "Alice", "alice", "", "h", "User", "Inactive", List.of(), false));
-        AdminManager manager = new AdminManager(userDAO, new FakeMetadataDAO(), AuditLogDAO.inMemory());
+        AdminManager manager = createAdminManager(userDAO, new FakeMetadataDAO(), AuditLogDAO.inMemory());
 
         User user = manager.deactivateUser(1);
 
@@ -183,7 +199,7 @@ class AdminManagerTest {
         ScanProfile profile = new ScanProfile(1, "Medical", "MED", "", "Active", "", "",
                 "", false, false, "", "", "0", "Normal", "Normal", false, "TIFF", false);
         metadataDAO.preloadProfile(profile);
-        AdminManager manager = new AdminManager(new FakeUserDAO(), metadataDAO, AuditLogDAO.inMemory());
+        AdminManager manager = createAdminManager(new FakeUserDAO(), metadataDAO, AuditLogDAO.inMemory());
 
         User user = manager.createUser(new AdminManager.UserInput(
                 "Alice", "alice", "alice@example.com", "User", "Active", List.of("Medical"), "secret123"));
@@ -283,6 +299,21 @@ class AdminManagerTest {
         );
     }
 
+    @Test
+    void updateDeleteAndDeactivate_shouldRejectNonAdminCaller() {
+        User user = adminManager.createUser(new AdminManager.UserInput(
+                "Alice", "alice", "alice@example.com", "User", "Active", List.of(), "secret123"));
+        UserSession.setCurrentUser(new User(998, "Scanner", "scanner", "", "hash", "User", "Active", List.of(), true));
+
+        assertAll(
+                () -> assertThrows(SecurityException.class, () -> adminManager.updateUser(user.getId(), new AdminManager.UserInput(
+                        "Alice Updated", "alice", "alice@example.com", "User", "Active", List.of()
+                ))),
+                () -> assertThrows(SecurityException.class, () -> adminManager.deleteUser(user.getId())),
+                () -> assertThrows(SecurityException.class, () -> adminManager.deactivateUser(user.getId()))
+        );
+    }
+
     // ---------- dashboard ----------
 
     @Test
@@ -292,7 +323,7 @@ class AdminManagerTest {
                 "", false, false, "", "", "0", "Normal", "Normal", false, "TIFF", false));
         metadataDAO.preloadProfile(new ScanProfile(2, "Draft Profile", "DRAFT", "", "Draft", "", "",
                 "", false, false, "", "", "0", "Normal", "Normal", false, "TIFF", false));
-        AdminManager manager = new AdminManager(new FakeUserDAO(), metadataDAO, AuditLogDAO.inMemory());
+        AdminManager manager = createAdminManager(new FakeUserDAO(), metadataDAO, AuditLogDAO.inMemory());
 
         manager.createUser(new AdminManager.UserInput(
                 "Alice", "alice", "alice@example.com", "User", "Active", List.of(), "secret123"));
@@ -315,6 +346,38 @@ class AdminManagerTest {
                 .anyMatch(detail -> field.equals(detail.getLabel())
                         && oldValue.equals(detail.getOldValue())
                         && newValue.equals(detail.getNewValue()));
+    }
+
+    private AdminManager createAdminManager(UserDAO userDAO, MetadataDAO metadataDAO, AuditLogDAO auditLogDAO) {
+        return new AdminManager(
+                userDAO,
+                metadataDAO,
+                new ReviewRecordDAO() {
+                    @Override
+                    public List<ReviewRecord> getReviewRecords() {
+                        return List.of();
+                    }
+
+                    @Override
+                    public void saveReviewRecord(ReviewRecord record) {
+                        // no-op for tests
+                    }
+                },
+                auditLogDAO,
+                new QaReviewDAO(new DatabaseConnection("", "", "")),
+                new SavedScanProgressDAO(new DatabaseConnection("", "", "")),
+                new QAService(
+                        new QaReviewDAO(new DatabaseConnection("", "", "")),
+                        new NotificationDAO(new DatabaseConnection("", "", "")),
+                        new FakeUserDAO(),
+                        AuditLogDAO.inMemory()
+                ) {
+                    @Override
+                    public List<QaAssignmentSnapshot> getAllAssignmentsForAdmin() {
+                        return List.of();
+                    }
+                }
+        );
     }
 
     private static class FakeUserDAO extends UserDAO {

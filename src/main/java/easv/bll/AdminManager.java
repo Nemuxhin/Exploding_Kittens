@@ -61,13 +61,25 @@ public class AdminManager {
     }
 
     public AdminManager(UserDAO userDAO, MetadataDAO metadataDAO, ReviewRecordDAO reviewRecordDAO, AuditLogDAO auditLogDAO) {
+        this(userDAO, metadataDAO, reviewRecordDAO, auditLogDAO, new QaReviewDAO(), new SavedScanProgressDAO(), new QAService());
+    }
+
+    AdminManager(
+            UserDAO userDAO,
+            MetadataDAO metadataDAO,
+            ReviewRecordDAO reviewRecordDAO,
+            AuditLogDAO auditLogDAO,
+            QaReviewDAO qaReviewDAO,
+            SavedScanProgressDAO savedScanProgressDAO,
+            QAService qaService
+    ) {
         this.userDAO = userDAO == null ? new UserDAO() : userDAO;
         this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
         this.reviewRecordDAO = reviewRecordDAO == null ? new ReviewRecordDAO() : reviewRecordDAO;
         this.auditLogDAO = auditLogDAO == null ? new AuditLogDAO() : auditLogDAO;
-        this.qaReviewDAO = new QaReviewDAO();
-        this.savedScanProgressDAO = new SavedScanProgressDAO();
-        this.qaService = new QAService();
+        this.qaReviewDAO = qaReviewDAO == null ? new QaReviewDAO() : qaReviewDAO;
+        this.savedScanProgressDAO = savedScanProgressDAO == null ? new SavedScanProgressDAO() : savedScanProgressDAO;
+        this.qaService = qaService == null ? new QAService() : qaService;
         this.adminReviewService = new AdminReviewService(
                 this.reviewRecordDAO,
                 this.qaReviewDAO,
@@ -105,6 +117,7 @@ public class AdminManager {
     }
 
     public User createUser(UserInput input) {
+        requireAdminAccess();
         validateUserInput(input, null);
 
         User user = new User(
@@ -133,6 +146,7 @@ public class AdminManager {
     }
 
     public User updateUser(int userId, UserInput input) {
+        requireAdminAccess();
         User user = findRequiredUser(userId);
         validateUserInput(input, userId);
         User previousUser = copyUser(user);
@@ -185,6 +199,7 @@ public class AdminManager {
     }
 
     public void deleteUser(int userId) {
+        requireAdminAccess();
         User user = findRequiredUser(userId);
 
         if (user.isCurrentUser()) {
@@ -201,6 +216,7 @@ public class AdminManager {
     }
 
     public User deactivateUser(int userId) {
+        requireAdminAccess();
         User user = findRequiredUser(userId);
 
         if (user.isCurrentUser()) {
@@ -540,6 +556,13 @@ public class AdminManager {
         }
 
         return currentUser.getName();
+    }
+
+    private void requireAdminAccess() {
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser == null || !"Admin".equalsIgnoreCase(Strings.clean(currentUser.getRole()))) {
+            throw new SecurityException("Admin access is required.");
+        }
     }
 
     private User findRequiredUser(int userId) {

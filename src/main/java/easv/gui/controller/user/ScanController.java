@@ -82,6 +82,8 @@ import java.util.UUID;
 
 public class ScanController {
     private static final String SPLIT_REASON_BARCODE = "Barcode split";
+    private static final String SPLIT_REASON_IMPORTED_BOUNDARY = "Document boundary";
+    private static final String SPLIT_REASON_REMOVED_BARCODE = "Removed barcode";
     private static final String SPLIT_REASON_MANUAL = "Manual split";
     private static final String SPLIT_REASON_FINISH_BATCH = "Finish batch";
 
@@ -201,6 +203,9 @@ public class ScanController {
     private boolean autosaveEnabled = true;
     private int autosaveIntervalSeconds = ScanProfile.DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
     private boolean autosaveLockedByProfile = false;
+    private boolean quietPersistInProgress = false;
+    private ScanProgressSnapshot pendingQuietPersistSnapshot;
+    private String pendingQuietPersistStatus;
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -562,7 +567,6 @@ public class ScanController {
         nextReferenceId = 1;
         nextFileId = 1;
         for (UserPortalModel.InMemoryScanPage storedPage : progress.pages()) {
-            String previewContent = firstNonBlank(storedPage.previewContent(), storedPage.displayContent());
             ScannedPage page = new ScannedPage(
                     Math.max(1, storedPage.referenceId()),
                     Math.max(1, storedPage.fileId()),
@@ -571,7 +575,7 @@ public class ScanController {
                     storedPage.sourceReference(),
                     storedPage.displayContent(),
                     storedPage.previewContent(),
-                    extractDisplayContentBytes(previewContent)
+                    new byte[0]
             );
             page.documentNumber = storedPage.documentNumber();
             page.rotationDegrees = normalizeRotation(storedPage.rotationDegrees());
@@ -1285,6 +1289,16 @@ public class ScanController {
         for (ScannedPage page : allPages) {
             String splitReasonAfter = cleanSplitReason(page.splitReasonAfter);
 
+            if (page.barcode && SPLIT_REASON_REMOVED_BARCODE.equals(splitReasonAfter)) {
+                if (!currentDocumentPages.isEmpty()) {
+                    DocumentGroup document = createDocument(documentNumber, SPLIT_REASON_BARCODE, currentDocumentPages);
+                    documents.add(document);
+                    documentNumber++;
+                    currentDocumentPages = new ArrayList<>();
+                }
+                continue;
+            }
+
             if (page.barcode && splitReasonAfter == null) {
                 if (!currentDocumentPages.isEmpty()) {
                     DocumentGroup document = createDocument(documentNumber, SPLIT_REASON_BARCODE, currentDocumentPages);
@@ -1317,7 +1331,7 @@ public class ScanController {
     }
 
     private void applyImportedDocumentBoundaries(List<ScannedPage> importedPages, List<Document> importedDocuments) {
-        if (importedPages == null || importedPages.isEmpty() || importedDocuments == null || importedDocuments.size() < 2) {
+        if (importedPages == null || importedPages.isEmpty()) {
             return;
         }
 
@@ -1328,8 +1342,27 @@ public class ScanController {
             }
         }
 
-        for (int index = 0; index < importedDocuments.size() - 1; index++) {
-            Document document = importedDocuments.get(index);
+        List<Document> documentsToApply = importedDocuments == null ? List.of() : importedDocuments;
+        Set<Integer> documentPageReferenceIds = new HashSet<>();
+        for (Document document : documentsToApply) {
+            List<PageImage> pages = document == null ? List.of() : document.getPages();
+            for (PageImage page : pages) {
+                if (page != null) {
+                    documentPageReferenceIds.add(page.getReferenceId());
+                }
+            }
+        }
+
+        for (ScannedPage importedPage : importedPages) {
+            if (importedPage != null
+                    && importedPage.barcode
+                    && !documentPageReferenceIds.contains(importedPage.referenceId)) {
+                importedPage.splitReasonAfter = SPLIT_REASON_REMOVED_BARCODE;
+            }
+        }
+
+        for (int index = 0; index < documentsToApply.size() - 1; index++) {
+            Document document = documentsToApply.get(index);
             List<PageImage> pages = document == null ? List.of() : document.getPages();
             if (pages == null || pages.isEmpty()) {
                 continue;
@@ -1338,7 +1371,9 @@ public class ScanController {
             PageImage lastPage = pages.get(pages.size() - 1);
             ScannedPage scannedPage = pagesByReferenceId.get(lastPage.getReferenceId());
             if (scannedPage != null) {
-                scannedPage.splitReasonAfter = SPLIT_REASON_BARCODE;
+                scannedPage.splitReasonAfter = lastPage.getPageType() == PageImage.PageType.BARCODE
+                        ? SPLIT_REASON_BARCODE
+                        : SPLIT_REASON_IMPORTED_BOUNDARY;
             }
         }
     }
@@ -2128,24 +2163,7 @@ public class ScanController {
     }
 
     private UserPortalModel.InMemoryScanProgress createInMemoryScanProgress(String status) {
-        // Resync documents/pendingPages with the latest allPages state so that
-        // edits made since the last explicit rebuild (rotations, page moves,
-        // deletes, splits) are reflected in whatever consumer this snapshot
-        // feeds — save-to-DB, submit-to-QA, or export.
-        rebuildDocumentsFromPages();
-        List<UserPortalModel.InMemoryScanPage> savedPages = allPages.stream()
-                .map(this::toInMemoryScanPage)
-                .toList();
-        List<UserPortalModel.InMemoryScanDocument> savedDocuments = buildInMemoryScanDocuments();
-
-        return new UserPortalModel.InMemoryScanProgress(
-                getBoxId(),
-                getSelectedProfile(),
-                savedDocuments,
-                savedPages,
-                LocalDateTime.now(),
-                status
-        );
+        return toInMemoryScanProgress(captureScanProgressSnapshot(), status);
     }
 
     void persistWorkspaceProgressBeforeInterruption() {
@@ -2157,43 +2175,139 @@ public class ScanController {
             return;
         }
 
-        try {
-            // Quiet persistence for interruption recovery. UI text stays unchanged.
-            portalModel.saveScanProgress(activeScanSession.getId(), createInMemoryScanProgress(status));
-        } catch (RuntimeException exception) {
-            Throwable cause = exception.getCause();
-            String causeMessage = cause == null || cause.getMessage() == null || cause.getMessage().isBlank()
-                    ? ""
-                    : " | cause: " + cause.getMessage();
-            System.err.println("[Autosave] save failed: " + exception.getMessage() + causeMessage);
+        ScanProgressSnapshot snapshot = captureScanProgressSnapshot();
+        if (quietPersistInProgress) {
+            pendingQuietPersistSnapshot = snapshot;
+            pendingQuietPersistStatus = status;
+            return;
         }
+
+        quietPersistInProgress = true;
+        persistSnapshotQuietly(snapshot, status);
     }
 
-    private List<UserPortalModel.InMemoryScanDocument> buildInMemoryScanDocuments() {
-        List<UserPortalModel.InMemoryScanDocument> savedDocuments = new ArrayList<>();
+    private void persistSnapshotQuietly(ScanProgressSnapshot snapshot, String status) {
+        BackgroundExecutor.io().execute(() -> {
+            try {
+                portalModel.saveScanProgress(snapshot.sessionId, toInMemoryScanProgress(snapshot, status));
+            } catch (RuntimeException exception) {
+                logAutosaveFailure(exception);
+            }
+
+            Platform.runLater(() -> {
+                if (pendingQuietPersistSnapshot == null) {
+                    quietPersistInProgress = false;
+                    pendingQuietPersistStatus = null;
+                    return;
+                }
+
+                ScanProgressSnapshot nextSnapshot = pendingQuietPersistSnapshot;
+                String nextStatus = pendingQuietPersistStatus;
+                pendingQuietPersistSnapshot = null;
+                pendingQuietPersistStatus = null;
+                persistSnapshotQuietly(nextSnapshot, nextStatus);
+            });
+        });
+    }
+
+    private void logAutosaveFailure(RuntimeException exception) {
+        Throwable cause = exception.getCause();
+        String causeMessage = cause == null || cause.getMessage() == null || cause.getMessage().isBlank()
+                ? ""
+                : " | cause: " + cause.getMessage();
+        System.err.println("[Autosave] save failed: " + exception.getMessage() + causeMessage);
+    }
+
+    private ScanProgressSnapshot captureScanProgressSnapshot() {
+        // Resync documents/pendingPages with the latest allPages state. Heavy
+        // page-content materialization happens later on a background thread.
+        rebuildDocumentsFromPages();
+
+        List<PageProgressSnapshot> savedPages = allPages.stream()
+                .map(PageProgressSnapshot::new)
+                .toList();
+        List<DocumentProgressSnapshot> savedDocuments = new ArrayList<>();
 
         for (DocumentGroup document : documents) {
-            savedDocuments.add(new UserPortalModel.InMemoryScanDocument(
+            savedDocuments.add(new DocumentProgressSnapshot(
                     document.number,
                     document.splitReason,
-                    document.pages.stream().map(this::toInMemoryScanPage).toList(),
+                    pageReferenceIds(document.pages),
                     false
             ));
         }
 
         if (!pendingPages.isEmpty()) {
-            savedDocuments.add(new UserPortalModel.InMemoryScanDocument(
+            savedDocuments.add(new DocumentProgressSnapshot(
                     documents.size() + 1,
                     "",
-                    pendingPages.stream().map(this::toInMemoryScanPage).toList(),
+                    pageReferenceIds(pendingPages),
                     true
             ));
         }
 
-        return savedDocuments;
+        return new ScanProgressSnapshot(
+                activeScanSession == null ? null : activeScanSession.getId(),
+                getBoxId(),
+                getSelectedProfile(),
+                savedPages,
+                savedDocuments
+        );
     }
 
-    private UserPortalModel.InMemoryScanPage toInMemoryScanPage(ScannedPage page) {
+    private List<Integer> pageReferenceIds(List<ScannedPage> pages) {
+        if (pages == null || pages.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> referenceIds = new ArrayList<>(pages.size());
+        for (ScannedPage page : pages) {
+            if (page != null) {
+                referenceIds.add(page.referenceId);
+            }
+        }
+        return referenceIds;
+    }
+
+    private UserPortalModel.InMemoryScanProgress toInMemoryScanProgress(ScanProgressSnapshot snapshot, String status) {
+        Map<Integer, UserPortalModel.InMemoryScanPage> pagesByReferenceId = new HashMap<>();
+        List<UserPortalModel.InMemoryScanPage> savedPages = new ArrayList<>(snapshot.pages.size());
+
+        for (PageProgressSnapshot page : snapshot.pages) {
+            UserPortalModel.InMemoryScanPage savedPage = toInMemoryScanPage(page);
+            savedPages.add(savedPage);
+            pagesByReferenceId.put(page.referenceId, savedPage);
+        }
+
+        List<UserPortalModel.InMemoryScanDocument> savedDocuments = new ArrayList<>(snapshot.documents.size());
+        for (DocumentProgressSnapshot document : snapshot.documents) {
+            List<UserPortalModel.InMemoryScanPage> documentPages = new ArrayList<>(document.pageReferenceIds.size());
+            for (Integer referenceId : document.pageReferenceIds) {
+                UserPortalModel.InMemoryScanPage page = pagesByReferenceId.get(referenceId);
+                if (page != null) {
+                    documentPages.add(page);
+                }
+            }
+
+            savedDocuments.add(new UserPortalModel.InMemoryScanDocument(
+                    document.number,
+                    document.splitReason,
+                    documentPages,
+                    document.pending
+            ));
+        }
+
+        return new UserPortalModel.InMemoryScanProgress(
+                snapshot.boxId,
+                snapshot.profileName,
+                savedDocuments,
+                savedPages,
+                LocalDateTime.now(),
+                status
+        );
+    }
+
+    private UserPortalModel.InMemoryScanPage toInMemoryScanPage(PageProgressSnapshot page) {
         String encodedContent = materializePageImageContent(page);
         return new UserPortalModel.InMemoryScanPage(
                 page.referenceId,
@@ -2207,6 +2321,22 @@ public class ScanController {
                 encodedContent,
                 ""
         );
+    }
+
+    private String materializePageImageContent(PageProgressSnapshot page) {
+        if (page == null) {
+            return "";
+        }
+        if (page.displayContent != null && !page.displayContent.isBlank()) {
+            return page.displayContent;
+        }
+        if (page.previewContent != null && !page.previewContent.isBlank()) {
+            return page.previewContent;
+        }
+        if (page.previewSourceBytes.length == 0) {
+            return "";
+        }
+        return "data:image/tiff;base64," + Base64.getEncoder().encodeToString(page.previewSourceBytes);
     }
 
     @FXML
@@ -2545,32 +2675,7 @@ public class ScanController {
             }
 
             documentTreeContainer.getChildren().add(pendingBlock);
-        } else if (shouldShowNextPendingDocumentPlaceholder()) {
-            int pendingDocumentNumber = documents.size() + 1;
-            VBox pendingBlock = new VBox(12);
-            pendingBlock.setAlignment(Pos.TOP_LEFT);
-            pendingBlock.getStyleClass().addAll("document-tree-document-block", "document-tree-list-block");
-
-            HBox pendingHeader = createPendingDocumentHeader(pendingDocumentNumber, List.of());
-            pendingHeader.getStyleClass().addAll("document-tree-document-header-framed", "document-tree-list-header");
-            pendingBlock.getChildren().add(pendingHeader);
-
-            if (!collapsedDocuments.contains(pendingDocumentNumber)) {
-                Label waitingLabel = new Label("Waiting for the next scanned page");
-                waitingLabel.getStyleClass().add("document-tree-empty-copy");
-                waitingLabel.setWrapText(true);
-                waitingLabel.setMaxWidth(180);
-                pendingBlock.getChildren().add(waitingLabel);
-            }
-
-            documentTreeContainer.getChildren().add(pendingBlock);
         }
-    }
-
-    private boolean shouldShowNextPendingDocumentPlaceholder() {
-        return pendingPages.isEmpty()
-                && !allPages.isEmpty()
-                && allPages.get(allPages.size() - 1).barcode;
     }
 
     private HBox createDocumentHeader(DocumentGroup document) {
@@ -2706,7 +2811,7 @@ public class ScanController {
         leftLine.getStyleClass().add("document-tree-barcode-split-line");
         HBox.setHgrow(leftLine, Priority.ALWAYS);
 
-        Label splitLabel = new Label("||||  " + splitReason);
+        Label splitLabel = new Label(formatSplitRowLabel(splitReason));
         splitLabel.getStyleClass().add("document-tree-split-row");
 
         Region rightLine = new Region();
@@ -2716,6 +2821,14 @@ public class ScanController {
         splitRow.getChildren().addAll(leftLine, splitLabel, rightLine);
 
         return splitRow;
+    }
+
+    private String formatSplitRowLabel(String splitReason) {
+        String reason = firstNonBlank(cleanSplitReason(splitReason), SPLIT_REASON_BARCODE);
+        if (SPLIT_REASON_IMPORTED_BOUNDARY.equals(reason)) {
+            return reason;
+        }
+        return "||||  " + reason;
     }
 
     private HBox createDocumentTreePageRow(ScannedPage page, int pageNumberInDocument) {
@@ -3889,7 +4002,7 @@ public class ScanController {
         leftLine.getStyleClass().add("review-split-line");
         HBox.setHgrow(leftLine, Priority.ALWAYS);
 
-        Label label = new Label("||||  " + firstNonBlank(cleanSplitReason(splitReason), SPLIT_REASON_BARCODE));
+        Label label = new Label(formatSplitRowLabel(splitReason));
         label.getStyleClass().add("review-split-label");
 
         Region rightLine = new Region();
@@ -4515,6 +4628,70 @@ public class ScanController {
         }
 
         return null;
+    }
+
+    private static final class ScanProgressSnapshot {
+        private final UUID sessionId;
+        private final String boxId;
+        private final String profileName;
+        private final List<PageProgressSnapshot> pages;
+        private final List<DocumentProgressSnapshot> documents;
+
+        private ScanProgressSnapshot(
+                UUID sessionId,
+                String boxId,
+                String profileName,
+                List<PageProgressSnapshot> pages,
+                List<DocumentProgressSnapshot> documents
+        ) {
+            this.sessionId = sessionId;
+            this.boxId = boxId == null ? "" : boxId;
+            this.profileName = profileName == null ? "" : profileName;
+            this.pages = pages == null ? List.of() : List.copyOf(pages);
+            this.documents = documents == null ? List.of() : List.copyOf(documents);
+        }
+    }
+
+    private static final class DocumentProgressSnapshot {
+        private final int number;
+        private final String splitReason;
+        private final List<Integer> pageReferenceIds;
+        private final boolean pending;
+
+        private DocumentProgressSnapshot(int number, String splitReason, List<Integer> pageReferenceIds, boolean pending) {
+            this.number = number;
+            this.splitReason = splitReason == null ? "" : splitReason;
+            this.pageReferenceIds = pageReferenceIds == null ? List.of() : List.copyOf(pageReferenceIds);
+            this.pending = pending;
+        }
+    }
+
+    private static final class PageProgressSnapshot {
+        private final int referenceId;
+        private final int fileId;
+        private final int documentNumber;
+        private final boolean barcode;
+        private final int rotationDegrees;
+        private final boolean needsRescan;
+        private final String splitReasonAfter;
+        private final String sourceReference;
+        private final String displayContent;
+        private final String previewContent;
+        private final byte[] previewSourceBytes;
+
+        private PageProgressSnapshot(ScannedPage page) {
+            this.referenceId = page.referenceId;
+            this.fileId = page.fileId;
+            this.documentNumber = page.documentNumber;
+            this.barcode = page.barcode;
+            this.rotationDegrees = page.rotationDegrees;
+            this.needsRescan = page.needsRescan;
+            this.splitReasonAfter = page.splitReasonAfter;
+            this.sourceReference = page.sourceReference;
+            this.displayContent = page.displayContent;
+            this.previewContent = page.previewContent;
+            this.previewSourceBytes = page.previewSourceBytes;
+        }
     }
 
     private static final class ScanSnapshot {
