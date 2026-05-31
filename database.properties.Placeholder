@@ -1,0 +1,9 @@
+exploding-kittens.db.url=jdbc:sqlserver://10.176.111.34:1433;databaseName=Exploding_KittensV2;encrypt=true;trustServerCertificate=true
+exploding-kittens.db.user=CS2025b_e_17
+exploding-kittens.db.password=CS2025bE17#23
+scanner.api.base-url=https://studentiffapi-production.up.railway.app
+scanner.api.fetch-mode=paged
+scanner.api.page-size=1
+scanner.api.offset=0
+
+// Please remove the .placeholder at the end to be able to connect to the database.
