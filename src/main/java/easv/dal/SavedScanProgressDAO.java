@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class SavedScanProgressDAO {
+    private static final int PAGE_ROW_BATCH_SIZE = 4;
+
     private final DatabaseConnection databaseConnection;
 
     public SavedScanProgressDAO() {
@@ -32,7 +34,29 @@ public class SavedScanProgressDAO {
             connection.setAutoCommit(false);
             try {
                 upsertHeader(connection, sessionId, createdByUserId, progress, now);
+                connection.commit();
+            } catch (SQLException e) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ignored) {
+                    // Keep the original failure.
+                }
+                throw e;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
 
+            replacePages(sessionId, progress.pages());
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to save scan progress for session " + sessionId, e);
+        }
+    }
+
+    private void replacePages(UUID sessionId, List<StoredPage> pages) throws SQLException {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
                 try (PreparedStatement deletePages = connection.prepareStatement("""
                         DELETE FROM scan_saved_progress_pages
                         WHERE session_id = ?
@@ -40,6 +64,7 @@ public class SavedScanProgressDAO {
                     deletePages.setString(1, sessionId.toString());
                     deletePages.executeUpdate();
                 }
+                connection.commit();
 
                 try (PreparedStatement insertPage = connection.prepareStatement("""
                         INSERT INTO scan_saved_progress_pages (
@@ -59,7 +84,8 @@ public class SavedScanProgressDAO {
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """)) {
                     int order = 1;
-                    for (StoredPage page : progress.pages()) {
+                    int pendingRows = 0;
+                    for (StoredPage page : pages) {
                         if (page == null) {
                             continue;
                         }
@@ -76,20 +102,29 @@ public class SavedScanProgressDAO {
                         insertPage.setString(11, clean(page.sourceReference()));
                         insertPage.setString(12, clean(page.displayContent()));
                         insertPage.setString(13, clean(page.previewContent()));
-                        insertPage.addBatch();
-                    }
-                    insertPage.executeBatch();
-                }
+                        insertPage.executeUpdate();
+                        pendingRows++;
 
-                connection.commit();
-                connection.setAutoCommit(previousAutoCommit);
+                        if (pendingRows >= PAGE_ROW_BATCH_SIZE) {
+                            connection.commit();
+                            pendingRows = 0;
+                        }
+                    }
+
+                    if (pendingRows > 0) {
+                        connection.commit();
+                    }
+                }
             } catch (SQLException e) {
-                connection.rollback();
-                connection.setAutoCommit(previousAutoCommit);
+                try {
+                    connection.rollback();
+                } catch (SQLException ignored) {
+                    // Keep the original failure.
+                }
                 throw e;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to save scan progress for session " + sessionId, e);
         }
     }
 

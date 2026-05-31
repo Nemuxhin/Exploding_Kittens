@@ -363,11 +363,26 @@ public class UserPortalModel {
                                 page.needsRescan(),
                                 page.splitReasonAfter(),
                                 page.sourceReference(),
-                                page.displayContent(),
-                                page.previewContent()
+                                normalizeSavedDisplayContent(page),
+                                normalizeSavedPreviewContent(page)
                         ))
                         .toList()
         ));
+    }
+
+    private String normalizeSavedDisplayContent(InMemoryScanPage page) {
+        return page == null ? "" : firstNonBlank(page.displayContent(), "");
+    }
+
+    private String normalizeSavedPreviewContent(InMemoryScanPage page) {
+        if (page == null) {
+            return "";
+        }
+        String displayContent = firstNonBlank(page.displayContent(), "");
+        if (!displayContent.isBlank()) {
+            return "";
+        }
+        return firstNonBlank(page.previewContent(), "");
     }
 
     public void submitScanForQa(java.util.UUID sessionId, InMemoryScanProgress progress) {
