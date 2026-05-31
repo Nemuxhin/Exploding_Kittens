@@ -869,7 +869,7 @@ public class QaReviewDAO {
                     updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """)) {
-            int insertedRowsSinceCommit = 0;
+            int pendingBatchRows = 0;
             for (QaReview.QaDocumentSnapshot document : documents) {
                 if (document == null || document.pages() == null) {
                     continue;
@@ -896,16 +896,16 @@ public class QaReviewDAO {
                     statement.setBoolean(16, page.splitCorrect());
                     statement.setBoolean(17, page.pageCountCorrect());
                     statement.setTimestamp(18, Timestamp.from(now));
-                    statement.executeUpdate();
-                    insertedRowsSinceCommit++;
-                    if (insertedRowsSinceCommit >= PAGE_ROW_BATCH_SIZE) {
-                        connection.commit();
-                        insertedRowsSinceCommit = 0;
+                    statement.addBatch();
+                    pendingBatchRows++;
+                    if (pendingBatchRows >= PAGE_ROW_BATCH_SIZE) {
+                        statement.executeBatch();
+                        pendingBatchRows = 0;
                     }
                 }
             }
-            if (insertedRowsSinceCommit > 0) {
-                connection.commit();
+            if (pendingBatchRows > 0) {
+                statement.executeBatch();
             }
         }
     }
@@ -922,15 +922,19 @@ public class QaReviewDAO {
             connection.setAutoCommit(false);
             try {
                 deletePageRows(connection, reviewId);
-                connection.commit();
                 if (documents != null && !documents.isEmpty()) {
                     insertPageRows(connection, reviewId, box, profile, documents, now);
                 }
-                connection.setAutoCommit(previousAutoCommit);
+                connection.commit();
             } catch (SQLException exception) {
-                connection.rollback();
-                connection.setAutoCommit(previousAutoCommit);
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackException) {
+                    exception.addSuppressed(rollbackException);
+                }
                 throw exception;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
             }
         }
     }
