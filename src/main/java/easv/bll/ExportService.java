@@ -15,8 +15,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ExportService {
+    private static final Logger LOGGER = Logger.getLogger(ExportService.class.getName());
     private final TiffExportManager tiffExportManager;
     private final ExportDAO exportDAO;
     private final AuditLogDAO auditLogDAO;
@@ -115,8 +118,14 @@ public class ExportService {
                         cleanMessage(exception.getMessage()),
                         List.of()
                 ), failedRecord.id());
-            } catch (RuntimeException ignored) {
-                // Keep the original export failure as the primary signal to the caller.
+            } catch (RuntimeException auditFailure) {
+                // Keep the original export failure as the primary signal to
+                // the caller, but log the audit failure — otherwise an
+                // EXPORT_FAILED row that never lands looks identical to an
+                // export that never happened.
+                LOGGER.log(Level.WARNING,
+                        "Audit write failed for EXPORT_FAILED (session " + sessionId + ")",
+                        auditFailure);
             }
             throw exception;
         }

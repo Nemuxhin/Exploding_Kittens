@@ -13,6 +13,12 @@ import java.util.Optional;
 
 final class ScanProfileStore {
     private final DatabaseConnection databaseConnection;
+    // Cached once per process. DatabaseMetaData.getColumns is surprisingly
+    // expensive on SQL Server (server round-trip + system catalog scan), and
+    // every read/write path here used to call it 2-4 times. Schema doesn't
+    // change at runtime, so a DCL'd snapshot is safe and removes the hidden
+    // N+1 against the JDBC driver.
+    private volatile SchemaInfo schemaInfo;
 
     ScanProfileStore(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection == null ? new DatabaseConnection() : databaseConnection;
@@ -290,22 +296,45 @@ final class ScanProfileStore {
     }
 
     private String profileTable(Connection connection) throws SQLException {
-        return DatabaseConnection.tableExists(connection, "scan_profiles") ? "scan_profiles" : "profiles";
+        return schemaInfo(connection).tableName();
     }
 
     private boolean hasClientColumn(Connection connection) throws SQLException {
-        return DatabaseConnection.columnExists(connection, profileTable(connection), "client");
+        return schemaInfo(connection).hasClient();
     }
 
     private boolean hasMetadataTemplateColumn(Connection connection) throws SQLException {
-        return DatabaseConnection.columnExists(connection, profileTable(connection), "metadata_template_name");
+        return schemaInfo(connection).hasMetadataTemplate();
     }
 
     private boolean hasAutosaveColumns(Connection connection) throws SQLException {
-        String table = profileTable(connection);
-        return DatabaseConnection.columnExists(connection, table, "autosave_enabled")
-                && DatabaseConnection.columnExists(connection, table, "autosave_interval_seconds")
-                && DatabaseConnection.columnExists(connection, table, "autosave_locked");
+        return schemaInfo(connection).hasAutosave();
+    }
+
+    private SchemaInfo schemaInfo(Connection connection) throws SQLException {
+        SchemaInfo local = schemaInfo;
+        if (local != null) {
+            return local;
+        }
+        synchronized (this) {
+            if (schemaInfo == null) {
+                String table = DatabaseConnection.tableExists(connection, "scan_profiles")
+                        ? "scan_profiles"
+                        : "profiles";
+                schemaInfo = new SchemaInfo(
+                        table,
+                        DatabaseConnection.columnExists(connection, table, "client"),
+                        DatabaseConnection.columnExists(connection, table, "metadata_template_name"),
+                        DatabaseConnection.columnExists(connection, table, "autosave_enabled")
+                                && DatabaseConnection.columnExists(connection, table, "autosave_interval_seconds")
+                                && DatabaseConnection.columnExists(connection, table, "autosave_locked")
+                );
+            }
+            return schemaInfo;
+        }
+    }
+
+    private record SchemaInfo(String tableName, boolean hasClient, boolean hasMetadataTemplate, boolean hasAutosave) {
     }
 
     private String selectClientColumn(Connection connection) throws SQLException {

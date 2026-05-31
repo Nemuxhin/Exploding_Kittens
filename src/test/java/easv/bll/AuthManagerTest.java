@@ -1,6 +1,7 @@
 package easv.bll;
 
 import easv.be.User;
+import easv.dal.AuditLogDAO;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class AuthManagerTest {
         UserDAO userDAO = new FakeUserDAO(Map.of(
                 "admin", user("admin", "admin123", true)
         ));
-        AuthManager authManager = new AuthManager(userDAO);
+        AuthManager authManager = new AuthManager(userDAO, new AuditLogManager(AuditLogDAO.inMemory()));
 
         AuthResult authResult = authManager.login("admin", "admin123");
 
@@ -40,7 +41,7 @@ class AuthManagerTest {
         UserDAO userDAO = new FakeUserDAO(Map.of(
                 "admin", user("admin", "admin123", true)
         ));
-        AuthManager authManager = new AuthManager(userDAO);
+        AuthManager authManager = new AuthManager(userDAO, new AuditLogManager(AuditLogDAO.inMemory()));
 
         AuthResult authResult = authManager.login("admin", "wrong-password");
 
@@ -54,7 +55,7 @@ class AuthManagerTest {
         UserDAO userDAO = new FakeUserDAO(Map.of(
                 "inactive", user("inactive", "inactive123", false)
         ));
-        AuthManager authManager = new AuthManager(userDAO);
+        AuthManager authManager = new AuthManager(userDAO, new AuditLogManager(AuditLogDAO.inMemory()));
 
         AuthResult authResult = authManager.login("inactive", "inactive123");
 
@@ -68,7 +69,7 @@ class AuthManagerTest {
         FakeUserDAO userDAO = new FakeUserDAO(Map.of(
                 "admin", legacyUser("admin", "admin123", true)
         ));
-        AuthManager authManager = new AuthManager(userDAO);
+        AuthManager authManager = new AuthManager(userDAO, new AuditLogManager(AuditLogDAO.inMemory()));
 
         AuthResult authResult = authManager.login("admin", "admin123");
 

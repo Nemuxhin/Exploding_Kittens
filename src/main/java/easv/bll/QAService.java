@@ -16,8 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class QAService {
+    private static final Logger LOGGER = Logger.getLogger(QAService.class.getName());
     private final QaReviewDAO qaReviewDAO;
     private final NotificationDAO notificationDAO;
     private final UserDAO userDAO;
@@ -202,7 +205,7 @@ public class QAService {
     }
 
     public void cleanupExpiredCompletedReviews() {
-        qaReviewDAO.deleteExpiredCompletedReviews(notificationDAO);
+        qaReviewDAO.deleteExpiredCompletedReviews(notificationDAO, auditLogDAO);
     }
 
     private Integer selectReviewer(String profileName, Integer creatorUserId) {
@@ -284,7 +287,10 @@ public class QAService {
                     List.of()
             );
             auditLogDAO.saveAuditLog(log);
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING,
+                    "Audit write failed for QA action " + action,
+                    exception);
         }
     }
 

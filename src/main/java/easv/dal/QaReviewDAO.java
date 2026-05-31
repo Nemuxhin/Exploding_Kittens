@@ -1,5 +1,6 @@
 package easv.dal;
 
+import easv.be.AuditLog;
 import easv.bll.QAService;
 
 import java.sql.Connection;
@@ -8,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -556,13 +558,13 @@ public class QaReviewDAO {
         }
     }
 
-    public void deleteExpiredCompletedReviews(NotificationDAO notificationDAO) {
+    public void deleteExpiredCompletedReviews(NotificationDAO notificationDAO, AuditLogDAO auditLogDAO) {
         Instant now = Instant.now();
         try (Connection connection = databaseConnection.getConnection()) {
             boolean previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
             try (PreparedStatement statement = connection.prepareStatement("""
-                    SELECT id
+                    SELECT id, session_id, box, profile, pages
                     FROM qa_reviews
                     WHERE status = ?
                       AND expires_at IS NOT NULL
@@ -570,23 +572,33 @@ public class QaReviewDAO {
                     """)) {
                 statement.setString(1, QAService.QaReviewStatus.APPROVED.name());
                 statement.setTimestamp(2, Timestamp.from(now));
-                List<UUID> reviewIds = new ArrayList<>();
+                List<ExpiredReview> expired = new ArrayList<>();
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        reviewIds.add(UUID.fromString(resultSet.getString("id")));
+                        expired.add(new ExpiredReview(
+                                UUID.fromString(resultSet.getString("id")),
+                                resultSet.getString("session_id"),
+                                resultSet.getString("box"),
+                                resultSet.getString("profile"),
+                                resultSet.getInt("pages")
+                        ));
                     }
                 }
 
-                for (UUID reviewId : reviewIds) {
+                for (ExpiredReview review : expired) {
+                    // Audit first, in the same transaction: if either write fails the
+                    // whole batch rolls back, so we never lose scanned content without
+                    // a trace.
+                    writeScanDiscardedAudit(connection, auditLogDAO, review);
                     if (notificationDAO != null) {
-                        notificationDAO.deleteByReviewId(connection, reviewId);
+                        notificationDAO.deleteByReviewId(connection, review.reviewId());
                     }
-                    deletePageRows(connection, reviewId);
+                    deletePageRows(connection, review.reviewId());
                     try (PreparedStatement deleteReview = connection.prepareStatement("""
                             DELETE FROM qa_reviews
                             WHERE id = ?
                             """)) {
-                        deleteReview.setString(1, reviewId.toString());
+                        deleteReview.setString(1, review.reviewId().toString());
                         deleteReview.executeUpdate();
                     }
                 }
@@ -601,6 +613,56 @@ public class QaReviewDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Failed to delete expired QA reviews.", e);
         }
+    }
+
+    private void writeScanDiscardedAudit(Connection connection, AuditLogDAO auditLogDAO, ExpiredReview review)
+            throws SQLException {
+        if (auditLogDAO == null) {
+            return;
+        }
+
+        String profile = review.profile() == null ? "" : review.profile().trim();
+        String box = review.box() == null ? "" : review.box().trim();
+        String target;
+        if (profile.isBlank() && box.isBlank()) {
+            target = "QA review " + review.reviewId();
+        } else if (profile.isBlank()) {
+            target = box;
+        } else if (box.isBlank()) {
+            target = profile;
+        } else {
+            target = profile + " / " + box;
+        }
+
+        List<AuditLog.AuditLogDetail> details = new ArrayList<>();
+        if (!profile.isBlank()) {
+            details.add(new AuditLog.AuditLogDetail("Profile", profile));
+        }
+        if (!box.isBlank()) {
+            details.add(new AuditLog.AuditLogDetail("Box", box));
+        }
+        details.add(new AuditLog.AuditLogDetail("Review", review.reviewId().toString()));
+        if (review.sessionId() != null && !review.sessionId().isBlank()) {
+            details.add(new AuditLog.AuditLogDetail("Session", review.sessionId()));
+        }
+        details.add(new AuditLog.AuditLogDetail("Pages", String.valueOf(review.pageCount())));
+
+        AuditLog log = new AuditLog(
+                auditLogDAO.nextAuditLogId(connection),
+                LocalDateTime.now(),
+                "Scans",
+                "SYSTEM",
+                "SCAN_DISCARDED",
+                target,
+                "Success",
+                "Expired approved QA review purged: " + review.pageCount() + " pages removed.",
+                details
+        );
+
+        auditLogDAO.saveAuditLog(connection, log);
+    }
+
+    private record ExpiredReview(UUID reviewId, String sessionId, String box, String profile, int pageCount) {
     }
 
     private QAService.QaAssignmentSnapshot toAssignment(Connection connection, StoredHeader header) throws SQLException {
