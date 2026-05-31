@@ -74,13 +74,28 @@ public class AuditLogDAO {
             return inMemoryNextId++;
         }
 
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement("SELECT COALESCE(MAX(id), 0) + 1 FROM audit_logs");
+        try (Connection connection = databaseConnection.getConnection()) {
+            return nextAuditLogId(connection);
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to calculate next audit log id.", exception);
+        }
+    }
+
+    /**
+     * Per-connection overload so callers running inside an existing transaction
+     * can write audit rows without escaping that transaction. Used by DAOs that
+     * must keep the audit write atomic with the data change (e.g. expired-review
+     * cleanup must not leave deleted scans without an audit trail).
+     */
+    public int nextAuditLogId(Connection connection) throws SQLException {
+        if (inMemoryLogs != null) {
+            return inMemoryNextId++;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("SELECT COALESCE(MAX(id), 0) + 1 FROM audit_logs");
              ResultSet resultSet = statement.executeQuery()) {
             resultSet.next();
             return resultSet.getInt(1);
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to calculate next audit log id.", exception);
         }
     }
 
@@ -94,12 +109,29 @@ public class AuditLogDAO {
             return log;
         }
 
-        try (Connection connection = databaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
-                     INSERT INTO audit_logs
-                     (timestamp, type, actor, action, target, status, export_id, description)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                     """, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = databaseConnection.getConnection()) {
+            return saveAuditLog(connection, log, exportId);
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to save audit log.", exception);
+        }
+    }
+
+    /** See {@link #nextAuditLogId(Connection)} for why this overload exists. */
+    public AuditLog saveAuditLog(Connection connection, AuditLog log) throws SQLException {
+        return saveAuditLog(connection, log, null);
+    }
+
+    public AuditLog saveAuditLog(Connection connection, AuditLog log, UUID exportId) throws SQLException {
+        if (inMemoryLogs != null) {
+            inMemoryLogs.add(log);
+            return log;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+                INSERT INTO audit_logs
+                (timestamp, type, actor, action, target, status, export_id, description)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, Statement.RETURN_GENERATED_KEYS)) {
             statement.setTimestamp(1, Timestamp.valueOf(log.getTimestamp()));
             statement.setString(2, log.getType());
             statement.setString(3, log.getActor());
@@ -125,8 +157,6 @@ public class AuditLogDAO {
                     log.getDescription(),
                     log.getDetails()
             );
-        } catch (SQLException exception) {
-            throw new DataAccessException("Failed to save audit log.", exception);
         }
     }
 

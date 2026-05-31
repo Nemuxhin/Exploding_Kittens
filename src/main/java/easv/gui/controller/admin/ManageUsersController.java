@@ -2,7 +2,6 @@ package easv.gui.controller.admin;
 
 import easv.be.User;
 import easv.bll.AdminManager;
-import easv.dal.DataAccessException;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.PaginationHelper;
 import easv.util.Strings;
@@ -173,7 +172,7 @@ public class ManageUsersController {
         } catch (IllegalArgumentException exception) {
             showValidationMessage(exception.getMessage());
             return;
-        } catch (DataAccessException exception) {
+        } catch (RuntimeException exception) {
             showValidationMessage("User could not be saved. Check the database connection and role setup.");
             return;
         }
@@ -478,7 +477,7 @@ public class ManageUsersController {
         } catch (IllegalArgumentException exception) {
             showUserActionMessage(exception.getMessage());
             return;
-        } catch (DataAccessException exception) {
+        } catch (RuntimeException exception) {
             showUserActionMessage("User could not be deactivated. Check the database connection.");
             return;
         }
@@ -496,7 +495,7 @@ public class ManageUsersController {
 
         try {
             adminManager.reactivateUser(user.getId());
-        } catch (DataAccessException exception) {
+        } catch (RuntimeException exception) {
             showUserActionMessage("User could not be reactivated. Check the database connection.");
             return;
         }

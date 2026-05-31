@@ -2,17 +2,17 @@ package easv.gui.controller.user;
 
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.QaReview;
 import easv.be.ScanProfile;
 import easv.be.TiffExportPlan;
 import easv.bll.ExportService;
-import easv.bll.QAService;
 import easv.bll.TiffImageSupport;
 import easv.bll.TiffExportManager;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.DateCalendarView;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SkeletonFactory;
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -871,20 +871,20 @@ public class AssignedQaController {
         renderAssignments();
 
         BackgroundExecutor.io().execute(() -> {
-            List<QAService.QaAssignmentSnapshot> loadedAssignments;
+            List<QaReview.QaAssignmentSnapshot> loadedAssignments;
             try {
                 loadedAssignments = portalSnapshot.fetchAssignedQaAssignments();
             } catch (RuntimeException exception) {
                 loadedAssignments = List.of();
             }
 
-            List<QAService.QaAssignmentSnapshot> finalLoadedAssignments = loadedAssignments;
+            List<QaReview.QaAssignmentSnapshot> finalLoadedAssignments = loadedAssignments;
             Platform.runLater(() -> {
                 if (loadId != assignmentsLoadSequence || portalModel != portalSnapshot) {
                     return;
                 }
                 allAssignments.clear();
-                for (QAService.QaAssignmentSnapshot assignment : finalLoadedAssignments) {
+                for (QaReview.QaAssignmentSnapshot assignment : finalLoadedAssignments) {
                     allAssignments.add(new QaAssignment(
                             assignment.reviewId(),
                             assignment.sessionId(),
@@ -907,7 +907,7 @@ public class AssignedQaController {
         });
     }
 
-    private QaStatus toQaStatus(QAService.QaReviewStatus status, int issueCount) {
+    private QaStatus toQaStatus(QaReview.QaReviewStatus status, int issueCount) {
         if (status == null) {
             return QaStatus.WAITING_FOR_QA;
         }
@@ -1307,10 +1307,10 @@ public class AssignedQaController {
         resetQaPreviewViewState();
 
         int selectedGlobalPage = 1;
-        for (QAService.QaDocumentSnapshot submittedDocument : assignment.submittedDocuments) {
+        for (QaReview.QaDocumentSnapshot submittedDocument : assignment.submittedDocuments) {
             QaDocument document = new QaDocument(submittedDocument.name());
 
-            for (QAService.QaPageSnapshot submittedPage : submittedDocument.pages()) {
+            for (QaReview.QaPageSnapshot submittedPage : submittedDocument.pages()) {
                 QaPage page = new QaPage(submittedPage.pageNumber(), submittedPage.globalPageNumber());
                 page.rotationDegrees = submittedPage.rotationDegrees();
                 page.sourceReference = submittedPage.sourceReference();
@@ -1336,7 +1336,7 @@ public class AssignedQaController {
         selectPageByGlobalNumber(selectedGlobalPage);
     }
 
-    private QaPageStatus toQaPageStatus(QAService.QaPageReviewStatus status) {
+    private QaPageStatus toQaPageStatus(QaReview.QaPageReviewStatus status) {
         if (status == null) {
             return QaPageStatus.NOT_REVIEWED;
         }
@@ -1779,11 +1779,11 @@ public class AssignedQaController {
         }
         updateSelectedAssignmentFromReview();
         UUID reviewId = selectedAssignment.reviewId;
-        QAService.QaReviewStatus status = toPersistedReviewStatus(selectedAssignment.status);
+        QaReview.QaReviewStatus status = toPersistedReviewStatus(selectedAssignment.status);
         int reviewedPages = selectedAssignment.reviewedPages;
         int totalPages = getTotalReviewPageCount();
         int issueCount = selectedAssignment.issueCount;
-        List<QAService.QaDocumentSnapshot> snapshot = toQaDocumentSnapshots();
+        List<QaReview.QaDocumentSnapshot> snapshot = toQaDocumentSnapshots();
         BackgroundExecutor.io().execute(() ->
                 portalModel.saveQaProgress(
                         reviewId,
@@ -1796,24 +1796,24 @@ public class AssignedQaController {
         );
     }
 
-    private QAService.QaReviewStatus toPersistedReviewStatus(QaStatus status) {
+    private QaReview.QaReviewStatus toPersistedReviewStatus(QaStatus status) {
         if (status == null) {
-            return QAService.QaReviewStatus.IN_REVIEW;
+            return QaReview.QaReviewStatus.IN_REVIEW;
         }
         return switch (status) {
-            case WAITING_FOR_QA -> QAService.QaReviewStatus.WAITING_FOR_QA;
-            case IN_REVIEW, ISSUES_FOUND -> QAService.QaReviewStatus.IN_REVIEW;
-            case QA_COMPLETED -> QAService.QaReviewStatus.APPROVED;
+            case WAITING_FOR_QA -> QaReview.QaReviewStatus.WAITING_FOR_QA;
+            case IN_REVIEW, ISSUES_FOUND -> QaReview.QaReviewStatus.IN_REVIEW;
+            case QA_COMPLETED -> QaReview.QaReviewStatus.APPROVED;
         };
     }
 
-    private List<QAService.QaDocumentSnapshot> toQaDocumentSnapshots() {
-        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+    private List<QaReview.QaDocumentSnapshot> toQaDocumentSnapshots() {
+        List<QaReview.QaDocumentSnapshot> documents = new ArrayList<>();
         for (int documentIndex = 0; documentIndex < reviewDocuments.size(); documentIndex++) {
             QaDocument document = reviewDocuments.get(documentIndex);
-            List<QAService.QaPageSnapshot> pages = new ArrayList<>();
+            List<QaReview.QaPageSnapshot> pages = new ArrayList<>();
             for (QaPage page : document.pages) {
-                pages.add(new QAService.QaPageSnapshot(
+                pages.add(new QaReview.QaPageSnapshot(
                         page.pageNumber,
                         page.globalPageNumber,
                         page.sourceReference,
@@ -1827,19 +1827,19 @@ public class AssignedQaController {
                         page.comment
                 ));
             }
-            documents.add(new QAService.QaDocumentSnapshot(documentIndex + 1, document.name, pages));
+            documents.add(new QaReview.QaDocumentSnapshot(documentIndex + 1, document.name, pages));
         }
         return documents;
     }
 
-    private QAService.QaPageReviewStatus toPersistedPageStatus(QaPageStatus status) {
+    private QaReview.QaPageReviewStatus toPersistedPageStatus(QaPageStatus status) {
         if (status == null) {
-            return QAService.QaPageReviewStatus.NOT_REVIEWED;
+            return QaReview.QaPageReviewStatus.NOT_REVIEWED;
         }
         return switch (status) {
-            case NOT_REVIEWED -> QAService.QaPageReviewStatus.NOT_REVIEWED;
-            case APPROVED -> QAService.QaPageReviewStatus.APPROVED;
-            case NEEDS_FIX -> QAService.QaPageReviewStatus.NEEDS_FIX;
+            case NOT_REVIEWED -> QaReview.QaPageReviewStatus.NOT_REVIEWED;
+            case APPROVED -> QaReview.QaPageReviewStatus.APPROVED;
+            case NEEDS_FIX -> QaReview.QaPageReviewStatus.NEEDS_FIX;
         };
     }
 
@@ -2158,7 +2158,7 @@ public class AssignedQaController {
         UserPortalModel portalSnapshot = portalModel;
         int reviewedPages = getReviewedPageCount();
         int issueCount = getIssueCount();
-        List<QAService.QaDocumentSnapshot> snapshot = toQaDocumentSnapshots();
+        List<QaReview.QaDocumentSnapshot> snapshot = toQaDocumentSnapshots();
 
         BackgroundExecutor.io().execute(() -> {
             try {
@@ -2874,7 +2874,7 @@ public class AssignedQaController {
         private int reviewedPages;
         private QaStatus status;
         private int issueCount;
-        private final List<QAService.QaDocumentSnapshot> submittedDocuments;
+        private final List<QaReview.QaDocumentSnapshot> submittedDocuments;
 
         private QaAssignment(
                 UUID reviewId,
@@ -2889,7 +2889,7 @@ public class AssignedQaController {
                 int reviewedPages,
                 QaStatus status,
                 int issueCount,
-                List<QAService.QaDocumentSnapshot> submittedDocuments
+                List<QaReview.QaDocumentSnapshot> submittedDocuments
         ) {
             this.reviewId = Objects.requireNonNull(reviewId);
             this.sessionId = sessionId;

@@ -1,6 +1,6 @@
 package easv.gui.controller.user;
 
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 
 interface UserNavigator {
     void showPage(UserPage page);

@@ -3,6 +3,13 @@ package easv.bll;
 import easv.be.AuditLog;
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.QaReview.NotificationSnapshot;
+import easv.be.QaReview.QaAssignmentSnapshot;
+import easv.be.QaReview.QaDocumentSnapshot;
+import easv.be.QaReview.QaPageReviewStatus;
+import easv.be.QaReview.QaPageSnapshot;
+import easv.be.QaReview.QaReviewStatus;
+import easv.be.QaReview.SessionQaState;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
 import easv.dal.NotificationDAO;
@@ -16,8 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class QAService {
+    private static final Logger LOGGER = Logger.getLogger(QAService.class.getName());
     private final QaReviewDAO qaReviewDAO;
     private final NotificationDAO notificationDAO;
     private final UserDAO userDAO;
@@ -202,7 +212,7 @@ public class QAService {
     }
 
     public void cleanupExpiredCompletedReviews() {
-        qaReviewDAO.deleteExpiredCompletedReviews(notificationDAO);
+        qaReviewDAO.deleteExpiredCompletedReviews(notificationDAO, auditLogDAO);
     }
 
     private Integer selectReviewer(String profileName, Integer creatorUserId) {
@@ -284,7 +294,10 @@ public class QAService {
                     List.of()
             );
             auditLogDAO.saveAuditLog(log);
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING,
+                    "Audit write failed for QA action " + action,
+                    exception);
         }
     }
 
@@ -334,93 +347,4 @@ public class QAService {
         return snapshots;
     }
 
-    public enum QaReviewStatus {
-        WAITING_FOR_QA,
-        IN_REVIEW,
-        APPROVED,
-        REJECTED
-    }
-
-    public enum QaPageReviewStatus {
-        NOT_REVIEWED,
-        APPROVED,
-        NEEDS_FIX
-    }
-
-    public record QaPageSnapshot(
-            int pageNumber,
-            int globalPageNumber,
-            String sourceReference,
-            String displayContent,
-            int rotationDegrees,
-            QaPageReviewStatus reviewStatus,
-            boolean pageReadable,
-            boolean rotationCorrect,
-            boolean splitCorrect,
-            boolean pageCountCorrect,
-            String comment
-    ) {
-        public QaPageSnapshot {
-            sourceReference = sourceReference == null ? "" : sourceReference;
-            displayContent = displayContent == null ? "" : displayContent;
-            comment = comment == null ? "" : comment;
-        }
-    }
-
-    public record QaDocumentSnapshot(int number, String name, List<QaPageSnapshot> pages) {
-        public QaDocumentSnapshot {
-            name = name == null || name.isBlank() ? "Document " + Math.max(1, number) : name.trim();
-            pages = pages == null ? List.of() : List.copyOf(pages);
-        }
-    }
-
-    public record QaAssignmentSnapshot(
-            UUID reviewId,
-            UUID sessionId,
-            String boxId,
-            String profileName,
-            Integer createdByUserId,
-            Integer assignedToUserId,
-            String scannedByName,
-            QaReviewStatus status,
-            Instant submittedAt,
-            Instant startedAt,
-            Instant completedAt,
-            int reviewedPages,
-            int totalPages,
-            int issueCount,
-            List<QaDocumentSnapshot> documents
-    ) {
-        public QaAssignmentSnapshot {
-            boxId = boxId == null ? "" : boxId;
-            profileName = profileName == null ? "" : profileName;
-            scannedByName = scannedByName == null ? "" : scannedByName;
-            documents = documents == null ? List.of() : List.copyOf(documents);
-        }
-    }
-
-    public record SessionQaState(
-            UUID sessionId,
-            QaReviewStatus status,
-            Instant submittedAt,
-            Instant completedAt,
-            int reviewedPages,
-            int totalPages,
-            int issueCount
-    ) {
-    }
-
-    public record NotificationSnapshot(
-            UUID id,
-            int userId,
-            UUID reviewId,
-            String title,
-            String message,
-            Instant createdAt,
-            Instant readAt
-    ) {
-        public boolean unread() {
-            return readAt == null;
-        }
-    }
 }

@@ -4,6 +4,7 @@ import easv.be.AuditLog;
 import easv.be.AuditLog.AuditLogDetail;
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.QaReview;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -57,7 +58,7 @@ public class AdminManager {
     }
 
     public AdminManager(UserDAO userDAO, MetadataDAO metadataDAO, AuditLogDAO auditLogDAO) {
-        this(userDAO, metadataDAO, reviewRecordDAOFor(metadataDAO), auditLogDAO);
+        this(userDAO, metadataDAO, null, auditLogDAO);
     }
 
     public AdminManager(UserDAO userDAO, MetadataDAO metadataDAO, ReviewRecordDAO reviewRecordDAO, AuditLogDAO auditLogDAO) {
@@ -96,10 +97,6 @@ public class AdminManager {
                 this.profileAssignments
         );
         loadAdminData();
-    }
-
-    private static ReviewRecordDAO reviewRecordDAOFor(MetadataDAO metadataDAO) {
-        return new MetadataBackedReviewRecordDAO(metadataDAO);
     }
 
     public List<User> getUsers() {
@@ -392,7 +389,7 @@ public class AdminManager {
         return adminReviewService.assignReviewRecordToQa(recordId, reviewerUserId);
     }
 
-    public QAService.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
+    public QaReview.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
         return adminReviewService.getQaAssignmentForReviewRecord(recordId);
     }
 
@@ -403,12 +400,12 @@ public class AdminManager {
     public ReviewRecord completeQaReviewRecord(
             String recordId,
             boolean approved,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         return adminReviewService.completeQaReviewRecord(recordId, approved, documents);
     }
 
-    public List<QAService.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
+    public List<QaReview.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
         return adminReviewService.getSavedProgressDocumentsForReviewRecord(boxId, profileName);
     }
 
@@ -839,33 +836,6 @@ public class AdminManager {
         );
     }
 
-    private ScanProfile copyProfile(ScanProfile profile) {
-        return new ScanProfile(
-                profile.getId(),
-                profile.getName(),
-                profile.getClient(),
-                profile.getCode(),
-                profile.getDescription(),
-                profile.getStatus(),
-                profile.getMetadataTemplateName(),
-                profile.getExportNaming(),
-                profile.getLastUpdated(),
-                profile.isArchived(),
-                profile.isBarcodeSplitting(),
-                profile.getBarcodeDetectedBehavior(),
-                profile.getBarcodePageBehavior(),
-                profile.getDefaultRotation(),
-                profile.getBrightness(),
-                profile.getContrast(),
-                profile.isDeskew(),
-                profile.getExportFormat(),
-                profile.isMetadataRequiredBeforeExport(),
-                profile.isAutosaveEnabled(),
-                profile.getAutosaveIntervalSeconds(),
-                profile.isAutosaveLocked()
-        );
-    }
-
     private List<Integer> profileIdsForNames(List<String> profileNames) {
         return adminProfileService.profileIdsForNames(profileNames);
     }
@@ -1057,24 +1027,6 @@ public class AdminManager {
         public boolean isAutosaveEnabled() { return autosaveEnabled; }
         public int getAutosaveIntervalSeconds() { return autosaveIntervalSeconds; }
         public boolean isAutosaveLocked() { return autosaveLocked; }
-    }
-
-    private static class MetadataBackedReviewRecordDAO extends ReviewRecordDAO {
-        private final MetadataDAO metadataDAO;
-
-        MetadataBackedReviewRecordDAO(MetadataDAO metadataDAO) {
-            this.metadataDAO = metadataDAO == null ? new MetadataDAO() : metadataDAO;
-        }
-
-        @Override
-        public List<ReviewRecord> getReviewRecords() {
-            return metadataDAO.getReviewRecords();
-        }
-
-        @Override
-        public void saveReviewRecord(ReviewRecord record) {
-            metadataDAO.saveReviewRecord(record);
-        }
     }
 
     public static class DashboardSummary {

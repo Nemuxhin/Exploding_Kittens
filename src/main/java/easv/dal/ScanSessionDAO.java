@@ -24,7 +24,7 @@ public class ScanSessionDAO {
         this.databaseConnection = databaseConnection;
     }
 
-    public void save(ScanSession session) {
+    public void save(ScanSession session, Integer createdByUserId) {
         try (Connection connection = databaseConnection.getConnection()) {
             if (existsSession(connection, session.getId())) {
                 updateSessionState(session);
@@ -51,10 +51,10 @@ public class ScanSessionDAO {
                 statement.setString(4, session.getProfileName());
                 statement.setString(5, session.getSelectedBarcodeBehavior());
                 statement.setString(6, session.getLastStatus());
-                if (easv.bll.UserSession.getCurrentUser() == null) {
+                if (createdByUserId == null) {
                     statement.setNull(7, java.sql.Types.INTEGER);
                 } else {
-                    statement.setInt(7, easv.bll.UserSession.getCurrentUser().getId());
+                    statement.setInt(7, createdByUserId);
                 }
                 statement.setString(8, session.getLastFailureMessage());
                 if (session.getLastFailureAt() == null) {

@@ -9,7 +9,7 @@ import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.MainApp;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SkeletonFactory;
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -939,14 +939,14 @@ public class UserController implements UserNavigator {
         }
 
         BackgroundExecutor.io().execute(() -> {
-            List<easv.bll.QAService.NotificationSnapshot> notifications = portalModel.fetchNotifications();
+            List<easv.be.QaReview.NotificationSnapshot> notifications = portalModel.fetchNotifications();
             Platform.runLater(() -> applyNotifications(requestToken, visibleCount, notifications));
         });
     }
 
     private void applyNotifications(int requestToken,
                                     int visibleCount,
-                                    List<easv.bll.QAService.NotificationSnapshot> notifications) {
+                                    List<easv.be.QaReview.NotificationSnapshot> notifications) {
         if (requestToken != notificationRenderToken || notificationListContainer == null) {
             return;
         }
@@ -963,7 +963,7 @@ public class UserController implements UserNavigator {
             }
         }
 
-        boolean hasUnread = notifications != null && notifications.stream().anyMatch(easv.bll.QAService.NotificationSnapshot::unread);
+        boolean hasUnread = notifications != null && notifications.stream().anyMatch(easv.be.QaReview.NotificationSnapshot::unread);
         if (notificationUnreadDot != null) {
             notificationUnreadDot.setVisible(hasUnread);
             notificationUnreadDot.setManaged(hasUnread);
@@ -1003,7 +1003,7 @@ public class UserController implements UserNavigator {
         return row;
     }
 
-    private HBox createNotificationRow(easv.bll.QAService.NotificationSnapshot notification) {
+    private HBox createNotificationRow(easv.be.QaReview.NotificationSnapshot notification) {
         Region marker = new Region();
         marker.getStyleClass().add(notification.unread()
                 ? "user-notification-unread-dot"

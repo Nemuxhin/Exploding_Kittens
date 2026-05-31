@@ -2,7 +2,7 @@ package easv.gui.controller.user;
 
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.SkeletonFactory;
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;

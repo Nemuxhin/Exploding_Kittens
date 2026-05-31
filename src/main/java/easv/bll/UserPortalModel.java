@@ -2,9 +2,9 @@ package easv.bll;
 
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.QaReview;
 import easv.be.ScanProfile;
 import easv.be.User;
-import easv.bll.TiffImageSupport;
 import easv.dal.BoxDAO;
 import easv.dal.DataAccessException;
 import easv.dal.ExportDAO;
@@ -221,13 +221,13 @@ public class UserPortalModel {
     public List<HistoryItem> fetchScanHistory() {
         try {
             Integer currentUserId = UserSession.getCurrentUser() == null ? null : UserSession.getCurrentUser().getId();
-            Map<java.util.UUID, QAService.SessionQaState> qaStates = currentUserId == null
+            Map<java.util.UUID, QaReview.SessionQaState> qaStates = currentUserId == null
                     ? Map.of()
                     : qaService.getReviewStatesForCurrentUser();
 
             return scanSessionDAO.findHistorySummariesForUser(currentUserId).stream()
                     .map(summary -> {
-                        QAService.SessionQaState qaState = qaStates.get(summary.sessionId());
+                        QaReview.SessionQaState qaState = qaStates.get(summary.sessionId());
                         String status = qaState == null
                                 ? summary.status()
                                 : toHistoryStatus(qaState.status());
@@ -407,7 +407,7 @@ public class UserPortalModel {
         savedScanProgressDAO.deleteBySessionId(sessionId);
     }
 
-    public List<QAService.QaAssignmentSnapshot> fetchAssignedQaAssignments() {
+    public List<QaReview.QaAssignmentSnapshot> fetchAssignedQaAssignments() {
         try {
             return qaService.getAssignmentsForCurrentUser();
         } catch (RuntimeException exception) {
@@ -415,7 +415,7 @@ public class UserPortalModel {
         }
     }
 
-    public List<QAService.NotificationSnapshot> fetchNotifications() {
+    public List<QaReview.NotificationSnapshot> fetchNotifications() {
         try {
             return qaService.getNotificationsForCurrentUser();
         } catch (RuntimeException exception) {
@@ -440,11 +440,11 @@ public class UserPortalModel {
 
     public void saveQaProgress(
             java.util.UUID reviewId,
-            QAService.QaReviewStatus status,
+            QaReview.QaReviewStatus status,
             int reviewedPages,
             int totalPages,
             int issueCount,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         if (reviewId == null) {
             return;
@@ -458,7 +458,7 @@ public class UserPortalModel {
             int reviewedPages,
             int totalPages,
             int issueCount,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         if (reviewId == null) {
             return;
@@ -471,7 +471,7 @@ public class UserPortalModel {
             return null;
         }
         try {
-            QAService.QaAssignmentSnapshot assignment = qaService.getReturnedAssignmentForSession(sessionId);
+            QaReview.QaAssignmentSnapshot assignment = qaService.getReturnedAssignmentForSession(sessionId);
             if (assignment == null) {
                 return null;
             }
@@ -675,7 +675,7 @@ public class UserPortalModel {
         return "Completed".equalsIgnoreCase(status);
     }
 
-    private String toHistoryStatus(QAService.QaReviewStatus status) {
+    private String toHistoryStatus(QaReview.QaReviewStatus status) {
         if (status == null) {
             return "Processing";
         }
@@ -701,16 +701,16 @@ public class UserPortalModel {
         return String.format(Locale.US, "%.1f MB", sizeMb);
     }
 
-    private List<Document> toExportDocuments(QAService.QaAssignmentSnapshot assignment) {
+    private List<Document> toExportDocuments(QaReview.QaAssignmentSnapshot assignment) {
         List<Document> documents = new ArrayList<>();
         if (assignment == null) {
             return documents;
         }
 
-        for (QAService.QaDocumentSnapshot qaDocument : assignment.documents()) {
+        for (QaReview.QaDocumentSnapshot qaDocument : assignment.documents()) {
             List<PageImage> pages = new ArrayList<>();
-            for (QAService.QaPageSnapshot qaPage : qaDocument.pages()) {
-                if (qaPage.reviewStatus() != QAService.QaPageReviewStatus.APPROVED) {
+            for (QaReview.QaPageSnapshot qaPage : qaDocument.pages()) {
+                if (qaPage.reviewStatus() != QaReview.QaPageReviewStatus.APPROVED) {
                     continue;
                 }
                 PageImage pageImage = new PageImage(
@@ -730,27 +730,27 @@ public class UserPortalModel {
         return documents;
     }
 
-    private List<QAService.QaDocumentSnapshot> toQaDocumentSnapshots(InMemoryScanProgress progress) {
-        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+    private List<QaReview.QaDocumentSnapshot> toQaDocumentSnapshots(InMemoryScanProgress progress) {
+        List<QaReview.QaDocumentSnapshot> documents = new ArrayList<>();
         if (progress == null || progress.documents() == null) {
             return documents;
         }
 
         int globalPageNumber = 0;
         for (InMemoryScanDocument document : progress.documents()) {
-            List<QAService.QaPageSnapshot> pages = new ArrayList<>();
+            List<QaReview.QaPageSnapshot> pages = new ArrayList<>();
             for (InMemoryScanPage page : document.pages()) {
                 if (page.barcode()) {
                     continue;
                 }
                 globalPageNumber++;
-                pages.add(new QAService.QaPageSnapshot(
+                pages.add(new QaReview.QaPageSnapshot(
                         pages.size() + 1,
                         globalPageNumber,
                         page.sourceReference(),
                         qaPreviewContent(page),
                         page.rotationDegrees(),
-                        QAService.QaPageReviewStatus.NOT_REVIEWED,
+                        QaReview.QaPageReviewStatus.NOT_REVIEWED,
                         false,
                         false,
                         false,
@@ -759,7 +759,7 @@ public class UserPortalModel {
                 ));
             }
             if (!pages.isEmpty()) {
-                documents.add(new QAService.QaDocumentSnapshot(
+                documents.add(new QaReview.QaDocumentSnapshot(
                         document.number(),
                         deriveDocumentName(document),
                         pages
@@ -814,23 +814,23 @@ public class UserPortalModel {
         }
     }
 
-    private InMemoryScanProgress toInMemoryScanProgress(QAService.QaAssignmentSnapshot assignment) {
+    private InMemoryScanProgress toInMemoryScanProgress(QaReview.QaAssignmentSnapshot assignment) {
         List<InMemoryScanDocument> documents = new ArrayList<>();
         List<InMemoryScanPage> pages = new ArrayList<>();
         int referenceId = 1;
         int fileId = 1;
 
-        for (QAService.QaDocumentSnapshot document : assignment.documents()) {
+        for (QaReview.QaDocumentSnapshot document : assignment.documents()) {
             List<InMemoryScanPage> documentPages = new ArrayList<>();
             for (int pageIndex = 0; pageIndex < document.pages().size(); pageIndex++) {
-                QAService.QaPageSnapshot page = document.pages().get(pageIndex);
+                QaReview.QaPageSnapshot page = document.pages().get(pageIndex);
                 InMemoryScanPage storedPage = new InMemoryScanPage(
                         referenceId++,
                         fileId++,
                         document.number(),
                         false,
                         page.rotationDegrees(),
-                        page.reviewStatus() == QAService.QaPageReviewStatus.NEEDS_FIX,
+                        page.reviewStatus() == QaReview.QaPageReviewStatus.NEEDS_FIX,
                         pageIndex == document.pages().size() - 1 ? "Finish batch" : "",
                         page.sourceReference(),
                         page.displayContent(),

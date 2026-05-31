@@ -1,6 +1,7 @@
 package easv.dal;
 
-import easv.bll.QAService;
+import easv.be.AuditLog;
+import easv.be.QaReview;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -27,21 +29,21 @@ public class QaReviewDAO {
         this.databaseConnection = databaseConnection;
     }
 
-    public QAService.QaAssignmentSnapshot createOrResetSubmission(
+    public QaReview.QaAssignmentSnapshot createOrResetSubmission(
             UUID sessionId,
             String boxId,
             String profileName,
             Integer createdByUserId,
             Integer assignedToUserId,
             String scannedBy,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         if (sessionId == null) {
             throw new IllegalArgumentException("sessionId must not be null");
         }
 
         Instant now = Instant.now();
-        List<QAService.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
         int documentCount = countDocuments(safeDocuments);
         int pageCount = countPages(safeDocuments);
         UUID reviewId;
@@ -78,7 +80,7 @@ public class QaReviewDAO {
                         insert.setString(1, reviewId.toString());
                         insert.setString(2, sessionId.toString());
                         insert.setString(3, clean(boxId));
-                        insert.setString(4, QAService.QaReviewStatus.WAITING_FOR_QA.name());
+                        insert.setString(4, QaReview.QaReviewStatus.WAITING_FOR_QA.name());
                         insert.setString(5, clean(profileName));
                         insert.setString(6, clean(scannedBy));
                         insert.setInt(7, documentCount);
@@ -115,7 +117,7 @@ public class QaReviewDAO {
                             WHERE id = ?
                             """)) {
                         update.setString(1, clean(boxId));
-                        update.setString(2, QAService.QaReviewStatus.WAITING_FOR_QA.name());
+                        update.setString(2, QaReview.QaReviewStatus.WAITING_FOR_QA.name());
                         update.setString(3, clean(profileName));
                         update.setString(4, clean(scannedBy));
                         update.setInt(5, documentCount);
@@ -143,7 +145,7 @@ public class QaReviewDAO {
         }
     }
 
-    public List<QAService.QaAssignmentSnapshot> findAssignmentsByAssignee(int userId) {
+    public List<QaReview.QaAssignmentSnapshot> findAssignmentsByAssignee(int userId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
@@ -169,11 +171,11 @@ public class QaReviewDAO {
                      ORDER BY assigned_at DESC
                      """)) {
             statement.setInt(1, userId);
-            statement.setString(2, QAService.QaReviewStatus.WAITING_FOR_QA.name());
-            statement.setString(3, QAService.QaReviewStatus.IN_REVIEW.name());
-            statement.setString(4, QAService.QaReviewStatus.APPROVED.name());
+            statement.setString(2, QaReview.QaReviewStatus.WAITING_FOR_QA.name());
+            statement.setString(3, QaReview.QaReviewStatus.IN_REVIEW.name());
+            statement.setString(4, QaReview.QaReviewStatus.APPROVED.name());
             try (ResultSet resultSet = statement.executeQuery()) {
-                List<QAService.QaAssignmentSnapshot> assignments = new ArrayList<>();
+                List<QaReview.QaAssignmentSnapshot> assignments = new ArrayList<>();
                 while (resultSet.next()) {
                     assignments.add(toAssignment(connection, readHeader(resultSet)));
                 }
@@ -184,7 +186,7 @@ public class QaReviewDAO {
         }
     }
 
-    public List<QAService.QaAssignmentSnapshot> findAll() {
+    public List<QaReview.QaAssignmentSnapshot> findAll() {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
@@ -208,7 +210,7 @@ public class QaReviewDAO {
                      ORDER BY COALESCE(last_updated_at, assigned_at) DESC, assigned_at DESC
                      """)) {
             try (ResultSet resultSet = statement.executeQuery()) {
-                List<QAService.QaAssignmentSnapshot> assignments = new ArrayList<>();
+                List<QaReview.QaAssignmentSnapshot> assignments = new ArrayList<>();
                 while (resultSet.next()) {
                     assignments.add(toAssignment(connection, readHeader(resultSet)));
                 }
@@ -227,7 +229,7 @@ public class QaReviewDAO {
      * data. The admin overview does not need page images; it only needs row summary
      * fields. Use findById(...) when opening one review in the workspace.
      */
-    public List<QAService.QaAssignmentSnapshot> findAllSummaries() {
+    public List<QaReview.QaAssignmentSnapshot> findAllSummaries() {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
@@ -251,7 +253,7 @@ public class QaReviewDAO {
                      ORDER BY COALESCE(last_updated_at, assigned_at) DESC, assigned_at DESC
                      """)) {
             try (ResultSet resultSet = statement.executeQuery()) {
-                List<QAService.QaAssignmentSnapshot> assignments = new ArrayList<>();
+                List<QaReview.QaAssignmentSnapshot> assignments = new ArrayList<>();
                 while (resultSet.next()) {
                     assignments.add(toAssignmentSummary(readHeader(resultSet)));
                 }
@@ -262,7 +264,7 @@ public class QaReviewDAO {
         }
     }
 
-    public Map<UUID, QAService.SessionQaState> findReviewStatesByCreator(int userId) {
+    public Map<UUID, QaReview.SessionQaState> findReviewStatesByCreator(int userId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT session_id,
@@ -278,12 +280,12 @@ public class QaReviewDAO {
                      """)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                Map<UUID, QAService.SessionQaState> states = new LinkedHashMap<>();
+                Map<UUID, QaReview.SessionQaState> states = new LinkedHashMap<>();
                 while (resultSet.next()) {
                     UUID sessionId = UUID.fromString(resultSet.getString("session_id"));
-                    states.put(sessionId, new QAService.SessionQaState(
+                    states.put(sessionId, new QaReview.SessionQaState(
                             sessionId,
-                            QAService.QaReviewStatus.valueOf(resultSet.getString("status")),
+                            QaReview.QaReviewStatus.valueOf(resultSet.getString("status")),
                             resultSet.getTimestamp("assigned_at").toInstant(),
                             timestampToInstant(resultSet, "completed_at"),
                             resultSet.getInt("reviewed"),
@@ -298,7 +300,7 @@ public class QaReviewDAO {
         }
     }
 
-    public List<QAService.QaAssignmentSnapshot> findApprovedByCreator(int userId) {
+    public List<QaReview.QaAssignmentSnapshot> findApprovedByCreator(int userId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
@@ -324,9 +326,9 @@ public class QaReviewDAO {
                      ORDER BY completed_at DESC, assigned_at DESC
                      """)) {
             statement.setInt(1, userId);
-            statement.setString(2, QAService.QaReviewStatus.APPROVED.name());
+            statement.setString(2, QaReview.QaReviewStatus.APPROVED.name());
             try (ResultSet resultSet = statement.executeQuery()) {
-                List<QAService.QaAssignmentSnapshot> assignments = new ArrayList<>();
+                List<QaReview.QaAssignmentSnapshot> assignments = new ArrayList<>();
                 while (resultSet.next()) {
                     assignments.add(toAssignment(connection, readHeader(resultSet)));
                 }
@@ -337,7 +339,7 @@ public class QaReviewDAO {
         }
     }
 
-    public QAService.QaAssignmentSnapshot findRejectedBySessionForCreator(UUID sessionId, int creatorUserId) {
+    public QaReview.QaAssignmentSnapshot findRejectedBySessionForCreator(UUID sessionId, int creatorUserId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT TOP 1 id,
@@ -365,7 +367,7 @@ public class QaReviewDAO {
                      """)) {
             statement.setString(1, sessionId.toString());
             statement.setInt(2, creatorUserId);
-            statement.setString(3, QAService.QaReviewStatus.REJECTED.name());
+            statement.setString(3, QaReview.QaReviewStatus.REJECTED.name());
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
                     return null;
@@ -387,7 +389,7 @@ public class QaReviewDAO {
                      WHERE id = ?
                      """)) {
             Instant now = Instant.now();
-            statement.setString(1, QAService.QaReviewStatus.IN_REVIEW.name());
+            statement.setString(1, QaReview.QaReviewStatus.IN_REVIEW.name());
             statement.setTimestamp(2, Timestamp.from(now));
             statement.setTimestamp(3, Timestamp.from(now));
             statement.setString(4, reviewId.toString());
@@ -397,7 +399,7 @@ public class QaReviewDAO {
         }
     }
 
-    public void assignReviewer(UUID reviewId, Integer assignedToUserId, QAService.QaReviewStatus status) {
+    public void assignReviewer(UUID reviewId, Integer assignedToUserId, QaReview.QaReviewStatus status) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      UPDATE qa_reviews
@@ -413,11 +415,11 @@ public class QaReviewDAO {
             setNullableInt(statement, 1, assignedToUserId);
             statement.setString(2, status.name());
             statement.setString(3, status.name());
-            statement.setString(4, QAService.QaReviewStatus.IN_REVIEW.name());
+            statement.setString(4, QaReview.QaReviewStatus.IN_REVIEW.name());
             statement.setString(5, status.name());
-            statement.setString(6, QAService.QaReviewStatus.APPROVED.name());
+            statement.setString(6, QaReview.QaReviewStatus.APPROVED.name());
             statement.setString(7, status.name());
-            statement.setString(8, QAService.QaReviewStatus.APPROVED.name());
+            statement.setString(8, QaReview.QaReviewStatus.APPROVED.name());
             statement.setTimestamp(9, Timestamp.from(now));
             statement.setString(10, reviewId.toString());
             statement.executeUpdate();
@@ -428,14 +430,14 @@ public class QaReviewDAO {
 
     public void saveProgress(
             UUID reviewId,
-            QAService.QaReviewStatus status,
+            QaReview.QaReviewStatus status,
             int reviewedPages,
             int totalPages,
             int issueCount,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         Instant now = Instant.now();
-        List<QAService.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
         String box;
         String profile;
         try (Connection connection = databaseConnection.getConnection()) {
@@ -484,16 +486,16 @@ public class QaReviewDAO {
 
     public void completeReview(
             UUID reviewId,
-            QAService.QaReviewStatus status,
+            QaReview.QaReviewStatus status,
             Integer assignedToUserId,
             int reviewedPages,
             int totalPages,
             int issueCount,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         Instant now = Instant.now();
-        Instant expiresAt = status == QAService.QaReviewStatus.APPROVED ? now.plusSeconds(30L * 24 * 60 * 60) : null;
-        List<QAService.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        Instant expiresAt = status == QaReview.QaReviewStatus.APPROVED ? now.plusSeconds(30L * 24 * 60 * 60) : null;
+        List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
         String box;
         String profile;
 
@@ -551,7 +553,7 @@ public class QaReviewDAO {
         }
     }
 
-    public QAService.QaAssignmentSnapshot findById(UUID reviewId) {
+    public QaReview.QaAssignmentSnapshot findById(UUID reviewId) {
         try (Connection connection = databaseConnection.getConnection()) {
             StoredHeader header = findHeaderById(connection, reviewId);
             return header == null ? null : toAssignment(connection, header);
@@ -560,37 +562,47 @@ public class QaReviewDAO {
         }
     }
 
-    public void deleteExpiredCompletedReviews(NotificationDAO notificationDAO) {
+    public void deleteExpiredCompletedReviews(NotificationDAO notificationDAO, AuditLogDAO auditLogDAO) {
         Instant now = Instant.now();
         try (Connection connection = databaseConnection.getConnection()) {
             boolean previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
             try (PreparedStatement statement = connection.prepareStatement("""
-                    SELECT id
+                    SELECT id, session_id, box, profile, pages
                     FROM qa_reviews
                     WHERE status = ?
                       AND expires_at IS NOT NULL
                       AND expires_at < ?
                     """)) {
-                statement.setString(1, QAService.QaReviewStatus.APPROVED.name());
+                statement.setString(1, QaReview.QaReviewStatus.APPROVED.name());
                 statement.setTimestamp(2, Timestamp.from(now));
-                List<UUID> reviewIds = new ArrayList<>();
+                List<ExpiredReview> expired = new ArrayList<>();
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        reviewIds.add(UUID.fromString(resultSet.getString("id")));
+                        expired.add(new ExpiredReview(
+                                UUID.fromString(resultSet.getString("id")),
+                                resultSet.getString("session_id"),
+                                resultSet.getString("box"),
+                                resultSet.getString("profile"),
+                                resultSet.getInt("pages")
+                        ));
                     }
                 }
 
-                for (UUID reviewId : reviewIds) {
+                for (ExpiredReview review : expired) {
+                    // Audit first, in the same transaction: if either write fails the
+                    // whole batch rolls back, so we never lose scanned content without
+                    // a trace.
+                    writeScanDiscardedAudit(connection, auditLogDAO, review);
                     if (notificationDAO != null) {
-                        notificationDAO.deleteByReviewId(connection, reviewId);
+                        notificationDAO.deleteByReviewId(connection, review.reviewId());
                     }
-                    deletePageRows(connection, reviewId);
+                    deletePageRows(connection, review.reviewId());
                     try (PreparedStatement deleteReview = connection.prepareStatement("""
                             DELETE FROM qa_reviews
                             WHERE id = ?
                             """)) {
-                        deleteReview.setString(1, reviewId.toString());
+                        deleteReview.setString(1, review.reviewId().toString());
                         deleteReview.executeUpdate();
                     }
                 }
@@ -607,20 +619,70 @@ public class QaReviewDAO {
         }
     }
 
-    private QAService.QaAssignmentSnapshot toAssignment(Connection connection, StoredHeader header) throws SQLException {
-        List<QAService.QaDocumentSnapshot> documents = findDocumentsByReviewId(connection, header.reviewId());
+    private void writeScanDiscardedAudit(Connection connection, AuditLogDAO auditLogDAO, ExpiredReview review)
+            throws SQLException {
+        if (auditLogDAO == null) {
+            return;
+        }
+
+        String profile = review.profile() == null ? "" : review.profile().trim();
+        String box = review.box() == null ? "" : review.box().trim();
+        String target;
+        if (profile.isBlank() && box.isBlank()) {
+            target = "QA review " + review.reviewId();
+        } else if (profile.isBlank()) {
+            target = box;
+        } else if (box.isBlank()) {
+            target = profile;
+        } else {
+            target = profile + " / " + box;
+        }
+
+        List<AuditLog.AuditLogDetail> details = new ArrayList<>();
+        if (!profile.isBlank()) {
+            details.add(new AuditLog.AuditLogDetail("Profile", profile));
+        }
+        if (!box.isBlank()) {
+            details.add(new AuditLog.AuditLogDetail("Box", box));
+        }
+        details.add(new AuditLog.AuditLogDetail("Review", review.reviewId().toString()));
+        if (review.sessionId() != null && !review.sessionId().isBlank()) {
+            details.add(new AuditLog.AuditLogDetail("Session", review.sessionId()));
+        }
+        details.add(new AuditLog.AuditLogDetail("Pages", String.valueOf(review.pageCount())));
+
+        AuditLog log = new AuditLog(
+                auditLogDAO.nextAuditLogId(connection),
+                LocalDateTime.now(),
+                "Scans",
+                "SYSTEM",
+                "SCAN_DISCARDED",
+                target,
+                "Success",
+                "Expired approved QA review purged: " + review.pageCount() + " pages removed.",
+                details
+        );
+
+        auditLogDAO.saveAuditLog(connection, log);
+    }
+
+    private record ExpiredReview(UUID reviewId, String sessionId, String box, String profile, int pageCount) {
+    }
+
+    private QaReview.QaAssignmentSnapshot toAssignment(Connection connection, StoredHeader header) throws SQLException {
+        List<QaReview.QaDocumentSnapshot> documents = findDocumentsByReviewId(connection, header.reviewId());
         return toAssignment(header, documents);
     }
 
-    private QAService.QaAssignmentSnapshot toAssignmentSummary(StoredHeader header) {
+    private QaReview.QaAssignmentSnapshot toAssignmentSummary(StoredHeader header) {
         return toAssignment(header, List.of());
     }
 
-    private QAService.QaAssignmentSnapshot toAssignment(
+    private QaReview.QaAssignmentSnapshot toAssignment(
             StoredHeader header,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
-        return new QAService.QaAssignmentSnapshot(
+        return new QaReview.QaAssignmentSnapshot(
                 header.reviewId(),
                 header.sessionId(),
                 header.box(),
@@ -639,7 +701,7 @@ public class QaReviewDAO {
         );
     }
 
-    private List<QAService.QaDocumentSnapshot> findDocumentsByReviewId(Connection connection, UUID reviewId) throws SQLException {
+    private List<QaReview.QaDocumentSnapshot> findDocumentsByReviewId(Connection connection, UUID reviewId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT document_number,
                        document_name,
@@ -661,18 +723,18 @@ public class QaReviewDAO {
             statement.setString(1, reviewId.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 Map<Integer, String> documentNames = new LinkedHashMap<>();
-                Map<Integer, List<QAService.QaPageSnapshot>> pagesByDocument = new LinkedHashMap<>();
+                Map<Integer, List<QaReview.QaPageSnapshot>> pagesByDocument = new LinkedHashMap<>();
                 while (resultSet.next()) {
                     int documentNumber = resultSet.getInt("document_number");
                     documentNames.putIfAbsent(documentNumber, clean(resultSet.getString("document_name")));
                     pagesByDocument.computeIfAbsent(documentNumber, ignored -> new ArrayList<>())
-                            .add(new QAService.QaPageSnapshot(
+                            .add(new QaReview.QaPageSnapshot(
                                     resultSet.getInt("page_number"),
                                     resultSet.getInt("global_page_number"),
                                     resultSet.getString("source_reference"),
                                     resultSet.getString("display_content"),
                                     resultSet.getInt("rotation_degrees"),
-                                    QAService.QaPageReviewStatus.valueOf(resultSet.getString("page_status")),
+                                    QaReview.QaPageReviewStatus.valueOf(resultSet.getString("page_status")),
                                     resultSet.getBoolean("page_readable"),
                                     resultSet.getBoolean("rotation_correct"),
                                     resultSet.getBoolean("split_correct"),
@@ -681,17 +743,17 @@ public class QaReviewDAO {
                             ));
                 }
 
-                List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
-                for (Map.Entry<Integer, List<QAService.QaPageSnapshot>> entry : pagesByDocument.entrySet()) {
-                    List<QAService.QaPageSnapshot> pages = new ArrayList<>(entry.getValue());
-                    pages.sort(Comparator.comparingInt(QAService.QaPageSnapshot::pageNumber));
-                    documents.add(new QAService.QaDocumentSnapshot(
+                List<QaReview.QaDocumentSnapshot> documents = new ArrayList<>();
+                for (Map.Entry<Integer, List<QaReview.QaPageSnapshot>> entry : pagesByDocument.entrySet()) {
+                    List<QaReview.QaPageSnapshot> pages = new ArrayList<>(entry.getValue());
+                    pages.sort(Comparator.comparingInt(QaReview.QaPageSnapshot::pageNumber));
+                    documents.add(new QaReview.QaDocumentSnapshot(
                             entry.getKey(),
                             documentNames.getOrDefault(entry.getKey(), "Document " + entry.getKey()),
                             pages
                     ));
                 }
-                documents.sort(Comparator.comparingInt(QAService.QaDocumentSnapshot::number));
+                documents.sort(Comparator.comparingInt(QaReview.QaDocumentSnapshot::number));
                 return documents;
             }
         }
@@ -769,7 +831,7 @@ public class QaReviewDAO {
                 resultSet.getInt("issues"),
                 nullableInteger(resultSet, "created_by_user_id"),
                 nullableInteger(resultSet, "assigned_to_user_id"),
-                QAService.QaReviewStatus.valueOf(resultSet.getString("status")),
+                QaReview.QaReviewStatus.valueOf(resultSet.getString("status")),
                 timestampToInstant(resultSet, "started_at"),
                 timestampToInstant(resultSet, "completed_at"),
                 timestampToInstant(resultSet, "expires_at"),
@@ -782,7 +844,7 @@ public class QaReviewDAO {
             UUID reviewId,
             String box,
             String profile,
-            List<QAService.QaDocumentSnapshot> documents,
+            List<QaReview.QaDocumentSnapshot> documents,
             Instant now
     ) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("""
@@ -808,11 +870,11 @@ public class QaReviewDAO {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """)) {
             int insertedRowsSinceCommit = 0;
-            for (QAService.QaDocumentSnapshot document : documents) {
+            for (QaReview.QaDocumentSnapshot document : documents) {
                 if (document == null || document.pages() == null) {
                     continue;
                 }
-                for (QAService.QaPageSnapshot page : document.pages()) {
+                for (QaReview.QaPageSnapshot page : document.pages()) {
                     if (page == null) {
                         continue;
                     }
@@ -852,7 +914,7 @@ public class QaReviewDAO {
             UUID reviewId,
             String box,
             String profile,
-            List<QAService.QaDocumentSnapshot> documents,
+            List<QaReview.QaDocumentSnapshot> documents,
             Instant now
     ) throws SQLException {
         try (Connection connection = databaseConnection.getConnection()) {
@@ -883,12 +945,12 @@ public class QaReviewDAO {
         }
     }
 
-    private int countDocuments(List<QAService.QaDocumentSnapshot> documents) {
+    private int countDocuments(List<QaReview.QaDocumentSnapshot> documents) {
         if (documents == null) {
             return 0;
         }
         int count = 0;
-        for (QAService.QaDocumentSnapshot document : documents) {
+        for (QaReview.QaDocumentSnapshot document : documents) {
             if (document != null && document.pages() != null && !document.pages().isEmpty()) {
                 count++;
             }
@@ -896,12 +958,12 @@ public class QaReviewDAO {
         return count;
     }
 
-    private int countPages(List<QAService.QaDocumentSnapshot> documents) {
+    private int countPages(List<QaReview.QaDocumentSnapshot> documents) {
         if (documents == null) {
             return 0;
         }
         int totalPages = 0;
-        for (QAService.QaDocumentSnapshot document : documents) {
+        for (QaReview.QaDocumentSnapshot document : documents) {
             if (document != null && document.pages() != null) {
                 totalPages += document.pages().size();
             }
@@ -944,7 +1006,7 @@ public class QaReviewDAO {
             int issues,
             Integer createdByUserId,
             Integer assignedToUserId,
-            QAService.QaReviewStatus status,
+            QaReview.QaReviewStatus status,
             Instant startedAt,
             Instant completedAt,
             Instant expiresAt,

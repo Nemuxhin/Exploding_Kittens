@@ -4,12 +4,16 @@ import easv.be.User;
 import easv.dal.DataAccessException;
 import easv.dal.UserDAO;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * This class contains the login rules.
  * The controller asks this class to validate the username and password.
  */
 public class AuthManager {
 
+    private static final Logger LOGGER = Logger.getLogger(AuthManager.class.getName());
     private static final String GENERIC_FAILURE_DESCRIPTION = "Authentication failed.";
 
     private final UserDAO userDAO;
@@ -92,8 +96,8 @@ public class AuthManager {
 
         try {
             auditLogManager.logAuth(user.getUsername(), AuditLogManager.LOGIN_SUCCESS, "User signed in.");
-        } catch (RuntimeException ignored) {
-            // Audit failure must never block authentication.
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING, "Audit write failed for LOGIN_SUCCESS", exception);
         }
     }
 
@@ -104,8 +108,11 @@ public class AuthManager {
 
         try {
             auditLogManager.logAuth(attemptedUsername, AuditLogManager.LOGIN_FAILED, GENERIC_FAILURE_DESCRIPTION);
-        } catch (RuntimeException ignored) {
-            // Audit failure must never block authentication.
+        } catch (RuntimeException exception) {
+            // Audit failure must never block authentication, but it must not
+            // vanish either — a silent failed-login swallow hides exactly the
+            // signal a security audit cares about.
+            LOGGER.log(Level.WARNING, "Audit write failed for LOGIN_FAILED", exception);
         }
     }
 
@@ -116,8 +123,8 @@ public class AuthManager {
 
         try {
             auditLogManager.logAuth(user.getUsername(), AuditLogManager.LOGOUT, "User signed out.");
-        } catch (RuntimeException ignored) {
-            // Audit failure must never block sign-out.
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING, "Audit write failed for LOGOUT", exception);
         }
     }
 
@@ -130,8 +137,14 @@ public class AuthManager {
             String upgradedHash = PasswordHasher.hash(plainTextPassword);
             userDAO.updatePasswordHash(storedUser.getId(), upgradedHash);
             storedUser.setPasswordHash(upgradedHash);
-        } catch (RuntimeException ignored) {
-            // Login should still succeed even if the opportunistic upgrade fails.
+        } catch (RuntimeException exception) {
+            // Login should still succeed even if the opportunistic upgrade
+            // fails, but a permanent silent failure leaves SHA-256 hashes in
+            // the table forever — log without exposing the plaintext or hash.
+            LOGGER.log(Level.WARNING,
+                    "Opportunistic password-hash upgrade failed for user id "
+                            + storedUser.getId(),
+                    exception);
         }
     }
 }

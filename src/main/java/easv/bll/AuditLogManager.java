@@ -21,6 +21,7 @@ public class AuditLogManager {
     public static final String SCAN_FAILED = "SCAN_FAILED";
     public static final String RETRY_USED = "RETRY_USED";
     public static final String SCAN_COMPLETED = "SCAN_COMPLETED";
+    public static final String SCAN_DISCARDED = "SCAN_DISCARDED";
     public static final String PAGE_CREATED = "PAGE_CREATED";
     public static final String PAGE_DELETED = "PAGE_DELETED";
     public static final String METADATA_SAVED = "METADATA_SAVED";
@@ -102,6 +103,28 @@ public class AuditLogManager {
                                    String profileName, String boxId) {
         return logUserAction(PAGE_DELETED, caseId, documentId, fileId,
                 pageNumber, profileName, boxId, "A scanned page was deleted.");
+    }
+
+    public AuditLog logScanStarted(String profileName, String boxId) {
+        return logUserAction(SCAN_STARTED, boxId, null, null, null, profileName, boxId,
+                "A scan session was started.");
+    }
+
+    public AuditLog logTiffFetched(String fileId, Integer pageNumber, String profileName, String boxId) {
+        return logUserAction(TIFF_FETCHED, boxId, null, fileId, pageNumber, profileName, boxId,
+                "A scanned file was fetched from the scanner.");
+    }
+
+    public AuditLog logScanFailed(String profileName, String boxId, String reason) {
+        String description = reason == null || reason.isBlank()
+                ? "Scanning the next file failed."
+                : "Scanning the next file failed: " + reason;
+        return logUserAction(SCAN_FAILED, boxId, null, null, null, profileName, boxId, description);
+    }
+
+    public AuditLog logScanCompleted(String profileName, String boxId, int pageCount, int documentCount) {
+        return logUserAction(SCAN_COMPLETED, boxId, null, null, null, profileName, boxId,
+                pageCount + " pages across " + documentCount + " documents submitted for QA.");
     }
 
     public List<AuditLog> getLogs() {

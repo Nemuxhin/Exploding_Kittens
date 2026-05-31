@@ -13,7 +13,7 @@ import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.PrimeIcons;
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -79,8 +79,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ScanController {
+    private static final Logger LOGGER = Logger.getLogger(ScanController.class.getName());
     private static final String SPLIT_REASON_BARCODE = "Barcode split";
     private static final String SPLIT_REASON_IMPORTED_BOUNDARY = "Document boundary";
     private static final String SPLIT_REASON_REMOVED_BARCODE = "Removed barcode";
@@ -1147,6 +1150,7 @@ public class ScanController {
         refreshWorkspace();
         updateUndoButtonState();
         initAutosaveFromProfile(getSelectedProfile());
+        logScanStartedAudit();
     }
 
     @FXML
@@ -1173,6 +1177,7 @@ public class ScanController {
                             ? "Failed to import next file."
                             : exception.getMessage());
                     refreshWorkspace();
+                    logScanFailedAudit(exception.getMessage());
                 });
             }
         });
@@ -1185,6 +1190,7 @@ public class ScanController {
             selectedFileTitleLabel.setText("Scan failed");
             selectedFileRefLabel.setText("No scan result returned.");
             refreshWorkspace();
+            logScanFailedAudit("No scan result returned.");
             return;
         }
 
@@ -1201,6 +1207,7 @@ public class ScanController {
                     ? "Failed to import the next file."
                     : result.getMessage());
             refreshWorkspace();
+            logScanFailedAudit(result.getMessage());
             return;
         }
 
@@ -1211,6 +1218,14 @@ public class ScanController {
             importedPages.add(scannedPage);
             selectedPage = scannedPage;
             logPageCreatedAudit(scannedPage);
+        }
+
+        // One TIFF_FETCHED per fetched file (a scanNextItem call returns the
+        // pages of one source file). Recording the first imported page is
+        // enough to identify which file landed; per-page is covered by
+        // PAGE_CREATED above.
+        if (!importedPages.isEmpty()) {
+            logTiffFetchedAudit(importedPages.get(0));
         }
 
         applyImportedDocumentBoundaries(importedPages, result.getImportedDocuments());
@@ -1862,8 +1877,12 @@ public class ScanController {
                     getBoxId()
             );
         } catch (RuntimeException exception) {
-            // The audit log must never break the scan flow. Swallow and continue.
-            System.err.println("[ScanController] logPageCreated failed: " + exception.getMessage());
+            // The audit log must never break the scan flow. Route to the
+            // central logger so failures are visible to ops and survive
+            // a log-aggregation handler instead of vanishing into stderr.
+            LOGGER.log(Level.WARNING,
+                    "Audit write failed for PAGE_CREATED (page " + page.referenceId + ")",
+                    exception);
         }
     }
 
@@ -1882,7 +1901,57 @@ public class ScanController {
                     getBoxId()
             );
         } catch (RuntimeException exception) {
-            System.err.println("[ScanController] logPageDeleted failed: " + exception.getMessage());
+            LOGGER.log(Level.WARNING,
+                    "Audit write failed for PAGE_DELETED (page " + page.referenceId + ")",
+                    exception);
+        }
+    }
+
+    private void logScanStartedAudit() {
+        try {
+            auditLogManager.logScanStarted(getSelectedProfile(), getBoxId());
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING, "Audit write failed for SCAN_STARTED", exception);
+        }
+    }
+
+    private void logTiffFetchedAudit(ScannedPage page) {
+        if (page == null) {
+            return;
+        }
+
+        try {
+            auditLogManager.logTiffFetched(
+                    String.valueOf(page.fileId),
+                    page.referenceId,
+                    getSelectedProfile(),
+                    getBoxId()
+            );
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING,
+                    "Audit write failed for TIFF_FETCHED (file " + page.fileId + ")",
+                    exception);
+        }
+    }
+
+    private void logScanFailedAudit(String reason) {
+        try {
+            auditLogManager.logScanFailed(getSelectedProfile(), getBoxId(), reason);
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING, "Audit write failed for SCAN_FAILED", exception);
+        }
+    }
+
+    private void logScanCompletedAudit() {
+        try {
+            auditLogManager.logScanCompleted(
+                    getSelectedProfile(),
+                    getBoxId(),
+                    getNormalPageCount(),
+                    documents.size()
+            );
+        } catch (RuntimeException exception) {
+            LOGGER.log(Level.WARNING, "Audit write failed for SCAN_COMPLETED", exception);
         }
     }
 
@@ -2158,6 +2227,8 @@ public class ScanController {
         if (reviewDocumentsValueLabel != null) {
             reviewDocumentsValueLabel.setText(documents.size() + " - " + getNormalPageCount() + " pages");
         }
+
+        logScanCompletedAudit();
 
         updateSubmitConfirmationModal();
         showSubmitConfirmationModal();
