@@ -13,6 +13,7 @@ import easv.gui.UserPortalModel;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -128,6 +129,7 @@ public class UserController implements UserNavigator {
     private int notificationRenderToken;
     private String loginPassword;
     private boolean forcedPasswordDialogShown;
+    private boolean initialPageShown;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -146,8 +148,45 @@ public class UserController implements UserNavigator {
         configureGlobalShortcuts();
         configureThemeToggle();
         configureNavigation();
-        showPage(UserPage.DASHBOARD);
-        Platform.runLater(this::showFirstLoginPasswordDialogIfNeeded);
+        showInitialPageWhenReady();
+    }
+
+    private void showInitialPageWhenReady() {
+        if (initialPageShown) {
+            return;
+        }
+
+        if (appShell == null) {
+            initialPageShown = true;
+            showPage(UserPage.DASHBOARD);
+            return;
+        }
+
+        if (appShell.getScene() != null) {
+            initialPageShown = true;
+            if (requiresForcedPasswordChange()) {
+                showFirstLoginPasswordDialogIfNeeded();
+            }
+            showPage(UserPage.DASHBOARD);
+            return;
+        }
+
+        ChangeListener<Scene> listener = new ChangeListener<>() {
+            @Override
+            public void changed(javafx.beans.value.ObservableValue<? extends Scene> observable, Scene oldScene, Scene newScene) {
+                if (newScene == null) {
+                    return;
+                }
+                appShell.sceneProperty().removeListener(this);
+                Platform.runLater(UserController.this::showInitialPageWhenReady);
+            }
+        };
+        appShell.sceneProperty().addListener(listener);
+    }
+
+    private boolean requiresForcedPasswordChange() {
+        User currentUser = currentAccountUser();
+        return currentUser != null && currentUser.isMustChangePassword();
     }
 
     private void configureAccount() {

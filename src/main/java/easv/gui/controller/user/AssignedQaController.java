@@ -2150,33 +2150,54 @@ public class AssignedQaController {
         }
 
         boolean approved = getIssueCount() == 0;
-        if (portalModel != null) {
-            portalModel.completeQaReview(
-                    selectedAssignment.reviewId,
-                    approved,
-                    getReviewedPageCount(),
-                    totalPages,
-                    getIssueCount(),
-                    toQaDocumentSnapshots()
-            );
-        }
-
-        selectedAssignment.status = approved ? QaStatus.QA_COMPLETED : QaStatus.ISSUES_FOUND;
-        selectedAssignment.reviewedPages = getReviewedPageCount();
-        selectedAssignment.issueCount = getIssueCount();
-
-        if (approved) {
-            refreshQaReviewWorkspace();
-            loadAssignments();
-            showExportAlert(null, Alert.AlertType.INFORMATION, "QA approved",
-                    "QA is complete. Export is now available for this review.");
+        if (portalModel == null) {
             return;
         }
 
-        loadAssignments();
-        showAssignedQaListView();
-        showExportAlert(null, Alert.AlertType.INFORMATION, "QA rejected",
-                "QA was rejected and returned to the scan owner with your comments.");
+        QaAssignment completedAssignment = selectedAssignment;
+        UserPortalModel portalSnapshot = portalModel;
+        int reviewedPages = getReviewedPageCount();
+        int issueCount = getIssueCount();
+        List<QAService.QaDocumentSnapshot> snapshot = toQaDocumentSnapshots();
+
+        BackgroundExecutor.io().execute(() -> {
+            try {
+                portalSnapshot.completeQaReview(
+                        completedAssignment.reviewId,
+                        approved,
+                        reviewedPages,
+                        totalPages,
+                        issueCount,
+                        snapshot
+                );
+
+                Platform.runLater(() -> {
+                    completedAssignment.status = approved ? QaStatus.QA_COMPLETED : QaStatus.ISSUES_FOUND;
+                    completedAssignment.reviewedPages = reviewedPages;
+                    completedAssignment.issueCount = issueCount;
+
+                    if (approved) {
+                        refreshQaReviewWorkspace();
+                        loadAssignments();
+                        showExportAlert(null, Alert.AlertType.INFORMATION, "QA approved",
+                                "QA is complete. Export is now available for this review.");
+                        return;
+                    }
+
+                    loadAssignments();
+                    showAssignedQaListView();
+                    showExportAlert(null, Alert.AlertType.INFORMATION, "QA rejected",
+                            "QA was rejected and returned to the scan owner with your comments.");
+                });
+            } catch (RuntimeException exception) {
+                Platform.runLater(() -> showExportAlert(
+                        null,
+                        Alert.AlertType.ERROR,
+                        "QA completion failed",
+                        exception.getMessage()
+                ));
+            }
+        });
     }
 
     @FXML

@@ -8,8 +8,12 @@ import easv.be.ScanProfile;
 import easv.be.TiffExportPlan;
 import easv.be.User;
 import easv.dal.AuditLogDAO;
+import easv.dal.DatabaseConnection;
 import easv.dal.MetadataDAO;
+import easv.dal.NotificationDAO;
+import easv.dal.QaReviewDAO;
 import easv.dal.ReviewRecordDAO;
+import easv.dal.SavedScanProgressDAO;
 import easv.dal.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -84,7 +88,7 @@ class AuditMetadataExportTest {
     @Test
     void adminUserActionsUseLoggedInAdminName() {
         UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
-        AdminManager adminManager = new AdminManager(
+        AdminManager adminManager = createAdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
                 new FakeReviewRecordDAO(),
@@ -111,7 +115,8 @@ class AuditMetadataExportTest {
 
     @Test
     void createUserAuditLogRecordsCreatedValues() {
-        AdminManager adminManager = new AdminManager(
+        UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
+        AdminManager adminManager = createAdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
                 new FakeReviewRecordDAO(),
@@ -141,7 +146,8 @@ class AuditMetadataExportTest {
 
     @Test
     void updateUserAuditLogRecordsOnlyChangedFields() {
-        AdminManager adminManager = new AdminManager(
+        UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
+        AdminManager adminManager = createAdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
                 new FakeReviewRecordDAO(),
@@ -178,7 +184,8 @@ class AuditMetadataExportTest {
 
     @Test
     void deleteProfileAuditLogRecordsDeletedSnapshot() {
-        AdminManager adminManager = new AdminManager(
+        UserSession.setCurrentUser(new User("jenny-admin", "hash", "ADMIN", true));
+        AdminManager adminManager = createAdminManager(
                 new FakeUserDAO(),
                 new FakeMetadataDAO(),
                 new FakeReviewRecordDAO(),
@@ -311,6 +318,33 @@ class AuditMetadataExportTest {
                 .anyMatch(detail -> field.equals(detail.getLabel())
                         && oldValue.equals(detail.getOldValue())
                         && newValue.equals(detail.getNewValue()));
+    }
+
+    private AdminManager createAdminManager(
+            UserDAO userDAO,
+            MetadataDAO metadataDAO,
+            ReviewRecordDAO reviewRecordDAO,
+            AuditLogDAO auditLogDAO
+    ) {
+        return new AdminManager(
+                userDAO,
+                metadataDAO,
+                reviewRecordDAO,
+                auditLogDAO,
+                new QaReviewDAO(new DatabaseConnection("", "", "")),
+                new SavedScanProgressDAO(new DatabaseConnection("", "", "")),
+                new QAService(
+                        new QaReviewDAO(new DatabaseConnection("", "", "")),
+                        new NotificationDAO(new DatabaseConnection("", "", "")),
+                        new FakeUserDAO(),
+                        AuditLogDAO.inMemory()
+                ) {
+                    @Override
+                    public List<QaAssignmentSnapshot> getAllAssignmentsForAdmin() {
+                        return List.of();
+                    }
+                }
+        );
     }
 
     private static class FakeUserDAO extends UserDAO {
