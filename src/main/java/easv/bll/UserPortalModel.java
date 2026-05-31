@@ -14,6 +14,7 @@ import easv.dal.ScanSessionDAO;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -732,7 +733,7 @@ public class UserPortalModel {
                         pages.size() + 1,
                         globalPageNumber,
                         page.sourceReference(),
-                        firstNonBlank(page.previewContent(), page.displayContent()),
+                        qaPreviewContent(page),
                         page.rotationDegrees(),
                         QaReview.QaPageReviewStatus.NOT_REVIEWED,
                         false,
@@ -751,6 +752,51 @@ public class UserPortalModel {
             }
         }
         return documents;
+    }
+
+    private String qaPreviewContent(InMemoryScanPage page) {
+        if (page == null) {
+            return "";
+        }
+
+        String previewContent = firstNonBlank(page.previewContent(), "");
+        if (!previewContent.isBlank()) {
+            return previewContent;
+        }
+
+        String displayContent = firstNonBlank(page.displayContent(), "");
+        if (displayContent.isBlank()) {
+            return "";
+        }
+
+        byte[] sourceBytes = extractDataUriBytes(displayContent);
+        if (sourceBytes.length == 0) {
+            return displayContent;
+        }
+
+        byte[] previewPng = TiffImageSupport.createPreviewPng(sourceBytes, 800, 800);
+        if (previewPng.length == 0) {
+            return displayContent;
+        }
+
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(previewPng);
+    }
+
+    private byte[] extractDataUriBytes(String value) {
+        if (value == null || value.isBlank()) {
+            return new byte[0];
+        }
+
+        int commaIndex = value.indexOf(',');
+        if (commaIndex < 0 || commaIndex >= value.length() - 1) {
+            return new byte[0];
+        }
+
+        try {
+            return Base64.getDecoder().decode(value.substring(commaIndex + 1));
+        } catch (IllegalArgumentException exception) {
+            return new byte[0];
+        }
     }
 
     private InMemoryScanProgress toInMemoryScanProgress(QaReview.QaAssignmentSnapshot assignment) {

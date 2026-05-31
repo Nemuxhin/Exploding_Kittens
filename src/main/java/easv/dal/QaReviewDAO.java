@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class QaReviewDAO {
+    private static final int PAGE_ROW_BATCH_SIZE = 8;
     private final DatabaseConnection databaseConnection;
 
     public QaReviewDAO() {
@@ -45,13 +46,14 @@ public class QaReviewDAO {
         List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
         int documentCount = countDocuments(safeDocuments);
         int pageCount = countPages(safeDocuments);
+        UUID reviewId;
 
         try (Connection connection = databaseConnection.getConnection()) {
             boolean previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
             try {
                 StoredHeader existing = findHeaderBySessionId(connection, sessionId);
-                UUID reviewId = existing == null ? UUID.randomUUID() : existing.reviewId();
+                reviewId = existing == null ? UUID.randomUUID() : existing.reviewId();
 
                 if (existing == null) {
                     try (PreparedStatement insert = connection.prepareStatement("""
@@ -129,17 +131,15 @@ public class QaReviewDAO {
                     }
                 }
 
-                deletePageRows(connection, reviewId);
-                insertPageRows(connection, reviewId, clean(boxId), clean(profileName), safeDocuments, now);
-
                 connection.commit();
-                connection.setAutoCommit(previousAutoCommit);
-                return findById(reviewId);
             } catch (SQLException e) {
                 connection.rollback();
-                connection.setAutoCommit(previousAutoCommit);
                 throw e;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
             }
+            replacePageRows(reviewId, clean(boxId), clean(profileName), safeDocuments, now);
+            return findById(reviewId);
         } catch (SQLException e) {
             throw new DataAccessException("Failed to submit scan for QA.", e);
         }
@@ -438,6 +438,8 @@ public class QaReviewDAO {
     ) {
         Instant now = Instant.now();
         List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        String box;
+        String profile;
         try (Connection connection = databaseConnection.getConnection()) {
             boolean previousAutoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
@@ -446,6 +448,8 @@ public class QaReviewDAO {
                 if (existing == null) {
                     throw new SQLException("QA review " + reviewId + " could not be found.");
                 }
+                box = existing.box();
+                profile = existing.profile();
 
                 try (PreparedStatement update = connection.prepareStatement("""
                         UPDATE qa_reviews
@@ -467,16 +471,14 @@ public class QaReviewDAO {
                     update.executeUpdate();
                 }
 
-                deletePageRows(connection, reviewId);
-                insertPageRows(connection, reviewId, existing.box(), existing.profile(), safeDocuments, now);
-
                 connection.commit();
-                connection.setAutoCommit(previousAutoCommit);
             } catch (SQLException e) {
                 connection.rollback();
-                connection.setAutoCommit(previousAutoCommit);
                 throw e;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
             }
+            replacePageRows(reviewId, box, profile, safeDocuments, now);
         } catch (SQLException e) {
             throw new DataAccessException("Failed to save QA progress.", e);
         }
@@ -494,6 +496,8 @@ public class QaReviewDAO {
         Instant now = Instant.now();
         Instant expiresAt = status == QaReview.QaReviewStatus.APPROVED ? now.plusSeconds(30L * 24 * 60 * 60) : null;
         List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        String box;
+        String profile;
 
         try (Connection connection = databaseConnection.getConnection()) {
             boolean previousAutoCommit = connection.getAutoCommit();
@@ -503,6 +507,8 @@ public class QaReviewDAO {
                 if (existing == null) {
                     throw new SQLException("QA review " + reviewId + " could not be found.");
                 }
+                box = existing.box();
+                profile = existing.profile();
 
                 try (PreparedStatement update = connection.prepareStatement("""
                         UPDATE qa_reviews
@@ -534,16 +540,14 @@ public class QaReviewDAO {
                     update.executeUpdate();
                 }
 
-                deletePageRows(connection, reviewId);
-                insertPageRows(connection, reviewId, existing.box(), existing.profile(), safeDocuments, now);
-
                 connection.commit();
-                connection.setAutoCommit(previousAutoCommit);
             } catch (SQLException e) {
                 connection.rollback();
-                connection.setAutoCommit(previousAutoCommit);
                 throw e;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
             }
+            replacePageRows(reviewId, box, profile, safeDocuments, now);
         } catch (SQLException e) {
             throw new DataAccessException("Failed to complete QA review.", e);
         }
@@ -865,6 +869,7 @@ public class QaReviewDAO {
                     updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """)) {
+            int insertedRowsSinceCommit = 0;
             for (QaReview.QaDocumentSnapshot document : documents) {
                 if (document == null || document.pages() == null) {
                     continue;
@@ -891,10 +896,42 @@ public class QaReviewDAO {
                     statement.setBoolean(16, page.splitCorrect());
                     statement.setBoolean(17, page.pageCountCorrect());
                     statement.setTimestamp(18, Timestamp.from(now));
-                    statement.addBatch();
+                    statement.executeUpdate();
+                    insertedRowsSinceCommit++;
+                    if (insertedRowsSinceCommit >= PAGE_ROW_BATCH_SIZE) {
+                        connection.commit();
+                        insertedRowsSinceCommit = 0;
+                    }
                 }
             }
-            statement.executeBatch();
+            if (insertedRowsSinceCommit > 0) {
+                connection.commit();
+            }
+        }
+    }
+
+    private void replacePageRows(
+            UUID reviewId,
+            String box,
+            String profile,
+            List<QaReview.QaDocumentSnapshot> documents,
+            Instant now
+    ) throws SQLException {
+        try (Connection connection = databaseConnection.getConnection()) {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
+                deletePageRows(connection, reviewId);
+                connection.commit();
+                if (documents != null && !documents.isEmpty()) {
+                    insertPageRows(connection, reviewId, box, profile, documents, now);
+                }
+                connection.setAutoCommit(previousAutoCommit);
+            } catch (SQLException exception) {
+                connection.rollback();
+                connection.setAutoCommit(previousAutoCommit);
+                throw exception;
+            }
         }
     }
 
