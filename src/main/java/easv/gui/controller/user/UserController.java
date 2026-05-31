@@ -55,6 +55,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.prefs.Preferences;
 
 public class UserController implements UserNavigator {
@@ -130,6 +131,7 @@ public class UserController implements UserNavigator {
     private String loginPassword;
     private boolean forcedPasswordDialogShown;
     private boolean initialPageShown;
+    private UUID handledInterruptedScanSessionId;
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -461,6 +463,7 @@ public class UserController implements UserNavigator {
     public void resumeRecentScan(UserPortalModel.RecentScanItem item) {
         pendingRecentScanItem = item;
         pendingHistoryScanItem = null;
+        handledInterruptedScanSessionId = null;
         showPage(UserPage.SCAN);
     }
 
@@ -468,6 +471,7 @@ public class UserController implements UserNavigator {
     public void resumeHistoryScan(UserPortalModel.HistoryItem item) {
         pendingHistoryScanItem = item;
         pendingRecentScanItem = null;
+        handledInterruptedScanSessionId = null;
         showPage(UserPage.SCAN);
     }
 
@@ -574,7 +578,9 @@ public class UserController implements UserNavigator {
                 pendingRecentScanItem = null;
             } else {
                 UserPortalModel.RecentScanItem interruptedScan = portalModel.fetchLatestInterruptedScan();
-                if (interruptedScan != null) {
+                if (interruptedScan != null
+                        && !interruptedScan.sessionId().equals(handledInterruptedScanSessionId)
+                        && shouldResumeInterruptedScan(interruptedScan)) {
                     scanController.resumeRecentScan(interruptedScan);
                 }
             }
@@ -598,6 +604,136 @@ public class UserController implements UserNavigator {
         region.setMinHeight(0);
         region.setMaxWidth(Double.MAX_VALUE);
         region.setMaxHeight(Double.MAX_VALUE);
+    }
+
+    private boolean shouldResumeInterruptedScan(UserPortalModel.RecentScanItem interruptedScan) {
+        if (interruptedScan == null) {
+            return false;
+        }
+
+        ButtonType resumeButton = new ButtonType("Resume");
+        ButtonType startNewButton = new ButtonType("Start New");
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setHeaderText(null);
+        dialog.setTitle("Resume Interrupted Scan");
+        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.CLOSE);
+        dialog.getDialogPane().getStyleClass().addAll("app-shell", "profile-created-dialog-pane");
+
+        if (isDarkModeEnabled()) {
+            dialog.getDialogPane().getStyleClass().add(DARK_MODE_CLASS);
+        }
+
+        if (appShell != null && appShell.getScene() != null) {
+            dialog.initOwner(appShell.getScene().getWindow());
+            dialog.getDialogPane().getStylesheets().setAll(appShell.getScene().getStylesheets());
+        }
+
+        Node defaultCloseButton = dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (defaultCloseButton != null) {
+            defaultCloseButton.setVisible(false);
+            defaultCloseButton.setManaged(false);
+        }
+
+        dialog.getDialogPane().setPrefWidth(540);
+        dialog.getDialogPane().setMaxWidth(540);
+        dialog.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setPrefHeight(Region.USE_COMPUTED_SIZE);
+        dialog.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+        dialog.getDialogPane().setGraphic(null);
+        dialog.getDialogPane().setContent(buildInterruptedScanDialogContent(dialog, interruptedScan, resumeButton, startNewButton));
+        PrimeIcons.applyFont(dialog.getDialogPane());
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        boolean resume = result.orElse(startNewButton) == resumeButton;
+        handledInterruptedScanSessionId = interruptedScan.sessionId();
+        return resume;
+    }
+
+    private VBox buildInterruptedScanDialogContent(
+            Dialog<ButtonType> dialog,
+            UserPortalModel.RecentScanItem interruptedScan,
+            ButtonType resumeButton,
+            ButtonType startNewButton
+    ) {
+        VBox root = new VBox();
+        root.getStyleClass().add("profile-created-dialog-root");
+        root.getChildren().addAll(
+                createInterruptedScanDialogHeader(dialog),
+                createInterruptedScanDialogBody(dialog, interruptedScan, resumeButton, startNewButton)
+        );
+        return root;
+    }
+
+    private HBox createInterruptedScanDialogHeader(Dialog<ButtonType> dialog) {
+        Label brandLabel = new Label("W");
+        brandLabel.getStyleClass().add("profile-created-dialog-brand-label");
+
+        StackPane brandShell = new StackPane(brandLabel);
+        brandShell.getStyleClass().add("profile-created-dialog-brand-shell");
+
+        Label titleLabel = new Label("Resume Interrupted Scan");
+        titleLabel.getStyleClass().add("profile-created-dialog-title");
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("profile-created-dialog-close-button");
+        closeButton.setFocusTraversable(false);
+        closeButton.setOnAction(event -> {
+            dialog.setResult(ButtonType.CLOSE);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(18, brandShell, titleLabel, spacer, closeButton);
+        header.getStyleClass().add("profile-created-dialog-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
+    private VBox createInterruptedScanDialogBody(
+            Dialog<ButtonType> dialog,
+            UserPortalModel.RecentScanItem interruptedScan,
+            ButtonType resumeButton,
+            ButtonType startNewButton
+    ) {
+        String details = "A saved scan was found for "
+                + clean(interruptedScan.boxId())
+                + " / "
+                + clean(interruptedScan.profileName())
+                + ". Resume it or start a new scan.";
+        Label messageLabel = new Label(details);
+        messageLabel.getStyleClass().add("profile-created-dialog-message");
+        messageLabel.setWrapText(true);
+
+        Button startNewActionButton = new Button(startNewButton.getText());
+        startNewActionButton.getStyleClass().addAll("portal-secondary-button", "profile-created-dialog-ok-button");
+        startNewActionButton.setFocusTraversable(false);
+        startNewActionButton.setOnAction(event -> {
+            dialog.setResult(startNewButton);
+            dialog.close();
+        });
+
+        Button resumeActionButton = new Button(resumeButton.getText());
+        resumeActionButton.getStyleClass().addAll("portal-primary-button", "profile-open-button");
+        resumeActionButton.setDefaultButton(true);
+        resumeActionButton.setFocusTraversable(false);
+        resumeActionButton.setOnAction(event -> {
+            dialog.setResult(resumeButton);
+            dialog.close();
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actions = new HBox(16, spacer, startNewActionButton, resumeActionButton);
+        actions.getStyleClass().add("profile-created-dialog-actions");
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox body = new VBox(28, messageLabel, actions);
+        body.getStyleClass().add("profile-created-dialog-body");
+        return body;
     }
 
     private VBox createMissingPagePlaceholder(String pageTitle) {

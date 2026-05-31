@@ -206,6 +206,9 @@ public class ScanController {
     private boolean quietPersistInProgress = false;
     private ScanProgressSnapshot pendingQuietPersistSnapshot;
     private String pendingQuietPersistStatus;
+    private long pendingQuietPersistSignature = Long.MIN_VALUE;
+    private long inFlightQuietPersistSignature = Long.MIN_VALUE;
+    private long lastCompletedQuietPersistSignature = Long.MIN_VALUE;
 
     private double previewTranslateX = 0;
     private double previewTranslateY = 0;
@@ -516,7 +519,6 @@ public class ScanController {
                     beginScanSession();
                 } else {
                     restoreScanSession(resumedSession, returnedQaProgress != null ? returnedQaProgress : savedProgress);
-                    persistWorkspaceProgressQuietly("Autosaved");
                 }
             });
         });
@@ -1113,7 +1115,6 @@ public class ScanController {
 
                 if (resumedSession != null && progressToRestore != null && !progressToRestore.pages().isEmpty()) {
                     restoreScanSession(resumedSession, progressToRestore);
-                    persistWorkspaceProgressQuietly("Autosaved");
                     return;
                 }
 
@@ -2176,36 +2177,61 @@ public class ScanController {
         }
 
         ScanProgressSnapshot snapshot = captureScanProgressSnapshot();
+        long signature = snapshot.signature();
+        if (signature == lastCompletedQuietPersistSignature || signature == inFlightQuietPersistSignature) {
+            return;
+        }
         if (quietPersistInProgress) {
             pendingQuietPersistSnapshot = snapshot;
             pendingQuietPersistStatus = status;
+            pendingQuietPersistSignature = signature;
             return;
         }
 
         quietPersistInProgress = true;
-        persistSnapshotQuietly(snapshot, status);
+        inFlightQuietPersistSignature = signature;
+        persistSnapshotQuietly(snapshot, status, signature);
     }
 
-    private void persistSnapshotQuietly(ScanProgressSnapshot snapshot, String status) {
+    private void persistSnapshotQuietly(ScanProgressSnapshot snapshot, String status, long signature) {
         BackgroundExecutor.io().execute(() -> {
+            boolean success = false;
             try {
                 portalModel.saveScanProgress(snapshot.sessionId, toInMemoryScanProgress(snapshot, status));
+                success = true;
             } catch (RuntimeException exception) {
                 logAutosaveFailure(exception);
             }
 
+            boolean savedSuccessfully = success;
             Platform.runLater(() -> {
+                if (savedSuccessfully) {
+                    lastCompletedQuietPersistSignature = signature;
+                }
+
                 if (pendingQuietPersistSnapshot == null) {
                     quietPersistInProgress = false;
+                    inFlightQuietPersistSignature = Long.MIN_VALUE;
                     pendingQuietPersistStatus = null;
+                    pendingQuietPersistSignature = Long.MIN_VALUE;
                     return;
                 }
 
                 ScanProgressSnapshot nextSnapshot = pendingQuietPersistSnapshot;
                 String nextStatus = pendingQuietPersistStatus;
+                long nextSignature = pendingQuietPersistSignature;
                 pendingQuietPersistSnapshot = null;
                 pendingQuietPersistStatus = null;
-                persistSnapshotQuietly(nextSnapshot, nextStatus);
+                pendingQuietPersistSignature = Long.MIN_VALUE;
+
+                if (nextSignature == lastCompletedQuietPersistSignature || nextSignature == inFlightQuietPersistSignature) {
+                    quietPersistInProgress = false;
+                    inFlightQuietPersistSignature = Long.MIN_VALUE;
+                    return;
+                }
+
+                inFlightQuietPersistSignature = nextSignature;
+                persistSnapshotQuietly(nextSnapshot, nextStatus, nextSignature);
             });
         });
     }
@@ -4650,6 +4676,20 @@ public class ScanController {
             this.pages = pages == null ? List.of() : List.copyOf(pages);
             this.documents = documents == null ? List.of() : List.copyOf(documents);
         }
+
+        private long signature() {
+            long hash = 17L;
+            hash = 31L * hash + sessionId.hashCode();
+            hash = 31L * hash + boxId.hashCode();
+            hash = 31L * hash + profileName.hashCode();
+            for (PageProgressSnapshot page : pages) {
+                hash = 31L * hash + page.signature();
+            }
+            for (DocumentProgressSnapshot document : documents) {
+                hash = 31L * hash + document.signature();
+            }
+            return hash;
+        }
     }
 
     private static final class DocumentProgressSnapshot {
@@ -4663,6 +4703,17 @@ public class ScanController {
             this.splitReason = splitReason == null ? "" : splitReason;
             this.pageReferenceIds = pageReferenceIds == null ? List.of() : List.copyOf(pageReferenceIds);
             this.pending = pending;
+        }
+
+        private long signature() {
+            long hash = 17L;
+            hash = 31L * hash + number;
+            hash = 31L * hash + splitReason.hashCode();
+            hash = 31L * hash + Boolean.hashCode(pending);
+            for (Integer pageReferenceId : pageReferenceIds) {
+                hash = 31L * hash + (pageReferenceId == null ? 0 : pageReferenceId.hashCode());
+            }
+            return hash;
         }
     }
 
@@ -4686,11 +4737,27 @@ public class ScanController {
             this.barcode = page.barcode;
             this.rotationDegrees = page.rotationDegrees;
             this.needsRescan = page.needsRescan;
-            this.splitReasonAfter = page.splitReasonAfter;
-            this.sourceReference = page.sourceReference;
-            this.displayContent = page.displayContent;
-            this.previewContent = page.previewContent;
+            this.splitReasonAfter = page.splitReasonAfter == null ? "" : page.splitReasonAfter;
+            this.sourceReference = page.sourceReference == null ? "" : page.sourceReference;
+            this.displayContent = page.displayContent == null ? "" : page.displayContent;
+            this.previewContent = page.previewContent == null ? "" : page.previewContent;
             this.previewSourceBytes = page.previewSourceBytes;
+        }
+
+        private long signature() {
+            long hash = 17L;
+            hash = 31L * hash + referenceId;
+            hash = 31L * hash + fileId;
+            hash = 31L * hash + documentNumber;
+            hash = 31L * hash + Boolean.hashCode(barcode);
+            hash = 31L * hash + rotationDegrees;
+            hash = 31L * hash + Boolean.hashCode(needsRescan);
+            hash = 31L * hash + splitReasonAfter.hashCode();
+            hash = 31L * hash + sourceReference.hashCode();
+            hash = 31L * hash + displayContent.hashCode();
+            hash = 31L * hash + previewContent.hashCode();
+            hash = 31L * hash + previewSourceBytes.length;
+            return hash;
         }
     }
 
