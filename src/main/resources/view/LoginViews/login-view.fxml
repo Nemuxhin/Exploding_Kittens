@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import java.net.URL?>
+<?import java.lang.String?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="easv.gui.controller.util.LoginController">
+    <styleClass>
+        <String fx:value="app-shell" />
+        <String fx:value="login-page" />
+    </styleClass>
+    <stylesheets>
+        <URL value="@../../css/login.css" />
+    </stylesheets>
+    <children>
+        <HBox alignment="CENTER" spacing="0.0" styleClass="login-window">
+            <children>
+                <VBox alignment="CENTER_LEFT" spacing="18.0" styleClass="login-brand-panel">
+                    <children>
+                        <ImageView fitWidth="190.0"
+                                   preserveRatio="true">
+                            <image>
+                                <Image url="@../../images/weblager/styleguide/DarkmodeBlue/LogoBlue2H.png" />
+                            </image>
+                        </ImageView>
+                        <Region VBox.vgrow="ALWAYS" />
+                        <Label styleClass="login-brand-title" text="Scanning workspace" />
+                        <Label styleClass="login-brand-copy"
+                               text="Access for users and admins." />
+                    </children>
+                </VBox>
+
+                <VBox alignment="CENTER_LEFT" spacing="12.0" styleClass="login-form-panel">
+                    <children>
+                        <Label styleClass="login-form-title" text="Sign in" />
+                        <Label styleClass="login-helper-text" text="Enter your WebLager account details." />
+                        <Label styleClass="login-field-label" text="Username" />
+                        <TextField fx:id="usernameField" promptText="Enter username" />
+                        <Label styleClass="login-field-label" text="Password" />
+                        <PasswordField fx:id="passwordField" promptText="Enter password" onAction="#handleLogin" />
+                        <Button fx:id="loginButton" maxWidth="1.7976931348623157E308" onAction="#handleLogin" styleClass="primary-button" text="Log In" />
+                        <Label fx:id="messageLabel" styleClass="message-label" text="Ready to sign in." wrapText="true" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </children>
+    <padding>
+        <Insets bottom="36.0" left="36.0" right="36.0" top="36.0" />
+    </padding>
+</StackPane>

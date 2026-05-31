@@ -1,0 +1,31 @@
+/* =========================================================
+   WEBLAGER FONTS
+   Font files are registered at runtime in MainApp.
+   This file is kept as a CSS fallback only.
+   Do not put typography hierarchy or component font styling here.
+   ========================================================= */
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("../fonts/Montserrat-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("../fonts/Montserrat-Medium.ttf");
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("../fonts/Montserrat-SemiBold.ttf");
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("../fonts/Montserrat-Bold.ttf");
+}
+
+@font-face {
+    font-family: "primeicons";
+    src: url("../fonts/primeicons.ttf");
+}

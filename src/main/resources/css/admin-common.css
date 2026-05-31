@@ -1,0 +1,1020 @@
+/* =========================================================
+   WEBLAGER ADMIN COMMON
+   Shared admin page shell, admin controls, admin cards/lists,
+   and admin chips.
+
+   Ownership:
+   - app.css owns global tokens and primitive components.
+   - shell.css owns top navigation, sidebar, account menu, status/breadcrumb shell.
+   - typography.css owns all font family, font size, and font weight.
+   - screen CSS files own dashboard/profile/activity/user-specific layouts.
+
+   Legacy review workspace styles have been removed.
+   ========================================================= */
+
+/* =========================================================
+   01. ADMIN PAGE SHELL
+   ========================================================= */
+
+.admin-page,
+.assignments-page,
+.profiles-page-host,
+.profiles-overview-page,
+.profile-editor-page {
+    -fx-background-color: -wl-background;
+}
+
+.admin-page-scroll,
+.admin-page-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.admin-page-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+}
+
+.admin-missing-page-placeholder {
+    -fx-padding: 24;
+}
+
+.page-header,
+.profile-editor-header {
+    -fx-alignment: center-left;
+    -fx-spacing: 18;
+}
+
+.page-header-actions,
+.profile-editor-header-actions,
+.header-actions {
+    -fx-spacing: 12;
+    -fx-alignment: center-right;
+}
+
+/* =========================================================
+   02. ADMIN HEADER / ACTION BUTTONS
+   ========================================================= */
+
+.create-user-button,
+.header-action-button,
+.secondary-outline-button,
+.header-primary-button,
+.header-secondary-button,
+.header-destructive-button,
+.admin-save-button,
+.admin-complete-button,
+.admin-approve-button,
+.admin-reject-button,
+.profile-editor-primary-button,
+.profile-editor-secondary-button,
+.profile-editor-danger-button,
+.profile-editor-link-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-alignment: center;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.create-user-button,
+.header-action-button,
+.header-primary-button,
+.admin-approve-button,
+.profile-editor-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.create-user-button:hover,
+.create-user-button:pressed,
+.header-action-button:hover,
+.header-action-button:pressed,
+.header-primary-button:hover,
+.header-primary-button:pressed,
+.admin-approve-button:hover,
+.admin-approve-button:pressed,
+.profile-editor-primary-button:hover,
+.profile-editor-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-outline-button,
+.header-secondary-button,
+.admin-save-button,
+.admin-complete-button,
+.profile-editor-secondary-button,
+.profile-editor-link-button,
+.profile-secondary-button,
+.profile-icon-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.secondary-outline-button:hover,
+.secondary-outline-button:pressed,
+.header-secondary-button:hover,
+.header-secondary-button:pressed,
+.admin-save-button:hover,
+.admin-save-button:pressed,
+.admin-complete-button:hover,
+.admin-complete-button:pressed,
+.profile-editor-secondary-button:hover,
+.profile-editor-secondary-button:pressed,
+.profile-editor-link-button:hover,
+.profile-editor-link-button:pressed,
+.profile-secondary-button:hover,
+.profile-secondary-button:pressed,
+.profile-icon-button:hover,
+.profile-icon-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+.header-destructive-button,
+.admin-reject-button,
+.profile-editor-danger-button {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.header-destructive-button:hover,
+.header-destructive-button:pressed,
+.admin-reject-button:hover,
+.admin-reject-button:pressed,
+.profile-editor-danger-button:hover,
+.profile-editor-danger-button:pressed {
+    -fx-background-color: -wl-destructive-hover;
+    -fx-border-color: -wl-destructive-hover;
+}
+
+/* Compact row/card actions. */
+.profile-open-button,
+.profile-secondary-button,
+.profile-danger-button,
+.profile-icon-button,
+.secondary-action-button,
+.assignment-mode-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-open-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.profile-open-button:hover,
+.profile-open-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-action-button {
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.secondary-action-button:hover,
+.secondary-action-button:pressed {
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
+}
+
+.profile-danger-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+}
+
+.profile-danger-button:hover,
+.profile-danger-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-destructive;
+}
+
+/* Inline text/icon actions. */
+.edit-link-button,
+.delete-link-button,
+.deactivate-link-button,
+.reactivate-link-button,
+.inline-action-button,
+.inline-action-button-muted,
+.inline-icon-action-button,
+.inline-icon-action-button-destructive {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.edit-link-button,
+.inline-action-button,
+.inline-action-button-muted,
+.inline-icon-action-button {
+    -fx-text-fill: -wl-text;
+}
+
+.delete-link-button,
+.deactivate-link-button,
+.inline-icon-action-button-destructive {
+    -fx-text-fill: -wl-destructive;
+}
+
+.reactivate-link-button {
+    -fx-text-fill: -wl-primary;
+}
+
+.edit-link-button:hover,
+.inline-action-button:hover,
+.inline-action-button-muted:hover,
+.inline-icon-action-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+.delete-link-button:hover,
+.deactivate-link-button:hover,
+.inline-icon-action-button-destructive:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-destructive-hover;
+    -fx-underline: true;
+}
+
+.inline-actions {
+    -fx-alignment: center;
+    -fx-spacing: 12;
+}
+
+.reactivate-link-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+/* =========================================================
+   03. ADMIN INPUTS / FILTERS / SEARCH
+   ========================================================= */
+
+.role-filter,
+.rows-per-page-filter,
+.profile-editor-input,
+.profile-editor-textarea {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.role-filter,
+.rows-per-page-filter,
+.profile-editor-input {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.role-filter {
+    -fx-pref-width: 192;
+}
+
+.rows-per-page-filter {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+}
+
+.profile-editor-input {
+    -fx-padding: 0 12 0 12;
+}
+
+.profile-editor-textarea {
+    -fx-padding: 9;
+}
+
+.profile-editor-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+}
+
+.role-filter:hover,
+.rows-per-page-filter:hover,
+.profile-editor-input:hover,
+.profile-editor-textarea:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.role-filter:focused,
+.rows-per-page-filter:focused,
+.profile-editor-input:focused,
+.profile-editor-textarea:focused {
+    -fx-border-color: -wl-input-focus-border;
+}
+
+/* =========================================================
+   04. ADMIN SURFACES / PANELS / LISTS
+   ========================================================= */
+
+.users-panel,
+.profile-card,
+.profile-editor-card,
+.assignment-panel,
+.assignment-list-panel,
+.assignment-editor-panel {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.users-panel-body,
+.users-body-scroll-pane,
+.users-body-scroll-pane > .viewport,
+.assignment-list-scroll,
+.assignment-list-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.users-body-scroll-pane,
+.assignment-list-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+}
+
+.users-toolbar,
+.profiles-toolbar,
+.admin-list-toolbar {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.users-toolbar,
+.admin-list-toolbar {
+    -fx-padding: 18;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.users-list-header,
+.admin-list-header {
+    -fx-hgap: 18;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.users-list-header {
+    -fx-padding: 12 24 12 24;
+    -fx-background-color: -wl-surface;
+}
+
+.admin-list-header {
+    -fx-padding: 15 24 15 24;
+    -fx-background-color: -wl-card-content;
+}
+
+.users-list,
+.admin-list,
+.assignment-list,
+.assignment-checkbox-list {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.user-record,
+.admin-list-row {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.user-record {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-padding: 0 24 0 24;
+    -fx-hgap: 18;
+    -fx-vgap: 0;
+    -fx-alignment: center-left;
+}
+
+.admin-list-row {
+    -fx-min-height: 105;
+    -fx-padding: 18 24 18 24;
+    -fx-hgap: 18;
+    -fx-cursor: hand;
+}
+
+.user-record:hover,
+.admin-list-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.name-cell {
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.user-avatar-initials,
+.assignment-avatar {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-avatar-bg;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text;
+}
+
+.assignment-avatar {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+/* =========================================================
+   05. ADMIN CHIPS / BADGES
+   ========================================================= */
+
+.role-cell,
+.user-profiles-cell {
+    -fx-alignment: center;
+}
+
+.role-badge,
+.user-status-badge,
+.assignment-status-badge,
+.profile-status-badge,
+.required-pill,
+.profile-config-chip,
+.profile-editor-small-badge,
+.profile-assignment-status,
+.user-profiles-badge {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.role-badge {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-min-width: 78;
+    -fx-pref-width: 78;
+    -fx-padding: 0 15 0 15;
+}
+
+.user-status-badge {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-min-width: 90;
+    -fx-pref-width: 90;
+    -fx-padding: 0 15 0 15;
+}
+
+.assignment-status-badge,
+.profile-status-badge,
+.required-pill,
+.profile-editor-small-badge,
+.profile-assignment-status,
+.user-profiles-badge {
+    -fx-min-height: 24;
+    -fx-padding: 3 9 3 9;
+}
+
+.profile-status-badge {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-min-width: 90;
+    -fx-pref-width: 90;
+    -fx-max-width: 9999;
+    -fx-padding: 0 12 0 12;
+}
+
+.profile-config-chip {
+    -fx-padding: 3 9 3 9;
+}
+
+.profile-status-draft,
+.assignment-status-draft,
+.profile-assignment-status-draft,
+.chip-blue,
+.chip-indigo,
+.chip-purple {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.user-status-active,
+.profile-status-active,
+.assignment-status-active,
+.required-yes,
+.profile-assignment-status-active,
+.profile-editor-active-badge,
+.chip-teal,
+.user-profiles-badge-all {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.role-badge-admin,
+.profile-editor-admin-badge {
+    -fx-background-color: -wl-role-admin-bg;
+    -fx-border-color: -wl-role-admin-border;
+    -fx-text-fill: -wl-role-admin-text;
+}
+
+.role-badge-user,
+.profile-editor-user-badge {
+    -fx-background-color: -wl-role-user-bg;
+    -fx-border-color: -wl-role-user-border;
+    -fx-text-fill: -wl-role-user-text;
+}
+
+.profile-status-archived,
+.profile-status-default,
+.user-status-inactive,
+.assignment-status-archived,
+.required-no,
+.profile-assignment-status-archived,
+.chip-neutral,
+.user-profiles-badge {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.chip-amber,
+.user-profiles-badge-none {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.chip-orange {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+/* =========================================================
+   06. PROFILE / ASSIGNMENT SHARED ADMIN PATTERNS
+   Page-specific sizing/layout should stay in admin-profiles.css.
+   ========================================================= */
+
+.profile-card-archived,
+.profile-card-archived:hover {
+    -fx-opacity: 0.6;
+}
+
+.profile-card-footer,
+.profile-chip-group,
+.profile-editor-header-actions {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.profile-card-title,
+.profile-info-value,
+.profile-info-code,
+.profile-editor-strong-text,
+.profile-editor-field-label,
+.assignment-list-title,
+.assignment-row-title,
+.assignment-selected-title {
+    -fx-text-fill: -wl-text;
+}
+
+.profile-card-description,
+.profile-info-label,
+.profile-editor-subtitle,
+.profile-editor-helper-text,
+.assignment-list-subtitle,
+.assignment-row-subtitle,
+.assignment-selected-subtitle,
+.assignment-save-status {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.profile-card-description,
+.profile-editor-preview-value {
+    -fx-wrap-text: true;
+}
+
+.profile-card-divider,
+.profile-editor-section-divider,
+.assignment-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+.profile-info-code,
+.assignment-code-label {
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+    -fx-padding: 3 9 3 9;
+}
+
+.profile-editor-tabs {
+    -fx-spacing: 0;
+    -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-editor-tab-button {
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-max-height: 39;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-radius: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text-muted;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.profile-editor-tab-button:hover,
+.profile-editor-tab-button:focused,
+.profile-editor-tab-button:pressed,
+.profile-editor-tab-button:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.profile-editor-tab-active,
+.profile-editor-tab-active:hover,
+.profile-editor-tab-active:focused,
+.profile-editor-tab-active:pressed,
+.profile-editor-tab-active:armed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -wl-primary transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: -wl-primary;
+}
+
+.profile-editor-switch {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: -wl-switch-off-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 39 3 3;
+    -fx-background-radius: 999, 999;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: transparent;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-editor-switch:selected {
+    -fx-background-color: -wl-switch-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 3 3 39;
+    -fx-background-radius: 999, 999;
+}
+
+.profile-editor-switch:hover {
+    -fx-background-color: -wl-switch-off-track-hover, -wl-switch-thumb;
+}
+
+.profile-editor-switch:selected:hover {
+    -fx-background-color: -wl-switch-track-hover, -wl-switch-thumb;
+}
+
+/* Radio — style guide pg 9, 21px, navy when checked. */
+.profile-editor-radio {
+    -fx-text-fill: -wl-text;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-editor-radio > .radio {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-padding: 4;
+}
+
+.profile-editor-radio:selected > .radio {
+    -fx-border-color: -wl-primary;
+}
+
+.profile-editor-radio > .radio > .dot {
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-padding: 4;
+}
+
+.profile-editor-radio:selected > .radio > .dot {
+    -fx-background-color: -wl-primary;
+}
+
+.profile-editor-radio:hover > .radio {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+/* Checkbox — style guide pg 9, 21px, navy filled with white mark when checked. */
+.profile-editor-checkbox {
+    -fx-text-fill: -wl-text;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.profile-editor-checkbox > .box {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+}
+
+.profile-editor-checkbox:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.profile-editor-checkbox:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.profile-editor-checkbox:hover > .box {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+/* Disabled = 60% opacity (style guide pg 3 / pg 7). Overrides the JavaFX
+   default of 0.4 so the autosave "Off" state (which disables the interval
+   and lock controls) dims to the documented amount. */
+.profile-editor-radio:disabled,
+.profile-editor-checkbox:disabled,
+.profile-editor-input:disabled,
+.profile-editor-switch:disabled {
+    -fx-opacity: 0.6;
+}
+
+.profile-editor-preview-box,
+.profile-editor-scanner-preview-box {
+    -fx-padding: 18 21 18 21;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 6;
+}
+
+.profile-editor-field-preview-card,
+.profile-editor-access-list {
+    -fx-padding: 21;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.profile-editor-access-list {
+    -fx-padding: 0;
+}
+
+.profile-editor-access-row {
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
+    -fx-padding: 0 21 0 21;
+    -fx-spacing: 9;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-editor-access-row-last {
+    -fx-border-width: 0;
+}
+
+.profile-editor-field-preview-item,
+.profile-editor-access-name,
+.profile-editor-code-preview,
+.profile-editor-preview-value {
+    -fx-text-fill: -wl-text;
+}
+
+.profile-editor-preview-key {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.assignment-mode-switch {
+    -fx-padding: 3;
+    -fx-spacing: 3;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: none;
+}
+
+.assignment-mode-button {
+    -fx-min-width: 108;
+    -fx-pref-width: 108;
+    -fx-max-width: 108;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-text;
+}
+
+.assignment-mode-button:hover,
+.assignment-mode-button:pressed,
+.assignment-mode-button:armed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text;
+}
+
+.assignment-mode-button-active,
+.assignment-mode-button-active:hover,
+.assignment-mode-button-active:pressed,
+.assignment-mode-button-active:armed {
+    -fx-background-color: -wl-primary-selected;
+    -fx-border-color: -wl-primary-selected;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assignment-list-item,
+.assignment-checkbox-row {
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.assignment-list-item {
+    -fx-min-height: 96;
+    -fx-padding: 15 24 15 24;
+}
+
+.assignment-checkbox-row {
+    -fx-min-height: 69;
+    -fx-padding: 12 18 12 18;
+}
+
+.assignment-list-item > .graphic-container {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.assignment-checkbox-row > .graphic-container {
+    -fx-padding: 0 0 0 12;
+    -fx-alignment: center-left;
+}
+
+.assignment-list-item:hover,
+.assignment-list-item-active,
+.assignment-list-item-active:hover,
+.assignment-checkbox-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.assignment-list-item-active,
+.assignment-list-item-active:hover {
+    -fx-border-color: transparent transparent -wl-border -wl-primary;
+    -fx-border-width: 0 0 1 3;
+}
+
+.assignment-checkbox {
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+}
+
+.assignment-checkbox > .box,
+.assignment-checkbox-row > .box,
+.create-user-profile-row > .box {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.assignment-checkbox:selected > .box,
+.assignment-checkbox-row:selected > .box,
+.create-user-profile-row:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.assignment-checkbox:selected > .box > .mark,
+.assignment-checkbox-row:selected > .box > .mark,
+.create-user-profile-row:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.assignment-save-bar {
+    -fx-padding: 15 24 18 24;
+    -fx-background-color: -wl-card-content;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}

@@ -1,0 +1,2321 @@
+/* =========================================================
+   WEBLAGER ACTIVITY LOG
+   Clean stylesheet for the current row-based expandable log UI.
+   No legacy payload panels, no card/table expansion leftovers.
+   ========================================================= */
+
+.activity-log-page.logs-page {
+    -fx-background-color: -wl-background;
+    -fx-spacing: 18;
+}
+
+.logs-page {
+    -fx-background-color: -wl-background;
+}
+
+.activity-log-page.logs-page .logs-title {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-subtitle {
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* Toolbar */
+.activity-log-page.logs-page .logs-toolbar {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-search,
+.activity-log-page.logs-page .logs-filter {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-search {
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-search:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.activity-log-page.logs-page .logs-search-focused,
+.activity-log-page.logs-page .logs-search-focused:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-filter:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.activity-log-page.logs-page .logs-filter:focused,
+.activity-log-page.logs-page .logs-filter:showing {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .field-icon-shell,
+.activity-log-page.logs-page .logs-filter-icon-shell {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .field-icon-path,
+.activity-log-page.logs-page .logs-filter-icon-path {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .field-icon-path .text,
+.activity-log-page.logs-page .logs-filter-icon-path .text {
+    -fx-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .search-field-input,
+.activity-log-page.logs-page .search-field-input:hover,
+.activity-log-page.logs-page .search-field-input:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-filter {
+    -fx-padding: 0 12 0 12;
+}
+
+.activity-log-page.logs-page .logs-filter > .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-filter-graphic {
+    -fx-alignment: center-left;
+    -fx-spacing: 9;
+}
+
+.activity-log-page.logs-page .logs-filter-button-text {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-filter-copy {
+    -fx-spacing: 0;
+}
+
+.activity-log-page.logs-page .logs-filter-heading {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-filter-value {
+    -fx-text-fill: -wl-text;
+}
+
+/* Arrow-button styling inherits from app.css (canonical PrimeNG chevron at -wl-text). */
+
+.activity-log-page.logs-page .logs-clear-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-clear-button:hover,
+.activity-log-page.logs-page .logs-clear-button:pressed {
+    -fx-text-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-count-row {
+    -fx-padding: 3 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-showing-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.combo-box-popup .list-cell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-text-fill: -wl-text;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-primary;
+}
+
+.logs-search-popover-menu,
+.logs-search-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-search-popover-menu .menu-item,
+.logs-search-popover-menu .menu-item:focused,
+.logs-search-popover-menu .menu-item:hover,
+.logs-search-popover-menu .custom-menu-item,
+.logs-search-popover-menu .custom-menu-item:focused,
+.logs-search-popover-menu .custom-menu-item:hover {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-search-popover-menu .menu-item > .left-container,
+.logs-search-popover-menu .menu-item > .right-container,
+.logs-search-popover-menu .menu-item > .graphic-container,
+.logs-search-popover-menu .menu-item > .label,
+.logs-search-popover-menu .custom-menu-item > .label {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-filter .context-menu {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-filter .custom-menu-item {
+    -fx-padding: 0;
+}
+
+.logs-search-popover,
+.logs-status-popover,
+.logs-sort-popover,
+.logs-filters-popover {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.logs-search-popover {
+    -fx-padding: 12;
+    -fx-background-radius: 0 0 10 10;
+    -fx-border-radius: 0 0 10 10;
+}
+
+.logs-popover-title {
+    -fx-text-fill: -wl-text;
+}
+
+.logs-popover-link-button {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-padding: 0 3 0 3;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary;
+    -fx-cursor: hand;
+}
+
+.logs-popover-empty-text {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.logs-search-recent-row,
+.logs-sort-option {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.logs-search-recent-row:hover,
+.logs-sort-option:hover,
+.logs-sort-option-selected {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-search-recent-icon,
+.logs-search-recent-icon .text,
+.logs-sort-option-icon,
+.logs-sort-option-icon .text {
+    -fx-text-fill: -wl-text-muted;
+    -fx-fill: -wl-text-muted;
+}
+
+.logs-search-recent-text,
+.logs-sort-option-text {
+    -fx-text-fill: -wl-text;
+}
+
+.logs-status-popover {
+    -fx-min-width: 150;
+    -fx-pref-width: 150;
+    -fx-max-width: 150;
+}
+
+.logs-status-options {
+    -fx-padding: 9 9 6 9;
+    -fx-spacing: 6;
+}
+
+.logs-status-checkbox {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-text-fill: -wl-text;
+}
+
+.logs-status-checkbox-highlighted {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-status-checkbox .box {
+    -fx-min-width: 21;
+    -fx-pref-width: 21;
+    -fx-max-width: 21;
+    -fx-min-height: 21;
+    -fx-pref-height: 21;
+    -fx-max-height: 21;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+}
+
+.logs-status-checkbox:selected .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.logs-status-checkbox:selected .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.logs-status-checkbox-label {
+    -fx-text-fill: -wl-text;
+}
+
+.logs-status-pill {
+    -fx-min-height: 27;
+    -fx-pref-height: 27;
+    -fx-padding: 0 9 0 9;
+    -fx-background-radius: 3;
+}
+
+.logs-status-pill-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.logs-status-pill-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.logs-status-pill-warning {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.logs-status-pill-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.logs-status-divider {
+    -fx-background-color: -wl-border;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-padding: 0;
+}
+
+.logs-popover-footer {
+    -fx-padding: 12 15 15 15;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.logs-status-popover .logs-popover-footer,
+.logs-filters-popover .logs-popover-footer {
+    -fx-padding: 9;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button,
+.activity-log-page.logs-page .logs-date-apply-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 0 15 0 15;
+    -fx-cursor: hand;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button:hover,
+.activity-log-page.logs-page .logs-date-clear-button:pressed,
+.activity-log-page.logs-page .logs-date-clear-button:focused {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button:hover,
+.activity-log-page.logs-page .logs-date-apply-button:pressed,
+.activity-log-page.logs-page .logs-date-apply-button:focused {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button .text {
+    -fx-fill: -wl-on-primary;
+}
+
+.logs-status-popover .logs-date-apply-button,
+.logs-filters-popover .logs-date-apply-button {
+    -fx-min-width: 90;
+    -fx-pref-width: 90;
+    -fx-max-width: 90;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 15 0 15;
+}
+
+.logs-status-popover .logs-date-apply-button .text,
+.logs-filters-popover .logs-date-apply-button .text {
+    -fx-fill: -wl-on-primary;
+}
+
+.logs-sort-popover {
+    -fx-min-width: 195;
+    -fx-pref-width: 195;
+    -fx-max-width: 195;
+    -fx-padding: 6;
+}
+
+.logs-sort-option {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 9;
+}
+
+.logs-sort-option-check,
+.logs-sort-option-check .text {
+    -fx-text-fill: -wl-primary;
+    -fx-fill: -wl-primary;
+}
+
+.logs-filters-popover {
+    -fx-min-width: 150;
+    -fx-pref-width: 150;
+    -fx-max-width: 150;
+    -fx-padding: 9;
+}
+
+.logs-popover-combo {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.logs-filters-popover .logs-popover-combo {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+}
+
+/* Searchable dropdowns inside log popovers */
+.logs-searchable-select {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-cursor: hand;
+}
+
+.logs-searchable-select:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.logs-searchable-select-text,
+.logs-searchable-select-text .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-searchable-select-arrow,
+.logs-searchable-select-arrow .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-select-popover-menu,
+.logs-select-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-select-popover-menu .custom-menu-item,
+.logs-select-popover-menu .menu-item,
+.logs-select-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-select-popover {
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+    -fx-padding: 6;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.logs-select-popover-scroll {
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+    -fx-max-width: 120;
+    -fx-min-height: 150;
+    -fx-pref-height: 150;
+    -fx-max-height: 150;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-select-popover-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.logs-select-options-list {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.logs-select-option {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.logs-select-option:hover,
+.logs-select-option:focused,
+.logs-select-option-selected {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-select-option-text,
+.logs-select-option-text .text,
+.logs-select-option-check,
+.logs-select-option-check .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-select-option-check,
+.logs-select-option-check .text {
+    -fx-text-fill: -wl-primary;
+    -fx-fill: -wl-primary;
+}
+
+.logs-dropdown-search-shell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 9;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-alignment: center-left;
+}
+
+.logs-dropdown-search-shell:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.logs-dropdown-search-shell-focused,
+.logs-dropdown-search-shell-focused:hover {
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+}
+
+.logs-dropdown-search-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.logs-dropdown-search-icon,
+.logs-dropdown-search-icon .text {
+    -fx-text-fill: -wl-placeholder;
+    -fx-fill: -wl-placeholder;
+}
+
+.logs-dropdown-search-input,
+.logs-dropdown-search-input:hover,
+.logs-dropdown-search-input:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.logs-dropdown-empty-text {
+    -fx-padding: 9;
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* Time filter: exact typable time dropdown */
+.activity-log-page.logs-page .logs-time-filter-box {
+    -fx-min-width: 135;
+    -fx-pref-width: 135;
+    -fx-max-width: 135;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-time-filter-box:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
+.activity-log-page.logs-page .logs-time-filter-box:focused {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-effect: none;
+}
+
+.activity-log-page.logs-page .logs-time-filter-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-time-filter-icon,
+.activity-log-page.logs-page .logs-time-filter-icon .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-time-filter-value,
+.activity-log-page.logs-page .logs-time-filter-value .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-time-filter-value {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-alignment: center-left;
+    -fx-padding: 0;
+}
+
+/* Renders the &#xe930; PrimeIcon chevron set by ActivityController.
+   Color & shape follow the canonical caret (styleguide pp.4 & 7). */
+.activity-log-page.logs-page .logs-time-filter-menu,
+.activity-log-page.logs-page .logs-time-filter-menu:hover,
+.activity-log-page.logs-page .logs-time-filter-menu:focused,
+.activity-log-page.logs-page .logs-time-filter-menu:pressed {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-time-filter-menu .text,
+.activity-log-page.logs-page .logs-time-filter-menu:hover .text,
+.activity-log-page.logs-page .logs-time-filter-menu:focused .text,
+.activity-log-page.logs-page .logs-time-filter-menu:pressed .text {
+    -fx-fill: -wl-text;
+}
+
+.logs-time-popover-menu,
+.logs-time-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-time-popover-menu .custom-menu-item,
+.logs-time-popover-menu .menu-item,
+.logs-time-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-time-popover {
+    -fx-min-width: 135;
+    -fx-pref-width: 135;
+    -fx-max-width: 135;
+    -fx-padding: 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.logs-time-popover-scroll {
+    -fx-min-width: 123;
+    -fx-pref-width: 123;
+    -fx-max-width: 123;
+    -fx-min-height: 180;
+    -fx-pref-height: 180;
+    -fx-max-height: 180;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-time-popover-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.logs-time-popover-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 9;
+}
+
+.logs-time-popover-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.logs-time-popover-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: -wl-border;
+    -fx-background-radius: 999;
+}
+
+.logs-time-popover-list {
+    -fx-background-color: -wl-surface;
+    -fx-spacing: 0;
+}
+
+.logs-time-option {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 9 0 9;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.logs-time-option:hover,
+.logs-time-option:focused,
+.logs-time-option-selected {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.logs-time-option-text,
+.logs-time-option-text .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.logs-time-option-check,
+.logs-time-option-check .text {
+    -fx-text-fill: -wl-primary;
+    -fx-fill: -wl-primary;
+}
+
+/* Date filter: typable field + anchored calendar popup */
+.activity-log-page.logs-page .logs-date-filter-box {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-date-filter-box:hover {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
+.activity-log-page.logs-page .logs-date-filter-box:focused {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-effect: none;
+}
+
+.activity-log-page.logs-page .logs-date-filter-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-date-filter-icon,
+.activity-log-page.logs-page .logs-date-filter-icon .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-filter-input,
+.activity-log-page.logs-page .logs-date-filter-input:hover,
+.activity-log-page.logs-page .logs-date-filter-input:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Renders the &#xe930; PrimeIcon chevron set by ActivityController.
+   Color & shape follow the canonical caret (styleguide pp.4 & 7). */
+.activity-log-page.logs-page .logs-date-filter-menu,
+.activity-log-page.logs-page .logs-date-filter-menu:hover,
+.activity-log-page.logs-page .logs-date-filter-menu:focused,
+.activity-log-page.logs-page .logs-date-filter-menu:pressed {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-date-filter-menu .text,
+.activity-log-page.logs-page .logs-date-filter-menu:hover .text,
+.activity-log-page.logs-page .logs-date-filter-menu:focused .text,
+.activity-log-page.logs-page .logs-date-filter-menu:pressed .text {
+    -fx-fill: -wl-text;
+}
+
+.logs-date-popover-menu,
+.logs-date-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-date-popover-menu .custom-menu-item,
+.logs-date-popover-menu .menu-item,
+.logs-date-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.logs-date-popover {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-effect: none;
+}
+
+.logs-calendar-panel {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-padding: 6 6 12 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.logs-calendar-header {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-padding: 0 0 12 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center;
+}
+
+.logs-calendar-month-label {
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+}
+
+.logs-calendar-nav-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-text-muted;
+    -fx-cursor: hand;
+}
+
+.logs-calendar-nav-button:hover,
+.logs-calendar-nav-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.logs-calendar-grid {
+    -fx-padding: 12 0 0 0;
+    -fx-hgap: 3;
+    -fx-vgap: 6;
+    -fx-alignment: center;
+}
+
+.logs-calendar-day-name {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.logs-calendar-day-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-effect: none;
+}
+
+.logs-calendar-day-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.logs-calendar-day-in-range {
+    -fx-background-color: -wl-date-range-between-bg;
+    -fx-text-fill: -wl-text;
+}
+
+.logs-calendar-day-selected,
+.logs-calendar-day-selected:hover,
+.logs-calendar-day-selected:focused {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.logs-calendar-day-today,
+.logs-calendar-day-today:hover,
+.logs-calendar-day-today:focused {
+    -fx-background-color: -wl-error;
+    -fx-border-color: -wl-error;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.logs-calendar-day-outside {
+    -fx-text-fill: -wl-placeholder;
+}
+
+/* =========================================================
+   ACTIVITY LOG FILTER POPUP FOCUS RESET
+   Prevents JavaFX/MenuButton blue focus edges on open popovers.
+   ========================================================= */
+
+.activity-log-page.logs-page .logs-filter,
+.activity-log-page.logs-page .logs-filter:hover,
+.activity-log-page.logs-page .logs-filter:focused,
+.activity-log-page.logs-page .logs-filter:showing,
+.activity-log-page.logs-page .logs-filter:armed,
+.activity-log-page.logs-page .logs-filter:pressed {
+    -fx-border-color: -wl-border;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-filter .context-menu,
+.activity-log-page.logs-page .logs-filter .context-menu:focused,
+.activity-log-page.logs-page .logs-filter .custom-menu-item,
+.activity-log-page.logs-page .logs-filter .custom-menu-item:focused,
+.activity-log-page.logs-page .logs-filter .custom-menu-item:hover,
+.activity-log-page.logs-page .logs-filter .menu-item,
+.activity-log-page.logs-page .logs-filter .menu-item:focused,
+.activity-log-page.logs-page .logs-filter .menu-item:hover {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-status-popover,
+.activity-log-page.logs-page .logs-status-popover:focused,
+.activity-log-page.logs-page .logs-filters-popover,
+.activity-log-page.logs-page .logs-filters-popover:focused,
+.activity-log-page.logs-page .logs-sort-popover,
+.activity-log-page.logs-page .logs-sort-popover:focused {
+    -fx-border-color: -wl-border;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* =========================================================
+   ACTIVITY LOG FILTER TEXT VISIBILITY FIX
+   JavaFX can lose text fill on focused/hovered MenuButton
+   skin children unless the .text node is explicitly styled.
+   ========================================================= */
+
+.activity-log-page.logs-page .logs-filter,
+.activity-log-page.logs-page .logs-filter:hover,
+.activity-log-page.logs-page .logs-filter:focused,
+.activity-log-page.logs-page .logs-filter:showing,
+.activity-log-page.logs-page .logs-filter:pressed,
+.activity-log-page.logs-page .logs-filter:armed {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-filter .text,
+.activity-log-page.logs-page .logs-filter:hover .text,
+.activity-log-page.logs-page .logs-filter:focused .text,
+.activity-log-page.logs-page .logs-filter:showing .text,
+.activity-log-page.logs-page .logs-filter:pressed .text,
+.activity-log-page.logs-page .logs-filter:armed .text {
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-filter-button-text,
+.activity-log-page.logs-page .logs-filter-button-text .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-popover-combo,
+.activity-log-page.logs-page .logs-popover-combo:hover,
+.activity-log-page.logs-page .logs-popover-combo:focused,
+.activity-log-page.logs-page .logs-popover-combo:showing {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-popover-combo .list-cell,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:hover,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:focused,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:selected,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:filled:selected {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-popover-combo .list-cell .text,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:hover .text,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:focused .text,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:selected .text,
+.activity-log-page.logs-page .logs-popover-combo .list-cell:filled:selected .text {
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button,
+.activity-log-page.logs-page .logs-date-clear-button:hover,
+.activity-log-page.logs-page .logs-date-clear-button:pressed,
+.activity-log-page.logs-page .logs-date-clear-button:focused {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-clear-button .text,
+.activity-log-page.logs-page .logs-date-clear-button:hover .text,
+.activity-log-page.logs-page .logs-date-clear-button:pressed .text,
+.activity-log-page.logs-page .logs-date-clear-button:focused .text {
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button,
+.activity-log-page.logs-page .logs-date-apply-button:hover,
+.activity-log-page.logs-page .logs-date-apply-button:pressed,
+.activity-log-page.logs-page .logs-date-apply-button:focused {
+    -fx-text-fill: -wl-on-primary;
+}
+
+.activity-log-page.logs-page .logs-date-apply-button .text,
+.activity-log-page.logs-page .logs-date-apply-button:hover .text,
+.activity-log-page.logs-page .logs-date-apply-button:pressed .text,
+.activity-log-page.logs-page .logs-date-apply-button:focused .text {
+    -fx-fill: -wl-on-primary;
+}
+
+/* Event stream (left list) */
+.activity-log-page.logs-page .logs-content {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-event-stream {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-event-stream-shell {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-event-group-header {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-padding: 0 24 0 24;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.activity-log-page.logs-page .logs-event-group-title {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-event-count-badge {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-min-width: 24;
+    -fx-padding: 0 9 0 9;
+    -fx-alignment: center;
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 3;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-expandable-row {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.activity-log-page.logs-page .logs-expandable-row-selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-border-color: transparent transparent -wl-border -wl-primary;
+    -fx-border-width: 0 0 1 4;
+}
+
+.activity-log-page.logs-page .logs-expandable-row-selected-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: transparent transparent -wl-border -wl-status-error-border;
+    -fx-border-width: 0 0 1 4;
+}
+
+.activity-log-page.logs-page .logs-event-row,
+.activity-log-page.logs-page .logs-event-row:hover,
+.activity-log-page.logs-page .logs-event-row:focused,
+.activity-log-page.logs-page .logs-event-row:pressed,
+.activity-log-page.logs-page .logs-event-row:armed {
+    -fx-min-height: 58;
+    -fx-pref-height: 58;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6 6 0 0;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-event-row-selected,
+.activity-log-page.logs-page .logs-event-row-selected-failed {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-event-row:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.activity-log-page.logs-page .logs-expandable-row-selected .logs-event-row:hover,
+.activity-log-page.logs-page .logs-expandable-row-selected-failed .logs-event-row:hover {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-event-row-content {
+    -fx-padding: 0 24 0 24;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-event-icon {
+    -fx-min-width: 42;
+    -fx-pref-width: 42;
+    -fx-max-width: 42;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-max-height: 42;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-event-icon-path {
+    -fx-text-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-event-icon-path .text {
+    -fx-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-event-icon-users {
+    -fx-background-color: -wl-activity-user-bg;
+    -fx-border-color: -wl-activity-user-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-profiles {
+    -fx-background-color: -wl-activity-profile-bg;
+    -fx-border-color: -wl-activity-profile-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-documents {
+    -fx-background-color: -wl-activity-document-bg;
+    -fx-border-color: -wl-activity-document-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-system {
+    -fx-background-color: -wl-activity-system-bg;
+    -fx-border-color: -wl-activity-system-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-files {
+    -fx-background-color: -wl-activity-export-bg;
+    -fx-border-color: -wl-activity-export-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-qa {
+    -fx-background-color: -wl-activity-qa-bg;
+    -fx-border-color: -wl-activity-qa-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-access {
+    -fx-background-color: -wl-activity-access-bg;
+    -fx-border-color: -wl-activity-access-bg;
+}
+
+.activity-log-page.logs-page .logs-event-icon-users .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-users .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-profiles .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-profiles .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-files .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-files .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-documents .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-documents .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-qa .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-qa .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-access .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-access .logs-event-icon-path .text,
+.activity-log-page.logs-page .logs-event-icon-system .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-system .logs-event-icon-path .text {
+    -fx-fill: -wl-activity-text;
+    -fx-text-fill: -wl-activity-text;
+}
+
+.activity-log-page.logs-page .logs-event-icon-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+}
+
+.activity-log-page.logs-page .logs-event-icon-failed .logs-event-icon-path,
+.activity-log-page.logs-page .logs-event-icon-failed .logs-event-icon-path .text {
+    -fx-fill: -wl-status-error-text;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-event-time {
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-max-width: 72;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-event-title {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-event-meta {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-area-chip,
+.activity-log-page.logs-page .logs-result-pill {
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-padding: 0 9 0 9;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-area-users {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.activity-log-page.logs-page .logs-area-profiles {
+    -fx-background-color: -wl-tag-purple-bg;
+    -fx-border-color: -wl-tag-purple-border;
+    -fx-text-fill: -wl-tag-purple-text;
+}
+
+.activity-log-page.logs-page .logs-area-documents {
+    -fx-background-color: -wl-tag-blue-bg;
+    -fx-border-color: -wl-tag-blue-border;
+    -fx-text-fill: -wl-tag-blue-text;
+}
+
+.activity-log-page.logs-page .logs-area-qa {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-area-access {
+    -fx-background-color: -wl-tag-teal-bg;
+    -fx-border-color: -wl-tag-teal-border;
+    -fx-text-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-area-files,
+.activity-log-page.logs-page .logs-area-import {
+    -fx-background-color: -wl-tag-teal-bg;
+    -fx-border-color: -wl-tag-teal-border;
+    -fx-text-fill: -wl-tag-teal-text;
+}
+
+.activity-log-page.logs-page .logs-area-system {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.activity-log-page.logs-page .logs-area-import-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-result-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-result-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-result-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.activity-log-page.logs-page .logs-load-more-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: -wl-text;
+}
+
+/* Empty state */
+.activity-log-page.logs-page .activity-log-empty-state {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+}
+
+.activity-log-page.logs-page .logs-payload-card-title-row {
+    -fx-alignment: top-left;
+}
+
+.activity-log-page.logs-page .logs-payload-header-title {
+    -fx-padding: 3 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-header-title-link {
+    -fx-fill: -wl-primary;
+}
+
+.activity-log-page.logs-page .logs-payload-header-subtitle {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-header-actor-link {
+    -fx-text-fill: -wl-primary;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-payload-header-actor-link:hover {
+    -fx-underline: true;
+}
+
+.activity-log-page.logs-page .logs-payload-header-date {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-close-button {
+    -fx-min-width: 28;
+    -fx-pref-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-text-muted;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-payload-close-button:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+/* ----- STATUS PILL ----- */
+.activity-log-page.logs-page .logs-payload-status-pill {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 3;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-status-pill-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-status-pill-failed {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-status-pill-deleted {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.activity-log-page.logs-page .logs-payload-status-pill-warning {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.activity-log-page.logs-page .logs-payload-status-pill-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+/* ----- SIMPLE OPTION 2 PAYLOAD ----- */
+.activity-log-page.logs-page .logs-payload-simple-header {
+    -fx-padding: 18 18 18 18;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-success {
+    -fx-background-color: -wl-status-success-bg;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-failed {
+    -fx-background-color: -wl-status-error-bg;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-warning {
+    -fx-background-color: -wl-status-warning-bg;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-info {
+    -fx-background-color: -wl-status-info-bg;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-icon-shell {
+    -fx-min-width: 44;
+    -fx-pref-width: 44;
+    -fx-max-width: 44;
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-max-height: 44;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 999;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-icon,
+.activity-log-page.logs-page .logs-payload-simple-header-icon .text {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-success .logs-payload-simple-header-icon,
+.activity-log-page.logs-page .logs-payload-simple-header-success .logs-payload-simple-header-icon .text {
+    -fx-fill: -wl-status-success-text;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-failed .logs-payload-simple-header-icon,
+.activity-log-page.logs-page .logs-payload-simple-header-failed .logs-payload-simple-header-icon .text {
+    -fx-fill: -wl-status-error-text;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-warning .logs-payload-simple-header-icon,
+.activity-log-page.logs-page .logs-payload-simple-header-warning .logs-payload-simple-header-icon .text {
+    -fx-fill: -wl-status-warning-text;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-header-info .logs-payload-simple-header-icon,
+.activity-log-page.logs-page .logs-payload-simple-header-info .logs-payload-simple-header-icon .text {
+    -fx-fill: -wl-status-info-text;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-title {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-subtitle {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-body {
+    -fx-padding: 15 21 15 21;
+    -fx-spacing: 9;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-row {
+    -fx-spacing: 18;
+    -fx-alignment: top-left;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-label {
+    -fx-min-width: 118;
+    -fx-pref-width: 118;
+    -fx-max-width: 118;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-value {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-footer {
+    -fx-padding: 15 21 15 21;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-footer-title {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-simple-trace {
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* ----- HERO ICON VARIANTS ----- */
+/* DIFF - neutral circle */
+.activity-log-page.logs-page .logs-payload-hero-diff-circle {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-max-height: 48;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-icon-user,
+.activity-log-page.logs-page .logs-payload-hero-icon-purple,
+.activity-log-page.logs-page .logs-payload-hero-icon-teal,
+.activity-log-page.logs-page .logs-payload-hero-icon-blue,
+.activity-log-page.logs-page .logs-payload-hero-icon-neutral {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-diff-icon,
+.activity-log-page.logs-page .logs-payload-hero-diff-icon .text {
+    -fx-fill: -wl-text;
+    -fx-text-fill: -wl-text;
+}
+
+/* ASSET — white square tile with TIFF badge */
+.activity-log-page.logs-page .logs-payload-hero-asset-tile {
+    -fx-min-width: 56;
+    -fx-pref-width: 56;
+    -fx-max-width: 56;
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
+    -fx-max-height: 56;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-asset-icon,
+.activity-log-page.logs-page .logs-payload-hero-asset-icon .text {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-asset-badge {
+    -fx-min-height: 14;
+    -fx-pref-height: 14;
+    -fx-padding: 0 6 0 6;
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 3;
+    -fx-text-fill: -wl-on-primary;
+    -fx-translate-x: 4;
+    -fx-translate-y: -4;
+}
+
+/* FAILURE — just the warning triangle, no container */
+.activity-log-page.logs-page .logs-payload-hero-failure {
+    -fx-min-width: 48;
+    -fx-pref-width: 48;
+    -fx-max-width: 48;
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-max-height: 48;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-failure-icon,
+.activity-log-page.logs-page .logs-payload-hero-failure-icon .text {
+    -fx-fill: -wl-status-error-text;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+/* SNAPSHOT — gray square tile with trash */
+.activity-log-page.logs-page .logs-payload-hero-snapshot-tile {
+    -fx-min-width: 56;
+    -fx-pref-width: 56;
+    -fx-max-width: 56;
+    -fx-min-height: 56;
+    -fx-pref-height: 56;
+    -fx-max-height: 56;
+    -fx-background-color: -wl-surface-hover;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-snapshot-icon,
+.activity-log-page.logs-page .logs-payload-hero-snapshot-icon .text {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-error-icon-shell {
+    -fx-min-width: 20;
+    -fx-pref-width: 20;
+    -fx-max-width: 20;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-error-icon,
+.activity-log-page.logs-page .logs-payload-error-icon .text {
+    -fx-fill: -wl-status-error-text;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-error-title {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-error-copy {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-row-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+    -fx-opacity: 0.3;
+}
+
+.activity-log-page.logs-page .logs-payload-changes-last-cell {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.activity-log-page.logs-page .logs-payload-change-field-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-change-header-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-link {
+    -fx-text-fill: -wl-primary;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-link:hover {
+    -fx-underline: true;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-danger {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value-success {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-icon,
+.activity-log-page.logs-page .logs-payload-kv-icon .text {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-icon-shell {
+    -fx-min-width: 16;
+    -fx-pref-width: 16;
+    -fx-max-width: 16;
+    -fx-min-height: 16;
+    -fx-pref-height: 16;
+    -fx-max-height: 16;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-icon,
+.activity-log-page.logs-page .logs-payload-tile-icon .text {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-value-line {
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-danger .logs-payload-tile-value {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-copy-button {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.activity-log-page.logs-page .logs-payload-copy-button:hover {
+    -fx-background-color: -wl-surface-hover;
+}
+
+.activity-log-page.logs-page .logs-payload-copy-icon,
+.activity-log-page.logs-page .logs-payload-copy-icon .text {
+    -fx-fill: -wl-text-muted;
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* ----- NOTE TEXT ----- */
+.activity-log-page.logs-page .logs-payload-note-text {
+    -fx-text-fill: -wl-text;
+}
+
+/* ----- WORKSPACE SPLIT (list + detail) ----- */
+.activity-log-page.logs-page .logs-workspace {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-workspace > .split-pane-divider {
+    -fx-background-color: -wl-border;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-list-scroll,
+.activity-log-page.logs-page .logs-detail-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-list-scroll > .viewport,
+.activity-log-page.logs-page .logs-detail-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.activity-log-page.logs-page .logs-detail-pane {
+    -fx-padding: 3 3 3 18;
+}
+
+/* =========================================================
+   REBUILT RIGHT PANE - typed renderers, polished card rhythm
+   ========================================================= */
+.activity-log-page.logs-page .logs-payload-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.activity-log-page.logs-page .logs-payload-card-header {
+    -fx-padding: 21 21 18 21;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-header-title-text {
+    -fx-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-header-subtitle,
+.activity-log-page.logs-page .logs-payload-header-date {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-hero-diff-circle,
+.activity-log-page.logs-page .logs-payload-hero-snapshot-tile,
+.activity-log-page.logs-page .logs-payload-hero-asset-tile {
+    -fx-min-width: 54;
+    -fx-pref-width: 54;
+    -fx-max-width: 54;
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+}
+
+.activity-log-page.logs-page .logs-payload-section {
+    -fx-padding: 18 24 18 24;
+    -fx-spacing: 12;
+}
+
+.activity-log-page.logs-page .logs-payload-section-title {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-section-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+    -fx-opacity: 0.62;
+}
+
+.activity-log-page.logs-page .logs-payload-error-banner {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0 22 16 22;
+    -fx-border-color: -wl-status-error-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0 22 16 22;
+    -fx-padding: 15 24 15 24;
+    -fx-spacing: 12;
+    -fx-alignment: top-left;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 0 12 0 12;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-row {
+    -fx-padding: 6 0 6 0;
+    -fx-alignment: center-left;
+    -fx-spacing: 12;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-min-width: 132;
+    -fx-pref-width: 132;
+    -fx-max-width: 132;
+}
+
+.activity-log-page.logs-page .logs-payload-kv-value {
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+}
+
+.activity-log-page.logs-page .logs-payload-changes-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+}
+
+.activity-log-page.logs-page .logs-payload-changes-grid {
+    -fx-hgap: 0;
+    -fx-vgap: 0;
+}
+
+.activity-log-page.logs-page .logs-payload-changes-cell {
+    -fx-min-height: 39;
+    -fx-pref-height: 39;
+    -fx-padding: 6 9 6 9;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.activity-log-page.logs-page .logs-payload-changes-header-cell {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-padding: 6 9 6 9;
+    -fx-background-color: -wl-card-content;
+}
+
+.activity-log-page.logs-page .logs-payload-change-header-label,
+.activity-log-page.logs-page .logs-payload-change-field-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.activity-log-page.logs-page .logs-payload-change-header-before {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-change-header-after {
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-change-before,
+.activity-log-page.logs-page .logs-payload-change-after {
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-min-width: 0;
+    -fx-pref-width: 118;
+    -fx-max-width: 156;
+    -fx-padding: 0 9 0 9;
+    -fx-background-radius: 6;
+    -fx-alignment: center;
+}
+
+.activity-log-page.logs-page .logs-payload-change-before {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.activity-log-page.logs-page .logs-payload-change-after {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-grid {
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+}
+
+.activity-log-page.logs-page .logs-payload-tile {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 12 15 12 15;
+    -fx-min-width: 152;
+    -fx-pref-width: 168;
+    -fx-spacing: 4;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-label {
+    -fx-text-fill: -wl-text-muted;
+    -fx-padding: 3 0 0 0;
+}
+
+.activity-log-page.logs-page .logs-payload-tile-value {
+    -fx-text-fill: -wl-text;
+}
+
+.activity-log-page.logs-page .logs-payload-trace-row {
+    -fx-spacing: 12;
+    -fx-alignment: center-left;
+}
+
+.activity-log-page.logs-page .logs-payload-trace-line {
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* Diff-table alignment. */
+.activity-log-page.logs-page .logs-payload-change-center-arrow {
+    -fx-text-fill: -wl-text;
+    -fx-min-width: 22;
+    -fx-pref-width: 22;
+    -fx-max-width: 22;
+    -fx-min-height: 22;
+    -fx-pref-height: 22;
+    -fx-max-height: 22;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-alignment: center;
+}
+
+/* =========================================================
+   ACTIVITY LOG STATUS/FILTER FOOTER FIX
+   Removes the extra footer divider and forces Apply text
+   visible on primary buttons.
+   ========================================================= */
+
+.activity-log-page.logs-page .logs-popover-footer {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button,
+.activity-log-page.logs-page .logs-sort-popover .logs-date-apply-button,
+.activity-log-page.logs-page .logs-date-apply-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-alignment: center;
+    -fx-content-display: text-only;
+    -fx-opacity: 1;
+}
+
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button:hover,
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button:focused,
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button:pressed,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button:hover,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button:focused,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button:pressed,
+.activity-log-page.logs-page .logs-date-apply-button:hover,
+.activity-log-page.logs-page .logs-date-apply-button:focused,
+.activity-log-page.logs-page .logs-date-apply-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+    -fx-opacity: 1;
+}
+
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button .text,
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button:hover .text,
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button:focused .text,
+.activity-log-page.logs-page .logs-status-popover .logs-date-apply-button:pressed .text,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button .text,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button:hover .text,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button:focused .text,
+.activity-log-page.logs-page .logs-filters-popover .logs-date-apply-button:pressed .text,
+.activity-log-page.logs-page .logs-date-apply-button .text,
+.activity-log-page.logs-page .logs-date-apply-button:hover .text,
+.activity-log-page.logs-page .logs-date-apply-button:focused .text,
+.activity-log-page.logs-page .logs-date-apply-button:pressed .text {
+    -fx-fill: -wl-on-primary;
+    -fx-opacity: 1;
+}
+

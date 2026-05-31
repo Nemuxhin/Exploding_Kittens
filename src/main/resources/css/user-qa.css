@@ -1,0 +1,1043 @@
+/* =========================================================
+   WEBLAGER USER QA WORKFLOW
+   Assigned QA list and QA review workspace.
+   ========================================================= */
+
+/* =========================================================
+   01. ASSIGNED QA PAGE SHELL
+   ========================================================= */
+
+.assigned-qa-page,
+.assigned-qa-scroll,
+.assigned-qa-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.assigned-qa-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.assigned-qa-content {
+    -fx-background-color: -wl-background;
+    -fx-alignment: top-center;
+}
+
+.assigned-qa-header,
+.assigned-qa-toolbar,
+.assigned-qa-card-list {
+    -fx-pref-width: 1080;
+    -fx-max-width: 1080;
+}
+
+/* =========================================================
+   02. ASSIGNED QA HEADER
+   ========================================================= */
+
+.assigned-qa-title {
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-subtitle {
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* =========================================================
+   03. ASSIGNED QA FILTER BAR
+   ========================================================= */
+
+.assigned-qa-toolbar {
+    -fx-alignment: center-left;
+}
+
+.assigned-qa-search-field,
+.assigned-qa-filter-combo {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.assigned-qa-search-field:hover,
+.assigned-qa-filter-combo:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.assigned-qa-search-field:focused,
+.assigned-qa-filter-combo:focused {
+    -fx-border-color: -wl-input-focus-border;
+}
+
+/* Arrow-button styling inherits from app.css (styleguide canonical: 0 9 0 9). */
+
+.assigned-qa-filter-combo .list-cell {
+    -fx-text-fill: -wl-text;
+}
+
+
+/* =========================================================
+   03B. ASSIGNED QA CUSTOM DATE RANGE CALENDAR
+   Mirrors the Logs/Review custom calendar; replaces stock DatePicker UI.
+   ========================================================= */
+
+.assigned-qa-date-filter-box {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 9 0 12;
+    -fx-spacing: 9;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.assigned-qa-date-filter-box:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-hover-border;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-filter-box:focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-filter-icon-shell {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-alignment: center;
+}
+
+.assigned-qa-date-filter-icon,
+.assigned-qa-date-filter-icon .text {
+    -fx-text-fill: -wl-text;
+    -fx-fill: -wl-text;
+}
+
+.assigned-qa-date-filter-input,
+.assigned-qa-date-filter-input:hover,
+.assigned-qa-date-filter-input:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Renders the &#xe930; PrimeIcon chevron set by AssignedQaController.
+   Color & shape follow the canonical caret (styleguide pp.4 & 7). */
+.assigned-qa-date-filter-menu,
+.assigned-qa-date-filter-menu:hover,
+.assigned-qa-date-filter-menu:focused,
+.assigned-qa-date-filter-menu:pressed {
+    -fx-min-width: 24;
+    -fx-pref-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.assigned-qa-date-filter-menu .text,
+.assigned-qa-date-filter-menu:hover .text,
+.assigned-qa-date-filter-menu:focused .text,
+.assigned-qa-date-filter-menu:pressed .text {
+    -fx-fill: -wl-text;
+}
+
+/* The arrow Region graphic was retired in favour of the &#xe930; PrimeIcon text
+   glyph rendered by .assigned-qa-date-filter-menu (styleguide canonical). */
+
+.assigned-qa-date-popover-menu,
+.assigned-qa-date-popover-menu .context-menu {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-popover-menu .custom-menu-item,
+.assigned-qa-date-popover-menu .menu-item,
+.assigned-qa-date-popover-menu .menu-item:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: none;
+}
+
+.assigned-qa-date-popover {
+    -fx-padding: 0;
+    -fx-spacing: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-effect: none;
+}
+
+.assigned-qa-calendar-panel {
+    -fx-min-width: 240;
+    -fx-pref-width: 240;
+    -fx-max-width: 240;
+    -fx-padding: 6 6 12 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.assigned-qa-calendar-header {
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-padding: 0 0 12 0;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center;
+}
+
+.assigned-qa-calendar-month-label {
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+}
+
+.assigned-qa-calendar-nav-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-text-muted;
+    -fx-cursor: hand;
+}
+
+.assigned-qa-calendar-nav-button:hover,
+.assigned-qa-calendar-nav-button:pressed {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-calendar-grid {
+    -fx-padding: 12 0 0 0;
+    -fx-hgap: 3;
+    -fx-vgap: 6;
+    -fx-alignment: center;
+}
+
+.assigned-qa-calendar-day-name {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.assigned-qa-calendar-day-button {
+    -fx-min-width: 30;
+    -fx-pref-width: 30;
+    -fx-max-width: 30;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-effect: none;
+}
+
+.assigned-qa-calendar-day-button:hover {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-calendar-day-in-range {
+    -fx-background-color: -wl-date-range-between-bg;
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-calendar-day-selected,
+.assigned-qa-calendar-day-selected:hover,
+.assigned-qa-calendar-day-selected:focused {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-calendar-day-today,
+.assigned-qa-calendar-day-today:hover,
+.assigned-qa-calendar-day-today:focused {
+    -fx-background-color: -wl-error;
+    -fx-border-color: -wl-error;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-calendar-day-outside {
+    -fx-text-fill: -wl-placeholder;
+}
+
+
+/* =========================================================
+   04. ASSIGNED QA CARD LIST
+   ========================================================= */
+
+.assigned-qa-card-list {
+    -fx-spacing: 15;
+}
+
+.assigned-qa-card {
+    -fx-padding: 24;
+    -fx-spacing: 15;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.assigned-qa-card-title {
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-card-meta,
+.assigned-qa-card-detail {
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-card-meta-separator {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.assigned-qa-card-issues {
+    -fx-text-fill: -wl-status-error-text;
+}
+
+/* =========================================================
+   05. ASSIGNED QA STATUS BADGES
+   ========================================================= */
+
+.assigned-qa-status-badge,
+.qa-review-status-badge {
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.assigned-qa-status-waiting,
+.qa-review-status-waiting {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.assigned-qa-status-review,
+.qa-review-status-review {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.assigned-qa-status-issues,
+.qa-review-status-issues {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.assigned-qa-status-complete,
+.qa-review-status-complete {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+/* =========================================================
+   06. ASSIGNED QA PROGRESS BARS
+   ========================================================= */
+
+.assigned-qa-progress-track {
+    -fx-background-color: -wl-progress-track;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 0;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+}
+
+.assigned-qa-progress-fill {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 0;
+    -fx-min-height: 10;
+    -fx-pref-height: 10;
+    -fx-max-height: 10;
+}
+
+.assigned-qa-progress-none {
+    -fx-background-color: transparent;
+}
+
+.assigned-qa-progress-review {
+    -fx-background-color: -wl-progress-review;
+}
+
+.assigned-qa-progress-issues {
+    -fx-background-color: -wl-error;
+}
+
+.assigned-qa-progress-complete {
+    -fx-background-color: -wl-success;
+}
+
+.qa-progress-chip-issues {
+    -fx-text-fill: -wl-error;
+    -fx-border-color: -wl-error;
+}
+
+.qa-progress-chip-complete {
+    -fx-text-fill: -wl-success;
+    -fx-border-color: -wl-success;
+}
+
+/* =========================================================
+   07. ASSIGNED QA ACTION BUTTONS
+   ========================================================= */
+
+.assigned-qa-primary-button,
+.assigned-qa-secondary-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.assigned-qa-primary-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-primary-button:hover,
+.assigned-qa-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.assigned-qa-secondary-button {
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.assigned-qa-secondary-button:hover,
+.assigned-qa-secondary-button:pressed {
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
+}
+
+/* =========================================================
+   08. ASSIGNED QA EMPTY STATE
+   ========================================================= */
+
+.assigned-qa-empty-state {
+    -fx-padding: 36;
+    -fx-spacing: 6;
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.assigned-qa-empty-title {
+    -fx-text-fill: -wl-text;
+}
+
+.assigned-qa-empty-copy {
+    -fx-text-fill: -wl-text-muted;
+}
+
+/* =========================================================
+   09. QA REVIEW WORKSPACE SHELL
+   ========================================================= */
+
+.qa-review-workspace {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-meta-strong,
+.qa-review-meta {
+    -fx-text-fill: -wl-text;
+}
+
+.qa-review-meta-separator {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.qa-review-left-panel {
+    -fx-padding: 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent -wl-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.qa-review-center-panel {
+    -fx-background-color: -wl-background;
+}
+
+.qa-review-current-file-header {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent -wl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.qa-review-panel-title {
+    -fx-text-fill: -wl-text;
+}
+
+
+/* =========================================================
+   10. QA REVIEW PREVIEW / VIEW TOOLS
+   ========================================================= */
+
+.qa-preview-stage {
+    -fx-background-color: -wl-preview-bg;
+    -fx-padding: 15 24 15 24;
+}
+
+.qa-view-toolbar {
+    -fx-alignment: center-right;
+}
+
+.qa-view-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.qa-zoom-label {
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center;
+}
+
+.qa-view-icon-button {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.qa-view-icon-button:hover,
+.qa-view-icon-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+.qa-view-reset-button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+}
+
+.qa-view-reset-button:hover,
+.qa-view-reset-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+/* =========================================================
+   11. QA RIGHT TOOLS PANEL
+   ========================================================= */
+
+.qa-tools-panel {
+    -fx-padding: 9 15 15 15;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: transparent transparent transparent -wl-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.qa-tools-scroll,
+.qa-tools-scroll > .viewport {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-scroll {
+    -fx-background: -wl-surface;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.qa-tools-content {
+    -fx-background-color: -wl-surface;
+}
+
+.qa-tools-section-box {
+    -fx-background-color: transparent;
+}
+
+
+.scan-panel-divider {
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: -wl-border;
+}
+
+
+
+.scan-tool-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.scan-tool-button:hover,
+.scan-tool-button:pressed,
+.scan-tool-button:focused {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.combo-box-base.scan-tool-button,
+.combo-box-base.scan-tool-button:hover,
+.combo-box-base.scan-tool-button:focused,
+.combo-box-base.scan-tool-button:showing {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base.scan-tool-button:hover,
+.combo-box-base.scan-tool-button:focused,
+.combo-box-base.scan-tool-button:showing {
+    -fx-border-color: -wl-border;
+}
+
+.combo-box-base.scan-tool-button > .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 0 12 0 12;
+    -fx-text-fill: -wl-text;
+    -fx-alignment: center-left;
+}
+
+.combo-box-base.scan-tool-button:editable > .text-field {
+    -fx-min-height: 31;
+    -fx-pref-height: 31;
+    -fx-max-height: 31;
+    -fx-padding: 0 12 0 12;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button {
+    -fx-min-width: 33;
+    -fx-pref-width: 33;
+    -fx-max-width: 33;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-alignment: center;
+}
+
+.combo-box-base.scan-tool-button > .arrow-button > .arrow {
+    -fx-background-color: -wl-text;
+}
+
+.qa-tools-section-title {
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   12. QA CURRENT STATUS
+   ========================================================= */
+
+.qa-current-status-chip {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center-left;
+}
+
+.qa-current-status-pending {
+    -fx-background-color: -wl-muted-control-bg;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text-muted;
+}
+
+.qa-current-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-current-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+.qa-preview-page-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.qa-tray-page-block {
+    -fx-min-width: 45;
+    -fx-pref-width: 45;
+    -fx-max-width: 45;
+    -fx-min-height: 54;
+    -fx-pref-height: 54;
+    -fx-max-height: 54;
+    -fx-background-color: -wl-paper-muted-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: -wl-paper-line-light;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.qa-tree-page-status,
+.qa-tray-status-mark {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+.qa-review-workspace .qa-status-pending {
+    -fx-background-color: transparent;
+    -fx-border-color: -wl-border;
+}
+
+.qa-review-workspace .qa-status-approved {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.qa-review-workspace .qa-status-fix {
+    -fx-background-color: -wl-status-error-bg;
+    -fx-border-color: -wl-status-error-border;
+    -fx-text-fill: -wl-status-error-text;
+}
+
+/* =========================================================
+   13. QA CHECKLIST + COMMENT
+   ========================================================= */
+
+.qa-checklist-check-box {
+    -fx-text-fill: -wl-text;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-checklist-check-box > .box {
+    -fx-min-width: 18;
+    -fx-pref-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+    -fx-background-color: -wl-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+}
+
+.qa-checklist-check-box:selected > .box {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+}
+
+.qa-checklist-check-box:selected > .box > .mark {
+    -fx-background-color: -wl-on-primary;
+}
+
+.qa-comment-textarea {
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-max-height: 84;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 9;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.qa-comment-textarea .scroll-pane,
+.qa-comment-textarea .scroll-pane > .viewport,
+.qa-comment-textarea .scroll-pane > .content,
+.qa-comment-textarea .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+.qa-comment-textarea .scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+.qa-comment-textarea:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.qa-comment-textarea:focused {
+    -fx-border-color: -wl-input-focus-border;
+}
+
+/* =========================================================
+   14. QA BUTTONS
+   ========================================================= */
+
+.qa-approve-button,
+.qa-fix-button,
+.qa-neutral-button,
+.qa-export-type-button,
+.qa-complete-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 12 0 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.qa-approve-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-approve-button:hover,
+.qa-approve-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-fix-button {
+    -fx-background-color: -wl-destructive;
+    -fx-border-color: -wl-destructive;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-fix-button:hover,
+.qa-fix-button:pressed {
+    -fx-background-color: -wl-destructive-hover;
+    -fx-border-color: -wl-destructive-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-neutral-button,
+.qa-export-type-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.qa-neutral-button:hover,
+.qa-neutral-button:pressed,
+.qa-export-type-button:hover,
+.qa-export-type-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.qa-complete-button {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.qa-complete-button:hover,
+.qa-complete-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+    -fx-text-fill: -wl-on-primary;
+}

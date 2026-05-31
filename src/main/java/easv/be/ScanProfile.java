@@ -1,0 +1,288 @@
+package easv.be;
+
+public class ScanProfile {
+    public static final String DEFAULT_EXPORT_NAMING = "{profileName}_{boxId}";
+    public static final int DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 30;
+    public static final String EXPORT_FORMAT_MULTI_PAGE_TIFF = "Multi-page TIFF";
+    public static final String EXPORT_FORMAT_SINGLE_PAGE_TIFF = "Single-page TIFF";
+
+    private static final String LEGACY_PROFILE_CODE_TOKEN = "{profileCode}";
+    private static final String PROFILE_NAME_TOKEN = "{profileName}";
+
+    private final int id;
+    private String name;
+    private String client;
+    private String code;
+    private String description;
+    private String status;
+    private String metadataTemplateName;
+    private String exportNaming;
+    private String lastUpdated;
+
+    private boolean archived;
+    private boolean barcodeSplitting;
+    private String barcodeDetectedBehavior;
+    private String barcodePageBehavior;
+    private String defaultRotation;
+    private String brightness;
+    private String contrast;
+    private boolean deskew;
+    private String exportFormat;
+    private boolean metadataRequiredBeforeExport;
+
+    private boolean autosaveEnabled;
+    private int autosaveIntervalSeconds;
+    private boolean autosaveLocked;
+
+    public ScanProfile(
+            int id,
+            String name,
+            String code,
+            String description,
+            String status,
+            String metadataTemplateName,
+            String exportNaming,
+            String lastUpdated,
+            boolean archived,
+            boolean barcodeSplitting,
+            String barcodeDetectedBehavior,
+            String barcodePageBehavior,
+            String defaultRotation,
+            String brightness,
+            String contrast,
+            boolean deskew,
+            String exportFormat,
+            boolean metadataRequiredBeforeExport
+    ) {
+        this(
+                id,
+                name,
+                "",
+                code,
+                description,
+                status,
+                metadataTemplateName,
+                exportNaming,
+                lastUpdated,
+                archived,
+                barcodeSplitting,
+                barcodeDetectedBehavior,
+                barcodePageBehavior,
+                defaultRotation,
+                brightness,
+                contrast,
+                deskew,
+                exportFormat,
+                metadataRequiredBeforeExport,
+                true,
+                DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                false
+        );
+    }
+
+    public ScanProfile(
+            int id,
+            String name,
+            String client,
+            String code,
+            String description,
+            String status,
+            String metadataTemplateName,
+            String exportNaming,
+            String lastUpdated,
+            boolean archived,
+            boolean barcodeSplitting,
+            String barcodeDetectedBehavior,
+            String barcodePageBehavior,
+            String defaultRotation,
+            String brightness,
+            String contrast,
+            boolean deskew,
+            String exportFormat,
+            boolean metadataRequiredBeforeExport
+    ) {
+        this(
+                id,
+                name,
+                client,
+                code,
+                description,
+                status,
+                metadataTemplateName,
+                exportNaming,
+                lastUpdated,
+                archived,
+                barcodeSplitting,
+                barcodeDetectedBehavior,
+                barcodePageBehavior,
+                defaultRotation,
+                brightness,
+                contrast,
+                deskew,
+                exportFormat,
+                metadataRequiredBeforeExport,
+                true,
+                DEFAULT_AUTOSAVE_INTERVAL_SECONDS,
+                false
+        );
+    }
+
+    public ScanProfile(
+            int id,
+            String name,
+            String client,
+            String code,
+            String description,
+            String status,
+            String metadataTemplateName,
+            String exportNaming,
+            String lastUpdated,
+            boolean archived,
+            boolean barcodeSplitting,
+            String barcodeDetectedBehavior,
+            String barcodePageBehavior,
+            String defaultRotation,
+            String brightness,
+            String contrast,
+            boolean deskew,
+            String exportFormat,
+            boolean metadataRequiredBeforeExport,
+            boolean autosaveEnabled,
+            int autosaveIntervalSeconds,
+            boolean autosaveLocked
+    ) {
+        this.id = id;
+        this.name = clean(name);
+        this.client = clean(client);
+        this.code = clean(code);
+        this.description = clean(description);
+        this.status = clean(status);
+        this.metadataTemplateName = clean(metadataTemplateName);
+        this.exportNaming = normalizeExportNaming(exportNaming);
+        this.lastUpdated = clean(lastUpdated);
+        this.archived = archived;
+        this.barcodeSplitting = barcodeSplitting;
+        this.barcodeDetectedBehavior = clean(barcodeDetectedBehavior);
+        this.barcodePageBehavior = clean(barcodePageBehavior);
+        this.defaultRotation = clean(defaultRotation);
+        this.brightness = clean(brightness);
+        this.contrast = clean(contrast);
+        this.deskew = deskew;
+        this.exportFormat = normalizeExportFormat(exportFormat);
+        this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+        this.autosaveEnabled = autosaveEnabled;
+        this.autosaveIntervalSeconds = normalizeAutosaveInterval(autosaveIntervalSeconds);
+        this.autosaveLocked = autosaveLocked;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getClient() { return client; }
+    public String getCode() { return code; }
+    public String getDescription() { return description; }
+    public String getStatus() { return status; }
+    public String getMetadataTemplateName() { return metadataTemplateName; }
+    public String getExportNaming() { return exportNaming; }
+    public String getLastUpdated() { return lastUpdated; }
+
+    public boolean isArchived() { return archived; }
+    public boolean isBarcodeSplitting() { return barcodeSplitting; }
+    public String getBarcodeDetectedBehavior() { return barcodeDetectedBehavior; }
+    public String getBarcodePageBehavior() { return barcodePageBehavior; }
+    public String getDefaultRotation() { return defaultRotation; }
+    public String getBrightness() { return brightness; }
+    public String getContrast() { return contrast; }
+    public boolean isDeskew() { return deskew; }
+    public String getExportFormat() { return exportFormat; }
+    public boolean isMetadataRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+    public boolean isDocumentDetailsRequiredBeforeExport() { return metadataRequiredBeforeExport; }
+    public boolean isQaRequired() { return metadataRequiredBeforeExport; }
+
+    public boolean isAutosaveEnabled() { return autosaveEnabled; }
+    public int getAutosaveIntervalSeconds() { return autosaveIntervalSeconds; }
+    public boolean isAutosaveLocked() { return autosaveLocked; }
+
+    public void setName(String name) { this.name = clean(name); }
+    public void setClient(String client) { this.client = clean(client); }
+    public void setCode(String code) { this.code = clean(code); }
+    public void setDescription(String description) { this.description = clean(description); }
+    public void setStatus(String status) { this.status = clean(status); }
+    public void setMetadataTemplateName(String metadataTemplateName) { this.metadataTemplateName = clean(metadataTemplateName); }
+    public void setExportNaming(String exportNaming) { this.exportNaming = normalizeExportNaming(exportNaming); }
+    public void setLastUpdated(String lastUpdated) { this.lastUpdated = clean(lastUpdated); }
+
+    public void setArchived(boolean archived) { this.archived = archived; }
+    public void setBarcodeSplitting(boolean barcodeSplitting) { this.barcodeSplitting = barcodeSplitting; }
+    public void setBarcodeDetectedBehavior(String barcodeDetectedBehavior) { this.barcodeDetectedBehavior = clean(barcodeDetectedBehavior); }
+    public void setBarcodePageBehavior(String barcodePageBehavior) { this.barcodePageBehavior = clean(barcodePageBehavior); }
+    public void setDefaultRotation(String defaultRotation) { this.defaultRotation = clean(defaultRotation); }
+    public void setBrightness(String brightness) { this.brightness = clean(brightness); }
+    public void setContrast(String contrast) { this.contrast = clean(contrast); }
+    public void setDeskew(boolean deskew) { this.deskew = deskew; }
+    public void setExportFormat(String exportFormat) { this.exportFormat = normalizeExportFormat(exportFormat); }
+    public void setMetadataRequiredBeforeExport(boolean metadataRequiredBeforeExport) {
+        this.metadataRequiredBeforeExport = metadataRequiredBeforeExport;
+    }
+    public void setDocumentDetailsRequiredBeforeExport(boolean documentDetailsRequiredBeforeExport) {
+        this.metadataRequiredBeforeExport = documentDetailsRequiredBeforeExport;
+    }
+    public void setQaRequired(boolean qaRequired) {
+        this.metadataRequiredBeforeExport = qaRequired;
+    }
+
+    public void setAutosaveEnabled(boolean autosaveEnabled) { this.autosaveEnabled = autosaveEnabled; }
+    public void setAutosaveIntervalSeconds(int autosaveIntervalSeconds) {
+        this.autosaveIntervalSeconds = normalizeAutosaveInterval(autosaveIntervalSeconds);
+    }
+    public void setAutosaveLocked(boolean autosaveLocked) { this.autosaveLocked = autosaveLocked; }
+
+    private static String clean(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    public static String normalizeExportNaming(String value) {
+        String cleaned = clean(value);
+
+        if (cleaned.isBlank()) {
+            return DEFAULT_EXPORT_NAMING;
+        }
+
+        return cleaned.replace(LEGACY_PROFILE_CODE_TOKEN, PROFILE_NAME_TOKEN);
+    }
+
+    public static String normalizeExportFormat(String value) {
+        String cleaned = clean(value);
+
+        if (cleaned.isBlank()) {
+            return EXPORT_FORMAT_MULTI_PAGE_TIFF;
+        }
+
+        if (cleaned.equalsIgnoreCase(EXPORT_FORMAT_SINGLE_PAGE_TIFF)) {
+            return EXPORT_FORMAT_SINGLE_PAGE_TIFF;
+        }
+
+        if (cleaned.equalsIgnoreCase(EXPORT_FORMAT_MULTI_PAGE_TIFF)
+                || cleaned.equalsIgnoreCase("TIFF")
+                || cleaned.equalsIgnoreCase("PDF")
+                || cleaned.equalsIgnoreCase("PDF/A")) {
+            return EXPORT_FORMAT_MULTI_PAGE_TIFF;
+        }
+
+        return EXPORT_FORMAT_MULTI_PAGE_TIFF;
+    }
+
+    public static int normalizeAutosaveInterval(int seconds) {
+        // 0 is reserved for the "on every edit" option (debounced separately);
+        // anything else is clamped into a sensible 5s..1h band.
+        if (seconds <= 0) {
+            return 0;
+        }
+        if (seconds < 5) {
+            return 5;
+        }
+        if (seconds > 3600) {
+            return 3600;
+        }
+        return seconds;
+    }
+}

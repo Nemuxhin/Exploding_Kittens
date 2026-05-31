@@ -1,0 +1,1098 @@
+/* =========================================================
+   WEBLAGER APP CSS
+   Global visual system only.
+
+   Typography lives in typography.css.
+   Page-specific styles belong in their page files.
+   ========================================================= */
+
+/* =========================================================
+   01. THEME TOKENS
+   Shared default/light-mode variables. Dark-mode overrides live in dark-mode.css.
+
+   Scoped on .root as well as .app-shell so JavaFX popup scenes (ContextMenu,
+   ComboBox dropdown, DatePicker calendar) — whose root has the implicit .root
+   class but is not a descendant of .app-shell — can still resolve -wl-* tokens.
+   ========================================================= */
+
+.root,
+.app-shell {
+
+    /* Core surfaces */
+    -wl-background: #F5F5F5;
+    -wl-surface: #FFFFFF;
+    -wl-card-content: #F9F9F9;
+    -wl-input-bg: #FFFFFF;
+
+    /* Text */
+    -wl-text: #2D3D4F;
+    -wl-text-muted: #64748B;
+    -wl-table-header-text: #2D3D4F;
+    -wl-on-primary: #FFFFFF;
+    -wl-text-inverse: #FFFFFF;
+
+    /* Primary / secondary / tertiary */
+    -wl-primary: #2D3D4F;
+    -wl-primary-hover: #1C252F;
+    -wl-primary-nav-bg: #2D3D4F;
+    -wl-primary-nav-button: #415060;
+    -wl-primary-selected: #415060;
+    -wl-secondary: #64748B;
+    -wl-secondary-action: #64748B;
+    -wl-secondary-hover: #354556;
+    -wl-secondary-nav-bg: #24C79F;
+    -wl-secondary-nav-button: #2D3D4F;
+    -wl-tertiary: #F9F9F9;
+    -wl-tertiary-button: #FFFFFF;
+    -wl-tertiary-hover: #F1F5F9;
+
+    /* Borders / interaction */
+    -wl-border: #E2E4E8;
+    -wl-input-border: #E2E4E8;
+    -wl-input-hover-border: #2B3B4C;
+    -wl-input-focus-border: #2B3B4C;
+    -wl-placeholder: #BFBFBF;
+    -wl-surface-hover: #F1F5F9;
+    -wl-shadow-color: rgba(0, 0, 0, 0.10);
+    -wl-overlay-bg: rgba(0, 0, 0, 0.25);
+
+    /* Semantic colors */
+    -wl-destructive: #EF4444;
+    -wl-destructive-hover: #FF3D32;
+    -wl-error: #FF3D32;
+    -wl-success: #4CD07D;
+
+    /* Sidebar / logout */
+    -wl-sidebar-bg: #24C79F;
+    -wl-sidebar-text: #2D3D4F;
+    -wl-sidebar-icon: #2D3D4F;
+    -wl-sidebar-hover-bg: #2D3D4F;
+    -wl-sidebar-hover-text: #FFFFFF;
+    -wl-sidebar-active-bg: #2D3D4F;
+    -wl-sidebar-active-text: #FFFFFF;
+    -wl-sidebar-divider: #2D3D4F;
+    -wl-logout-bg: #2D3D4F;
+    -wl-logout-hover-bg: #1C252F;
+    -wl-logout-text: #FFFFFF;
+    -wl-logout-icon: #FFFFFF;
+    -wl-sidebar-language-bg: #FFFFFF;
+    -wl-sidebar-language-text: #2D3D4F;
+
+    /* Switch / avatar */
+    -wl-switch-track: #2D3D4F;
+    -wl-switch-track-hover: #1C252F;
+    -wl-switch-off-track: #64748B;
+    -wl-switch-off-track-hover: #4B5563;
+    -wl-switch-thumb: #FFFFFF;
+    -wl-switch-icon: #2D3D4F;
+    -wl-avatar-bg: #F1F5F9;
+
+    /* Status colors */
+    -wl-status-info-bg: #EAF4FF;
+    -wl-status-info-border: #CFE8FF;
+    -wl-status-info-text: #0B6FAE;
+    -wl-status-success-bg: #E9FBF6;
+    -wl-status-success-border: #C8F0E4;
+    -wl-status-success-text: #168A72;
+    -wl-status-warning-bg: #FFF7E6;
+    -wl-status-warning-border: #FACC15;
+    -wl-status-warning-text: #C96A00;
+    -wl-status-danger-bg: #FFF1F1;
+    -wl-status-danger-border: #FFB4B4;
+    -wl-status-danger-strong-border: #FF7A7A;
+    -wl-status-danger-text: #EF4444;
+    -wl-status-neutral-bg: #F9F9F9;
+    -wl-status-neutral-border: #E2E4E8;
+    -wl-status-neutral-text: #64748B;
+    -wl-status-error-bg: #FFF1F1;
+    -wl-status-error-border: #FFB4B4;
+    -wl-status-error-text: #FF3D32;
+    -wl-status-error-hover-bg: #FFE1E1;
+    -wl-status-success-hover-bg: #DDF8EF;
+
+    /* Tag colors */
+    -wl-tag-teal-bg: #E9FBF6;
+    -wl-tag-teal-border: #C8F0E4;
+    -wl-tag-teal-text: #168A72;
+    -wl-tag-blue-bg: #EAF4FF;
+    -wl-tag-blue-border: #CFE8FF;
+    -wl-tag-blue-text: #0B6FAE;
+    -wl-tag-purple-bg: #F3E8FF;
+    -wl-tag-purple-border: #DDD6FE;
+    -wl-tag-purple-text: #7C3AED;
+    -wl-tag-amber-bg: #FFF7E6;
+    -wl-tag-amber-border: #FACC15;
+    -wl-tag-amber-text: #C96A00;
+    -wl-tag-red-bg: #FFF1F1;
+    -wl-tag-red-border: #FFB4B4;
+    -wl-tag-red-text: #FF3D32;
+
+    /* Activity colors */
+    -wl-activity-user-bg: #64748B;
+    -wl-activity-profile-bg: #7C3AED;
+    -wl-activity-qa-bg: #15803D;
+    -wl-activity-access-bg: #0F766E;
+    -wl-activity-scan-bg: #0E7490;
+    -wl-activity-document-bg: #A16207;
+    -wl-activity-system-bg: #475569;
+    -wl-activity-export-bg: #047857;
+    -wl-activity-security-bg: #B42318;
+    -wl-activity-text: #FFFFFF;
+
+    /* Role colors */
+    -wl-role-admin-bg: #EAF4FF;
+    -wl-role-admin-text: #0B6FAE;
+    -wl-role-admin-border: #CFE8FF;
+    -wl-role-user-bg: #F3E8FF;
+    -wl-role-user-text: #7C3AED;
+    -wl-role-user-border: #DDD6FE;
+
+    /* Document / preview / scroll */
+    -wl-date-range-between-bg: #E8F2FF;
+    -wl-progress-amber: #F59E0B;
+    -wl-muted-icon: #98A2B3;
+    -wl-workspace-viewer-bg: #F1F3F6;
+    -wl-workspace-paper-bg: #FFFFFF;
+    -wl-workspace-paper-border: #CBD5E1;
+    -wl-workspace-placeholder: #94A3B8;
+    -wl-preview-bg: #E5E7EB;
+    -wl-paper-bg: #FFFFFF;
+    -wl-paper-muted-bg: #F9F9F9;
+    -wl-paper-border: #E2E4E8;
+    -wl-paper-line-strong: #2D3D4F;
+    -wl-paper-line-medium: #94A3B8;
+    -wl-paper-line-light: #CBD5E1;
+    -wl-muted-control-bg: #F1F5F9;
+    -wl-scroll-track: #EEF2F6;
+    -wl-scroll-thumb: #C2CCD8;
+    -wl-scroll-thumb-hover: #8C9AAF;
+    -wl-progress-track: #E2E8F0;
+    -wl-progress-review: #1D7DBA;
+    -wl-progress-issues: #EF4444;
+    -wl-progress-complete: #1F9D75;
+
+    -fx-background-color: -wl-background;
+}
+
+/* =========================================================
+   02. GLOBAL SCROLLBARS
+   ========================================================= */
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-padding: 3 3 3 6;
+}
+
+.scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: -wl-scroll-track;
+    -fx-background-radius: 999;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: -wl-scroll-thumb;
+    -fx-background-radius: 999;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover,
+.scroll-pane .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: -wl-scroll-thumb-hover;
+}
+
+.scroll-pane .scroll-bar:vertical .increment-button,
+.scroll-pane .scroll-bar:vertical .decrement-button,
+.scroll-pane .scroll-bar:vertical .increment-arrow,
+.scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-padding: 0;
+    -fx-shape: "";
+    -fx-background-color: transparent;
+}
+
+/* =========================================================
+   03. GLOBAL PAGE SHELL
+   ========================================================= */
+
+.content-host,
+.admin-page,
+.user-page {
+    -fx-background-color: -wl-background;
+}
+
+.admin-page-scroll,
+.admin-page-scroll > .viewport {
+    -fx-background-color: -wl-background;
+}
+
+.admin-page-scroll {
+    -fx-background: -wl-background;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.main-content {
+    -fx-spacing: 18;
+}
+
+.page-header {
+    -fx-alignment: center-left;
+    -fx-spacing: 18;
+}
+
+.page-heading-copy {
+    -fx-spacing: 3;
+    -fx-min-width: 0;
+    -fx-alignment: top-left;
+}
+
+.page-title {
+    -fx-text-fill: -wl-text;
+    -fx-wrap-text: false;
+    -fx-text-overrun: ellipsis;
+}
+
+.page-subtitle {
+    -fx-text-fill: -wl-text-muted;
+    -fx-wrap-text: false;
+    -fx-text-overrun: ellipsis;
+}
+
+.page-header-actions {
+    -fx-spacing: 12;
+    -fx-alignment: center-right;
+}
+
+/* =========================================================
+   04. GLOBAL BUTTONS
+   ========================================================= */
+
+.button {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 15 0 15;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-effect: none;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button:disabled {
+    -fx-opacity: 0.6;
+}
+
+.primary-button,
+.header-action-button,
+.create-user-button {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-wrap-text: false;
+    -fx-alignment: center;
+    -fx-effect: none;
+}
+
+.primary-button:hover,
+.primary-button:pressed,
+.header-action-button:hover,
+.header-action-button:pressed,
+.create-user-button:hover,
+.create-user-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.secondary-button {
+    -fx-background-color: -wl-secondary-action;
+    -fx-border-color: -wl-secondary-action;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.secondary-button:hover,
+.secondary-button:pressed {
+    -fx-background-color: -wl-secondary-hover;
+    -fx-border-color: -wl-secondary-hover;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.secondary-outline-button,
+.tertiary-button,
+.back-button {
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.secondary-outline-button:hover,
+.secondary-outline-button:pressed,
+.tertiary-button:hover,
+.tertiary-button:pressed,
+.back-button:hover,
+.back-button:focused {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+/* Portal / export-dialog buttons. Defined in app.css because the export
+   dialogs load ONLY app.css into their own Scene. The :default / :focused
+   overrides stop JavaFX's modena default-button blue from showing on the
+   Export button (it calls setDefaultButton(true)). */
+.portal-primary-button,
+.portal-primary-button:default,
+.portal-primary-button:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-cursor: hand;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.portal-primary-button:hover,
+.portal-primary-button:pressed {
+    -fx-background-color: -wl-primary-hover;
+    -fx-border-color: -wl-primary-hover;
+}
+
+.portal-secondary-button,
+.portal-secondary-button:focused {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-padding: 0 18 0 18;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-cursor: hand;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.portal-secondary-button:hover,
+.portal-secondary-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+}
+
+.link-button,
+.edit-link-button,
+.delete-link-button {
+    -fx-min-height: 0;
+    -fx-pref-height: -1;
+    -fx-max-height: 9999;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.link-button,
+.edit-link-button {
+    -fx-text-fill: -wl-text;
+}
+
+.delete-link-button {
+    -fx-text-fill: -wl-destructive;
+}
+
+.link-button:hover,
+.edit-link-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-primary-hover;
+    -fx-underline: true;
+}
+
+.delete-link-button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -wl-destructive-hover;
+    -fx-underline: true;
+}
+
+/* =========================================================
+   05. GLOBAL INPUTS AND SEARCH
+   ========================================================= */
+
+.text-input,
+.text-field,
+.password-field,
+.text-area,
+.combo-box-base {
+    -fx-highlight-fill: -wl-surface-hover;
+    -fx-highlight-text-fill: -wl-text;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Text fields follow the WebLager input-state guide:
+   border/hover/focus: #2B3B4C
+   error:              #FF3D32
+   success:            #4CD07D
+   disabled:           60% opacity
+*/
+.text-field,
+.password-field,
+.text-area {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-input-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-effect: none;
+}
+
+.text-field,
+.password-field {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;     /* comfortable text breathing room */
+}
+
+/* Explicit styleguide input heights.
+   Default text inputs are 30px. Header/large inputs may opt into 33px. */
+.text-field.input-height-30,
+.password-field.input-height-30,
+.combo-box-base.input-height-30,
+.date-picker.input-height-30,
+.search-field-shell.input-height-30 {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+}
+
+.text-field.input-height-33,
+.password-field.input-height-33,
+.combo-box-base.input-height-33,
+.date-picker.input-height-33,
+.search-field-shell.input-height-33 {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+    -fx-max-height: 33;
+}
+
+.search-field-shell.input-height-33 .search-field-input {
+    -fx-min-height: 33;
+    -fx-pref-height: 33;
+}
+
+.text-area {
+    -fx-padding: 0;
+}
+
+.text-area .content {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-padding: 9;
+}
+
+.text-field:hover,
+.password-field:hover,
+.text-area:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.text-field:focused,
+.password-field:focused,
+.text-area:focused {
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+}
+
+.text-field.input-error,
+.password-field.input-error,
+.text-area.input-error,
+.text-field.text-field-error,
+.password-field.text-field-error,
+.text-area.text-field-error,
+.text-field.field-error,
+.password-field.field-error,
+.text-area.field-error,
+.text-field.error,
+.password-field.error,
+.text-area.error {
+    -fx-border-color: -wl-error;
+    -fx-border-width: 2;
+}
+
+.text-field.input-success,
+.password-field.input-success,
+.text-area.input-success,
+.text-field.text-field-success,
+.password-field.text-field-success,
+.text-area.text-field-success,
+.text-field.field-success,
+.password-field.field-success,
+.text-area.field-success,
+.text-field.success,
+.password-field.success,
+.text-area.success {
+    -fx-border-color: -wl-success;
+    -fx-border-width: 2;
+}
+
+/* ComboBox / DatePicker keep WebLager control structure here.
+   Screen-specific searchable ComboBox cleanup stays in page CSS where needed. */
+.combo-box-base,
+.date-picker {
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-text-fill: -wl-text;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base,
+.date-picker {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0 12 0 12;     /* comfortable text breathing room */
+}
+
+.combo-box-base:hover,
+.date-picker:hover {
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.combo-box-base:focused,
+.date-picker:focused {
+    -fx-border-color: -wl-input-focus-border;
+}
+
+.button:disabled,
+.text-field:disabled,
+.password-field:disabled,
+.text-area:disabled,
+.combo-box-base:disabled,
+.date-picker:disabled,
+.check-box:disabled,
+.radio-button:disabled {
+    -fx-opacity: 0.6;
+}
+
+/* Form/field labels: bind to the themed text token so they flip to white in
+   dark mode. Without an explicit fill, JavaFX (modena) auto-computes the label
+   color against the default LIGHT background and stays dark in dark mode. */
+.form-label,
+.field-label {
+    -fx-text-fill: -wl-text;
+}
+
+.search-field-shell {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-background-color: -wl-input-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -wl-input-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-border-insets: 0;
+    -fx-padding: 0 12 0 12;
+    -fx-spacing: 9;
+    -fx-alignment: center-left;
+}
+
+.search-field-shell:hover {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-hover-border;
+}
+
+.search-field-shell-focused {
+    -fx-background-color: -wl-input-bg;
+    -fx-border-color: -wl-input-focus-border;
+    -fx-border-width: 2;
+}
+
+.search-field-input,
+.search-field-input:hover,
+.search-field-input:focused,
+.search-field-input:pressed,
+.search-field-input:armed,
+.search-field-input:focused:hover {
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+    -fx-text-fill: -wl-text;
+    -fx-prompt-text-fill: -wl-placeholder;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.field-icon-shell,
+.action-icon-shell {
+    -fx-min-width: 15;
+    -fx-pref-width: 15;
+    -fx-max-width: 15;
+    -fx-min-height: 15;
+    -fx-pref-height: 15;
+    -fx-max-height: 15;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.field-icon-path {
+    -fx-fill: -wl-secondary;
+}
+
+/* ===================================================================
+   CANONICAL DROPDOWN CARET — every caret in the app uses this shape.
+   One Region, one shape path, one size, one colour. Used by:
+     - .combo-box-base > .arrow-button > .arrow   (ComboBox)
+     - .date-picker  > .arrow-button > .arrow    (DatePicker)
+     - .menu-button  > .arrow-button > .arrow    (MenuButton)
+     - .dropdown-caret-graphic                   (Region graphic on
+                                                  custom fake-button
+                                                  dropdowns)
+   Exclusion: .admin-account-chevron / .top-user-chevron — the account
+   log-out caret keeps its own muted PrimeIcon look on purpose. */
+
+.combo-box-base > .arrow-button,
+.date-picker > .arrow-button,
+.menu-button > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 9;          /* 12px from edge, 9px gap to text */
+}
+
+.combo-box-base > .arrow-button > .arrow,
+.date-picker > .arrow-button > .arrow,
+.menu-button > .arrow-button > .arrow,
+.dropdown-caret-graphic {
+    -fx-background-color: -wl-text;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-shape: "M3.5 5.5 L7 9 L10.5 5.5 L9.793 4.793 L7 7.586 L4.207 4.793 Z";
+    -fx-scale-shape: false;
+    -fx-min-width: 10;
+    -fx-pref-width: 10;
+    -fx-max-width: 10;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+}
+
+.combo-box-base .list-cell,
+.date-picker .text-field {
+    -fx-text-fill: -wl-text;
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-cell-size: 30;
+}
+
+/* Popup width: at least the trigger width (ComboBoxes utility binds
+   minWidth) but free to grow if an item is longer. No horizontal scroll
+   needed — content fits naturally. */
+
+.combo-box-popup .list-cell {
+    -fx-background-color: -wl-surface;
+    -fx-text-fill: -wl-text;
+    -fx-padding: 0 12 0 12;
+    -fx-alignment: center-left;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -wl-surface-hover;
+    -fx-text-fill: -wl-text;
+}
+
+/* =========================================================
+   06. GLOBAL CARDS, TABLES, EMPTY STATES
+   ========================================================= */
+
+.surface-card {
+    -fx-background-color: -wl-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -wl-border;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+.empty-state-box {
+    -fx-padding: 48 24 57 24;
+    -fx-spacing: 6;
+    -fx-alignment: center-left;
+}
+
+.empty-state-title {
+    -fx-text-fill: -wl-text;
+}
+
+.empty-state-copy {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.table-cell-text,
+.table-cell-text-muted {
+    -fx-text-fill: -wl-text;
+}
+
+.list-header-label,
+.list-header-label-right {
+    -fx-text-fill: -wl-table-header-text;
+}
+
+/* =========================================================
+   07. GLOBAL CHIPS AND STATUS BADGES
+   ========================================================= */
+
+.role-badge,
+.status-chip,
+.chip,
+.badge {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+    -fx-min-height: 24;
+    -fx-padding: 3 9 3 9;
+}
+
+.role-badge {
+    -fx-pref-height: 24;
+    -fx-min-width: 60;
+    -fx-padding: 0 12 0 12;
+}
+
+.role-badge-admin,
+.chip-blue,
+.chip-indigo,
+.chip-purple,
+.status-info {
+    -fx-background-color: -wl-status-info-bg;
+    -fx-border-color: -wl-status-info-border;
+    -fx-text-fill: -wl-status-info-text;
+}
+
+.role-badge-user,
+.chip-teal,
+.status-success {
+    -fx-background-color: -wl-status-success-bg;
+    -fx-border-color: -wl-status-success-border;
+    -fx-text-fill: -wl-status-success-text;
+}
+
+.chip-neutral,
+.status-neutral {
+    -fx-background-color: -wl-status-neutral-bg;
+    -fx-border-color: -wl-status-neutral-border;
+    -fx-text-fill: -wl-status-neutral-text;
+}
+
+.chip-amber,
+.status-warning {
+    -fx-background-color: -wl-status-warning-bg;
+    -fx-border-color: -wl-status-warning-border;
+    -fx-text-fill: -wl-status-warning-text;
+}
+
+.chip-orange,
+.chip-red,
+.status-danger,
+.status-error {
+    -fx-background-color: -wl-status-danger-bg;
+    -fx-border-color: -wl-status-danger-border;
+    -fx-text-fill: -wl-status-danger-text;
+}
+
+/* QA per-page review status — colored primeicons glyph (font + vector paths).
+   Two-class selectors beat shell.css's .prime-icon / .prime-icon-vector. */
+.qa-page-status-icon-approved.prime-icon,
+.qa-page-status-icon-approved.prime-icon-vector {
+    -fx-fill: -wl-success;
+    -fx-text-fill: -wl-success;
+}
+
+.qa-page-status-icon-fix.prime-icon,
+.qa-page-status-icon-fix.prime-icon-vector {
+    -fx-fill: -wl-error;
+    -fx-text-fill: -wl-error;
+}
+
+/* =========================================================
+   08. GLOBAL PAGINATION
+   ========================================================= */
+
+.pagination-bar {
+    -fx-padding: 15 18 18 18;
+    -fx-spacing: 12;
+    -fx-alignment: center;
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.pagination-summary-label,
+.rows-per-page-label {
+    -fx-text-fill: -wl-text-muted;
+}
+
+.pagination-buttons-box,
+.rows-per-page-box {
+    -fx-spacing: 6;
+    -fx-alignment: center;
+}
+
+.pagination-summary-box {
+    -fx-alignment: center-left;
+}
+
+.pagination-center-box {
+    -fx-alignment: center;
+}
+
+.rows-per-page-box {
+    -fx-spacing: 9;
+    -fx-alignment: center-right;
+}
+
+.pagination-button {
+    -fx-min-width: 39;
+    -fx-pref-width: 39;
+    -fx-max-width: 39;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-padding: 0;
+    -fx-background-color: -wl-tertiary-button;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.pagination-button:hover,
+.pagination-button:pressed {
+    -fx-background-color: -wl-tertiary;
+    -fx-border-color: -wl-border;
+    -fx-text-fill: -wl-text;
+}
+
+.pagination-button-active,
+.pagination-button-active:hover,
+.pagination-button-active:pressed {
+    -fx-background-color: -wl-primary;
+    -fx-border-color: -wl-primary;
+    -fx-text-fill: -wl-on-primary;
+}
+
+.pagination-button:disabled {
+    -fx-opacity: 0.6;
+}
+
+.pagination-ellipsis {
+    -fx-text-fill: -wl-text-muted;
+    -fx-padding: 0 6 0 6;
+}
+
+/* =========================================================
+   09. GLOBAL ICON GUARDS
+   Decorative icons should not inherit borders or effects.
+   ========================================================= */
+
+.field-icon-shell,
+.action-icon-shell,
+.surface-icon-shell {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.edit-link-icon,
+.edit-link-button .edit-link-icon {
+    -fx-fill: -wl-text;
+}
+
+.edit-link-button:hover .edit-link-icon {
+    -fx-fill: -wl-primary-hover;
+}
+
+.delete-link-icon,
+.delete-link-button .delete-link-icon {
+    -fx-fill: -wl-destructive;
+}
+
+.delete-link-button:hover .delete-link-icon {
+    -fx-fill: -wl-destructive-hover;
+}
+
+/* =========================================================
+   GLOBAL DATE PICKER POPUP
+   Moved from user-portal.css.
+   Generic JavaFX popup styling belongs in app.css.
+   ========================================================= */
+
+.date-picker-popup {
+    -fx-background-color: -wl-surface;
+    -fx-border-color: -wl-border;
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: -wl-surface;
+}
+
+.exports-table-panel {
+    -fx-padding: 0;
+}
+
+.exports-empty-row {
+    -fx-padding: 18;
+}
+
+/* =========================================================
+   SKELETON LOADING PLACEHOLDERS
+   Styleguide: skeleton is used while data is being fetched.
+   Shimmer is animated in code (SkeletonFactory) via FadeTransition.
+   ========================================================= */
+
+.skeleton-label,
+.skeleton-circle {
+    -fx-background-color: -wl-paper-line-medium;
+}
+
+.skeleton-label {
+    -fx-background-radius: 3;
+    -fx-text-fill: transparent;
+}
+
+.skeleton-circle {
+    -fx-background-radius: 999;
+}
+
+/* =========================================================
+   SWITCH (canonical, per WebLager style guide pg 8)
+   ToggleButton styled as a 60x24 pill: navy track when on,
+   grey track when off, white thumb that shifts side on toggle.
+   ========================================================= */
+.wl-switch {
+    -fx-min-width: 60;
+    -fx-pref-width: 60;
+    -fx-max-width: 60;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0;
+    -fx-background-color: -wl-switch-off-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 39 3 3;
+    -fx-background-radius: 999, 999;
+    -fx-border-color: transparent;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-text-fill: transparent;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-cursor: hand;
+}
+
+.wl-switch:selected {
+    -fx-background-color: -wl-switch-track, -wl-switch-thumb;
+    -fx-background-insets: 0, 3 3 3 39;
+    -fx-background-radius: 999, 999;
+}
+
+.wl-switch:hover {
+    -fx-background-color: -wl-switch-off-track-hover, -wl-switch-thumb;
+}
+
+.wl-switch:selected:hover {
+    -fx-background-color: -wl-switch-track-hover, -wl-switch-thumb;
+}
+
+.wl-switch:disabled {
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
+}
+
+/* =========================================================
+   TOOLTIP (per WebLager style guide pg 9)
+   Dark primary background, white text, standard 6px radius.
+   Tooltips are installed in code via Tooltip.install(...) and
+   pick up this global ".tooltip" style class automatically.
+   ========================================================= */
+.tooltip {
+    -fx-background-color: -wl-primary;
+    -fx-background-radius: 6;
+    -fx-text-fill: -wl-on-primary;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-padding: 6 12 6 12;
+    -fx-effect: dropshadow(gaussian, -wl-shadow-color, 12, 0, 0, 2);
+}
+
+/* Validation tooltip variant: red background for error messaging. */
+.tooltip.tooltip-error {
+    -fx-background-color: -wl-destructive;
+}
