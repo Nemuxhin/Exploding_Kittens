@@ -39,7 +39,7 @@ public class UserManager {
             throw new IllegalArgumentException("Password must be at least 6 characters.");
         }
 
-        User updatedUser = adminManager.updateUser(
+        User updatedUser = adminManager.updateOwnAccount(
                 account.getId(),
                 new AdminManager.UserInput(
                         input.name(),

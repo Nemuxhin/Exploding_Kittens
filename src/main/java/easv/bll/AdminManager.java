@@ -144,6 +144,31 @@ public class AdminManager {
 
     public User updateUser(int userId, UserInput input) {
         requireAdminAccess();
+        return applyUserUpdate(userId, input);
+    }
+
+    // Self-service update for the signed-in user editing their own account
+    // (e.g. the forced first-login password change). Authorized by identity,
+    // not admin role, so it must never route through requireAdminAccess().
+    // Role, status and profile access are taken from the stored account, so a
+    // user can change their name/email/password but never escalate privileges.
+    public User updateOwnAccount(int userId, UserInput input) {
+        requireCurrentUser(userId);
+        User existing = findRequiredUser(userId);
+        UserInput selfServiceInput = new UserInput(
+                input.getName(),
+                input.getUsername(),
+                input.getEmail(),
+                existing.getRole(),
+                existing.getStatus(),
+                existing.getAssignedProfiles(),
+                input.getPlainPassword(),
+                input.getMustChangePassword()
+        );
+        return applyUserUpdate(userId, selfServiceInput);
+    }
+
+    private User applyUserUpdate(int userId, UserInput input) {
         User user = findRequiredUser(userId);
         validateUserInput(input, userId);
         User previousUser = copyUser(user);
@@ -559,6 +584,13 @@ public class AdminManager {
         User currentUser = UserSession.getCurrentUser();
         if (currentUser == null || !"Admin".equalsIgnoreCase(Strings.clean(currentUser.getRole()))) {
             throw new SecurityException("Admin access is required.");
+        }
+    }
+
+    private void requireCurrentUser(int userId) {
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser == null || currentUser.getId() != userId) {
+            throw new SecurityException("You can only change your own account.");
         }
     }
 
