@@ -74,7 +74,10 @@ public class ScanManager {
     public ScanSession startSession(String boxId, String profileName) {
         ScanSession session = new ScanSession(registerBox(boxId, "Scanned box"), profileName);
         applyProfileSettings(session, resolveProfileSettings(profileName));
-        scanSessionDAO.save(session);
+        Integer createdByUserId = UserSession.getCurrentUser() == null
+                ? null
+                : UserSession.getCurrentUser().getId();
+        scanSessionDAO.save(session, createdByUserId);
         return session;
     }
 

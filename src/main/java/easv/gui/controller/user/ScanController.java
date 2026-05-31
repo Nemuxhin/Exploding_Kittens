@@ -13,7 +13,7 @@ import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.BackgroundExecutor;
 import easv.gui.controller.util.PrimeIcons;
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;

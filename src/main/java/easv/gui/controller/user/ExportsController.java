@@ -6,7 +6,7 @@ import easv.be.ScanProfile;
 import easv.be.TiffExportPlan;
 import easv.bll.ExportService;
 import easv.bll.TiffExportManager;
-import easv.gui.UserPortalModel;
+import easv.bll.UserPortalModel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;

@@ -4,6 +4,7 @@ import easv.be.AuditLog;
 import easv.be.AuditLog.AuditLogDetail;
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.QaReview;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -388,7 +389,7 @@ public class AdminManager {
         return adminReviewService.assignReviewRecordToQa(recordId, reviewerUserId);
     }
 
-    public QAService.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
+    public QaReview.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
         return adminReviewService.getQaAssignmentForReviewRecord(recordId);
     }
 
@@ -399,12 +400,12 @@ public class AdminManager {
     public ReviewRecord completeQaReviewRecord(
             String recordId,
             boolean approved,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         return adminReviewService.completeQaReviewRecord(recordId, approved, documents);
     }
 
-    public List<QAService.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
+    public List<QaReview.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
         return adminReviewService.getSavedProgressDocumentsForReviewRecord(boxId, profileName);
     }
 

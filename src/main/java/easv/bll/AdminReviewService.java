@@ -2,6 +2,7 @@ package easv.bll;
 
 import easv.be.Document;
 import easv.be.PageImage;
+import easv.be.QaReview;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
@@ -93,26 +94,26 @@ final class AdminReviewService {
             return null;
         }
 
-        QAService.QaAssignmentSnapshot assignment = qaService.assignReview(parseQaReviewId(recordId), reviewerUserId);
+        QaReview.QaAssignmentSnapshot assignment = qaService.assignReview(parseQaReviewId(recordId), reviewerUserId);
         return assignment == null ? null : toQaReviewRecord(assignment);
     }
 
     ReviewRecord completeQaReviewRecord(
             String recordId,
             boolean approved,
-            List<QAService.QaDocumentSnapshot> documents
+            List<QaReview.QaDocumentSnapshot> documents
     ) {
         if (!isQaRecordId(recordId)) {
             return null;
         }
 
         UUID reviewId = parseQaReviewId(recordId);
-        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
+        QaReview.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
         if (assignment == null) {
             return null;
         }
 
-        List<QAService.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
+        List<QaReview.QaDocumentSnapshot> safeDocuments = documents == null ? List.of() : List.copyOf(documents);
         int totalPages = countPages(safeDocuments);
         int reviewedPages = countReviewedPages(safeDocuments);
         int issueCount = countIssuePages(safeDocuments);
@@ -126,11 +127,11 @@ final class AdminReviewService {
                 safeDocuments
         );
 
-        QAService.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
+        QaReview.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
         return saved == null ? null : toQaReviewRecord(saved);
     }
 
-    QAService.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
+    QaReview.QaAssignmentSnapshot getQaAssignmentForReviewRecord(String recordId) {
         if (!isQaRecordId(recordId)) {
             return null;
         }
@@ -138,16 +139,16 @@ final class AdminReviewService {
     }
 
     List<Document> getExportableDocumentsForRecord(String recordId) {
-        QAService.QaAssignmentSnapshot assignment = getQaAssignmentForReviewRecord(recordId);
-        if (assignment == null || assignment.status() != QAService.QaReviewStatus.APPROVED) {
+        QaReview.QaAssignmentSnapshot assignment = getQaAssignmentForReviewRecord(recordId);
+        if (assignment == null || assignment.status() != QaReview.QaReviewStatus.APPROVED) {
             return List.of();
         }
 
         List<Document> documents = new ArrayList<>();
-        for (QAService.QaDocumentSnapshot qaDocument : assignment.documents()) {
+        for (QaReview.QaDocumentSnapshot qaDocument : assignment.documents()) {
             List<PageImage> pages = new ArrayList<>();
-            for (QAService.QaPageSnapshot qaPage : qaDocument.pages()) {
-                if (qaPage.reviewStatus() != QAService.QaPageReviewStatus.APPROVED) {
+            for (QaReview.QaPageSnapshot qaPage : qaDocument.pages()) {
+                if (qaPage.reviewStatus() != QaReview.QaPageReviewStatus.APPROVED) {
                     continue;
                 }
                 String sourceReference = qaPage.sourceReference() == null || qaPage.sourceReference().isBlank()
@@ -168,13 +169,13 @@ final class AdminReviewService {
         return documents;
     }
 
-    List<QAService.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
+    List<QaReview.QaDocumentSnapshot> getSavedProgressDocumentsForReviewRecord(String boxId, String profileName) {
         SavedScanProgressDAO.StoredProgress progress = savedScanProgressDAO.findLatestByBoxAndProfile(boxId, profileName);
         if (progress == null || progress.pages().isEmpty()) {
             return List.of();
         }
 
-        Map<Integer, List<QAService.QaPageSnapshot>> pagesByDocument = new HashMap<>();
+        Map<Integer, List<QaReview.QaPageSnapshot>> pagesByDocument = new HashMap<>();
         for (SavedScanProgressDAO.StoredPage page : progress.pages()) {
             if (page == null || page.barcode()) {
                 continue;
@@ -185,13 +186,13 @@ final class AdminReviewService {
                     : page.previewContent();
 
             pagesByDocument.computeIfAbsent(Math.max(1, page.documentNumber()), ignored -> new ArrayList<>())
-                    .add(new QAService.QaPageSnapshot(
+                    .add(new QaReview.QaPageSnapshot(
                             Math.max(1, page.referenceId()),
                             Math.max(1, page.fileId()),
                             page.sourceReference(),
                             previewContent,
                             page.rotationDegrees(),
-                            QAService.QaPageReviewStatus.NOT_REVIEWED,
+                            QaReview.QaPageReviewStatus.NOT_REVIEWED,
                             false,
                             false,
                             false,
@@ -204,13 +205,13 @@ final class AdminReviewService {
             return List.of();
         }
 
-        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+        List<QaReview.QaDocumentSnapshot> documents = new ArrayList<>();
         pagesByDocument.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> {
-                    List<QAService.QaPageSnapshot> pages = new ArrayList<>(entry.getValue());
-                    pages.sort(Comparator.comparingInt(QAService.QaPageSnapshot::pageNumber));
-                    documents.add(new QAService.QaDocumentSnapshot(
+                    List<QaReview.QaPageSnapshot> pages = new ArrayList<>(entry.getValue());
+                    pages.sort(Comparator.comparingInt(QaReview.QaPageSnapshot::pageNumber));
+                    documents.add(new QaReview.QaDocumentSnapshot(
                             entry.getKey(),
                             "Document " + entry.getKey(),
                             pages
@@ -224,7 +225,7 @@ final class AdminReviewService {
             return List.of();
         }
 
-        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(parseQaReviewId(recordId));
+        QaReview.QaAssignmentSnapshot assignment = qaReviewDAO.findById(parseQaReviewId(recordId));
         if (assignment == null) {
             return List.of();
         }
@@ -269,19 +270,19 @@ final class AdminReviewService {
 
     private ReviewRecord saveQaReviewRecord(ReviewRecord updatedRecord) {
         UUID reviewId = parseQaReviewId(updatedRecord.getId());
-        QAService.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
+        QaReview.QaAssignmentSnapshot assignment = qaReviewDAO.findById(reviewId);
         if (assignment == null) {
             throw new IllegalArgumentException("QA review could not be found.");
         }
 
-        QAService.QaReviewStatus targetStatus = toQaReviewStatus(updatedRecord.getQaStatus());
+        QaReview.QaReviewStatus targetStatus = toQaReviewStatus(updatedRecord.getQaStatus());
         int reviewedPages = Math.max(assignment.reviewedPages(), assignment.totalPages());
         int issueCount = Math.max(assignment.issueCount(), updatedRecord.hasWarning() ? 1 : 0);
 
-        if (targetStatus == QAService.QaReviewStatus.APPROVED || targetStatus == QAService.QaReviewStatus.REJECTED) {
+        if (targetStatus == QaReview.QaReviewStatus.APPROVED || targetStatus == QaReview.QaReviewStatus.REJECTED) {
             qaService.completeReview(
                     reviewId,
-                    targetStatus == QAService.QaReviewStatus.APPROVED,
+                    targetStatus == QaReview.QaReviewStatus.APPROVED,
                     reviewedPages,
                     assignment.totalPages(),
                     issueCount,
@@ -298,11 +299,11 @@ final class AdminReviewService {
             );
         }
 
-        QAService.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
+        QaReview.QaAssignmentSnapshot saved = qaReviewDAO.findById(reviewId);
         return saved == null ? updatedRecord : toQaReviewRecord(saved);
     }
 
-    private ReviewRecord toQaReviewRecord(QAService.QaAssignmentSnapshot assignment) {
+    private ReviewRecord toQaReviewRecord(QaReview.QaAssignmentSnapshot assignment) {
         Map<Integer, User> usersById = new HashMap<>();
         for (User user : users) {
             usersById.put(user.getId(), user);
@@ -324,7 +325,7 @@ final class AdminReviewService {
             }
         }
 
-        String metadataStatus = assignment.status() == QAService.QaReviewStatus.REJECTED
+        String metadataStatus = assignment.status() == QaReview.QaReviewStatus.REJECTED
                 ? "Returned for changes"
                 : "Complete";
 
@@ -342,11 +343,11 @@ final class AdminReviewService {
                 assignedTo,
                 assignment.scannedByName(),
                 formatTimestamp(assignment.submittedAt()),
-                assignment.issueCount() > 0 || assignment.status() == QAService.QaReviewStatus.REJECTED
+                assignment.issueCount() > 0 || assignment.status() == QaReview.QaReviewStatus.REJECTED
         );
     }
 
-    private String toAdminQaStatus(QAService.QaReviewStatus status) {
+    private String toAdminQaStatus(QaReview.QaReviewStatus status) {
         return switch (status) {
             case WAITING_FOR_QA -> "Ready for QA";
             case IN_REVIEW -> "QA In Progress";
@@ -355,14 +356,14 @@ final class AdminReviewService {
         };
     }
 
-    private QAService.QaReviewStatus toQaReviewStatus(String status) {
+    private QaReview.QaReviewStatus toQaReviewStatus(String status) {
         String normalized = Strings.normalize(status);
         return switch (normalized) {
-            case "qa approved" -> QAService.QaReviewStatus.APPROVED;
-            case "qa rejected" -> QAService.QaReviewStatus.REJECTED;
-            case "qa in progress" -> QAService.QaReviewStatus.IN_REVIEW;
-            case "ready for qa", "waiting for qa" -> QAService.QaReviewStatus.WAITING_FOR_QA;
-            default -> QAService.QaReviewStatus.WAITING_FOR_QA;
+            case "qa approved" -> QaReview.QaReviewStatus.APPROVED;
+            case "qa rejected" -> QaReview.QaReviewStatus.REJECTED;
+            case "qa in progress" -> QaReview.QaReviewStatus.IN_REVIEW;
+            case "ready for qa", "waiting for qa" -> QaReview.QaReviewStatus.WAITING_FOR_QA;
+            default -> QaReview.QaReviewStatus.WAITING_FOR_QA;
         };
     }
 
@@ -370,9 +371,9 @@ final class AdminReviewService {
         return Strings.clean(recordId).startsWith(QA_RECORD_PREFIX);
     }
 
-    private int countPages(List<QAService.QaDocumentSnapshot> documents) {
+    private int countPages(List<QaReview.QaDocumentSnapshot> documents) {
         int pages = 0;
-        for (QAService.QaDocumentSnapshot document : documents) {
+        for (QaReview.QaDocumentSnapshot document : documents) {
             if (document != null && document.pages() != null) {
                 pages += document.pages().size();
             }
@@ -380,14 +381,14 @@ final class AdminReviewService {
         return pages;
     }
 
-    private int countReviewedPages(List<QAService.QaDocumentSnapshot> documents) {
+    private int countReviewedPages(List<QaReview.QaDocumentSnapshot> documents) {
         int reviewedPages = 0;
-        for (QAService.QaDocumentSnapshot document : documents) {
+        for (QaReview.QaDocumentSnapshot document : documents) {
             if (document == null || document.pages() == null) {
                 continue;
             }
-            for (QAService.QaPageSnapshot page : document.pages()) {
-                if (page != null && page.reviewStatus() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+            for (QaReview.QaPageSnapshot page : document.pages()) {
+                if (page != null && page.reviewStatus() != QaReview.QaPageReviewStatus.NOT_REVIEWED) {
                     reviewedPages++;
                 }
             }
@@ -395,14 +396,14 @@ final class AdminReviewService {
         return reviewedPages;
     }
 
-    private int countIssuePages(List<QAService.QaDocumentSnapshot> documents) {
+    private int countIssuePages(List<QaReview.QaDocumentSnapshot> documents) {
         int issuePages = 0;
-        for (QAService.QaDocumentSnapshot document : documents) {
+        for (QaReview.QaDocumentSnapshot document : documents) {
             if (document == null || document.pages() == null) {
                 continue;
             }
-            for (QAService.QaPageSnapshot page : document.pages()) {
-                if (page != null && page.reviewStatus() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+            for (QaReview.QaPageSnapshot page : document.pages()) {
+                if (page != null && page.reviewStatus() == QaReview.QaPageReviewStatus.NEEDS_FIX) {
                     issuePages++;
                 }
             }

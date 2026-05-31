@@ -1,6 +1,6 @@
 package easv.dal;
 
-import easv.bll.QAService;
+import easv.be.QaReview;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -53,7 +53,7 @@ public class NotificationDAO {
         }
     }
 
-    public List<QAService.NotificationSnapshot> findByUser(int userId) {
+    public List<QaReview.NotificationSnapshot> findByUser(int userId) {
         try (Connection connection = databaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT id,
@@ -69,9 +69,9 @@ public class NotificationDAO {
                      """)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                List<QAService.NotificationSnapshot> notifications = new ArrayList<>();
+                List<QaReview.NotificationSnapshot> notifications = new ArrayList<>();
                 while (resultSet.next()) {
-                    notifications.add(new QAService.NotificationSnapshot(
+                    notifications.add(new QaReview.NotificationSnapshot(
                             UUID.fromString(resultSet.getString("id")),
                             resultSet.getInt("user_id"),
                             parseUuid(resultSet.getString("qa_review_id")),

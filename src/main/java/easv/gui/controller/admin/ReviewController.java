@@ -1,12 +1,12 @@
 package easv.gui.controller.admin;
 
 import easv.be.Document;
+import easv.be.QaReview;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.bll.ExportService;
-import easv.bll.QAService;
 import easv.bll.TiffExportManager;
 import easv.bll.TiffImageSupport;
 import easv.gui.controller.util.AppDates;
@@ -223,7 +223,7 @@ public class ReviewController {
     @FXML private TextField buildingAddressField;
     @FXML private TextArea notesTextArea;
 
-    private QAService.QaAssignmentSnapshot activeQaAssignment;
+    private QaReview.QaAssignmentSnapshot activeQaAssignment;
     private List<WorkspaceQaDocument> activeQaDocuments = List.of();
     private int selectedQaDocumentIndex = 0;
     private int selectedQaPageIndex = 0;
@@ -837,7 +837,7 @@ public class ReviewController {
 
             try {
                 Path recordDirectory = outputDirectory.resolve(safeFolderSegment(row.profile(), row.identity()));
-                QAService.QaAssignmentSnapshot assignment = adminManager.getQaAssignmentForReviewRecord(row.id());
+                QaReview.QaAssignmentSnapshot assignment = adminManager.getQaAssignmentForReviewRecord(row.id());
                 if (assignment == null || assignment.sessionId() == null) {
                     failures.add(row.identity() + ": missing session context");
                     continue;
@@ -1624,7 +1624,7 @@ public class ReviewController {
             return;
         }
 
-        List<QAService.QaDocumentSnapshot> sourceDocuments;
+        List<QaReview.QaDocumentSnapshot> sourceDocuments;
         if (isQaReviewRow(record)) {
             activeQaAssignment = adminManager.getQaAssignmentForReviewRecord(record.id());
             if (activeQaAssignment == null) {
@@ -1638,9 +1638,9 @@ public class ReviewController {
         }
 
         List<WorkspaceQaDocument> documents = new ArrayList<>();
-        for (QAService.QaDocumentSnapshot assignmentDocument : sourceDocuments) {
+        for (QaReview.QaDocumentSnapshot assignmentDocument : sourceDocuments) {
             List<WorkspaceQaPage> pages = new ArrayList<>();
-            for (QAService.QaPageSnapshot assignmentPage : assignmentDocument.pages()) {
+            for (QaReview.QaPageSnapshot assignmentPage : assignmentDocument.pages()) {
                 pages.add(new WorkspaceQaPage(
                         assignmentPage.pageNumber(),
                         assignmentPage.globalPageNumber(),
@@ -1761,7 +1761,7 @@ public class ReviewController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            Label warning = new Label(document.pages().stream().anyMatch(page -> page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) ? "!" : "");
+            Label warning = new Label(document.pages().stream().anyMatch(page -> page.status() == QaReview.QaPageReviewStatus.NEEDS_FIX) ? "!" : "");
             warning.getStyleClass().add("document-tree-warning");
 
             Label count = new Label(document.pages().size() + " pages");
@@ -2052,17 +2052,17 @@ public class ReviewController {
 
     @FXML
     private void onApprovePage() {
-        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.APPROVED);
+        applyWorkspaceQaStatus(QaReview.QaPageReviewStatus.APPROVED);
     }
 
     @FXML
     private void onMarkNeedsFix() {
-        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.NEEDS_FIX);
+        applyWorkspaceQaStatus(QaReview.QaPageReviewStatus.NEEDS_FIX);
     }
 
     @FXML
     private void onClearReviewStatus() {
-        applyWorkspaceQaStatus(QAService.QaPageReviewStatus.NOT_REVIEWED);
+        applyWorkspaceQaStatus(QaReview.QaPageReviewStatus.NOT_REVIEWED);
     }
 
     @FXML
@@ -2070,7 +2070,7 @@ public class ReviewController {
         for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
             List<WorkspaceQaPage> pages = activeQaDocuments.get(documentIndex).pages();
             for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
-                if (pages.get(pageIndex).status() == QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                if (pages.get(pageIndex).status() == QaReview.QaPageReviewStatus.NOT_REVIEWED) {
                     selectedQaDocumentIndex = documentIndex;
                     selectedQaPageIndex = pageIndex;
                     resetWorkspacePreviewTransform();
@@ -2178,8 +2178,8 @@ public class ReviewController {
             return;
         }
 
-        QAService.QaAssignmentSnapshot assignment = adminManager.getQaAssignmentForReviewRecord(activeReviewRecord.id());
-        if (assignment == null || assignment.status() != QAService.QaReviewStatus.APPROVED) {
+        QaReview.QaAssignmentSnapshot assignment = adminManager.getQaAssignmentForReviewRecord(activeReviewRecord.id());
+        if (assignment == null || assignment.status() != QaReview.QaReviewStatus.APPROVED) {
             showExportAlert(null, Alert.AlertType.WARNING, "Export blocked",
                     "This batch cannot be exported until QA is completed and approved.");
             return;
@@ -2420,7 +2420,7 @@ public class ReviewController {
         renderWorkspaceQaView();
     }
 
-    private void applyWorkspaceQaStatus(QAService.QaPageReviewStatus status) {
+    private void applyWorkspaceQaStatus(QaReview.QaPageReviewStatus status) {
         List<PagePointer> targets = getWorkspaceQaPagesForAction();
         if (targets.isEmpty()) {
             return;
@@ -2521,9 +2521,9 @@ public class ReviewController {
         pageLabel.getStyleClass().add("document-tree-page-title");
         labelRow.getChildren().add(pageLabel);
 
-        if (page.status() == QAService.QaPageReviewStatus.APPROVED
-                || page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
-            boolean approved = page.status() == QAService.QaPageReviewStatus.APPROVED;
+        if (page.status() == QaReview.QaPageReviewStatus.APPROVED
+                || page.status() == QaReview.QaPageReviewStatus.NEEDS_FIX) {
+            boolean approved = page.status() == QaReview.QaPageReviewStatus.APPROVED;
             Region statusSpacer = new Region();
             HBox.setHgrow(statusSpacer, Priority.ALWAYS);
             labelRow.getChildren().add(statusSpacer);
@@ -2611,7 +2611,7 @@ public class ReviewController {
     private boolean hasWorkspaceReviewedPages() {
         for (WorkspaceQaDocument document : activeQaDocuments) {
             for (WorkspaceQaPage page : document.pages()) {
-                if (page.status() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                if (page.status() != QaReview.QaPageReviewStatus.NOT_REVIEWED) {
                     return true;
                 }
             }
@@ -2623,7 +2623,7 @@ public class ReviewController {
         int count = 0;
         for (WorkspaceQaDocument document : activeQaDocuments) {
             for (WorkspaceQaPage page : document.pages()) {
-                if (page.status() != QAService.QaPageReviewStatus.NOT_REVIEWED) {
+                if (page.status() != QaReview.QaPageReviewStatus.NOT_REVIEWED) {
                     count++;
                 }
             }
@@ -2635,7 +2635,7 @@ public class ReviewController {
         int count = 0;
         for (WorkspaceQaDocument document : activeQaDocuments) {
             for (WorkspaceQaPage page : document.pages()) {
-                if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                if (page.status() == QaReview.QaPageReviewStatus.NEEDS_FIX) {
                     count++;
                 }
             }
@@ -2643,14 +2643,14 @@ public class ReviewController {
         return count;
     }
 
-    private List<QAService.QaDocumentSnapshot> toWorkspaceQaDocumentSnapshots() {
-        List<QAService.QaDocumentSnapshot> documents = new ArrayList<>();
+    private List<QaReview.QaDocumentSnapshot> toWorkspaceQaDocumentSnapshots() {
+        List<QaReview.QaDocumentSnapshot> documents = new ArrayList<>();
         for (int documentIndex = 0; documentIndex < activeQaDocuments.size(); documentIndex++) {
             WorkspaceQaDocument document = activeQaDocuments.get(documentIndex);
-            List<QAService.QaPageSnapshot> pages = new ArrayList<>();
+            List<QaReview.QaPageSnapshot> pages = new ArrayList<>();
             for (WorkspaceQaPage page : document.pages()) {
-                boolean approved = page.status() == QAService.QaPageReviewStatus.APPROVED;
-                pages.add(new QAService.QaPageSnapshot(
+                boolean approved = page.status() == QaReview.QaPageReviewStatus.APPROVED;
+                pages.add(new QaReview.QaPageSnapshot(
                         page.pageNumber(),
                         page.globalPageNumber(),
                         page.sourceReference(),
@@ -2664,7 +2664,7 @@ public class ReviewController {
                         page.comment()
                 ));
             }
-            documents.add(new QAService.QaDocumentSnapshot(
+            documents.add(new QaReview.QaDocumentSnapshot(
                     documentIndex + 1,
                     document.name(),
                     pages
@@ -2676,7 +2676,7 @@ public class ReviewController {
     private boolean hasWorkspaceQaIssues() {
         for (WorkspaceQaDocument document : activeQaDocuments) {
             for (WorkspaceQaPage page : document.pages()) {
-                if (page.status() == QAService.QaPageReviewStatus.NEEDS_FIX) {
+                if (page.status() == QaReview.QaPageReviewStatus.NEEDS_FIX) {
                     return true;
                 }
             }
@@ -2758,24 +2758,24 @@ public class ReviewController {
         return Math.max(min, Math.min(max, value));
     }
 
-    private String statusIconText(QAService.QaPageReviewStatus status) {
-        return switch (status == null ? QAService.QaPageReviewStatus.NOT_REVIEWED : status) {
+    private String statusIconText(QaReview.QaPageReviewStatus status) {
+        return switch (status == null ? QaReview.QaPageReviewStatus.NOT_REVIEWED : status) {
             case APPROVED -> "OK";
             case NEEDS_FIX -> "!";
             case NOT_REVIEWED -> "-";
         };
     }
 
-    private String statusIconStyle(QAService.QaPageReviewStatus status) {
-        return switch (status == null ? QAService.QaPageReviewStatus.NOT_REVIEWED : status) {
+    private String statusIconStyle(QaReview.QaPageReviewStatus status) {
+        return switch (status == null ? QaReview.QaPageReviewStatus.NOT_REVIEWED : status) {
             case APPROVED -> "review-workspace-tree-status-complete";
             case NEEDS_FIX -> "review-workspace-tree-status-warning";
             case NOT_REVIEWED -> "review-workspace-tree-status-neutral";
         };
     }
 
-    private String statusText(QAService.QaPageReviewStatus status) {
-        return switch (status == null ? QAService.QaPageReviewStatus.NOT_REVIEWED : status) {
+    private String statusText(QaReview.QaPageReviewStatus status) {
+        return switch (status == null ? QaReview.QaPageReviewStatus.NOT_REVIEWED : status) {
             case APPROVED -> "approved";
             case NEEDS_FIX -> "needs fix";
             case NOT_REVIEWED -> "not started";
@@ -3521,7 +3521,7 @@ public class ReviewController {
             );
 
             TiffExportManager tiffExportManager = new TiffExportManager();
-            QAService.QaAssignmentSnapshot assignment = activeReviewRecord == null
+            QaReview.QaAssignmentSnapshot assignment = activeReviewRecord == null
                     ? null
                     : adminManager.getQaAssignmentForReviewRecord(activeReviewRecord.id());
             if (assignment == null || assignment.sessionId() == null) {
@@ -3715,7 +3715,7 @@ public class ReviewController {
             String sourceReference,
             String imageContent,
             int rotationDegrees,
-            QAService.QaPageReviewStatus status,
+            QaReview.QaPageReviewStatus status,
             String comment
     ) {
         private WorkspaceQaPage {
@@ -3724,14 +3724,14 @@ public class ReviewController {
             comment = comment == null ? "" : comment;
         }
 
-        private WorkspaceQaPage withStatus(QAService.QaPageReviewStatus updatedStatus) {
+        private WorkspaceQaPage withStatus(QaReview.QaPageReviewStatus updatedStatus) {
             return new WorkspaceQaPage(
                     pageNumber,
                     globalPageNumber,
                     sourceReference,
                     imageContent,
                     rotationDegrees,
-                    updatedStatus == null ? QAService.QaPageReviewStatus.NOT_REVIEWED : updatedStatus,
+                    updatedStatus == null ? QaReview.QaPageReviewStatus.NOT_REVIEWED : updatedStatus,
                     comment
             );
         }

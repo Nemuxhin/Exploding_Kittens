@@ -1,6 +1,7 @@
 package easv.bll;
 
 import easv.be.AuditLog;
+import easv.be.QaReview.QaAssignmentSnapshot;
 import easv.be.ReviewRecord;
 import easv.be.ScanProfile;
 import easv.be.User;
