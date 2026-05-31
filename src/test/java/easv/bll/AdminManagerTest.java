@@ -287,7 +287,7 @@ class AdminManagerTest {
         private int nextId = 1;
 
         FakeUserDAO() {
-            super(null, false); // hermetic: never opens a database connection
+            super(null); // hermetic: never opens a database connection
         }
 
         void preloadUser(User user) {

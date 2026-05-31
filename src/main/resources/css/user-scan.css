@@ -1488,15 +1488,6 @@
     -fx-text-fill: -wl-text;
 }
 
-.review-view-icon {
-    -fx-min-width: 0;
-    -fx-pref-width: 0;
-    -fx-max-width: 0;
-    -fx-alignment: center;
-    -fx-text-fill: -wl-text-muted;
-    -fx-opacity: 0;
-}
-
 .review-preview-stage {
     -fx-background-color: -wl-preview-bg;
     -fx-padding: 0 42 15 42;

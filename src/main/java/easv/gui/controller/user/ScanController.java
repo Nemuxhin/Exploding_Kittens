@@ -397,15 +397,6 @@ public class ScanController {
             }
         }
 
-        System.err.println("[ScanController] DIRECT sessionUser="
-                + (sessionUser == null ? "null" : sessionUser.getUsername())
-                + " role="
-                + (sessionUser == null ? "null" : sessionUser.getRole())
-                + " assignedInSession="
-                + (sessionUser == null ? "[]" : sessionUser.getAssignedProfiles())
-                + " appliedProfileNames="
-                + names);
-
         applyAssignedProfiles(names);
     }
 
@@ -434,11 +425,6 @@ public class ScanController {
                 profileComboBox.getSelectionModel().select(0);
             }
         }
-
-        System.err.println("[ScanController] comboItems="
-                + profileComboBox.getItems()
-                + " selected="
-                + profileComboBox.getValue());
 
         updateProfileInfo(profileComboBox.getValue());
         updateStartScanningState();

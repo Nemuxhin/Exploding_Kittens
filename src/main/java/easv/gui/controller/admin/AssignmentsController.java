@@ -4,7 +4,7 @@ import easv.be.ScanProfile;
 import easv.be.User;
 import easv.bll.AdminManager;
 import easv.gui.controller.util.PrimeIcons;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

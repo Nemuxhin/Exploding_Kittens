@@ -7,7 +7,7 @@ import easv.gui.controller.util.AppDates;
 import easv.gui.controller.util.DateCalendarView;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.SkeletonFactory;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

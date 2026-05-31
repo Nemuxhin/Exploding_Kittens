@@ -93,7 +93,7 @@ class AuthManagerTest {
         private String updatedPasswordHash;
 
         private FakeUserDAO(Map<String, User> usersByUsername) {
-            super(null, false); // hermetic: never opens a database connection
+            super(null); // hermetic: never opens a database connection
             this.usersByUsername = usersByUsername;
         }
 

@@ -1,7 +1,7 @@
 package easv.dal;
 
 import easv.be.AuditLog;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

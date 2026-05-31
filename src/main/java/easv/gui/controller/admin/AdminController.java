@@ -6,7 +6,7 @@ import easv.bll.AuthManager;
 import easv.bll.UserSession;
 import easv.gui.MainApp;
 import easv.gui.controller.util.PrimeIcons;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;

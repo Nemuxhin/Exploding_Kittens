@@ -13,7 +13,7 @@ import easv.dal.QaReviewDAO;
 import easv.dal.ReviewRecordDAO;
 import easv.dal.SavedScanProgressDAO;
 import easv.dal.UserDAO;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

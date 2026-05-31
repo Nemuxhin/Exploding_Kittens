@@ -8,7 +8,7 @@ import easv.be.User;
 import easv.dal.QaReviewDAO;
 import easv.dal.ReviewRecordDAO;
 import easv.dal.SavedScanProgressDAO;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

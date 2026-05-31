@@ -1699,15 +1699,6 @@
     -fx-background-color: -wl-background;
 }
 
-.review-view-icon {
-    -fx-min-width: 0;
-    -fx-pref-width: 0;
-    -fx-max-width: 0;
-    -fx-alignment: center;
-    -fx-text-fill: -wl-text-muted;
-    -fx-opacity: 0;
-}
-
 .scan-panel-divider {
     -fx-min-height: 1;
     -fx-pref-height: 1;

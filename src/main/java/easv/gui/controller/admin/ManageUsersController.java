@@ -5,7 +5,7 @@ import easv.bll.AdminManager;
 import easv.dal.DataAccessException;
 import easv.gui.controller.util.PrimeIcons;
 import easv.gui.controller.util.PaginationHelper;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;

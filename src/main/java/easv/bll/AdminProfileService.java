@@ -3,7 +3,7 @@ package easv.bll;
 import easv.be.ScanProfile;
 import easv.be.User;
 import easv.dal.MetadataDAO;
-import easv.gui.controller.util.Strings;
+import easv.util.Strings;
 
 import java.util.ArrayList;
 import java.util.Comparator;

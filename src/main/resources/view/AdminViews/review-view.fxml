@@ -509,9 +509,6 @@
                                     <Button fx:id="reviewBarcodeButton" text="↓" onAction="#onNudgeReviewPreviewDown" styleClass="view-tool-button"/>
                                     <Label fx:id="reviewSelectedTitleLabel" text="No page selected" visible="false" managed="false" styleClass="review-selected-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
-                                    <Label text="." styleClass="review-view-icon"/>
-                                    <Label text="." styleClass="review-view-icon"/>
-                                    <Label text="." styleClass="review-view-icon"/>
                                     <Button text="Reset View" onAction="#onResetReviewPreviewView" styleClass="view-reset-button"/>
                                 </HBox>
                             </top>
