@@ -317,6 +317,10 @@ class AuditMetadataExportTest {
         private final List<User> users = new ArrayList<>();
         private int nextId = 1;
 
+        private FakeUserDAO() {
+            super(null, false);
+        }
+
         @Override
         public List<User> getAllUsers() {
             return List.copyOf(users);

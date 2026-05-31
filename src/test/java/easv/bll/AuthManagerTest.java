@@ -63,12 +63,34 @@ class AuthManagerTest {
         assertFalse(UserSession.hasCurrentUser());
     }
 
+    @Test
+    void loginUpgradesLegacyPasswordHashAfterSuccessfulAuthentication() {
+        FakeUserDAO userDAO = new FakeUserDAO(Map.of(
+                "admin", legacyUser("admin", "admin123", true)
+        ));
+        AuthManager authManager = new AuthManager(userDAO);
+
+        AuthResult authResult = authManager.login("admin", "admin123");
+
+        assertTrue(authResult.isSuccess());
+        assertTrue(userDAO.passwordHashUpdated);
+        assertNotNull(userDAO.updatedPasswordHash);
+        assertTrue(userDAO.updatedPasswordHash.startsWith("pbkdf2$sha256$"));
+        assertTrue(PasswordHasher.verify("admin123", userDAO.updatedPasswordHash));
+    }
+
     private User user(String username, String password, boolean active) {
         return new User(username, PasswordHasher.hash(password), "User", active);
     }
 
+    private User legacyUser(String username, String password, boolean active) {
+        return new User(username, PasswordHasher.legacySha256(password), "User", active);
+    }
+
     private static class FakeUserDAO extends UserDAO {
         private final Map<String, User> usersByUsername;
+        private boolean passwordHashUpdated;
+        private String updatedPasswordHash;
 
         private FakeUserDAO(Map<String, User> usersByUsername) {
             super(null, false); // hermetic: never opens a database connection
@@ -82,6 +104,16 @@ class AuthManagerTest {
             }
 
             return usersByUsername.get(username.trim().toLowerCase(Locale.ROOT));
+        }
+
+        @Override
+        public void updatePasswordHash(int userId, String passwordHash) {
+            passwordHashUpdated = true;
+            updatedPasswordHash = passwordHash;
+            usersByUsername.values().stream()
+                    .filter(user -> user.getId() == userId || userId == 0)
+                    .findFirst()
+                    .ifPresent(user -> user.setPasswordHash(passwordHash));
         }
     }
 }

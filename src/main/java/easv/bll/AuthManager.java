@@ -50,10 +50,7 @@ public class AuthManager {
                 return AuthResult.failure("Invalid username or password.");
             }
 
-            String enteredPasswordHash = PasswordHasher.hash(safePassword);
-
-            // We compare hashes instead of plain text passwords.
-            if (!storedUser.getPasswordHash().equals(enteredPasswordHash)) {
+            if (!PasswordHasher.verify(safePassword, storedUser.getPasswordHash())) {
                 UserSession.clearCurrentUser();
                 recordAuthFailure(safeUsername);
                 return AuthResult.failure("Invalid username or password.");
@@ -65,6 +62,8 @@ public class AuthManager {
                 recordAuthFailure(safeUsername);
                 return AuthResult.failure("This account is inactive and cannot log in.");
             }
+
+            upgradeLegacyPasswordHashIfNeeded(storedUser, safePassword);
 
             // After a successful login, we keep the user in memory for later actions.
             UserSession.setCurrentUser(storedUser);
@@ -119,6 +118,20 @@ public class AuthManager {
             auditLogManager.logAuth(user.getUsername(), AuditLogManager.LOGOUT, "User signed out.");
         } catch (RuntimeException ignored) {
             // Audit failure must never block sign-out.
+        }
+    }
+
+    private void upgradeLegacyPasswordHashIfNeeded(User storedUser, String plainTextPassword) {
+        if (storedUser == null || !PasswordHasher.needsRehash(storedUser.getPasswordHash())) {
+            return;
+        }
+
+        try {
+            String upgradedHash = PasswordHasher.hash(plainTextPassword);
+            userDAO.updatePasswordHash(storedUser.getId(), upgradedHash);
+            storedUser.setPasswordHash(upgradedHash);
+        } catch (RuntimeException ignored) {
+            // Login should still succeed even if the opportunistic upgrade fails.
         }
     }
 }

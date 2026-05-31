@@ -148,6 +148,30 @@ public class UserDAO {
         }
     }
 
+    public void updatePasswordHash(int userId, String passwordHash) {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("userId must be positive.");
+        }
+
+        try (Connection connection = databaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     UPDATE users
+                     SET password_hash = ?,
+                         updated_at = CURRENT_TIMESTAMP
+                     WHERE id = ?
+                     """)) {
+            statement.setString(1, passwordHash);
+            statement.setInt(2, userId);
+
+            int updatedRows = statement.executeUpdate();
+            if (updatedRows == 0) {
+                throw new SQLException("No user row was updated for id " + userId + ".");
+            }
+        } catch (SQLException exception) {
+            throw new DataAccessException("Failed to update password hash for user " + userId, exception);
+        }
+    }
+
     public void deleteUser(int userId) {
         try (Connection connection = databaseConnection.getConnection()) {
             boolean previousAutoCommit = connection.getAutoCommit();
