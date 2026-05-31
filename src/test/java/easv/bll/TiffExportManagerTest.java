@@ -5,19 +5,29 @@ import easv.be.TiffExportItem;
 import easv.be.TiffExportPlan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Export planning is tested here, not actual TIFF encoding.
  *
  * TiffExportManager builds a plan (file names, page assignments, warnings)
- * that the GUI shows before any files are written. These tests verify that
- * the plan is correct — encoding is a separate concern.
+ * that the GUI shows before any files are written. Most tests verify that
+ * the plan is correct; one end-to-end test also writes a TIFF to a temp
+ * directory to confirm page rotation is applied during encoding.
  */
 class TiffExportManagerTest {
 
@@ -112,5 +122,54 @@ class TiffExportManagerTest {
                 () -> assertEquals(0, single.getFileCount()),
                 () -> assertEquals(0, multi.getFileCount())
         );
+    }
+
+    @Test
+    void singlePagePlan_shouldKeepDuplicateFileNamesUnique() {
+        PageImage documentOnePageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
+        PageImage documentTwoPageOne = new PageImage(1, PageImage.PageType.TIFF, "DOC-2");
+
+        TiffExportPlan plan = exportManager.createSinglePagePlan(
+                "Profile A",
+                "PA",
+                "{profileName}_{boxId}_{documentNumber}",
+                "BOX-1",
+                List.of(documentOnePageOne, documentTwoPageOne));
+
+        assertAll(
+                () -> assertEquals(2, plan.getFileCount()),
+                () -> assertFalse(plan.getItems().get(0).getFileName().equals(plan.getItems().get(1).getFileName()),
+                        "Two pages that resolve to the same raw name must be de-duplicated.")
+        );
+    }
+
+    /**
+     * The one test that actually encodes a TIFF: a 30×10 page rotated 90° must
+     * come back taller than it is wide, proving rotation is applied on write.
+     */
+    @Test
+    void exportPlan_shouldApplyPageRotationToWrittenTiff(@TempDir Path tempDirectory) throws IOException {
+        PageImage page = new PageImage(1, PageImage.PageType.TIFF, "DOC-1");
+        page.setRotationDegrees(90);
+        page.setDisplayContent(createPngDataUri(30, 10));
+
+        TiffExportManager.ExportResult result = exportManager.exportPlan(
+                exportManager.createSinglePagePlan("Profile A", "BOX-1", List.of(page)),
+                tempDirectory);
+
+        BufferedImage exportedImage = ImageIO.read(result.writtenFiles().get(0).toFile());
+
+        assertAll(
+                () -> assertNotNull(exportedImage, "A TIFF file should have been written and be readable."),
+                () -> assertTrue(exportedImage.getHeight() > exportedImage.getWidth(),
+                        "A 30×10 page rotated 90° should be taller than it is wide.")
+        );
+    }
+
+    private String createPngDataUri(int width, int height) throws IOException {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", outputStream);
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(outputStream.toByteArray());
     }
 }

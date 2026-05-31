@@ -248,6 +248,41 @@ class AdminManagerTest {
         );
     }
 
+    @Test
+    void deleteProfileAuditLog_shouldRecordTheDeletedProfileSnapshot() {
+        ScanProfile profile = adminManager.createProfile(new AdminManager.ProfileInput(
+                "New Profile 2",
+                "Test Client",
+                "NewProfile2",
+                "Used for test scanning.",
+                "Active",
+                "{profileName}_{boxId}",
+                true,
+                "Start new document",
+                "Remove barcode page from final document",
+                "0 deg",
+                "Normal",
+                "Normal",
+                true,
+                ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF,
+                true));
+
+        adminManager.deleteProfile(profile.getId());
+
+        AuditLog log = adminManager.getAuditLogs().stream()
+                .filter(item -> "Deleted profile".equals(item.getAction()))
+                .findFirst()
+                .orElseThrow();
+
+        // A deleted-profile entry should snapshot what was removed: the state
+        // transition plus the old name/format collapsing to empty.
+        assertAll(
+                () -> assertTrue(hasChange(log, "Profile state", "Existing", "Deleted")),
+                () -> assertTrue(hasChange(log, "Profile name", "New Profile 2", "")),
+                () -> assertTrue(hasChange(log, "Export format", ScanProfile.EXPORT_FORMAT_MULTI_PAGE_TIFF, ""))
+        );
+    }
+
     // ---------- dashboard ----------
 
     @Test
